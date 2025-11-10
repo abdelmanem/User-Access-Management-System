@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static report_extras %}
 
 {% block title %}{{ title }}{% endblock %}
 
@@ -158,13 +158,13 @@
                                         <span class="badge badge-warning">{{ dept.pending_requests }}</span>
                                     </td>
                                     <td>
-                                        {% if dept.total_members > 0 %}
-                                            {% with ratio=dept.total_access|floatformat:1|div:dept.total_members %}
+                                        {% with ratio=dept.total_access|ratio:dept.total_members %}
+                                            {% if ratio %}
                                                 {{ ratio }} per user
-                                            {% endwith %}
-                                        {% else %}
-                                            0
-                                        {% endif %}
+                                            {% else %}
+                                                0
+                                            {% endif %}
+                                        {% endwith %}
                                     </td>
                                     <td>
                                         <a href="{% url 'department_detail' dept.id %}" class="btn btn-sm btn-info">
@@ -205,7 +205,7 @@
                                         <span class="badge badge-primary">{{ system.dept_access }}</span>
                                     </td>
                                     <td>
-                                        <a href="{% url 'system_access_assignments' system.id %}" class="btn btn-sm btn-info">
+                                        <a href="{% url 'access_management:system_access_assignments' system.id %}" class="btn btn-sm btn-info">
                                             <i class="fas fa-eye"></i> View Access
                                         </a>
                                     </td>
@@ -250,15 +250,11 @@
                                         <span class="badge badge-danger">{{ pattern.failed_access }}</span>
                                     </td>
                                     <td>
-                                        {% if pattern.total_access > 0 or pattern.failed_access > 0 %}
-                                            {% with total=pattern.total_access|add:pattern.failed_access %}
-                                                {% with rate=pattern.total_access|floatformat:2|div:total|mul:100 %}
-                                                    {{ rate }}%
-                                                {% endwith %}
+                                        {% with total=pattern.total_access|add:pattern.failed_access %}
+                                            {% with rate=pattern.total_access|percentage:total %}
+                                                {{ rate }}%
                                             {% endwith %}
-                                        {% else %}
-                                            0%
-                                        {% endif %}
+                                        {% endwith %}
                                     </td>
                                 </tr>
                                 {% endfor %}

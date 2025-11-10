@@ -157,7 +157,7 @@ class SystemAdmin(admin.ModelAdmin):
             count = obj.get_active_access_count()
             url = reverse('admin:access_management_usersystemaccess_changelist')
             return format_html(
-                '<a href="{}?system__id={}&status=approved" target="_blank">{} active users</a>',
+                '<a href="{}?system__id={}&status=Active" target="_blank">{} active users</a>',
                 url, obj.id, count
             )
         return "0 users"

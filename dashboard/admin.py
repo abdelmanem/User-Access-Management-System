@@ -67,26 +67,28 @@ class DashboardAdminSite(admin.AdminSite):
         return render(request, 'admin/reports.html', context)
     
     def get_dashboard_stats(self):
+        now = timezone.now()
         return {
             'total_users': CustomUser.objects.count(),
             'active_users': CustomUser.objects.filter(is_active=True).count(),
             'total_systems': System.objects.filter(is_active=True).count(),
             'total_departments': Department.objects.filter(is_active=True).count(),
             'active_access': UserSystemAccess.objects.filter(
-                status='approved',
-                access_start_date__lte=timezone.now(),
-                access_end_date__gte=timezone.now()
+                status='Active',
+                access_start_date__lte=now
+            ).filter(
+                Q(access_end_date__isnull=True) | Q(access_end_date__gte=now)
             ).count(),
-            'pending_requests': UserSystemAccess.objects.filter(status='pending').count(),
+            'pending_requests': UserSystemAccess.objects.filter(status='Pending').count(),
             'recent_logins': AccessHistory.objects.filter(
                 action='Login',
                 success=True,
-                accessed_at__gte=timezone.now() - timedelta(days=7)
+                accessed_at__gte=now - timedelta(days=7)
             ).count(),
             'failed_logins': AccessHistory.objects.filter(
                 action='Failed Login',
                 success=False,
-                accessed_at__gte=timezone.now() - timedelta(days=7)
+                accessed_at__gte=now - timedelta(days=7)
             ).count(),
         }
     
@@ -95,24 +97,26 @@ class DashboardAdminSite(admin.AdminSite):
     
     def get_pending_requests(self):
         return UserSystemAccess.objects.filter(
-            status='pending'
+            status='Pending'
         ).select_related('user', 'system', 'created_by').order_by('-created_at')[:10]
     
     def get_system_health(self):
         systems = System.objects.filter(is_active=True)
         health_data = []
+        now = timezone.now()
         for system in systems[:5]:  # Show top 5 systems
             active_users = UserSystemAccess.objects.filter(
                 system=system,
-                status='approved',
-                access_start_date__lte=timezone.now(),
-                access_end_date__gte=timezone.now()
+                status='Active',
+                access_start_date__lte=now
+            ).filter(
+                Q(access_end_date__isnull=True) | Q(access_end_date__gte=now)
             ).count()
             
             recent_failures = AccessHistory.objects.filter(
                 system=system,
                 success=False,
-                accessed_at__gte=timezone.now() - timedelta(days=7)
+                accessed_at__gte=now - timedelta(days=7)
             ).count()
             
             health_data.append({
@@ -158,28 +162,35 @@ class DashboardAdminSite(admin.AdminSite):
         return trends
     
     def get_system_usage(self):
+        now = timezone.now()
         return System.objects.filter(is_active=True).annotate(
-            user_count=Count('usersystemaccess', filter=Q(
-                usersystemaccess__status='approved',
-                usersystemaccess__access_start_date__lte=timezone.now(),
-                usersystemaccess__access_end_date__gte=timezone.now()
-            ))
+            user_count=Count(
+                'user_accesses',
+                filter=Q(
+                    user_accesses__status='Active',
+                    user_accesses__access_start_date__lte=now
+                ) & (
+                    Q(user_accesses__access_end_date__isnull=True) |
+                    Q(user_accesses__access_end_date__gte=now)
+                ),
+                distinct=True
+            )
         ).order_by('-user_count')[:10]
     
     def get_department_stats(self):
         return Department.objects.filter(is_active=True).annotate(
-            user_count=Count('customuser')
+            user_count=Count('department_members', distinct=True)
         ).order_by('-user_count')[:10]
     
     def get_security_metrics(self):
         return {
             'expired_access': UserSystemAccess.objects.filter(
-                access_end_date__lt=timezone.now(),
-                status='approved'
+                status='Active',
+                access_end_date__lt=timezone.now()
             ).count(),
             'upcoming_reviews': UserSystemAccess.objects.filter(
-                next_review_date__lte=timezone.now() + timedelta(days=7),
-                status='approved'
+                status='Approved',
+                next_review_date__lte=timezone.now() + timedelta(days=7)
             ).count(),
             'failed_logins_week': AccessHistory.objects.filter(
                 action='Failed Login',

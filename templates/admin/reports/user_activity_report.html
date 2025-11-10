@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static report_extras %}
 
 {% block title %}{{ title }}{% endblock %}
 
@@ -115,13 +115,9 @@
                                         Success Rate
                                     </div>
                                     <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                        {% if total_activity > 0 %}
-                                            {% with rate=successful_access|floatformat:2|div:total_activity|mul:100 %}
-                                                {{ rate }}%
-                                            {% endwith %}
-                                        {% else %}
-                                            0%
-                                        {% endif %}
+                                        {% with rate=successful_access|percentage:total_activity %}
+                                            {{ rate }}%
+                                        {% endwith %}
                                     </div>
                                 </div>
                                 <div class="col-auto">
@@ -301,13 +297,9 @@
                                         <span class="badge badge-danger">{{ usage.failed }}</span>
                                     </td>
                                     <td>
-                                        {% if usage.access_count > 0 %}
-                                            {% with rate=usage.successful|floatformat:2|div:usage.access_count|mul:100 %}
-                                                {{ rate }}%
-                                            {% endwith %}
-                                        {% else %}
-                                            0%
-                                        {% endif %}
+                                        {% with rate=usage.successful|percentage:usage.access_count %}
+                                            {{ rate }}%
+                                        {% endwith %}
                                     </td>
                                     <td>
                                         {% if usage.last_access %}
@@ -317,7 +309,7 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <a href="{% url 'system_access_assignments' usage.system__id %}" class="btn btn-sm btn-info">
+                                        <a href="{% url 'access_management:system_access_assignments' usage.system__id %}" class="btn btn-sm btn-info">
                                             <i class="fas fa-eye"></i> View System
                                         </a>
                                     </td>

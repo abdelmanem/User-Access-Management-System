@@ -133,11 +133,23 @@
                             <p>Click on any export link to download the data as a CSV file. The files will contain all records from the database.</p>
                             
                             <h5 class="text-success mt-4">Import Instructions</h5>
-                            <p>When importing data, ensure your CSV files follow the expected format:</p>
+                            <p>When importing data, ensure your CSV files include the required columns and use UTF-8 encoding:</p>
                             <ul>
-                                <li><strong>Users:</strong> username, email, first_name, last_name, is_active (true/false)</li>
-                                <li><strong>Departments:</strong> name, description, is_active (true/false)</li>
-                                <li><strong>Systems:</strong> name, description, owner, is_active (true/false)</li>
+                                <li>
+                                    <strong>Users (required):</strong>
+                                    username, email, first_name, last_name, employee_id, phone_primary, position.
+                                    Optional columns: employment_type, employment_status, department_code, is_active, join_date (YYYY-MM-DD), password.
+                                </li>
+                                <li>
+                                    <strong>Departments (required):</strong>
+                                    name, code, department_type.
+                                    Optional columns: description, is_active, parent_department_code, head_of_department_employee_id.
+                                </li>
+                                <li>
+                                    <strong>Systems (required):</strong>
+                                    name, code, system_type, criticality_level, environment_type.
+                                    Optional columns: description, requires_approval, is_active, is_monitored, system_owner_employee_id, technical_lead_employee_id.
+                                </li>
                             </ul>
                             <p class="text-warning"><i class="fas fa-exclamation-triangle"></i> <strong>Important:</strong> Importing will create new records. Existing records will not be updated.</p>
                         </div>

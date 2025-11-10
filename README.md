@@ -39,7 +39,7 @@ A comprehensive Django-based web application for managing user access to various
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd User Access Management System
+   cd User-Access-Management-System
    ```
 
 2. **Create and activate virtual environment**

@@ -151,8 +151,12 @@ def analytics_view(request):
     
     # Get department statistics
     department_stats = Department.objects.annotate(
-        member_count=Count('members'),
-        active_systems=Count('systems', filter=Q(systems__is_active=True))
+        member_count=Count('department_members', distinct=True),
+        active_systems=Count(
+            'department_members__system_accesses__system',
+            filter=Q(department_members__system_accesses__system__is_active=True),
+            distinct=True
+        )
     ).order_by('-member_count')[:10]
     
     # Get security metrics
@@ -276,10 +280,10 @@ def generate_user_access_report(request):
     
     # Get all users with their access statistics
     users = User.objects.annotate(
-        total_access=Count('usersystemaccess'),
-        active_access=Count('usersystemaccess', filter=Q(usersystemaccess__status='Active')),
-        pending_requests=Count('usersystemaccess', filter=Q(usersystemaccess__status='Pending')),
-        expired_access=Count('usersystemaccess', filter=Q(usersystemaccess__status='Expired'))
+        total_access=Count('system_accesses', distinct=True),
+        active_access=Count('system_accesses', filter=Q(system_accesses__status='Active'), distinct=True),
+        pending_requests=Count('system_accesses', filter=Q(system_accesses__status='Pending'), distinct=True),
+        expired_access=Count('system_accesses', filter=Q(system_accesses__status='Expired'), distinct=True)
     ).order_by('-total_access')
     
     access_summary = UserSystemAccess.objects.aggregate(
@@ -313,9 +317,13 @@ def generate_user_access_report(request):
     
     # Get department access distribution
     department_queryset = Department.objects.annotate(
-        total_users=Count('members'),
-        total_access=Count('members__usersystemaccess'),
-        active_access=Count('members__usersystemaccess', filter=Q(members__usersystemaccess__status='Active'))
+        total_users=Count('department_members', distinct=True),
+        total_access=Count('department_members__system_accesses', distinct=True),
+        active_access=Count(
+            'department_members__system_accesses',
+            filter=Q(department_members__system_accesses__status='Active'),
+            distinct=True
+        )
     ).order_by('-total_access')
     
     department_access = []
@@ -575,18 +583,32 @@ def generate_department_access_report(request):
     
     # Get department statistics
     departments = Department.objects.annotate(
-        total_members=Count('members'),
-        active_members=Count('members', filter=Q(members__is_active=True)),
-        total_access=Count('members__usersystemaccess'),
-        active_access=Count('members__usersystemaccess', filter=Q(members__usersystemaccess__status='Active')),
-        pending_requests=Count('members__usersystemaccess', filter=Q(members__usersystemaccess__status='Pending'))
+        total_members=Count('department_members', distinct=True),
+        active_members=Count(
+            'department_members',
+            filter=Q(department_members__is_active=True),
+            distinct=True
+        ),
+        total_access=Count('department_members__system_accesses', distinct=True),
+        active_access=Count(
+            'department_members__system_accesses',
+            filter=Q(department_members__system_accesses__status='Active'),
+            distinct=True
+        ),
+        pending_requests=Count(
+            'department_members__system_accesses',
+            filter=Q(department_members__system_accesses__status='Pending'),
+            distinct=True
+        )
     ).order_by('-total_members')
     
     # Get system access by department
     system_access_by_dept = System.objects.annotate(
-        dept_access=Count('usersystemaccess', filter=Q(
-            usersystemaccess__user__department__isnull=False
-        ))
+        dept_access=Count(
+            'user_accesses',
+            filter=Q(user_accesses__user__department__isnull=False),
+            distinct=True
+        )
     ).order_by('-dept_access')
     
     # Get access patterns by department
