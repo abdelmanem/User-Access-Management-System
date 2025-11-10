@@ -15,10 +15,10 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.urls import path, include
-from dashboard.admin import DashboardAdminSite
+from dashboard.admin import dashboard_admin_site
 
-# Create custom admin site instance
-admin_site = DashboardAdminSite(name='dashboard')
+# Use the shared admin site instance
+admin_site = dashboard_admin_site
 
 urlpatterns = [
     path('dashboard/', include('dashboard.urls')),

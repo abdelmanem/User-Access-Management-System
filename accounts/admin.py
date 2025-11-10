@@ -4,6 +4,7 @@ from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django import forms
 from django.utils.html import format_html
 from .models import CustomUser
+from dashboard.admin import dashboard_admin_site
 
 
 class CustomUserChangeForm(UserChangeForm):
@@ -17,7 +18,6 @@ class CustomUserCreationForm(UserCreationForm):
         fields = ('username', 'email', 'first_name', 'last_name')
 
 
-@admin.register(CustomUser)
 class CustomUserAdmin(BaseUserAdmin):
     form = CustomUserChangeForm
     add_form = CustomUserCreationForm
@@ -119,3 +119,11 @@ class CustomUserAdmin(BaseUserAdmin):
             obj.created_by = request.user
         obj.updated_by = request.user
         super().save_model(request, obj, form, change)
+
+
+# Unregister from default admin if registered, then register with custom admin site
+if admin.site.is_registered(CustomUser):
+    admin.site.unregister(CustomUser)
+
+# Register with the custom admin site
+dashboard_admin_site.register(CustomUser, CustomUserAdmin)

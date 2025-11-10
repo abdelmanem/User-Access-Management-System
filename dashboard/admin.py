@@ -233,5 +233,5 @@ class DashboardAdminSite(admin.AdminSite):
         ]
 
 
-# Create the custom admin site
-dashboard_admin_site = DashboardAdminSite(name='dashboard_admin')
+# Create the custom admin site instance
+dashboard_admin_site = DashboardAdminSite(name='dashboard')

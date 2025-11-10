@@ -257,7 +257,7 @@ def access_assignment_delete(request, pk):
 
 @login_required
 def user_access_assignments(request, user_id):
-    """View all access assignments for a specific user"""
+    """View and manage access assignments for a specific user"""
     user = get_object_or_404(CustomUser, pk=user_id)
     
     # Get filter parameters
@@ -268,15 +268,88 @@ def user_access_assignments(request, user_id):
     queryset = UserSystemAccess.objects.select_related('system').filter(user=user)
     
     # Apply filters
-    if status_filter:
-        queryset = queryset.filter(status=status_filter)
+    if status_filter and status_filter.lower() != 'all':
+        queryset = queryset.filter(status__iexact=status_filter)
     if system_filter:
         queryset = queryset.filter(system_id=system_filter)
+
+    if request.method == 'POST':
+        selected_ids = request.POST.getlist('selected_assignments')
+        action = request.POST.get('bulk_action')
+
+        if not selected_ids:
+            messages.error(request, 'Select at least one assignment to perform bulk actions.')
+            return redirect(request.get_full_path())
+
+        assignments = UserSystemAccess.objects.filter(pk__in=selected_ids, user=user)
+
+        if action == 'bulk_delete':
+            deleted = 0
+            for assignment in assignments:
+                AccessHistory.objects.create(
+                    user=assignment.user,
+                    system=assignment.system,
+                    action='Revoked',
+                    action_description=f'Access revoked in bulk by {request.user.full_name}',
+                    created_by=request.user
+                )
+                assignment.delete()
+                deleted += 1
+
+            messages.success(request, f'Successfully deleted {deleted} access assignment{"s" if deleted != 1 else ""}.')
+            return redirect(request.path_info)
+
+        if action == 'bulk_update':
+            new_status = request.POST.get('bulk_status', '')
+            new_priority = request.POST.get('bulk_priority', '')
+            new_access_type = request.POST.get('bulk_access_type', '')
+
+            if not any([new_status, new_priority, new_access_type]):
+                messages.error(request, 'Choose at least one field to update when performing a bulk edit.')
+                return redirect(request.get_full_path())
+
+            updated = 0
+            for assignment in assignments:
+                changes = []
+                if new_status:
+                    assignment.status = new_status
+                    changes.append(f"status → {new_status}")
+                if new_priority:
+                    assignment.priority = new_priority
+                    changes.append(f"priority → {new_priority}")
+                if new_access_type:
+                    assignment.access_type = new_access_type
+                    changes.append(f"access type → {new_access_type}")
+
+                if changes:
+                    assignment.updated_by = request.user
+                    assignment.save()
+                    AccessHistory.objects.create(
+                        user=assignment.user,
+                        system=assignment.system,
+                        user_system_access=assignment,
+                        action='Modified',
+                        action_description=f"Bulk update by {request.user.full_name}: {', '.join(changes)}",
+                        created_by=request.user
+                    )
+                    updated += 1
+
+            messages.success(request, f'Successfully updated {updated} access assignment{"s" if updated != 1 else ""}.')
+            return redirect(request.get_full_path())
+
+        messages.error(request, 'Unsupported bulk action.')
+        return redirect(request.get_full_path())
     
     # Pagination
-    paginator = Paginator(queryset, 25)
+    paginator = Paginator(queryset.order_by('-created_at'), 25)
     page_number = request.GET.get('page')
     access_assignments = paginator.get_page(page_number)
+    
+    # Summary metrics
+    total_assignments = queryset.count()
+    active_assignments = queryset.filter(status='Active').count()
+    pending_assignments = queryset.filter(status='Pending').count()
+    unique_systems = queryset.values('system_id').distinct().count()
     
     # Get user's systems for filter
     user_systems = System.objects.filter(
@@ -287,11 +360,19 @@ def user_access_assignments(request, user_id):
         'user': user,
         'access_assignments': access_assignments,
         'status_choices': UserSystemAccess.STATUS_CHOICES,
+        'priority_choices': UserSystemAccess.PRIORITY_CHOICES,
+        'access_type_choices': UserSystemAccess.ACCESS_TYPE_CHOICES,
         'systems': user_systems,
         'filters': {
             'status': status_filter,
             'system': system_filter,
-        }
+        },
+        'total_assignments': total_assignments,
+        'active_assignments': active_assignments,
+        'pending_assignments': pending_assignments,
+        'unique_systems': unique_systems,
+        'is_paginated': access_assignments.has_other_pages(),
+        'page_obj': access_assignments,
     }
     
     return render(request, 'access_management/user_access_assignments.html', context)
@@ -299,7 +380,7 @@ def user_access_assignments(request, user_id):
 
 @login_required
 def system_access_assignments(request, system_id):
-    """View all access assignments for a specific system"""
+    """View and manage access assignments for a specific system"""
     system = get_object_or_404(System, pk=system_id)
     
     # Get filter parameters
@@ -310,25 +391,109 @@ def system_access_assignments(request, system_id):
     queryset = UserSystemAccess.objects.select_related('user').filter(system=system)
     
     # Apply filters
-    if status_filter:
-        queryset = queryset.filter(status=status_filter)
+    if status_filter and status_filter.lower() != 'all':
+        queryset = queryset.filter(status__iexact=status_filter)
     if access_type_filter:
         queryset = queryset.filter(access_type=access_type_filter)
+
+    if request.method == 'POST':
+        selected_ids = request.POST.getlist('selected_assignments')
+        action = request.POST.get('bulk_action')
+
+        if not selected_ids:
+            messages.error(request, 'Select at least one assignment to perform bulk actions.')
+            return redirect(request.get_full_path())
+
+        assignments = UserSystemAccess.objects.filter(pk__in=selected_ids, system=system)
+
+        if action == 'bulk_delete':
+            deleted = 0
+            for assignment in assignments:
+                AccessHistory.objects.create(
+                    user=assignment.user,
+                    system=assignment.system,
+                    action='Revoked',
+                    action_description=f'Access revoked in bulk by {request.user.full_name}',
+                    created_by=request.user
+                )
+                assignment.delete()
+                deleted += 1
+
+            messages.success(request, f'Successfully deleted {deleted} access assignment{"s" if deleted != 1 else ""}.')
+            return redirect(request.path_info)
+
+        if action == 'bulk_update':
+            new_status = request.POST.get('bulk_status', '')
+            new_priority = request.POST.get('bulk_priority', '')
+            new_access_type = request.POST.get('bulk_access_type', '')
+
+            if not any([new_status, new_priority, new_access_type]):
+                messages.error(request, 'Choose at least one field to update when performing a bulk edit.')
+                return redirect(request.get_full_path())
+
+            updated = 0
+            for assignment in assignments:
+                changes = []
+                if new_status:
+                    assignment.status = new_status
+                    changes.append(f"status → {new_status}")
+                if new_priority:
+                    assignment.priority = new_priority
+                    changes.append(f"priority → {new_priority}")
+                if new_access_type:
+                    assignment.access_type = new_access_type
+                    changes.append(f"access type → {new_access_type}")
+
+                if changes:
+                    assignment.updated_by = request.user
+                    assignment.save()
+                    AccessHistory.objects.create(
+                        user=assignment.user,
+                        system=assignment.system,
+                        user_system_access=assignment,
+                        action='Modified',
+                        action_description=f"Bulk update by {request.user.full_name}: {', '.join(changes)}",
+                        created_by=request.user
+                    )
+                    updated += 1
+
+            messages.success(request, f'Successfully updated {updated} access assignment{"s" if updated != 1 else ""}.')
+            return redirect(request.get_full_path())
+
+        messages.error(request, 'Unsupported bulk action.')
+        return redirect(request.get_full_path())
     
     # Pagination
-    paginator = Paginator(queryset, 25)
+    paginator = Paginator(queryset.order_by('-created_at'), 25)
     page_number = request.GET.get('page')
     access_assignments = paginator.get_page(page_number)
+    
+    # Summary metrics
+    total_assignments = queryset.count()
+    active_assignments = queryset.filter(status='Active').count()
+    pending_assignments = queryset.filter(status='Pending').count()
+    unique_users = queryset.values('user_id').distinct().count()
     
     context = {
         'system': system,
         'access_assignments': access_assignments,
         'status_choices': UserSystemAccess.STATUS_CHOICES,
+        'priority_choices': UserSystemAccess.PRIORITY_CHOICES,
         'access_type_choices': UserSystemAccess.ACCESS_TYPE_CHOICES,
         'filters': {
             'status': status_filter,
             'access_type': access_type_filter,
-        }
+        },
+        'total_assignments': total_assignments,
+        'active_assignments': active_assignments,
+        'pending_assignments': pending_assignments,
+        'unique_users': unique_users,
+        'access_levels': {
+            (item['granted_access_level'] or 'Unspecified'): item['count']
+            for item in queryset.values('granted_access_level').annotate(count=Count('id')).order_by('granted_access_level')
+        },
+        'is_paginated': access_assignments.has_other_pages(),
+        'page_obj': access_assignments,
     }
     
     return render(request, 'access_management/system_access_assignments.html', context)
