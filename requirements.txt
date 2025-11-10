@@ -1,7 +1,7 @@
 Django==5.2.8
 django-extensions==3.2.3
 python-decouple==3.8
-Pillow==10.2.0
+Pillow==11.0.0
 django-crispy-forms==2.1
 crispy-bootstrap4==2022.1
 django-filter==23.5
