@@ -1,0 +1,308 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}Access History - User Access Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="card-title mb-0">
+                            <i class="fas fa-history"></i> Access History
+                        </h3>
+                        <div class="btn-group">
+                            <a href="{% url 'access_management:access_assignment_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Assignments
+                            </a>
+                            <button type="button" class="btn btn-outline-primary" onclick="exportHistory()">
+                                <i class="fas fa-download"></i> Export
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Filter Form -->
+                    <form method="get" class="mb-4">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label for="user" class="form-label">User</label>
+                                <select class="form-select" id="user" name="user">
+                                    <option value="">All Users</option>
+                                    {% for user in users %}
+                                        <option value="{{ user.pk }}" {% if request.GET.user == user.pk|stringformat:"s" %}selected{% endif %}>
+                                            {{ user.full_name }} ({{ user.username }})
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="system" class="form-label">System</label>
+                                <select class="form-select" id="system" name="system">
+                                    <option value="">All Systems</option>
+                                    {% for system in systems %}
+                                        <option value="{{ system.pk }}" {% if request.GET.system == system.pk|stringformat:"s" %}selected{% endif %}>
+                                            {{ system.name }} ({{ system.code }})
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="action" class="form-label">Action</label>
+                                <select class="form-select" id="action" name="action">
+                                    <option value="">All Actions</option>
+                                    {% for action in action_types %}
+                                        <option value="{{ action.0 }}" {% if request.GET.action == action.0 %}selected{% endif %}>
+                                            {{ action.1 }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="success" class="form-label">Status</label>
+                                <select class="form-select" id="success" name="success">
+                                    <option value="">All</option>
+                                    <option value="true" {% if request.GET.success == "true" %}selected{% endif %}>Success</option>
+                                    <option value="false" {% if request.GET.success == "false" %}selected{% endif %}>Failed</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="date_from" class="form-label">Date From</label>
+                                <input type="date" class="form-control" id="date_from" name="date_from" value="{{ request.GET.date_from }}">
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-4">
+                                <label for="search" class="form-label">Search</label>
+                                <input type="text" class="form-control" id="search" name="search" 
+                                       placeholder="Search by description or IP..." value="{{ request.GET.search }}">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="date_to" class="form-label">Date To</label>
+                                <input type="date" class="form-control" id="date_to" name="date_to" value="{{ request.GET.date_to }}">
+                            </div>
+                            <div class="col-md-6 d-flex align-items-end">
+                                <div class="btn-group">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-search"></i> Filter
+                                    </button>
+                                    <a href="{% url 'access_management:access_history_list' %}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-undo"></i> Reset
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- History Table -->
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Date & Time</th>
+                                    <th>User</th>
+                                    <th>System</th>
+                                    <th>Action</th>
+                                    <th>Description</th>
+                                    <th>Access Level</th>
+                                    <th>IP Address</th>
+                                    <th>Status</th>
+                                    <th>Duration</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for history in access_history %}
+                                <tr>
+                                    <td>
+                                        <small>{{ history.accessed_at|date:"Y-m-d" }}</small>
+                                        <br>{{ history.accessed_at|time:"H:i:s" }}
+                                    </td>
+                                    <td>
+                                        <strong>{{ history.user.full_name }}</strong>
+                                        <br><small class="text-muted">{{ history.user.username }}</small>
+                                    </td>
+                                    <td>
+                                        <strong>{{ history.system.name }}</strong>
+                                        <br><small class="text-muted">{{ history.system.code }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ history.get_action_color }}">
+                                            {{ history.action }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {{ history.action_description|default:"No description" }}
+                                        {% if history.error_message %}
+                                            <br><small class="text-danger">Error: {{ history.error_message|truncatewords:5 }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ history.access_level|default:"N/A" }}</span>
+                                    </td>
+                                    <td>
+                                        <small>{{ history.ip_address|default:"N/A" }}</small>
+                                    </td>
+                                    <td>
+                                        {% if history.success %}
+                                            <span class="badge bg-success">Success</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Failed</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if history.session_duration_minutes %}
+                                            {{ history.session_duration_minutes }} min
+                                        {% else %}
+                                            <span class="text-muted">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="10" class="text-center text-muted">
+                                        <i class="fas fa-history fa-3x mb-3"></i>
+                                        <p>No access history found matching your criteria.</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if is_paginated %}
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">First</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Previous</a>
+                                </li>
+                            {% endif %}
+
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Next</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Last</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+
+                    <!-- Statistics -->
+                    <div class="row mt-4">
+                        <div class="col-md-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Total Actions</h5>
+                                    <h3 class="display-4">{{ total_actions }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Successful</h5>
+                                    <h3 class="display-4">{{ successful_actions }}</h3>
+                                    <small>{{ success_rate }}% success rate</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-danger text-white">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Failed</h5>
+                                    <h3 class="display-4">{{ failed_actions }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Unique Users</h5>
+                                    <h3 class="display-4">{{ unique_users }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function exportHistory() {
+    // Get current filter parameters
+    const params = new URLSearchParams(window.location.search);
+    
+    // Create export URL
+    const exportUrl = `{% url 'access_management:access_history_export' %}?${params.toString()}`;
+    
+    // Open export in new window
+    window.open(exportUrl, '_blank');
+}
+
+// Auto-refresh functionality
+let autoRefresh = false;
+let refreshInterval;
+
+function toggleAutoRefresh() {
+    autoRefresh = !autoRefresh;
+    const button = document.getElementById('autoRefreshBtn');
+    
+    if (autoRefresh) {
+        button.innerHTML = '<i class="fas fa-pause"></i> Stop Auto-refresh';
+        button.classList.remove('btn-outline-primary');
+        button.classList.add('btn-primary');
+        
+        // Refresh every 30 seconds
+        refreshInterval = setInterval(function() {
+            location.reload();
+        }, 30000);
+    } else {
+        button.innerHTML = '<i class="fas fa-play"></i> Auto-refresh';
+        button.classList.remove('btn-primary');
+        button.classList.add('btn-outline-primary');
+        
+        clearInterval(refreshInterval);
+    }
+}
+
+// Add auto-refresh button to header
+document.addEventListener('DOMContentLoaded', function() {
+    const header = document.querySelector('.card-header .btn-group');
+    if (header) {
+        const autoRefreshBtn = document.createElement('button');
+        autoRefreshBtn.type = 'button';
+        autoRefreshBtn.id = 'autoRefreshBtn';
+        autoRefreshBtn.className = 'btn btn-outline-primary btn-sm';
+        autoRefreshBtn.innerHTML = '<i class="fas fa-play"></i> Auto-refresh';
+        autoRefreshBtn.onclick = toggleAutoRefresh;
+        
+        header.appendChild(autoRefreshBtn);
+    }
+});
+</script>
+{% endblock %}

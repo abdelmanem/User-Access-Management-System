@@ -1,0 +1,310 @@
+from django.db import models
+from django.contrib.auth.models import AbstractUser
+from django.core.validators import RegexValidator
+from django.utils import timezone
+from departments.models import Department
+import uuid
+
+
+class CustomUser(AbstractUser):
+    """
+    Custom User model with extended fields for employee management
+    Based on requirements document specifications
+    """
+    
+    # Employment Information
+    employee_id = models.CharField(
+        max_length=50,
+        unique=True,
+        help_text="Unique employee identifier (e.g., EMP001, 2024-001)"
+    )
+    
+    national_id = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        help_text="Government ID number (encrypted in database)"
+    )
+    
+    # Contact Information
+    phone_primary = models.CharField(
+        max_length=20,
+        validators=[
+            RegexValidator(
+                regex=r'^\+?1?\d{9,15}$',
+                message="Phone number must be entered in international format."
+            )
+        ],
+        help_text="Primary phone number (international format)"
+    )
+    
+    phone_secondary = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        validators=[
+            RegexValidator(
+                regex=r'^\+?1?\d{9,15}$',
+                message="Phone number must be entered in international format."
+            )
+        ],
+        help_text="Secondary phone number (optional)"
+    )
+    
+    personal_email = models.EmailField(
+        blank=True,
+        null=True,
+        help_text="Personal email address (different from work email)"
+    )
+    
+    # Position & Employment
+    EMPLOYMENT_TYPE_CHOICES = [
+        ('Full-time', 'Full-time'),
+        ('Part-time', 'Part-time'),
+        ('Contract', 'Contract'),
+        ('Intern', 'Intern'),
+        ('Consultant', 'Consultant'),
+    ]
+    
+    employment_type = models.CharField(
+        max_length=20,
+        choices=EMPLOYMENT_TYPE_CHOICES,
+        default='Full-time'
+    )
+    
+    EMPLOYMENT_STATUS_CHOICES = [
+        ('Active', 'Active'),
+        ('On Leave', 'On Leave'),
+        ('Suspended', 'Suspended'),
+        ('Terminated', 'Terminated'),
+    ]
+    
+    employment_status = models.CharField(
+        max_length=20,
+        choices=EMPLOYMENT_STATUS_CHOICES,
+        default='Active'
+    )
+    
+    position = models.CharField(
+        max_length=200,
+        help_text="Job title or position"
+    )
+    
+    job_title = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True,
+        help_text="Alternative field for job title"
+    )
+    
+    join_date = models.DateField(
+        default=timezone.now,
+        help_text="Employee start date"
+    )
+    
+    end_date = models.DateField(
+        blank=True,
+        null=True,
+        help_text="For terminated/resigned employees"
+    )
+    
+    probation_end_date = models.DateField(
+        blank=True,
+        null=True,
+        help_text="End of probation period"
+    )
+    
+    # Department & Hierarchy
+    department = models.ForeignKey(
+        Department,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='department_members'
+    )
+    
+    sub_department = models.ForeignKey(
+        Department,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='sub_department_members'
+    )
+    
+    reports_to = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='direct_reports'
+    )
+    
+    EMPLOYEE_LEVEL_CHOICES = [
+        ('Entry', 'Entry'),
+        ('Junior', 'Junior'),
+        ('Mid', 'Mid'),
+        ('Senior', 'Senior'),
+        ('Lead', 'Lead'),
+        ('Manager', 'Manager'),
+        ('Director', 'Director'),
+        ('Executive', 'Executive'),
+    ]
+    
+    employee_level = models.CharField(
+        max_length=20,
+        choices=EMPLOYEE_LEVEL_CHOICES,
+        default='Entry'
+    )
+    
+    # Location & Contact
+    office_location = models.CharField(
+        max_length=200,
+        default='Headquarters',
+        help_text="Office location (e.g., Headquarters, Branch A, Remote)"
+    )
+    
+    office_room = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        help_text="Room or desk number"
+    )
+    
+    work_address = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Full work address"
+    )
+    
+    city = models.CharField(max_length=100, blank=True, null=True)
+    state_province = models.CharField(max_length=100, blank=True, null=True)
+    country = models.CharField(max_length=100, blank=True, null=True)
+    postal_code = models.CharField(max_length=20, blank=True, null=True)
+    
+    # Additional Information
+    profile_photo = models.ImageField(
+        upload_to='profiles/',
+        blank=True,
+        null=True,
+        help_text="Profile photo (max 2MB, JPG/PNG formats)"
+    )
+    
+    emergency_contact_name = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True
+    )
+    
+    emergency_contact_phone = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True
+    )
+    
+    emergency_contact_relation = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True
+    )
+    
+    date_of_birth = models.DateField(
+        blank=True,
+        null=True,
+        help_text="For birthday reminders"
+    )
+    
+    notes = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Admin notes about the user (not visible to regular users)"
+    )
+    
+    # AD Integration Fields (Future)
+    ad_username = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text="Active Directory username"
+    )
+    
+    ad_synced = models.BooleanField(
+        default=False,
+        help_text="True when synced from Active Directory"
+    )
+    
+    last_ad_sync = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text="Timestamp of last AD sync"
+    )
+    
+    ad_distinguished_name = models.CharField(
+        max_length=500,
+        blank=True,
+        null=True,
+        help_text="Full AD DN path"
+    )
+    
+    # Metadata (Automatic)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='users_created'
+    )
+    updated_by = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='users_updated'
+    )
+    
+    class Meta:
+        verbose_name = 'User'
+        verbose_name_plural = 'Users'
+        ordering = ['first_name', 'last_name']
+    
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} ({self.employee_id})"
+    
+    @property
+    def full_name(self):
+        """Return the user's full name"""
+        return f"{self.first_name} {self.last_name}"
+    
+    @property
+    def is_active_employee(self):
+        """Check if user is an active employee"""
+        return self.employment_status == 'Active' and self.is_active
+    
+    def get_department_name(self):
+        """Return department name or None"""
+        return self.department.name if self.department else None
+    
+    def get_manager_name(self):
+        """Return manager's name or None"""
+        return self.reports_to.full_name if self.reports_to else None
+    
+    def get_active_access_count(self):
+        """Return count of active system access"""
+        from access_management.models import UserSystemAccess
+        return UserSystemAccess.objects.filter(
+            user=self,
+            access_status='Active'
+        ).count()
+    
+    def save(self, *args, **kwargs):
+        """Override save to handle validation and auto-fields"""
+        # Ensure email is set from username if not provided
+        if not self.email and self.username:
+            self.email = f"{self.username}@company.com"
+        
+        # Set position from job_title if position is empty
+        if not self.position and self.job_title:
+            self.position = self.job_title
+        
+        super().save(*args, **kwargs)

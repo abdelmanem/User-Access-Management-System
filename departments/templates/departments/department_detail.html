@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ department.name }} - Department Details{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Department Details: {{ department.name }}</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h4>Basic Information</h4>
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <th>Name:</th>
+                                        <td>{{ department.name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Code:</th>
+                                        <td>{{ department.code }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Description:</th>
+                                        <td>{{ department.description|default:"-" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Parent Department:</th>
+                                        <td>
+                                            {% if department.parent %}
+                                                <a href="{% url 'departments:department_detail' department.parent.pk %}">
+                                                    {{ department.parent.name }}
+                                                </a>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Head of Department:</th>
+                                        <td>
+                                            {% if department.head %}
+                                                <a href="{% url 'accounts:user_detail' department.head.pk %}">
+                                                    {{ department.head.get_full_name }}
+                                                </a>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Hierarchy Level:</th>
+                                        <td>
+                                            <span class="badge bg-info">{{ department.get_hierarchy_level }}</span>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <h4>Statistics</h4>
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <th>Total Members:</th>
+                                        <td>
+                                            <span class="badge bg-primary">{{ department.members.count }}</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Sub-departments:</th>
+                                        <td>
+                                            <span class="badge badge-secondary">{{ department.get_sub_departments.count }}</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Breadcrumb Path:</th>
+                                        <td>
+                                            {{ department.get_breadcrumb_path }}
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h4>Members</h4>
+                                <table class="table table-bordered table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Username</th>
+                                            <th>Position</th>
+                                            <th>Email</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for member in department.members.all %}
+                                        <tr>
+                                            <td>{{ member.get_full_name }}</td>
+                                            <td>{{ member.username }}</td>
+                                            <td>{{ member.position|default:"-" }}</td>
+                                            <td>{{ member.email }}</td>
+                                            <td>
+                                                {% if member.is_active %}
+                                                    <span class="badge bg-success">Active</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">Inactive</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <a href="{% url 'accounts:user_detail' member.pk %}" class="btn btn-info btn-sm">
+                                                    <i class="fas fa-eye"></i> View
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="6" class="text-center text-muted">No members found.</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <a href="{% url 'departments:department_update' department.pk %}" class="btn btn-warning">
+                                    <i class="fas fa-edit"></i> Edit Department
+                                </a>
+                                <a href="{% url 'departments:department_delete' department.pk %}" class="btn btn-danger">
+                                    <i class="fas fa-trash"></i> Delete Department
+                                </a>
+                                <a href="{% url 'departments:department_list' %}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Back to List
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

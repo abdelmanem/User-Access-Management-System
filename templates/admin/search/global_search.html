@@ -1,0 +1,58 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}Global Search Results{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Search Results for "{{ query }}"</h3>
+                </div>
+                <div class="card-body">
+                    {% if not show_results %}
+                        <p class="text-muted">Please enter a search query of at least 2 characters.</p>
+                    {% else %}
+                        <ul class="nav nav-tabs" id="search-results-tabs" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link {% if result_type == 'all' %}active{% endif %}" href="?q={{ query }}&type=all">All</a>
+                            </li>
+                            {% for key, value in results.items %}
+                                <li class="nav-item">
+                                    <a class="nav-link {% if result_type == key %}active{% endif %}" href="?q={{ query }}&type={{ key }}">{{ key|title }} ({{ value.total }})</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+
+                        <div class="tab-content" id="search-results-content">
+                            {% for key, value in results.items %}
+                                <div class="tab-pane fade {% if result_type == 'all' or result_type == key %}show active{% endif %}" id="{{ key }}-results" role="tabpanel">
+                                    <div class="pt-3">
+                                        <h4>{{ key|title }}</h4>
+                                        {% if value.items %}
+                                            <ul class="list-group">
+                                                {% for item in value.items %}
+                                                    <li class="list-group-item">
+                                                        <a href="{{ item.get_absolute_url }}">{{ item }}</a>
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
+                                            {% if value.total > value.count %}
+                                                <p class="mt-2"><a href="#">View all {{ value.total }} results</a></p>
+                                            {% endif %}
+                                        {% else %}
+                                            <p>No results found in {{ key|title }}.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

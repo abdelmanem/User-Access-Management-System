@@ -1,0 +1,477 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4 text-gray-800">{{ title }}</h1>
+            
+            <!-- Report Actions -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-primary">Report Actions</h6>
+                        <div>
+                            <a href="?export=csv" class="btn btn-success btn-sm">
+                                <i class="fas fa-download"></i> Export CSV
+                            </a>
+                            <a href="{% url 'reports' %}" class="btn btn-secondary btn-sm">
+                                <i class="fas fa-arrow-left"></i> Back to Reports
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Selection -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Select User</h6>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="form-inline">
+                        <div class="form-group mr-3">
+                            <label for="user_id" class="mr-2">User:</label>
+                            <select name="user_id" id="user_id" class="form-control">
+                                <option value="">-- Select User --</option>
+                                {% for user in users %}
+                                    <option value="{{ user.id }}" {% if selected_user_id == user.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ user.username }} - {{ user.first_name }} {{ user.last_name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Generate Report</button>
+                    </form>
+                </div>
+            </div>
+
+            {% if selected_user %}
+            <!-- User Summary -->
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-primary shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                        Total Activity
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_activity }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-success shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                        Successful Access
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ successful_access }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-danger shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                        Failed Access
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ failed_access }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-times-circle fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-info shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                        Success Rate
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                        {% if total_activity > 0 %}
+                                            {% with rate=successful_access|floatformat:2|div:total_activity|mul:100 %}
+                                                {{ rate }}%
+                                            {% endwith %}
+                                        {% else %}
+                                            0%
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-percentage fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Information -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">User Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Username:</strong></td>
+                                    <td>{{ selected_user.username }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Full Name:</strong></td>
+                                    <td>{{ selected_user.first_name }} {{ selected_user.last_name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Email:</strong></td>
+                                    <td>{{ selected_user.email }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Department:</strong></td>
+                                    <td>
+                                        {% if selected_user.department %}
+                                            {{ selected_user.department.name }}
+                                        {% else %}
+                                            <span class="text-muted">No Department</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Role:</strong></td>
+                                    <td>{{ selected_user.role|default:"User" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Account Status:</strong></td>
+                                    <td>
+                                        {% if selected_user.is_active %}
+                                            <span class="badge badge-success">Active</span>
+                                        {% else %}
+                                            <span class="badge badge-danger">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Last Login:</strong></td>
+                                    <td>
+                                        {% if selected_user.last_login %}
+                                            {{ selected_user.last_login|date:"M d, Y H:i" }}
+                                        {% else %}
+                                            <span class="text-muted">Never</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Date Joined:</strong></td>
+                                    <td>{{ selected_user.date_joined|date:"M d, Y" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Timeline -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Activity Timeline (Last 30 Days)</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="activityTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Action</th>
+                                    <th>System</th>
+                                    <th>Status</th>
+                                    <th>IP Address</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for activity in activity_timeline %}
+                                <tr>
+                                    <td>{{ activity.timestamp|date:"M d, Y H:i" }}</td>
+                                    <td>
+                                        <span class="badge badge-secondary">{{ activity.action }}</span>
+                                    </td>
+                                    <td>
+                                        {% if activity.system %}
+                                            {{ activity.system.name }}
+                                        {% else %}
+                                            <span class="text-muted">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if activity.status == 'success' %}
+                                            <span class="badge badge-success">Success</span>
+                                        {% elif activity.status == 'failed' %}
+                                            <span class="badge badge-danger">Failed</span>
+                                        {% else %}
+                                            <span class="badge badge-warning">{{ activity.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <code>{{ activity.ip_address }}</code>
+                                    </td>
+                                    <td>
+                                        {% if activity.reason %}
+                                            <span class="text-muted">{{ activity.reason|truncatewords:8 }}</span>
+                                        {% else %}
+                                            <span class="text-muted">No details</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">
+                                        <i class="fas fa-info-circle"></i> No activity found for this user
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Usage -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">System Usage</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>System</th>
+                                    <th>Access Count</th>
+                                    <th>Successful</th>
+                                    <th>Failed</th>
+                                    <th>Success Rate</th>
+                                    <th>Last Access</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for usage in system_usage %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ usage.system__name }}</strong>
+                                        <br><small class="text-muted">{{ usage.system__description|truncatewords:10 }}</small>
+                                    </td>
+                                    <td>{{ usage.access_count }}</td>
+                                    <td>
+                                        <span class="badge badge-success">{{ usage.successful }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-danger">{{ usage.failed }}</span>
+                                    </td>
+                                    <td>
+                                        {% if usage.access_count > 0 %}
+                                            {% with rate=usage.successful|floatformat:2|div:usage.access_count|mul:100 %}
+                                                {{ rate }}%
+                                            {% endwith %}
+                                        {% else %}
+                                            0%
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if usage.last_access %}
+                                            {{ usage.last_access|date:"M d, Y H:i" }}
+                                        {% else %}
+                                            <span class="text-muted">Never</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'system_access_assignments' usage.system__id %}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> View System
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted">
+                                        <i class="fas fa-info-circle"></i> No system usage found for this user
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Access Patterns -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Access Patterns</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Peak Usage Hours</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Hour</th>
+                                            <th>Access Count</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for hour in peak_hours %}
+                                        <tr>
+                                            <td>{{ hour.hour }}:00</td>
+                                            <td>{{ hour.count }}</td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="2" class="text-center text-muted">No data available</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Day of Week Distribution</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Day</th>
+                                            <th>Access Count</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for day in day_distribution %}
+                                        <tr>
+                                            <td>{{ day.day }}</td>
+                                            <td>{{ day.count }}</td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="2" class="text-center text-muted">No data available</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Events -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Security Events</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Event Type</th>
+                                    <th>Description</th>
+                                    <th>Severity</th>
+                                    <th>IP Address</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for event in security_events %}
+                                <tr>
+                                    <td>{{ event.timestamp|date:"M d, Y H:i" }}</td>
+                                    <td>
+                                        <span class="badge badge-secondary">{{ event.event_type }}</span>
+                                    </td>
+                                    <td>{{ event.description|truncatewords:10 }}</td>
+                                    <td>
+                                        {% if event.severity == 'high' %}
+                                            <span class="badge badge-danger">High</span>
+                                        {% elif event.severity == 'medium' %}
+                                            <span class="badge badge-warning">Medium</span>
+                                        {% else %}
+                                            <span class="badge badge-info">Low</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <code>{{ event.ip_address }}</code>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info" onclick="viewEventDetails({{ event.id }})">
+                                            <i class="fas fa-eye"></i> Details
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">
+                                        <i class="fas fa-info-circle"></i> No security events found for this user
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extrajs %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (window.jQuery && $.fn.DataTable) {
+        $('#activityTable').DataTable({
+            pageLength: 25,
+            order: [[0, 'desc']]
+        });
+    }
+});
+
+function viewEventDetails(eventId) {
+    window.alert('Viewing details for security event ID: ' + eventId);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<!-- Authentication Navigation -->
+{% if not user.is_authenticated %}
+<div class="auth-nav">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12 text-right">
+                <a href="{% url 'accounts:login' %}" class="btn btn-sm btn-outline-primary">Login</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+<div id="content-main">
+    <div class="container-fluid">
+        <div class="d-flex align-items-center mb-4">
+            <h1 class="h4 mb-0">{{ title }}</h1>
+        </div>
+
+        <!-- Info Cards -->
+        <div class="row">
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-uppercase text-muted small mb-1">Total Users</div>
+                                <div class="h4 fw-bold mb-0">{{ stats.total_users }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-users fa-2x text-primary"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-uppercase text-muted small mb-1">Active Systems</div>
+                                <div class="h4 fw-bold mb-0">{{ stats.active_systems }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-server fa-2x text-success"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-uppercase text-muted small mb-1">Pending Requests</div>
+                                <div class="h4 fw-bold mb-0">{{ stats.pending_requests }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-clipboard-list fa-2x text-info"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-uppercase text-muted small mb-1">Failed Logins (24h)</div>
+                                <div class="h4 fw-bold mb-0">{{ stats.failed_logins_24h }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="row">
+            <div class="col-lg-7">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 fw-bold text-primary">Access Trends (Last 7 Days)</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-area">
+                            <canvas id="access-trends-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 fw-bold text-primary">System Usage</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-pie pt-4">
+                            <canvas id="system-usage-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 fw-bold text-primary">Quick Actions</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-lg-4 col-md-6 mb-3">
+                                <a href="{% url 'data_import_export:home' %}" class="btn btn-primary btn-block">
+                                    <i class="fas fa-exchange-alt mr-2"></i>Data Import/Export
+                                </a>
+                            </div>
+                            <div class="col-lg-4 col-md-6 mb-3">
+                                <a href="{% url 'access_management:access_assignment_list' %}" class="btn btn-success btn-block">
+                                    <i class="fas fa-tasks mr-2"></i>Manage Access
+                                </a>
+                            </div>
+                            <div class="col-lg-4 col-md-6 mb-3">
+                                <a href="{% url 'admin:index' %}" class="btn btn-info btn-block">
+                                    <i class="fas fa-cog mr-2"></i>Admin Panel
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extrajs %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Access Trends Chart
+        var ctx_line = document.getElementById('access-trends-chart').getContext('2d');
+        var accessTrendsChart = new Chart(ctx_line, {
+            type: 'line',
+            data: {
+                labels: {{ access_trends.labels|safe }},
+                datasets: [{
+                    label: 'Access Events',
+                    data: {{ access_trends.data|safe }},
+                    backgroundColor: 'rgba(78, 115, 223, 0.05)',
+                    borderColor: 'rgba(78, 115, 223, 1)',
+                    pointRadius: 3,
+                    pointBackgroundColor: "rgba(78, 115, 223, 1)",
+                    pointBorderColor: "rgba(78, 115, 223, 1)",
+                    pointHoverRadius: 3,
+                    pointHoverBackgroundColor: "rgba(78, 115, 223, 1)",
+                    pointHoverBorderColor: "rgba(78, 115, 223, 1)",
+                    pointHitRadius: 10,
+                    pointBorderWidth: 2,
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // System Usage Chart
+        var ctx_pie = document.getElementById('system-usage-chart').getContext('2d');
+        var systemUsageChart = new Chart(ctx_pie, {
+            type: 'doughnut',
+            data: {
+                labels: {{ system_usage.labels|safe }},
+                datasets: [{
+                    data: {{ system_usage.data|safe }},
+                    backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'],
+                }],
+            },
+            options: {
+                maintainAspectRatio: false,
+                tooltips: {
+                    backgroundColor: "rgb(255,255,255)",
+                    bodyFontColor: "#858796",
+                    borderColor: '#dddfeb',
+                    borderWidth: 1,
+                    xPadding: 15,
+                    yPadding: 15,
+                    displayColors: false,
+                    caretPadding: 10,
+                },
+                legend: {
+                    display: true,
+                    position: 'bottom'
+                },
+                cutoutPercentage: 80,
+            },
+        });
+    });
+</script>
+{% endblock %}

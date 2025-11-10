@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ system.name }} - System Details{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">System Details: {{ system.name }}</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h4>Basic Information</h4>
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <th>Name:</th>
+                                        <td>{{ system.name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Code:</th>
+                                        <td>{{ system.code }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Description:</th>
+                                        <td>{{ system.description|default:"-" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>System Type:</th>
+                                        <td>
+                                            <span class="badge bg-info">{{ system.get_system_type_display }}</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Status:</th>
+                                        <td>
+                                            {% if system.status == 'active' %}
+                                                <span class="badge bg-success">Active</span>
+                                            {% elif system.status == 'maintenance' %}
+                                                <span class="badge bg-warning text-dark">Maintenance</span>
+                                            {% elif system.status == 'retired' %}
+                                                <span class="badge bg-secondary">Retired</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Inactive</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Criticality:</th>
+                                        <td>
+                                            {% if system.criticality == 'critical' %}
+                                                <span class="badge bg-danger">Critical</span>
+                                            {% elif system.criticality == 'high' %}
+                                                <span class="badge bg-warning text-dark">High</span>
+                                            {% elif system.criticality == 'medium' %}
+                                                <span class="badge bg-info">Medium</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Low</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <h4>Contact Information</h4>
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <th>Owner:</th>
+                                        <td>
+                                            {% if system.owner %}
+                                                <a href="{% url 'accounts:user_detail' system.owner.pk %}">
+                                                    {{ system.owner.get_full_name }}
+                                                </a>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Technical Lead:</th>
+                                        <td>
+                                            {% if system.lead %}
+                                                <a href="{% url 'accounts:user_detail' system.lead.pk %}">
+                                                    {{ system.lead.get_full_name }}
+                                                </a>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Support Email:</th>
+                                        <td>{{ system.support_email|default:"-" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Support Phone:</th>
+                                        <td>{{ system.support_phone|default:"-" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Documentation URL:</th>
+                                        <td>
+                                            {% if system.documentation_url %}
+                                                <a href="{{ system.documentation_url }}" target="_blank">
+                                                    {{ system.documentation_url }}
+                                                </a>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <h4>Technical Details</h4>
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <th>Version:</th>
+                                        <td>{{ system.version|default:"-" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>URL:</th>
+                                        <td>
+                                            {% if system.url %}
+                                                <a href="{{ system.url }}" target="_blank">
+                                                    {{ system.url }}
+                                                </a>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>IP Address:</th>
+                                        <td>{{ system.ip_address|default:"-" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Last Maintenance:</th>
+                                        <td>{{ system.last_maintenance|default:"-" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Next Maintenance:</th>
+                                        <td>{{ system.next_maintenance|default:"-" }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <h4>Statistics</h4>
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <th>Active Users:</th>
+                                        <td>
+                                            <span class="badge bg-primary">{{ system.get_active_user_count }}</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Uptime:</th>
+                                        <td>{{ system.get_uptime_display }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Created:</th>
+                                        <td>{{ system.created_at|date:"Y-m-d H:i" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Updated:</th>
+                                        <td>{{ system.updated_at|date:"Y-m-d H:i" }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <a href="{% url 'systems:system_update' system.pk %}" class="btn btn-warning">
+                                    <i class="fas fa-edit"></i> Edit System
+                                </a>
+                                <a href="{% url 'systems:system_delete' system.pk %}" class="btn btn-danger">
+                                    <i class="fas fa-trash"></i> Delete System
+                                </a>
+                                <a href="{% url 'systems:system_list' %}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Back to List
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

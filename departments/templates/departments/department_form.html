@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}Edit Department{% else %}Create Department{% endif %}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            {% if form.instance.pk %}
+                                Edit Department: {{ form.instance.name }}
+                            {% else %}
+                                Create New Department
+                            {% endif %}
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="id_name">Name</label>
+                                        <input type="text" class="form-control" id="id_name" name="name" 
+                                               value="{{ form.instance.name|default:'' }}" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="id_code">Code</label>
+                                        <input type="text" class="form-control" id="id_code" name="code" 
+                                               value="{{ form.instance.code|default:'' }}" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="id_description">Description</label>
+                                        <textarea class="form-control" id="id_description" name="description" 
+                                                  rows="3">{{ form.instance.description|default:'' }}</textarea>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="id_parent">Parent Department</label>
+                                        <select class="form-control" id="id_parent" name="parent">
+                                            <option value="">-- No Parent --</option>
+                                            {% for dept in departments %}
+                                                <option value="{{ dept.pk }}" 
+                                                        {% if form.instance.parent and form.instance.parent.pk == dept.pk %}selected{% endif %}>
+                                                    {{ dept.name }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="id_head">Head of Department</label>
+                                        <select class="form-control" id="id_head" name="head">
+                                            <option value="">-- Select Head --</option>
+                                            {% for user in users %}
+                                                <option value="{{ user.pk }}" 
+                                                        {% if form.instance.head and form.instance.head.pk == user.pk %}selected{% endif %}>
+                                                    {{ user.get_full_name }} ({{ user.username }})
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save"></i> Save Department
+                                    </button>
+                                    <a href="{% url 'departments:department_list' %}" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left"></i> Cancel
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

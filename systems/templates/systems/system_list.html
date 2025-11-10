@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}System List{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">System Management</h3>
+                        <div class="card-tools">
+                            <a href="{% url 'systems:system_create' %}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-plus"></i> Add New System
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Code</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Criticality</th>
+                                    <th>Owner</th>
+                                    <th>Lead</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for system in systems %}
+                                <tr>
+                                    <td>{{ system.name }}</td>
+                                    <td>{{ system.code }}</td>
+                                    <td>
+                                        <span class="badge bg-info">{{ system.get_system_type_display }}</span>
+                                    </td>
+                                    <td>
+                                        {% if system.status == 'active' %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% elif system.status == 'maintenance' %}
+                                            <span class="badge bg-warning text-dark">Maintenance</span>
+                                        {% elif system.status == 'retired' %}
+                                            <span class="badge bg-secondary">Retired</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if system.criticality == 'critical' %}
+                                            <span class="badge bg-danger">Critical</span>
+                                        {% elif system.criticality == 'high' %}
+                                            <span class="badge bg-warning text-dark">High</span>
+                                        {% elif system.criticality == 'medium' %}
+                                            <span class="badge bg-info">Medium</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Low</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if system.owner %}
+                                            {{ system.owner.get_full_name }}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if system.lead %}
+                                            {{ system.lead.get_full_name }}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'systems:system_detail' system.pk %}" class="btn btn-info btn-sm">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                        <a href="{% url 'systems:system_update' system.pk %}" class="btn btn-warning btn-sm">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </a>
+                                        <a href="{% url 'systems:system_delete' system.pk %}" class="btn btn-danger btn-sm">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted">No systems found.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

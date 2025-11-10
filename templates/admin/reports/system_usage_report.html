@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4 text-gray-800">{{ title }}</h1>
+            
+            <!-- Report Actions -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-primary">Report Actions</h6>
+                        <div>
+                            <a href="?export=csv" class="btn btn-success btn-sm">
+                                <i class="fas fa-download"></i> Export CSV
+                            </a>
+                            <a href="{% url 'reports' %}" class="btn btn-secondary btn-sm">
+                                <i class="fas fa-arrow-left"></i> Back to Reports
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-primary shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                        Total Systems
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ systems.count }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-server fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-success shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                        Total Access Events
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                        {% for system in systems %}
+                                            {% if forloop.first %}
+                                                {{ system.total_access }}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-key fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-warning shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                        Failed Access
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                        {% for system in systems %}
+                                            {% if forloop.first %}
+                                                {{ system.failed_access }}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-info shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                        Unique Users
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                        {% for system in systems %}
+                                            {% if forloop.first %}
+                                                {{ system.unique_users }}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-users fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Usage Table -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">System Usage Statistics</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>System</th>
+                                    <th>Total Access</th>
+                                    <th>Successful Access</th>
+                                    <th>Failed Access</th>
+                                    <th>Success Rate</th>
+                                    <th>Unique Users</th>
+                                    <th>Active Assignments</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for system in systems %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ system.name }}</strong>
+                                        <br><small class="text-muted">{{ system.description|truncatewords:10 }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary-subtle text-primary">{{ system.total_access }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success-subtle text-success">{{ system.successful_access }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-danger-subtle text-danger">{{ system.failed_access }}</span>
+                                    </td>
+                                    <td>
+                                        {{ system.success_rate }}%
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info-subtle text-info">{{ system.unique_users }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-warning-subtle text-warning">{{ system.active_assignments }}</span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'system_access_assignments' system.id %}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Peak Usage Hours -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Peak Usage Hours (Last 30 Days)</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Hour</th>
+                                    <th>Access Count</th>
+                                    <th>Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for hour in peak_hours %}
+                                <tr>
+                                    <td>{{ hour.hour }}:00 - {{ hour.hour }}:59</td>
+                                    <td>{{ hour.count }}</td>
+                                    <td>
+                                        <div class="progress">
+                                            <div class="progress-bar bg-primary" role="progressbar" 
+                                                 style="width: {{ hour.percentage }}%" 
+                                                 aria-valuenow="{{ hour.percentage }}" 
+                                                 aria-valuemin="0" 
+                                                 aria-valuemax="100">
+                                                {{ hour.percentage }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Access Patterns by Day of Week -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Access Patterns by Day of Week (Last 30 Days)</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Day</th>
+                                    <th>Access Count</th>
+                                    <th>Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for pattern in day_patterns %}
+                                <tr>
+                                    <td>{{ pattern.day_name }}</td>
+                                    <td>{{ pattern.count }}</td>
+                                    <td>
+                                        <div class="progress">
+                                            <div class="progress-bar bg-success" role="progressbar" 
+                                                 style="width: {{ pattern.percentage }}%" 
+                                                 aria-valuenow="{{ pattern.percentage }}" 
+                                                 aria-valuemin="0" 
+                                                 aria-valuemax="100">
+                                                {{ pattern.percentage }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extrajs %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (window.jQuery && $.fn.DataTable) {
+        $('#dataTable').DataTable({
+            pageLength: 25,
+            order: [[1, 'desc']]
+        });
+    }
+});
+</script>
+{% endblock %}

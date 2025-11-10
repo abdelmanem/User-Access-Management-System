@@ -1,0 +1,57 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}Advanced Search{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Advanced Search</h3>
+                </div>
+                <div class="card-body">
+                    <form id="advanced-search-form" method="get" action="{% url 'search:global_search' %}">
+                        <div class="form-group">
+                            <label for="search-query">Search Query</label>
+                            <input type="text" class="form-control" id="search-query" name="q" placeholder="Enter your search query">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="search-type">Search In</label>
+                            <select class="form-control" id="search-type" name="type">
+                                {% for type in search_types %}
+                                    <option value="{{ type.value }}">{{ type.label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div id="filter-options">
+                            <!-- Dynamic filter options will be loaded here based on the selected search type -->
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Search</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extrajs %}
+<script>
+    document.getElementById('search-type').addEventListener('change', function() {
+        var searchType = this.value;
+        var filterOptionsContainer = document.getElementById('filter-options');
+        filterOptionsContainer.innerHTML = ''; // Clear existing options
+
+        // Here you would typically make an AJAX call to get the filter options for the selected type
+        // For simplicity, we'll just show a placeholder
+        if (searchType !== 'all') {
+            filterOptionsContainer.innerHTML = `<p class="text-muted">Filter options for ${searchType} will be displayed here.</p>`;
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

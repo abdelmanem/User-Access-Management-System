@@ -1,0 +1,404 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4 text-gray-800">{{ title }}</h1>
+            
+            <!-- Report Actions -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-primary">Report Actions</h6>
+                        <div>
+                            <a href="?export=csv" class="btn btn-success btn-sm">
+                                <i class="fas fa-download"></i> Export CSV
+                            </a>
+                            <a href="{% url 'reports' %}" class="btn btn-secondary btn-sm">
+                                <i class="fas fa-arrow-left"></i> Back to Reports
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-danger shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                        Total Failed Access
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_failed }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-times-circle fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-warning shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                        Failed Today
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ failed_today }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-calendar-day fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-info shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                        Failure Rate (30d)
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                        {% if total_attempts > 0 %}
+                                            {% with rate=total_failed|floatformat:2|div:total_attempts|mul:100 %}
+                                                {{ rate }}%
+                                            {% endwith %}
+                                        {% else %}
+                                            0%
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-primary shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                        Unique Users Failed
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ unique_users_failed }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-user-times fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Failed Access Trends -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Failed Access Trends (Last 30 Days)</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Failed Access</th>
+                                    <th>Total Attempts</th>
+                                    <th>Failure Rate</th>
+                                    <th>Unique Users</th>
+                                    <th>Top Failure Reason</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for trend in trends %}
+                                <tr>
+                                    <td>{{ trend.date|date:"M d, Y" }}</td>
+                                    <td>
+                                        <span class="badge badge-danger">{{ trend.failed_count }}</span>
+                                    </td>
+                                    <td>{{ trend.total_attempts }}</td>
+                                    <td>
+                                        {% if trend.total_attempts > 0 %}
+                                            {% with rate=trend.failed_count|floatformat:2|div:trend.total_attempts|mul:100 %}
+                                                {{ rate }}%
+                                            {% endwith %}
+                                        {% else %}
+                                            0%
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ trend.unique_users }}</td>
+                                    <td>
+                                        {% if trend.top_reason %}
+                                            <span class="text-muted">{{ trend.top_reason|truncatewords:5 }}</span>
+                                        {% else %}
+                                            <span class="text-muted">No data</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Users with Failed Access -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Top Users with Failed Access</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Department</th>
+                                    <th>Failed Count</th>
+                                    <th>Last Failed</th>
+                                    <th>Most Common Reason</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in top_users %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ user.user__username }}</strong>
+                                        <br><small class="text-muted">{{ user.user__first_name }} {{ user.user__last_name }}</small>
+                                    </td>
+                                    <td>
+                                        {% if user.user__department__name %}
+                                            {{ user.user__department__name }}
+                                        {% else %}
+                                            <span class="text-muted">No Department</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-danger">{{ user.failed_count }}</span>
+                                    </td>
+                                    <td>
+                                        {% if user.last_failed %}
+                                            {{ user.last_failed|date:"M d, Y H:i" }}
+                                        {% else %}
+                                            <span class="text-muted">Never</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if user.most_common_reason %}
+                                            <span class="text-muted">{{ user.most_common_reason|truncatewords:5 }}</span>
+                                        {% else %}
+                                            <span class="text-muted">No data</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'user_access_assignments' user.user__id %}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> View User
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Failed Access by System -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Failed Access by System</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>System</th>
+                                    <th>Failed Count</th>
+                                    <th>Total Attempts</th>
+                                    <th>Failure Rate</th>
+                                    <th>Unique Users</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for system in failed_by_system %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ system.system__name }}</strong>
+                                        <br><small class="text-muted">{{ system.system__description|truncatewords:10 }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-danger">{{ system.failed_count }}</span>
+                                    </td>
+                                    <td>{{ system.total_attempts }}</td>
+                                    <td>
+                                        {% if system.total_attempts > 0 %}
+                                            {% with rate=system.failed_count|floatformat:2|div:system.total_attempts|mul:100 %}
+                                                {{ rate }}%
+                                            {% endwith %}
+                                        {% else %}
+                                            0%
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ system.unique_users }}</td>
+                                    <td>
+                                        <a href="{% url 'system_access_assignments' system.system__id %}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> View System
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Failed Access -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Failed Access (Last 24 Hours)</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>User</th>
+                                    <th>System</th>
+                                    <th>Failure Reason</th>
+                                    <th>IP Address</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for access in recent_failed %}
+                                <tr>
+                                    <td>{{ access.timestamp|date:"M d, Y H:i" }}</td>
+                                    <td>
+                                        <strong>{{ access.user.username }}</strong>
+                                        <br><small class="text-muted">{{ access.user.first_name }} {{ access.user.last_name }}</small>
+                                    </td>
+                                    <td>
+                                        {% if access.system %}
+                                            {{ access.system.name }}
+                                        {% else %}
+                                            <span class="text-muted">Unknown System</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="text-danger">{{ access.reason|truncatewords:10 }}</span>
+                                    </td>
+                                    <td>
+                                        <code>{{ access.ip_address }}</code>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'user_access_assignments' access.user.id %}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> View User
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">
+                                        <i class="fas fa-check-circle text-success"></i> No failed access attempts in the last 24 hours
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Failure Reasons Analysis -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Failure Reasons Analysis</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Failure Reason</th>
+                                    <th>Count</th>
+                                    <th>Percentage</th>
+                                    <th>Unique Users</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for reason in failure_reasons %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ reason.reason|truncatewords:8 }}</strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-danger">{{ reason.count }}</span>
+                                    </td>
+                                    <td>
+                                        {% if total_failed > 0 %}
+                                            {% with percentage=reason.count|floatformat:2|div:total_failed|mul:100 %}
+                                                {{ percentage }}%
+                                            {% endwith %}
+                                        {% else %}
+                                            0%
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ reason.unique_users }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info" onclick="viewReasonDetails('{{ reason.reason }}')">
+                                            <i class="fas fa-chart-bar"></i> Details
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extrajs %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (window.jQuery && $.fn.DataTable) {
+        $('#dataTable').DataTable({
+            pageLength: 25,
+            order: [[2, 'desc']]
+        });
+    }
+});
+
+function viewReasonDetails(reason) {
+    window.alert('Detailed analysis for: ' + reason);
+}
+</script>
+{% endblock %}

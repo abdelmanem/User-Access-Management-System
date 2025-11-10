@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if user %}Edit User{% else %}Create User{% endif %}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">{% if user %}Edit User{% else %}Create User{% endif %}</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            User management is currently handled through the admin interface.
+                            <a href="/admin/accounts/customuser/" class="alert-link">Click here to go to the admin interface</a>.
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <a href="{% url 'accounts:user_list' %}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Back to User List
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

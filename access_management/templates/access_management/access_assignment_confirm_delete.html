@@ -1,0 +1,216 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}Confirm Delete Access Assignment - User Access Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="card-title mb-0">
+                            <i class="fas fa-exclamation-triangle"></i> Confirm Delete Access Assignment
+                        </h3>
+                        <a href="{% url 'access_management:access_assignment_list' %}" class="btn btn-outline-light btn-sm">
+                            <i class="fas fa-arrow-left"></i> Back to List
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <h5><i class="fas fa-exclamation-triangle"></i> Warning!</h5>
+                        <p class="mb-0">You are about to delete this access assignment. This action cannot be undone.</p>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Access Assignment Details</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <th width="40%">User:</th>
+                                            <td>
+                                                <strong>{{ access_assignment.user.full_name }}</strong>
+                                                <br><small class="text-muted">{{ access_assignment.user.username }}</small>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>System:</th>
+                                            <td>
+                                                <strong>{{ access_assignment.system.name }}</strong>
+                                                <br><small class="text-muted">{{ access_assignment.system.code }}</small>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Access Type:</th>
+                                            <td>{{ access_assignment.access_type }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Status:</th>
+                                            <td>
+                                                <span class="badge bg-{{ access_assignment.get_status_color }}">
+                                                    {{ access_assignment.status }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <th width="40%">Priority:</th>
+                                            <td>
+                                                <span class="badge bg-{{ access_assignment.get_priority_color }}">
+                                                    {{ access_assignment.priority }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Request Date:</th>
+                                            <td>{{ access_assignment.request_date|date:"Y-m-d H:i" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Request Type:</th>
+                                            <td>{{ access_assignment.request_type }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Business Justification:</th>
+                                            <td>{{ access_assignment.business_justification|truncatewords:10 }}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Impact Analysis -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-warning">
+                            <h5 class="mb-0"><i class="fas fa-impact"></i> Impact of Deletion</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6><i class="fas fa-user"></i> User Impact</h6>
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-times text-danger"></i> User will lose access to {{ access_assignment.system.name }}</li>
+                                        <li><i class="fas fa-times text-danger"></i> All related access history will be preserved but marked as deleted</li>
+                                        {% if access_assignment.status == 'Approved' or access_assignment.status == 'Active' %}
+                                            <li><i class="fas fa-exclamation-triangle text-warning"></i> Active access will be immediately revoked</li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6><i class="fas fa-system"></i> System Impact</h6>
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-check text-success"></i> System configuration will remain unchanged</li>
+                                        <li><i class="fas fa-check text-success"></i> Other user access assignments will not be affected</li>
+                                        <li><i class="fas fa-info text-info"></i> Audit trail will record this deletion</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Confirmation Form -->
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">Confirmation Required</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input {% if form.errors %}is-invalid{% endif %}" 
+                                           type="checkbox" 
+                                           id="confirm_deletion" 
+                                           name="confirm_deletion" 
+                                           required>
+                                    <label class="form-check-label" for="confirm_deletion">
+                                        I understand that this action cannot be undone and will permanently delete this access assignment.
+                                    </label>
+                                    {% if form.confirm_deletion.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.confirm_deletion.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="deletion_reason" class="form-label">
+                                        Deletion Reason (Optional)
+                                    </label>
+                                    <textarea class="form-control {% if form.deletion_reason.errors %}is-invalid{% endif %}" 
+                                              id="deletion_reason" 
+                                              name="deletion_reason" 
+                                              rows="3" 
+                                              placeholder="Please provide a reason for deleting this access assignment..."></textarea>
+                                    {% if form.deletion_reason.errors %}
+                                        <div class="invalid-feedback">
+                                            {{ form.deletion_reason.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">
+                                        This information will be logged for audit purposes.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'access_management:access_assignment_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Delete Access Assignment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Form validation
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+
+// Confirmation checkbox handler
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmCheckbox = document.getElementById('confirm_deletion');
+    const submitButton = document.querySelector('button[type="submit"]');
+    
+    if (confirmCheckbox && submitButton) {
+        confirmCheckbox.addEventListener('change', function() {
+            submitButton.disabled = !this.checked;
+        });
+        
+        // Initially disable submit button
+        submitButton.disabled = !confirmCheckbox.checked;
+    }
+});
+</script>
+{% endblock %}

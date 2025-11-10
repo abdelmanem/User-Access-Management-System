@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Data Import/Export - Access Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4 text-gray-800">Data Import/Export</h1>
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="row">
+                <!-- Export Section -->
+                <div class="col-lg-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Export Data</h6>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted mb-4">Export your data to CSV files for backup or analysis.</p>
+                            
+                            <div class="list-group">
+                                <a href="{% url 'data_import_export:export_users' %}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h5 class="mb-1">Users</h5>
+                                        <i class="fas fa-download text-primary"></i>
+                                    </div>
+                                    <p class="mb-1">Export all user accounts</p>
+                                </a>
+                                
+                                <a href="{% url 'data_import_export:export_departments' %}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h5 class="mb-1">Departments</h5>
+                                        <i class="fas fa-download text-primary"></i>
+                                    </div>
+                                    <p class="mb-1">Export all departments</p>
+                                </a>
+                                
+                                <a href="{% url 'data_import_export:export_systems' %}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h5 class="mb-1">Systems</h5>
+                                        <i class="fas fa-download text-primary"></i>
+                                    </div>
+                                    <p class="mb-1">Export all systems</p>
+                                </a>
+                                
+                                <a href="{% url 'data_import_export:export_access_assignments' %}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h5 class="mb-1">Access Assignments</h5>
+                                        <i class="fas fa-download text-primary"></i>
+                                    </div>
+                                    <p class="mb-1">Export all access assignments</p>
+                                </a>
+                                
+                                <a href="{% url 'data_import_export:export_access_history' %}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h5 class="mb-1">Access History</h5>
+                                        <i class="fas fa-download text-primary"></i>
+                                    </div>
+                                    <p class="mb-1">Export all access history</p>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Import Section -->
+                <div class="col-lg-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-success">Import Data</h6>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted mb-4">Import data from CSV files to bulk create records.</p>
+                            
+                            <div class="row">
+                                <div class="col-12 mb-3">
+                                    <h5 class="text-primary">Import Users</h5>
+                                    <form method="post" enctype="multipart/form-data" action="{% url 'data_import_export:import_users' %}">
+                                        {% csrf_token %}
+                                        <div class="input-group">
+                                            <input type="file" class="form-control" id="usersFile" name="csv_file" accept=".csv" required>
+                                            <button class="btn btn-success" type="submit">Import</button>
+                                        </div>
+                                    </form>
+                                </div>
+                                
+                                <div class="col-12 mb-3">
+                                    <h5 class="text-primary">Import Departments</h5>
+                                    <form method="post" enctype="multipart/form-data" action="{% url 'data_import_export:import_departments' %}">
+                                        {% csrf_token %}
+                                        <div class="input-group">
+                                            <input type="file" class="form-control" id="departmentsFile" name="csv_file" accept=".csv" required>
+                                            <button class="btn btn-success" type="submit">Import</button>
+                                        </div>
+                                    </form>
+                                </div>
+                                
+                                <div class="col-12 mb-3">
+                                    <h5 class="text-primary">Import Systems</h5>
+                                    <form method="post" enctype="multipart/form-data" action="{% url 'data_import_export:import_systems' %}">
+                                        {% csrf_token %}
+                                        <div class="input-group">
+                                            <input type="file" class="form-control" id="systemsFile" name="csv_file" accept=".csv" required>
+                                            <button class="btn btn-success" type="submit">Import</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Instructions -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card shadow">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-info">Instructions</h6>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="text-primary">Export Instructions</h5>
+                            <p>Click on any export link to download the data as a CSV file. The files will contain all records from the database.</p>
+                            
+                            <h5 class="text-success mt-4">Import Instructions</h5>
+                            <p>When importing data, ensure your CSV files follow the expected format:</p>
+                            <ul>
+                                <li><strong>Users:</strong> username, email, first_name, last_name, is_active (true/false)</li>
+                                <li><strong>Departments:</strong> name, description, is_active (true/false)</li>
+                                <li><strong>Systems:</strong> name, description, owner, is_active (true/false)</li>
+                            </ul>
+                            <p class="text-warning"><i class="fas fa-exclamation-triangle"></i> <strong>Important:</strong> Importing will create new records. Existing records will not be updated.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- No extra JS needed for Bootstrap 5 file inputs -->
+{% endblock %}

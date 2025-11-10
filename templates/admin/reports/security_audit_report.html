@@ -1,0 +1,357 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4 text-gray-800">{{ title }}</h1>
+            
+            <!-- Report Actions -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-primary">Report Actions</h6>
+                        <div>
+                            <a href="?export=csv" class="btn btn-success btn-sm">
+                                <i class="fas fa-download"></i> Export CSV
+                            </a>
+                            <a href="{% url 'reports' %}" class="btn btn-secondary btn-sm">
+                                <i class="fas fa-arrow-left"></i> Back to Reports
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Events Summary -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Security Events Breakdown (Last 30 Days)</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Event Type</th>
+                                    <th>Count</th>
+                                    <th>Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for event in security_events %}
+                                <tr>
+                                    <td>
+                                        {% if event.action_type == 'LOGIN_FAILED' %}
+                                            <span class="badge badge-danger">Login Failed</span>
+                                        {% elif event.action_type == 'ACCESS_DENIED' %}
+                                            <span class="badge badge-warning">Access Denied</span>
+                                        {% elif event.action_type == 'PASSWORD_CHANGED' %}
+                                            <span class="badge badge-info">Password Changed</span>
+                                        {% elif event.action_type == 'ACCESS_REVOKED' %}
+                                            <span class="badge badge-dark">Access Revoked</span>
+                                        {% else %}
+                                            <span class="badge badge-secondary">{{ event.action_type }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ event.count }}</td>
+                                    <td>
+                                        {% with total_events=security_events|length %}
+                                            {% with percentage=event.count|floatformat:2|div:total_events|mul:100 %}
+                                                <div class="progress">
+                                                    <div class="progress-bar {% if event.action_type == 'LOGIN_FAILED' %}bg-danger{% elif event.action_type == 'ACCESS_DENIED' %}bg-warning{% else %}bg-info{% endif %}" 
+                                                         role="progressbar" 
+                                                         style="width: {{ percentage }}%" 
+                                                         aria-valuenow="{{ percentage }}" 
+                                                         aria-valuemin="0" 
+                                                         aria-valuemax="100">
+                                                        {{ percentage }}%
+                                                    </div>
+                                                </div>
+                                            {% endwith %}
+                                        {% endwith %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Failed Login Attempts -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-danger">Top Users with Failed Login Attempts</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Failure Count</th>
+                                    <th>Risk Level</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in failed_logins %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ user.user__first_name }} {{ user.user__last_name }}</strong>
+                                        <br><small class="text-muted">{{ user.user__username }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-danger">{{ user.failure_count }}</span>
+                                    </td>
+                                    <td>
+                                        {% if user.failure_count >= 10 %}
+                                            <span class="badge badge-danger">High Risk</span>
+                                        {% elif user.failure_count >= 5 %}
+                                            <span class="badge badge-warning">Medium Risk</span>
+                                        {% else %}
+                                            <span class="badge badge-info">Low Risk</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'user_access_assignments' user.user__id %}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> View Profile
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Suspicious IP Addresses -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-warning">Suspicious IP Addresses</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>IP Address</th>
+                                    <th>Failure Count</th>
+                                    <th>Unique Users Targeted</th>
+                                    <th>Risk Level</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ip in suspicious_ips %}
+                                <tr>
+                                    <td><strong>{{ ip.ip_address }}</strong></td>
+                                    <td>
+                                        <span class="badge badge-danger">{{ ip.failure_count }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-info">{{ ip.unique_users }}</span>
+                                    </td>
+                                    <td>
+                                        {% if ip.failure_count >= 20 %}
+                                            <span class="badge badge-danger">High Risk</span>
+                                        {% elif ip.failure_count >= 10 %}
+                                            <span class="badge badge-warning">Medium Risk</span>
+                                        {% else %}
+                                            <span class="badge badge-info">Low Risk</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Access Violations -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-danger">Recent Access Violations</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>User</th>
+                                    <th>System</th>
+                                    <th>Description</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for violation in access_violations %}
+                                <tr>
+                                    <td>{{ violation.timestamp|date:"Y-m-d H:i" }}</td>
+                                    <td>
+                                        <strong>{{ violation.user.first_name }} {{ violation.user.last_name }}</strong>
+                                        <br><small class="text-muted">{{ violation.user.username }}</small>
+                                    </td>
+                                    <td>
+                                        <strong>{{ violation.system.name }}</strong>
+                                        <br><small class="text-muted">{{ violation.system.description|truncatewords:5 }}</small>
+                                    </td>
+                                    <td>{{ violation.description|truncatewords:10 }}</td>
+                                    <td>
+                                        <a href="{% url 'user_access_assignments' violation.user.id %}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> View User
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Password Changes -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-info">Recent Password Changes</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>User</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for change in password_changes %}
+                                <tr>
+                                    <td>{{ change.timestamp|date:"Y-m-d H:i" }}</td>
+                                    <td>
+                                        <strong>{{ change.user.first_name }} {{ change.user.last_name }}</strong>
+                                        <br><small class="text-muted">{{ change.user.username }}</small>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'user_access_assignments' change.user.id %}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> View Profile
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Access Revocations -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-dark">Recent Access Revocations</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>User</th>
+                                    <th>System</th>
+                                    <th>Description</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for revocation in access_revocations %}
+                                <tr>
+                                    <td>{{ revocation.timestamp|date:"Y-m-d H:i" }}</td>
+                                    <td>
+                                        <strong>{{ revocation.user.first_name }} {{ revocation.user.last_name }}</strong>
+                                        <br><small class="text-muted">{{ revocation.user.username }}</small>
+                                    </td>
+                                    <td>
+                                        <strong>{{ revocation.system.name }}</strong>
+                                        <br><small class="text-muted">{{ revocation.system.description|truncatewords:5 }}</small>
+                                    </td>
+                                    <td>{{ revocation.description|truncatewords:10 }}</td>
+                                    <td>
+                                        <a href="{% url 'user_access_assignments' revocation.user.id %}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> View User
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Compliance Metrics -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Compliance Metrics</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title text-primary">{{ compliance_metrics.total_users_with_access }}</h5>
+                                    <p class="card-text">Users with Active Access</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title text-warning">{{ compliance_metrics.users_with_expired_access }}</h5>
+                                    <p class="card-text">Users with Expired Access</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title text-info">{{ compliance_metrics.pending_reviews }}</h5>
+                                    <p class="card-text">Pending Reviews</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title text-danger">{{ compliance_metrics.users_without_recent_activity }}</h5>
+                                    <p class="card-text">Users Without Recent Activity</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extrajs %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (window.jQuery && $.fn.DataTable) {
+        $('table').DataTable({
+            pageLength: 25,
+            order: [[1, 'desc']]
+        });
+    }
+});
+</script>
+{% endblock %}

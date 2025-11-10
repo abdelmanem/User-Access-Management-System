@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}User Detail{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">User Details</h3>
+                        <div class="card-tools">
+                            <a href="{% url 'accounts:user_update' user.id %}" class="btn btn-warning btn-sm">
+                                <i class="fas fa-edit"></i> Edit User
+                            </a>
+                            <a href="{% url 'accounts:user_delete' user.id %}" class="btn btn-danger btn-sm">
+                                <i class="fas fa-trash"></i> Delete User
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h4>Personal Information</h4>
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <th>Username:</th>
+                                        <td>{{ user.username }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Full Name:</th>
+                                        <td>{{ user.get_full_name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Email:</th>
+                                        <td>{{ user.email }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Department:</th>
+                                        <td>{{ user.department.name|default:"N/A" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Position:</th>
+                                        <td>{{ user.position|default:"N/A" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Status:</th>
+                                        <td>
+                                            {% if user.is_active %}
+                                                <span class="badge bg-success">Active</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Inactive</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <h4>Employment Information</h4>
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <th>Employee ID:</th>
+                                        <td>{{ user.employee_id|default:"N/A" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Employment Type:</th>
+                                        <td>{{ user.get_employment_type_display|default:"N/A" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Employment Status:</th>
+                                        <td>{{ user.get_employment_status_display|default:"N/A" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Join Date:</th>
+                                        <td>{{ user.join_date|date:"Y-m-d"|default:"N/A" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Reports To:</th>
+                                        <td>{{ user.reports_to.get_full_name|default:"N/A" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Phone:</th>
+                                        <td>{{ user.phone_primary|default:"N/A" }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <a href="{% url 'accounts:user_list' %}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Back to User List
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

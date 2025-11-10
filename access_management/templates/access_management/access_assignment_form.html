@@ -1,0 +1,482 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}Edit{% else %}Create{% endif %} Access Assignment - User Access Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="card-title mb-0">
+                            <i class="fas fa-key"></i> 
+                            {% if form.instance.pk %}Edit Access Assignment{% else %}Create New Access Assignment{% endif %}
+                        </h3>
+                        <div class="btn-group">
+                            <a href="{% url 'access_management:access_assignment_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to List
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Basic Information -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0"><i class="fas fa-info-circle"></i> Basic Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.user.id_for_label }}" class="form-label">
+                                                User <span class="text-danger">*</span>
+                                            </label>
+                                            <select class="form-select {% if form.user.errors %}is-invalid{% endif %}" 
+                                                    id="{{ form.user.id_for_label }}" name="user" required>
+                                                <option value="">Select User</option>
+                                                {% for choice in form.user.field.queryset %}
+                                                    <option value="{{ choice.pk }}" 
+                                                            {% if form.user.value == choice.pk %}selected{% endif %}>
+                                                        {{ choice.full_name }} ({{ choice.username }})
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                            {% if form.user.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.user.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.system.id_for_label }}" class="form-label">
+                                                System <span class="text-danger">*</span>
+                                            </label>
+                                            <select class="form-select {% if form.system.errors %}is-invalid{% endif %}" 
+                                                    id="{{ form.system.id_for_label }}" name="system" required>
+                                                <option value="">Select System</option>
+                                                {% for choice in form.system.field.queryset %}
+                                                    <option value="{{ choice.pk }}" 
+                                                            {% if form.system.value == choice.pk %}selected{% endif %}>
+                                                        {{ choice.name }} ({{ choice.code }})
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                            {% if form.system.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.system.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="{{ form.access_type.id_for_label }}" class="form-label">
+                                                Access Type <span class="text-danger">*</span>
+                                            </label>
+                                            <select class="form-select {% if form.access_type.errors %}is-invalid{% endif %}" 
+                                                    id="{{ form.access_type.id_for_label }}" name="access_type" required>
+                                                <option value="">Select Access Type</option>
+                                                {% for choice in form.access_type.field.choices %}
+                                                    <option value="{{ choice.0 }}" 
+                                                            {% if form.access_type.value == choice.0 %}selected{% endif %}>
+                                                        {{ choice.1 }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                            {% if form.access_type.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.access_type.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="{{ form.request_type.id_for_label }}" class="form-label">
+                                                Request Type <span class="text-danger">*</span>
+                                            </label>
+                                            <select class="form-select {% if form.request_type.errors %}is-invalid{% endif %}" 
+                                                    id="{{ form.request_type.id_for_label }}" name="request_type" required>
+                                                <option value="">Select Request Type</option>
+                                                {% for choice in form.request_type.field.choices %}
+                                                    <option value="{{ choice.0 }}" 
+                                                            {% if form.request_type.value == choice.0 %}selected{% endif %}>
+                                                        {{ choice.1 }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                            {% if form.request_type.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.request_type.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="{{ form.priority.id_for_label }}" class="form-label">
+                                                Priority <span class="text-danger">*</span>
+                                            </label>
+                                            <select class="form-select {% if form.priority.errors %}is-invalid{% endif %}" 
+                                                    id="{{ form.priority.id_for_label }}" name="priority" required>
+                                                <option value="">Select Priority</option>
+                                                {% for choice in form.priority.field.choices %}
+                                                    <option value="{{ choice.0 }}" 
+                                                            {% if form.priority.value == choice.0 %}selected{% endif %}>
+                                                        {{ choice.1 }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                            {% if form.priority.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.priority.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Access Details -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="mb-0"><i class="fas fa-cog"></i> Access Details</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.requested_access_duration.id_for_label }}" class="form-label">
+                                                Requested Access Duration (days)
+                                            </label>
+                                            <input type="number" class="form-control {% if form.requested_access_duration.errors %}is-invalid{% endif %}" 
+                                                   id="{{ form.requested_access_duration.id_for_label }}" 
+                                                   name="requested_access_duration" 
+                                                   value="{{ form.requested_access_duration.value|default:'' }}">
+                                            {% if form.requested_access_duration.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.requested_access_duration.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.granted_access_level.id_for_label }}" class="form-label">
+                                                Granted Access Level
+                                            </label>
+                                            <input type="text" class="form-control {% if form.granted_access_level.errors %}is-invalid{% endif %}" 
+                                                   id="{{ form.granted_access_level.id_for_label }}" 
+                                                   name="granted_access_level" 
+                                                   value="{{ form.granted_access_level.value|default:'' }}">
+                                            {% if form.granted_access_level.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.granted_access_level.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.access_start_date.id_for_label }}" class="form-label">
+                                                Access Start Date
+                                            </label>
+                                            <input type="datetime-local" class="form-control {% if form.access_start_date.errors %}is-invalid{% endif %}" 
+                                                   id="{{ form.access_start_date.id_for_label }}" 
+                                                   name="access_start_date" 
+                                                   value="{{ form.access_start_date.value|date:'Y-m-d\\TH:i' }}">
+                                            {% if form.access_start_date.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.access_start_date.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.access_end_date.id_for_label }}" class="form-label">
+                                                Access End Date
+                                            </label>
+                                            <input type="datetime-local" class="form-control {% if form.access_end_date.errors %}is-invalid{% endif %}" 
+                                                   id="{{ form.access_end_date.id_for_label }}" 
+                                                   name="access_end_date" 
+                                                   value="{{ form.access_end_date.value|date:'Y-m-d\\TH:i' }}">
+                                            {% if form.access_end_date.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.access_end_date.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.access_username.id_for_label }}" class="form-label">
+                                                Access Username
+                                            </label>
+                                            <input type="text" class="form-control {% if form.access_username.errors %}is-invalid{% endif %}" 
+                                                   id="{{ form.access_username.id_for_label }}" 
+                                                   name="access_username" 
+                                                   value="{{ form.access_username.value|default:'' }}">
+                                            {% if form.access_username.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.access_username.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.access_url.id_for_label }}" class="form-label">
+                                                Access URL
+                                            </label>
+                                            <input type="url" class="form-control {% if form.access_url.errors %}is-invalid{% endif %}" 
+                                                   id="{{ form.access_url.id_for_label }}" 
+                                                   name="access_url" 
+                                                   value="{{ form.access_url.value|default:'' }}">
+                                            {% if form.access_url.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.access_url.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Security & Compliance -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-warning text-dark">
+                                <h5 class="mb-0"><i class="fas fa-shield-alt"></i> Security & Compliance</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.security_clearance_required.id_for_label }}" class="form-label">
+                                                Security Clearance Required
+                                            </label>
+                                            <input type="text" class="form-control {% if form.security_clearance_required.errors %}is-invalid{% endif %}" 
+                                                   id="{{ form.security_clearance_required.id_for_label }}" 
+                                                   name="security_clearance_required" 
+                                                   value="{{ form.security_clearance_required.value|default:'' }}">
+                                            {% if form.security_clearance_required.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.security_clearance_required.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.data_access_level.id_for_label }}" class="form-label">
+                                                Data Access Level
+                                            </label>
+                                            <input type="text" class="form-control {% if form.data_access_level.errors %}is-invalid{% endif %}" 
+                                                   id="{{ form.data_access_level.id_for_label }}" 
+                                                   name="data_access_level" 
+                                                   value="{{ form.data_access_level.value|default:'' }}">
+                                            {% if form.data_access_level.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.data_access_level.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.risk_assessment_score.id_for_label }}" class="form-label">
+                                                Risk Assessment Score (1-10)
+                                            </label>
+                                            <input type="number" class="form-control {% if form.risk_assessment_score.errors %}is-invalid{% endif %}" 
+                                                   id="{{ form.risk_assessment_score.id_for_label }}" 
+                                                   name="risk_assessment_score" 
+                                                   min="1" max="10"
+                                                   value="{{ form.risk_assessment_score.value|default:'' }}">
+                                            {% if form.risk_assessment_score.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.risk_assessment_score.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.review_frequency_days.id_for_label }}" class="form-label">
+                                                Review Frequency (days)
+                                            </label>
+                                            <input type="number" class="form-control {% if form.review_frequency_days.errors %}is-invalid{% endif %}" 
+                                                   id="{{ form.review_frequency_days.id_for_label }}" 
+                                                   name="review_frequency_days" 
+                                                   value="{{ form.review_frequency_days.value|default:'' }}">
+                                            {% if form.review_frequency_days.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.review_frequency_days.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Business Justification -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-secondary text-white">
+                                <h5 class="mb-0"><i class="fas fa-file-alt"></i> Business Justification</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="{{ form.business_justification.id_for_label }}" class="form-label">
+                                        Business Justification <span class="text-danger">*</span>
+                                    </label>
+                                    <textarea class="form-control {% if form.business_justification.errors %}is-invalid{% endif %}" 
+                                              id="{{ form.business_justification.id_for_label }}" 
+                                              name="business_justification" 
+                                              rows="4" required>{{ form.business_justification.value|default:'' }}</textarea>
+                                    {% if form.business_justification.errors %}
+                                        <div class="invalid-feedback">
+                                            {{ form.business_justification.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Additional Information -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-secondary text-white">
+                                <h5 class="mb-0"><i class="fas fa-plus-circle"></i> Additional Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="{{ form.technical_requirements.id_for_label }}" class="form-label">
+                                        Technical Requirements
+                                    </label>
+                                    <textarea class="form-control {% if form.technical_requirements.errors %}is-invalid{% endif %}" 
+                                              id="{{ form.technical_requirements.id_for_label }}" 
+                                              name="technical_requirements" 
+                                              rows="3">{{ form.technical_requirements.value|default:'' }}</textarea>
+                                    {% if form.technical_requirements.errors %}
+                                        <div class="invalid-feedback">
+                                            {{ form.technical_requirements.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="mb-3">
+                                    <label for="{{ form.special_instructions.id_for_label }}" class="form-label">
+                                        Special Instructions
+                                    </label>
+                                    <textarea class="form-control {% if form.special_instructions.errors %}is-invalid{% endif %}" 
+                                              id="{{ form.special_instructions.id_for_label }}" 
+                                              name="special_instructions" 
+                                              rows="3">{{ form.special_instructions.value|default:'' }}</textarea>
+                                    {% if form.special_instructions.errors %}
+                                        <div class="invalid-feedback">
+                                            {{ form.special_instructions.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="mb-3">
+                                    <label for="{{ form.compliance_requirements.id_for_label }}" class="form-label">
+                                        Compliance Requirements
+                                    </label>
+                                    <textarea class="form-control {% if form.compliance_requirements.errors %}is-invalid{% endif %}" 
+                                              id="{{ form.compliance_requirements.id_for_label }}" 
+                                              name="compliance_requirements" 
+                                              rows="3">{{ form.compliance_requirements.value|default:'' }}</textarea>
+                                    {% if form.compliance_requirements.errors %}
+                                        <div class="invalid-feedback">
+                                            {{ form.compliance_requirements.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Buttons -->
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'access_management:access_assignment_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> 
+                                {% if form.instance.pk %}Update{% else %}Create{% endif %} Access Assignment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extrajs %}
+<script>
+// Form validation
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+
+// Dynamic form behavior
+document.addEventListener('DOMContentLoaded', function() {
+    const accessTypeSelect = document.querySelector('select[name="access_type"]');
+    const systemSelect = document.querySelector('select[name="system"]');
+    const accessEndDateInput = document.querySelector('input[name="access_end_date"]');
+    const requestedDurationInput = document.querySelector('input[name="requested_access_duration"]');
+
+    // Auto-calculate end date based on duration
+    if (requestedDurationInput && accessEndDateInput) {
+        requestedDurationInput.addEventListener('change', function() {
+            const duration = parseInt(this.value);
+            if (duration && duration > 0) {
+                const startDate = new Date();
+                const endDate = new Date(startDate.getTime() + (duration * 24 * 60 * 60 * 1000));
+                accessEndDateInput.value = endDate.toISOString().slice(0, 16);
+            }
+        });
+    }
+
+    // System-specific access level suggestions
+    if (systemSelect) {
+        systemSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption.value) {
+                // You could fetch system-specific access levels here
+                console.log('System selected:', selectedOption.text);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

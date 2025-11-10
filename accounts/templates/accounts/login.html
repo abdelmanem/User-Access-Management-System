@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Login - User Access Management System{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-sm-10 col-md-8 col-lg-5">
+                <div class="card shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="text-center mb-4">
+                            <h1 class="h4 mb-1">User Access Management</h1>
+                            <p class="text-muted mb-0">Please sign in to continue</p>
+                        </div>
+
+                        {% if form.errors %}
+                        <div class="alert alert-danger" role="alert">
+                            Your username and password didn't match. Please try again.
+                        </div>
+                        {% endif %}
+
+                        {% if next %}
+                        <div class="alert alert-info" role="alert">
+                            Please login to access this page.
+                        </div>
+                        {% endif %}
+
+                        <form method="post" action="{% url 'accounts:login' %}" novalidate>
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ next }}">
+
+                            <div class="mb-3">
+                                <label class="form-label" for="{{ form.username.id_for_label }}">Username</label>
+                                <input type="text" name="{{ form.username.name }}" id="{{ form.username.id_for_label }}" class="form-control" required autofocus />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="{{ form.password.id_for_label }}">Password</label>
+                                <input type="password" name="{{ form.password.name }}" id="{{ form.password.id_for_label }}" class="form-control" required />
+                            </div>
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fa-solid fa-right-to-bracket me-1"></i>
+                                    Sign In
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="text-center mt-3">
+                            <small class="text-muted">Forgot your password? Contact your administrator.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

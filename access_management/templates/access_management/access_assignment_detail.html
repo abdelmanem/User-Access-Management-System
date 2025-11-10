@@ -1,0 +1,494 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}Access Assignment Details - User Access Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="card-title mb-0">
+                            <i class="fas fa-key"></i> Access Assignment Details
+                        </h3>
+                        <div class="btn-group">
+                            <a href="{% url 'access_management:access_assignment_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to List
+                            </a>
+                            <a href="{% url 'access_management:access_assignment_update' access_assignment.pk %}" class="btn btn-outline-primary">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            {% if access_assignment.status == 'Pending' %}
+                                <button type="button" class="btn btn-outline-success" onclick="approveAccess()">
+                                    <i class="fas fa-check"></i> Approve
+                                </button>
+                                <button type="button" class="btn btn-outline-danger" onclick="rejectAccess()">
+                                    <i class="fas fa-times"></i> Reject
+                                </button>
+                            {% endif %}
+                            <a href="{% url 'access_management:access_assignment_delete' access_assignment.pk %}" class="btn btn-outline-danger">
+                                <i class="fas fa-trash"></i> Delete
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Basic Information -->
+                        <div class="col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Basic Information</h5>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <th width="30%">User:</th>
+                                            <td>
+                                                <strong>{{ access_assignment.user.full_name }}</strong>
+                                                <br><small class="text-muted">{{ access_assignment.user.username }}</small>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>System:</th>
+                                            <td>
+                                                <strong>{{ access_assignment.system.name }}</strong>
+                                                <br><small class="text-muted">{{ access_assignment.system.code }}</small>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Access Type:</th>
+                                            <td>{{ access_assignment.access_type }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Status:</th>
+                                            <td>
+                                                <span class="badge bg-{{ access_assignment.get_status_color }}">
+                                                    {{ access_assignment.status }}
+                                                </span>
+                                                {% if access_assignment.is_expired %}
+                                                    <span class="badge bg-dark">Expired</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Priority:</th>
+                                            <td>
+                                                <span class="badge bg-{{ access_assignment.get_priority_color }}">
+                                                    {{ access_assignment.priority }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Request Type:</th>
+                                            <td>{{ access_assignment.request_type }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Request Date:</th>
+                                            <td>{{ access_assignment.request_date|date:"Y-m-d H:i" }}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Approval Information -->
+                        <div class="col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-header bg-success text-white">
+                                    <h5 class="mb-0"><i class="fas fa-check-circle"></i> Approval Information</h5>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <th width="30%">Approved By:</th>
+                                            <td>
+                                                {% if access_assignment.approved_by %}
+                                                    <strong>{{ access_assignment.approved_by.full_name }}</strong>
+                                                    <br><small class="text-muted">{{ access_assignment.approved_by.username }}</small>
+                                                {% else %}
+                                                    <span class="text-muted">Not approved yet</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Approval Date:</th>
+                                            <td>
+                                                {% if access_assignment.approval_date %}
+                                                    {{ access_assignment.approval_date|date:"Y-m-d H:i" }}
+                                                {% else %}
+                                                    <span class="text-muted">Not approved yet</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Approval Comments:</th>
+                                            <td>
+                                                {% if access_assignment.approval_comments %}
+                                                    {{ access_assignment.approval_comments }}
+                                                {% else %}
+                                                    <span class="text-muted">No comments</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Requested By:</th>
+                                            <td>
+                                                {% if access_assignment.requested_by %}
+                                                    <strong>{{ access_assignment.requested_by.full_name }}</strong>
+                                                    <br><small class="text-muted">{{ access_assignment.requested_by.username }}</small>
+                                                {% else %}
+                                                    <span class="text-muted">Self-requested</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% if access_assignment.rejection_reason %}
+                                        <tr>
+                                            <th>Rejection Reason:</th>
+                                            <td class="text-danger">{{ access_assignment.rejection_reason }}</td>
+                                        </tr>
+                                        {% endif %}
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Access Details -->
+                        <div class="col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-header bg-info text-white">
+                                    <h5 class="mb-0"><i class="fas fa-cog"></i> Access Details</h5>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <th width="30%">Access Duration:</th>
+                                            <td>
+                                                {% if access_assignment.requested_access_duration %}
+                                                    {{ access_assignment.requested_access_duration }} days
+                                                {% else %}
+                                                    <span class="text-muted">Not specified</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Access Start Date:</th>
+                                            <td>
+                                                {% if access_assignment.access_start_date %}
+                                                    {{ access_assignment.access_start_date|date:"Y-m-d H:i" }}
+                                                {% else %}
+                                                    <span class="text-muted">Immediate</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Access End Date:</th>
+                                            <td>
+                                                {% if access_assignment.access_end_date %}
+                                                    {{ access_assignment.access_end_date|date:"Y-m-d H:i" }}
+                                                    {% if access_assignment.days_until_expiration %}
+                                                        <br><small class="text-warning">Expires in {{ access_assignment.days_until_expiration }} days</small>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="text-muted">No expiration</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Granted Access Level:</th>
+                                            <td>
+                                                {% if access_assignment.granted_access_level %}
+                                                    {{ access_assignment.granted_access_level }}
+                                                {% else %}
+                                                    <span class="text-muted">Not specified</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Access Username:</th>
+                                            <td>
+                                                {% if access_assignment.access_username %}
+                                                    {{ access_assignment.access_username }}
+                                                {% else %}
+                                                    <span class="text-muted">Not specified</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Access URL:</th>
+                                            <td>
+                                                {% if access_assignment.access_url %}
+                                                    <a href="{{ access_assignment.access_url }}" target="_blank">{{ access_assignment.access_url }}</a>
+                                                {% else %}
+                                                    <span class="text-muted">Not specified</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Security & Compliance -->
+                        <div class="col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-header bg-warning text-dark">
+                                    <h5 class="mb-0"><i class="fas fa-shield-alt"></i> Security & Compliance</h5>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <th width="30%">Security Clearance:</th>
+                                            <td>
+                                                {% if access_assignment.security_clearance_required %}
+                                                    {{ access_assignment.security_clearance_required }}
+                                                {% else %}
+                                                    <span class="text-muted">Not specified</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Data Access Level:</th>
+                                            <td>
+                                                {% if access_assignment.data_access_level %}
+                                                    {{ access_assignment.data_access_level }}
+                                                {% else %}
+                                                    <span class="text-muted">Not specified</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Risk Assessment Score:</th>
+                                            <td>
+                                                {% if access_assignment.risk_assessment_score %}
+                                                    <span class="badge bg-{% if access_assignment.risk_assessment_score >= 8 %}danger{% elif access_assignment.risk_assessment_score >= 6 %}warning{% else %}success{% endif %}">
+                                                        {{ access_assignment.risk_assessment_score }}/10
+                                                    </span>
+                                                {% else %}
+                                                    <span class="text-muted">Not assessed</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Last Review Date:</th>
+                                            <td>
+                                                {% if access_assignment.last_review_date %}
+                                                    {{ access_assignment.last_review_date|date:"Y-m-d" }}
+                                                {% else %}
+                                                    <span class="text-muted">Not reviewed</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Next Review Date:</th>
+                                            <td>
+                                                {% if access_assignment.next_review_date %}
+                                                    {{ access_assignment.next_review_date|date:"Y-m-d" }}
+                                                    {% if access_assignment.is_due_for_review %}
+                                                        <span class="badge bg-danger">Due for review</span>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="text-muted">Not scheduled</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Review Frequency:</th>
+                                            <td>
+                                                {% if access_assignment.review_frequency_days %}
+                                                    Every {{ access_assignment.review_frequency_days }} days
+                                                {% else %}
+                                                    <span class="text-muted">Not specified</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Business Justification -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card mb-4">
+                                <div class="card-header bg-secondary text-white">
+                                    <h5 class="mb-0"><i class="fas fa-file-alt"></i> Business Justification</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p>{{ access_assignment.business_justification }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Technical Requirements -->
+                    {% if access_assignment.technical_requirements %}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card mb-4">
+                                <div class="card-header bg-secondary text-white">
+                                    <h5 class="mb-0"><i class="fas fa-tools"></i> Technical Requirements</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p>{{ access_assignment.technical_requirements }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Special Instructions -->
+                    {% if access_assignment.special_instructions %}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card mb-4">
+                                <div class="card-header bg-secondary text-white">
+                                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Special Instructions</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p>{{ access_assignment.special_instructions }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Compliance Requirements -->
+                    {% if access_assignment.compliance_requirements %}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card mb-4">
+                                <div class="card-header bg-secondary text-white">
+                                    <h5 class="mb-0"><i class="fas fa-gavel"></i> Compliance Requirements</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p>{{ access_assignment.compliance_requirements }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Access History -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header bg-dark text-white">
+                                    <h5 class="mb-0"><i class="fas fa-history"></i> Recent Access History</h5>
+                                </div>
+                                <div class="card-body">
+                                    {% if access_history %}
+                                    <div class="table-responsive">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Date & Time</th>
+                                                    <th>Action</th>
+                                                    <th>Description</th>
+                                                    <th>Success</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for history in access_history %}
+                                                <tr>
+                                                    <td>{{ history.accessed_at|date:"Y-m-d H:i" }}</td>
+                                                    <td>
+                                                        <span class="badge bg-{{ history.get_action_color }}">
+                                                            {{ history.action }}
+                                                        </span>
+                                                    </td>
+                                                    <td>{{ history.action_description|default:"No description" }}</td>
+                                                    <td>
+                                                        {% if history.success %}
+                                                            <span class="badge bg-success">Yes</span>
+                                                        {% else %}
+                                                            <span class="badge bg-danger">No</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    {% else %}
+                                    <div class="text-center text-muted">
+                                        <i class="fas fa-history fa-3x mb-3"></i>
+                                        <p>No access history available.</p>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Approve/Reject Modals -->
+<div class="modal fade" id="approveModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'access_management:approve_access_assignment' access_assignment.pk %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Approve Access Assignment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="approval_comments" class="form-label">Approval Comments (Optional)</label>
+                        <textarea class="form-control" id="approval_comments" name="approval_comments" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Approve</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="rejectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'access_management:reject_access_assignment' access_assignment.pk %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Reject Access Assignment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="rejection_reason" class="form-label">Rejection Reason <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="rejection_reason" name="rejection_reason" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Reject</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function approveAccess() {
+    new bootstrap.Modal(document.getElementById('approveModal')).show();
+}
+
+function rejectAccess() {
+    new bootstrap.Modal(document.getElementById('rejectModal')).show();
+}
+</script>
+{% endblock %}

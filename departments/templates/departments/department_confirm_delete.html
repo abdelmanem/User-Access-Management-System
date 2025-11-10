@@ -1,0 +1,50 @@
+{% extends 'admin/base_site.html' %}
+{% load static %}
+
+{% block title %}Confirm Delete Department{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Confirm Delete Department</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Warning:</strong> Are you sure you want to delete the department "{{ department.name }}" ({{ department.code }})?
+                            This action cannot be undone.
+                            {% if department.members.count > 0 %}
+                                <br><br>
+                                <strong>Note:</strong> This department has {{ department.members.count }} member(s). 
+                                They will be unassigned from this department.
+                            {% endif %}
+                            {% if department.get_sub_departments.count > 0 %}
+                                <br><br>
+                                <strong>Note:</strong> This department has {{ department.get_sub_departments.count }} sub-department(s). 
+                                They will need to be reassigned to a different parent department.
+                            {% endif %}
+                        </div>
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="fas fa-trash"></i> Yes, Delete Department
+                                    </button>
+                                    <a href="{% url 'departments:department_list' %}" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left"></i> Cancel
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
