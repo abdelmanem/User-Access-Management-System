@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .models import System
+from .forms import SystemForm
 
 @login_required
 def system_list(request):
@@ -15,14 +16,35 @@ def system_detail(request, pk):
 
 @login_required
 def system_create(request):
-    # Placeholder for system creation view
-    return render(request, 'systems/system_form.html', {'form': None})
+    if request.method == 'POST':
+        form = SystemForm(request.POST)
+        if form.is_valid():
+            sys_obj = form.save(commit=False)
+            sys_obj.created_by = request.user
+            sys_obj.updated_by = request.user
+            sys_obj.save()
+            messages.success(request, 'System created successfully.')
+            return redirect('systems:system_detail', pk=sys_obj.pk)
+        messages.error(request, 'Please correct the errors below.')
+    else:
+        form = SystemForm()
+    return render(request, 'systems/system_form.html', {'form': form})
 
 @login_required
 def system_update(request, pk):
     system = get_object_or_404(System, pk=pk)
-    # Placeholder for system update view
-    return render(request, 'systems/system_form.html', {'form': None, 'system': system})
+    if request.method == 'POST':
+        form = SystemForm(request.POST, instance=system)
+        if form.is_valid():
+            sys_obj = form.save(commit=False)
+            sys_obj.updated_by = request.user
+            sys_obj.save()
+            messages.success(request, 'System updated successfully.')
+            return redirect('systems:system_detail', pk=system.pk)
+        messages.error(request, 'Please correct the errors below.')
+    else:
+        form = SystemForm(instance=system)
+    return render(request, 'systems/system_form.html', {'form': form, 'system': system})
 
 @login_required
 def system_delete(request, pk):

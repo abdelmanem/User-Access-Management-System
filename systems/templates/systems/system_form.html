@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static form_extras %}
 
 {% block title %}{% if form.instance.pk %}Edit System{% else %}Create System{% endif %}{% endblock %}
 
@@ -19,117 +19,95 @@
                         </h3>
                     </div>
                     <div class="card-body">
-                        <form method="post">
+                        <form method="post" novalidate>
                             {% csrf_token %}
+                            {% if form.errors %}
+                            <div class="alert alert-danger">
+                                <strong>Please correct the errors below.</strong>
+                                {% if form.non_field_errors %}
+                                <div class="mt-2">{{ form.non_field_errors }}</div>
+                                {% endif %}
+                            </div>
+                            {% endif %}
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="id_name">Name</label>
-                                        <input type="text" class="form-control" id="id_name" name="name" 
-                                               value="{{ form.instance.name|default:'' }}" required>
+                                        <label for="{{ form.name.id_for_label }}">Name <span class="text-danger">*</span></label>
+                                        {{ form.name|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                        {% if form.errors.name %}<div class="invalid-feedback d-block">{{ form.errors.name.0 }}</div>{% endif %}
                                     </div>
                                     <div class="form-group">
-                                        <label for="id_code">Code</label>
-                                        <input type="text" class="form-control" id="id_code" name="code" 
-                                               value="{{ form.instance.code|default:'' }}" required>
+                                        <label for="{{ form.code.id_for_label }}">Code <span class="text-danger">*</span></label>
+                                        {{ form.code|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                        {% if form.errors.code %}<div class="invalid-feedback d-block">{{ form.errors.code.0 }}</div>{% endif %}
                                     </div>
                                     <div class="form-group">
-                                        <label for="id_description">Description</label>
-                                        <textarea class="form-control" id="id_description" name="description" 
-                                                  rows="3">{{ form.instance.description|default:'' }}</textarea>
+                                        <label for="{{ form.description.id_for_label }}">Description</label>
+                                        {{ form.description|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                        {% if form.errors.description %}<div class="invalid-feedback d-block">{{ form.errors.description.0 }}</div>{% endif %}
                                     </div>
                                     <div class="form-group">
-                                        <label for="id_system_type">System Type</label>
-                                        <select class="form-control" id="id_system_type" name="system_type">
-                                            <option value="web_app" {% if form.instance.system_type == 'web_app' %}selected{% endif %}>Web Application</option>
-                                            <option value="mobile_app" {% if form.instance.system_type == 'mobile_app' %}selected{% endif %}>Mobile Application</option>
-                                            <option value="desktop_app" {% if form.instance.system_type == 'desktop_app' %}selected{% endif %}>Desktop Application</option>
-                                            <option value="api" {% if form.instance.system_type == 'api' %}selected{% endif %}>API</option>
-                                            <option value="database" {% if form.instance.system_type == 'database' %}selected{% endif %}>Database</option>
-                                            <option value="server" {% if form.instance.system_type == 'server' %}selected{% endif %}>Server</option>
-                                            <option value="network" {% if form.instance.system_type == 'network' %}selected{% endif %}>Network</option>
-                                            <option value="other" {% if form.instance.system_type == 'other' %}selected{% endif %}>Other</option>
-                                        </select>
+                                        <label for="{{ form.system_type.id_for_label }}">System Type</label>
+                                        {{ form.system_type|add_error_class:"is-invalid"|add_class:"form-select" }}
+                                        {% if form.errors.system_type %}<div class="invalid-feedback d-block">{{ form.errors.system_type.0 }}</div>{% endif %}
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="id_status">Status</label>
-                                        <select class="form-control" id="id_status" name="status">
-                                            <option value="active" {% if form.instance.status == 'active' %}selected{% endif %}>Active</option>
-                                            <option value="inactive" {% if form.instance.status == 'inactive' %}selected{% endif %}>Inactive</option>
-                                            <option value="maintenance" {% if form.instance.status == 'maintenance' %}selected{% endif %}>Maintenance</option>
-                                            <option value="retired" {% if form.instance.status == 'retired' %}selected{% endif %}>Retired</option>
-                                        </select>
+                                        <label for="{{ form.environment_type.id_for_label }}">Environment</label>
+                                        {{ form.environment_type|add_error_class:"is-invalid"|add_class:"form-select" }}
+                                        {% if form.errors.environment_type %}<div class="invalid-feedback d-block">{{ form.errors.environment_type.0 }}</div>{% endif %}
                                     </div>
                                     <div class="form-group">
-                                        <label for="id_criticality">Criticality</label>
-                                        <select class="form-control" id="id_criticality" name="criticality">
-                                            <option value="critical" {% if form.instance.criticality == 'critical' %}selected{% endif %}>Critical</option>
-                                            <option value="high" {% if form.instance.criticality == 'high' %}selected{% endif %}>High</option>
-                                            <option value="medium" {% if form.instance.criticality == 'medium' %}selected{% endif %}>Medium</option>
-                                            <option value="low" {% if form.instance.criticality == 'low' %}selected{% endif %}>Low</option>
-                                        </select>
+                                        <label for="{{ form.criticality_level.id_for_label }}">Criticality</label>
+                                        {{ form.criticality_level|add_error_class:"is-invalid"|add_class:"form-select" }}
+                                        {% if form.errors.criticality_level %}<div class="invalid-feedback d-block">{{ form.errors.criticality_level.0 }}</div>{% endif %}
                                     </div>
                                     <div class="form-group">
-                                        <label for="id_owner">Owner</label>
-                                        <select class="form-control" id="id_owner" name="owner">
-                                            <option value="">-- Select Owner --</option>
-                                            {% for user in users %}
-                                                <option value="{{ user.pk }}" 
-                                                        {% if form.instance.owner and form.instance.owner.pk == user.pk %}selected{% endif %}>
-                                                    {{ user.get_full_name }} ({{ user.username }})
-                                                </option>
-                                            {% endfor %}
-                                        </select>
+                                        <label for="{{ form.system_owner.id_for_label }}">Owner</label>
+                                        {{ form.system_owner|add_error_class:"is-invalid"|add_class:"form-select" }}
+                                        {% if form.errors.system_owner %}<div class="invalid-feedback d-block">{{ form.errors.system_owner.0 }}</div>{% endif %}
                                     </div>
                                     <div class="form-group">
-                                        <label for="id_lead">Technical Lead</label>
-                                        <select class="form-control" id="id_lead" name="lead">
-                                            <option value="">-- Select Lead --</option>
-                                            {% for user in users %}
-                                                <option value="{{ user.pk }}" 
-                                                        {% if form.instance.lead and form.instance.lead.pk == user.pk %}selected{% endif %}>
-                                                    {{ user.get_full_name }} ({{ user.username }})
-                                                </option>
-                                            {% endfor %}
-                                        </select>
+                                        <label for="{{ form.technical_lead.id_for_label }}">Technical Lead</label>
+                                        {{ form.technical_lead|add_error_class:"is-invalid"|add_class:"form-select" }}
+                                        {% if form.errors.technical_lead %}<div class="invalid-feedback d-block">{{ form.errors.technical_lead.0 }}</div>{% endif %}
                                     </div>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="id_url">URL</label>
-                                        <input type="url" class="form-control" id="id_url" name="url" 
-                                               value="{{ form.instance.url|default:'' }}">
+                                        <label for="{{ form.url.id_for_label }}">URL</label>
+                                        {{ form.url|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                        {% if form.errors.url %}<div class="invalid-feedback d-block">{{ form.errors.url.0 }}</div>{% endif %}
                                     </div>
                                     <div class="form-group">
-                                        <label for="id_ip_address">IP Address</label>
-                                        <input type="text" class="form-control" id="id_ip_address" name="ip_address" 
-                                               value="{{ form.instance.ip_address|default:'' }}">
+                                        <label for="{{ form.ip_address.id_for_label }}">IP Address</label>
+                                        {{ form.ip_address|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                        {% if form.errors.ip_address %}<div class="invalid-feedback d-block">{{ form.errors.ip_address.0 }}</div>{% endif %}
                                     </div>
                                     <div class="form-group">
-                                        <label for="id_version">Version</label>
-                                        <input type="text" class="form-control" id="id_version" name="version" 
-                                               value="{{ form.instance.version|default:'' }}">
+                                        <label for="{{ form.version.id_for_label }}">Version</label>
+                                        {{ form.version|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                        {% if form.errors.version %}<div class="invalid-feedback d-block">{{ form.errors.version.0 }}</div>{% endif %}
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="id_support_email">Support Email</label>
-                                        <input type="email" class="form-control" id="id_support_email" name="support_email" 
-                                               value="{{ form.instance.support_email|default:'' }}">
+                                        <label for="{{ form.support_contact.id_for_label }}">Support Contact</label>
+                                        {{ form.support_contact|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                        {% if form.errors.support_contact %}<div class="invalid-feedback d-block">{{ form.errors.support_contact.0 }}</div>{% endif %}
                                     </div>
                                     <div class="form-group">
-                                        <label for="id_support_phone">Support Phone</label>
-                                        <input type="text" class="form-control" id="id_support_phone" name="support_phone" 
-                                               value="{{ form.instance.support_phone|default:'' }}">
+                                        <label for="{{ form.vendor.id_for_label }}">Vendor</label>
+                                        {{ form.vendor|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                        {% if form.errors.vendor %}<div class="invalid-feedback d-block">{{ form.errors.vendor.0 }}</div>{% endif %}
                                     </div>
                                     <div class="form-group">
-                                        <label for="id_documentation_url">Documentation URL</label>
-                                        <input type="url" class="form-control" id="id_documentation_url" name="documentation_url" 
-                                               value="{{ form.instance.documentation_url|default:'' }}">
+                                        <label for="{{ form.documentation_url.id_for_label }}">Documentation URL</label>
+                                        {{ form.documentation_url|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                        {% if form.errors.documentation_url %}<div class="invalid-feedback d-block">{{ form.errors.documentation_url.0 }}</div>{% endif %}
                                     </div>
                                 </div>
                             </div>

@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static form_extras %}
 
 {% block title %}{% if form.instance.pk %}Edit Department{% else %}Create Department{% endif %}{% endblock %}
 
@@ -19,50 +19,44 @@
                         </h3>
                     </div>
                     <div class="card-body">
-                        <form method="post">
+                        <form method="post" novalidate>
                             {% csrf_token %}
+                            {% if form.errors %}
+                            <div class="alert alert-danger">
+                                <strong>Please correct the errors below.</strong>
+                                {% if form.non_field_errors %}
+                                <div class="mt-2">{{ form.non_field_errors }}</div>
+                                {% endif %}
+                            </div>
+                            {% endif %}
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="id_name">Name</label>
-                                        <input type="text" class="form-control" id="id_name" name="name" 
-                                               value="{{ form.instance.name|default:'' }}" required>
+                                        <label for="{{ form.name.id_for_label }}">Name <span class="text-danger">*</span></label>
+                                        {{ form.name|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                        {% if form.errors.name %}<div class="invalid-feedback d-block">{{ form.errors.name.0 }}</div>{% endif %}
                                     </div>
                                     <div class="form-group">
-                                        <label for="id_code">Code</label>
-                                        <input type="text" class="form-control" id="id_code" name="code" 
-                                               value="{{ form.instance.code|default:'' }}" required>
+                                        <label for="{{ form.code.id_for_label }}">Code <span class="text-danger">*</span></label>
+                                        {{ form.code|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                        {% if form.errors.code %}<div class="invalid-feedback d-block">{{ form.errors.code.0 }}</div>{% endif %}
                                     </div>
                                     <div class="form-group">
-                                        <label for="id_description">Description</label>
-                                        <textarea class="form-control" id="id_description" name="description" 
-                                                  rows="3">{{ form.instance.description|default:'' }}</textarea>
+                                        <label for="{{ form.description.id_for_label }}">Description</label>
+                                        {{ form.description|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                        {% if form.errors.description %}<div class="invalid-feedback d-block">{{ form.errors.description.0 }}</div>{% endif %}
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="id_parent">Parent Department</label>
-                                        <select class="form-control" id="id_parent" name="parent">
-                                            <option value="">-- No Parent --</option>
-                                            {% for dept in departments %}
-                                                <option value="{{ dept.pk }}" 
-                                                        {% if form.instance.parent and form.instance.parent.pk == dept.pk %}selected{% endif %}>
-                                                    {{ dept.name }}
-                                                </option>
-                                            {% endfor %}
-                                        </select>
+                                        <label for="{{ form.parent_department.id_for_label }}">Parent Department</label>
+                                        {{ form.parent_department|add_error_class:"is-invalid"|add_class:"form-select" }}
+                                        {% if form.errors.parent_department %}<div class="invalid-feedback d-block">{{ form.errors.parent_department.0 }}</div>{% endif %}
                                     </div>
                                     <div class="form-group">
-                                        <label for="id_head">Head of Department</label>
-                                        <select class="form-control" id="id_head" name="head">
-                                            <option value="">-- Select Head --</option>
-                                            {% for user in users %}
-                                                <option value="{{ user.pk }}" 
-                                                        {% if form.instance.head and form.instance.head.pk == user.pk %}selected{% endif %}>
-                                                    {{ user.get_full_name }} ({{ user.username }})
-                                                </option>
-                                            {% endfor %}
-                                        </select>
+                                        <label for="{{ form.head_of_department.id_for_label }}">Head of Department</label>
+                                        {{ form.head_of_department|add_error_class:"is-invalid"|add_class:"form-select" }}
+                                        {% if form.errors.head_of_department %}<div class="invalid-feedback d-block">{{ form.errors.head_of_department.0 }}</div>{% endif %}
                                     </div>
                                 </div>
                             </div>

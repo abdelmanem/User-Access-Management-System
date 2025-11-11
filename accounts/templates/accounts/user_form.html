@@ -18,199 +18,216 @@
                     <div class="card-body">
                         <form method="post" enctype="multipart/form-data" novalidate>
                             {% csrf_token %}
-                            {% if form.non_field_errors %}
+                            {% if form.errors %}
                             <div class="alert alert-danger">
-                                {{ form.non_field_errors }}
+                                <strong>Please correct the errors below.</strong>
+                                {% if form.non_field_errors %}
+                                    <div class="mt-2">
+                                        {{ form.non_field_errors }}
+                                    </div>
+                                {% endif %}
                             </div>
                             {% endif %}
 
-                            <div class="row g-3">
-                                <div class="col-md-4">
-                                    <label class="form-label">Username</label>
-                                    {{ form.username|add_class:"form-control" }}
-                                    {{ form.username.errors }}
+                            <!-- Required Information -->
+                            <div class="card mb-4">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0"><i class="fas fa-list-check"></i> Required Information</h5>
                                 </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">First name</label>
-                                    {{ form.first_name|add_class:"form-control" }}
-                                    {{ form.first_name.errors }}
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Last name</label>
-                                    {{ form.last_name|add_class:"form-control" }}
-                                    {{ form.last_name.errors }}
-                                </div>
-
-                                <div class="col-md-4">
-                                    <label class="form-label">Work email</label>
-                                    {{ form.email|add_class:"form-control" }}
-                                    {{ form.email.errors }}
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Personal email</label>
-                                    {{ form.personal_email|add_class:"form-control" }}
-                                    {{ form.personal_email.errors }}
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Employee ID</label>
-                                    {{ form.employee_id|add_class:"form-control" }}
-                                    {{ form.employee_id.errors }}
-                                </div>
-
-                                <div class="col-md-4">
-                                    <label class="form-label">Department</label>
-                                    {{ form.department|add_class:"form-select" }}
-                                    {{ form.department.errors }}
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Sub Department</label>
-                                    {{ form.sub_department|add_class:"form-select" }}
-                                    {{ form.sub_department.errors }}
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Reports to</label>
-                                    {{ form.reports_to|add_class:"form-select" }}
-                                    {{ form.reports_to.errors }}
-                                </div>
-
-                                <div class="col-md-4">
-                                    <label class="form-label">Employment type</label>
-                                    {{ form.employment_type|add_class:"form-select" }}
-                                    {{ form.employment_type.errors }}
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Employment status</label>
-                                    {{ form.employment_status|add_class:"form-select" }}
-                                    {{ form.employment_status.errors }}
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Employee level</label>
-                                    {{ form.employee_level|add_class:"form-select" }}
-                                    {{ form.employee_level.errors }}
-                                </div>
-
-                                <div class="col-md-4">
-                                    <label class="form-label">Position</label>
-                                    {{ form.position|add_class:"form-control" }}
-                                    {{ form.position.errors }}
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Job title</label>
-                                    {{ form.job_title|add_class:"form-control" }}
-                                    {{ form.job_title.errors }}
-                                </div>
-
-                                <div class="col-md-4">
-                                    <label class="form-label">Primary phone</label>
-                                    {{ form.phone_primary|add_class:"form-control" }}
-                                    {{ form.phone_primary.errors }}
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Secondary phone</label>
-                                    {{ form.phone_secondary|add_class:"form-control" }}
-                                    {{ form.phone_secondary.errors }}
-                                </div>
-
-                                <div class="col-md-4">
-                                    <label class="form-label">Office location</label>
-                                    {{ form.office_location|add_class:"form-control" }}
-                                    {{ form.office_location.errors }}
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Office room</label>
-                                    {{ form.office_room|add_class:"form-control" }}
-                                    {{ form.office_room.errors }}
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">City</label>
-                                    {{ form.city|add_class:"form-control" }}
-                                    {{ form.city.errors }}
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">State/Province</label>
-                                    {{ form.state_province|add_class:"form-control" }}
-                                    {{ form.state_province.errors }}
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Country</label>
-                                    {{ form.country|add_class:"form-control" }}
-                                    {{ form.country.errors }}
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Postal code</label>
-                                    {{ form.postal_code|add_class:"form-control" }}
-                                    {{ form.postal_code.errors }}
-                                </div>
-
-                                <div class="col-md-4">
-                                    <label class="form-label">Join date</label>
-                                    {{ form.join_date|add_class:"form-control" }}
-                                    {{ form.join_date.errors }}
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">End date</label>
-                                    {{ form.end_date|add_class:"form-control" }}
-                                    {{ form.end_date.errors }}
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Probation end</label>
-                                    {{ form.probation_end_date|add_class:"form-control" }}
-                                    {{ form.probation_end_date.errors }}
-                                </div>
-
-                                <div class="col-md-4">
-                                    <label class="form-label">Date of birth</label>
-                                    {{ form.date_of_birth|add_class:"form-control" }}
-                                    {{ form.date_of_birth.errors }}
-                                </div>
-
-                                <div class="col-md-4">
-                                    <label class="form-label">Emergency name</label>
-                                    {{ form.emergency_contact_name|add_class:"form-control" }}
-                                    {{ form.emergency_contact_name.errors }}
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Emergency phone</label>
-                                    {{ form.emergency_contact_phone|add_class:"form-control" }}
-                                    {{ form.emergency_contact_phone.errors }}
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Emergency relation</label>
-                                    {{ form.emergency_contact_relation|add_class:"form-control" }}
-                                    {{ form.emergency_contact_relation.errors }}
-                                </div>
-
-                                <div class="col-md-6">
-                                    <label class="form-label">Profile photo</label>
-                                    {{ form.profile_photo|add_class:"form-control" }}
-                                    {{ form.profile_photo.errors }}
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Notes</label>
-                                    {{ form.notes|add_class:"form-control" }}
-                                    {{ form.notes.errors }}
-                                </div>
-
-                                <div class="col-md-3">
-                                    <div class="form-check mt-4">
-                                        {{ form.is_active|add_class:"form-check-input" }}
-                                        <label class="form-check-label">Active</label>
+                                <div class="card-body">
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <label class="form-label">Username <span class="text-danger">*</span></label>
+                                            {{ form.username|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                            {% if form.username.errors %}<div class="invalid-feedback d-block">{{ form.username.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">First name <span class="text-danger">*</span></label>
+                                            {{ form.first_name|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                            {% if form.first_name.errors %}<div class="invalid-feedback d-block">{{ form.first_name.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Last name <span class="text-danger">*</span></label>
+                                            {{ form.last_name|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                            {% if form.last_name.errors %}<div class="invalid-feedback d-block">{{ form.last_name.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Work email <span class="text-danger">*</span></label>
+                                            {{ form.email|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                            {% if form.email.errors %}<div class="invalid-feedback d-block">{{ form.email.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Employee ID <span class="text-danger">*</span></label>
+                                            {{ form.employee_id|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                            {% if form.employee_id.errors %}<div class="invalid-feedback d-block">{{ form.employee_id.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Position <span class="text-danger">*</span></label>
+                                            {{ form.position|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                            {% if form.position.errors %}<div class="invalid-feedback d-block">{{ form.position.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Primary phone <span class="text-danger">*</span></label>
+                                            {{ form.phone_primary|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                            {% if form.phone_primary.errors %}<div class="invalid-feedback d-block">{{ form.phone_primary.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Employment type <span class="text-danger">*</span></label>
+                                            {{ form.employment_type|add_error_class:"is-invalid"|add_class:"form-select" }}
+                                            {% if form.employment_type.errors %}<div class="invalid-feedback d-block">{{ form.employment_type.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Employment status <span class="text-danger">*</span></label>
+                                            {{ form.employment_status|add_error_class:"is-invalid"|add_class:"form-select" }}
+                                            {% if form.employment_status.errors %}<div class="invalid-feedback d-block">{{ form.employment_status.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Employee level <span class="text-danger">*</span></label>
+                                            {{ form.employee_level|add_error_class:"is-invalid"|add_class:"form-select" }}
+                                            {% if form.employee_level.errors %}<div class="invalid-feedback d-block">{{ form.employee_level.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        {% if not user %}
+                                        <div class="col-md-4">
+                                            <label class="form-label">Password <span class="text-danger">*</span></label>
+                                            {{ form.password1|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                            {% if form.password1.errors %}<div class="invalid-feedback d-block">{{ form.password1.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                                            {{ form.password2|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                            {% if form.password2.errors %}<div class="invalid-feedback d-block">{{ form.password2.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        {% endif %}
                                     </div>
-                                    {{ form.is_active.errors }}
                                 </div>
+                            </div>
 
-                                {% if not user %}
-                                <div class="col-md-6">
-                                    <label class="form-label">Password</label>
-                                    {{ form.password1|add_class:"form-control" }}
-                                    {{ form.password1.errors }}
+                            <!-- Additional Information -->
+                            <div class="card mb-4">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0"><i class="fas fa-circle-info"></i> Additional Information</h5>
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Confirm Password</label>
-                                    {{ form.password2|add_class:"form-control" }}
-                                    {{ form.password2.errors }}
+                                <div class="card-body">
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <label class="form-label">Department</label>
+                                            {{ form.department|add_error_class:"is-invalid"|add_class:"form-select" }}
+                                            {% if form.department.errors %}<div class="invalid-feedback d-block">{{ form.department.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Sub Department</label>
+                                            {{ form.sub_department|add_error_class:"is-invalid"|add_class:"form-select" }}
+                                            {% if form.sub_department.errors %}<div class="invalid-feedback d-block">{{ form.sub_department.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Reports to</label>
+                                            {{ form.reports_to|add_error_class:"is-invalid"|add_class:"form-select" }}
+                                            {% if form.reports_to.errors %}<div class="invalid-feedback d-block">{{ form.reports_to.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Personal email</label>
+                                            {{ form.personal_email|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                            {% if form.personal_email.errors %}<div class="invalid-feedback d-block">{{ form.personal_email.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Secondary phone</label>
+                                            {{ form.phone_secondary|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                            {% if form.phone_secondary.errors %}<div class="invalid-feedback d-block">{{ form.phone_secondary.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Job title</label>
+                                            {{ form.job_title|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                            {% if form.job_title.errors %}<div class="invalid-feedback d-block">{{ form.job_title.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Office location</label>
+                                            {{ form.office_location|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                            {% if form.office_location.errors %}<div class="invalid-feedback d-block">{{ form.office_location.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Office room</label>
+                                            {{ form.office_room|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                            {% if form.office_room.errors %}<div class="invalid-feedback d-block">{{ form.office_room.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Work address</label>
+                                            {{ form.work_address|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                            {% if form.work_address.errors %}<div class="invalid-feedback d-block">{{ form.work_address.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">City</label>
+                                            {{ form.city|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                            {% if form.city.errors %}<div class="invalid-feedback d-block">{{ form.city.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">State/Province</label>
+                                            {{ form.state_province|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                            {% if form.state_province.errors %}<div class="invalid-feedback d-block">{{ form.state_province.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Country</label>
+                                            {{ form.country|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                            {% if form.country.errors %}<div class="invalid-feedback d-block">{{ form.country.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Postal code</label>
+                                            {{ form.postal_code|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                            {% if form.postal_code.errors %}<div class="invalid-feedback d-block">{{ form.postal_code.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Join date</label>
+                                            {{ form.join_date|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                            {% if form.join_date.errors %}<div class="invalid-feedback d-block">{{ form.join_date.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Probation end</label>
+                                            {{ form.probation_end_date|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                            {% if form.probation_end_date.errors %}<div class="invalid-feedback d-block">{{ form.probation_end_date.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">End date</label>
+                                            {{ form.end_date|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                            {% if form.end_date.errors %}<div class="invalid-feedback d-block">{{ form.end_date.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Date of birth</label>
+                                            {{ form.date_of_birth|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                            {% if form.date_of_birth.errors %}<div class="invalid-feedback d-block">{{ form.date_of_birth.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Emergency name</label>
+                                            {{ form.emergency_contact_name|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                            {% if form.emergency_contact_name.errors %}<div class="invalid-feedback d-block">{{ form.emergency_contact_name.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Emergency phone</label>
+                                            {{ form.emergency_contact_phone|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                            {% if form.emergency_contact_phone.errors %}<div class="invalid-feedback d-block">{{ form.emergency_contact_phone.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Emergency relation</label>
+                                            {{ form.emergency_contact_relation|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                            {% if form.emergency_contact_relation.errors %}<div class="invalid-feedback d-block">{{ form.emergency_contact_relation.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Profile photo</label>
+                                            {{ form.profile_photo|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                            {% if form.profile_photo.errors %}<div class="invalid-feedback d-block">{{ form.profile_photo.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Notes</label>
+                                            {{ form.notes|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                            {% if form.notes.errors %}<div class="invalid-feedback d-block">{{ form.notes.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check mt-4">
+                                                {{ form.is_active|add_error_class:"is-invalid"|add_class:"form-check-input" }}
+                                                <label class="form-check-label">Active</label>
+                                            </div>
+                                            {% if form.is_active.errors %}<div class="invalid-feedback d-block">{{ form.is_active.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                    </div>
                                 </div>
-                                {% endif %}
                             </div>
 
                             <div class="mt-4 d-flex gap-2">
