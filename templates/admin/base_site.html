@@ -16,10 +16,22 @@
 {% endif %}
 {% endblock %}
 
-{% block nav-global %}{% endblock %}
+{# Inject application navigation into the admin global nav area #}
+{% block nav-global %}
+{% if user.is_authenticated %}
+    {% include "navigation.html" %}
+{% endif %}
+{% endblock %}
 
 {% block extrahead %}
 {{ block.super }}
 <link rel="stylesheet" type="text/css" href="{% static 'css/custom_admin.css' %}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+{% endblock %}
+
+{# Provide consistent content padding to match app layout #}
+{% block content %}
+<div class="container-fluid content-wrapper">
+    {{ block.super }}
+</div>
 {% endblock %}

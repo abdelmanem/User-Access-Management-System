@@ -1,4 +1,4 @@
-{% extends "admin/base_site.html" %}
+{% extends "base.html" %}
 {% load static %}
 
 {% block title %}Access History - User Access Management{% endblock %}
@@ -26,6 +26,35 @@
                 <div class="card-body">
                     <!-- Filter Form -->
                     <form method="get" class="mb-4">
+                        <!-- Applied filters summary -->
+                        {% if request.GET.user or request.GET.system or request.GET.action or request.GET.success or request.GET.search or request.GET.date_from or request.GET.date_to %}
+                        <div class="mb-3">
+                            <span class="me-2">Active filters:</span>
+                            {% if request.GET.user %}
+                                <span class="badge rounded-pill bg-secondary">User: Selected</span>
+                            {% endif %}
+                            {% if request.GET.system %}
+                                <span class="badge rounded-pill bg-secondary">System: Selected</span>
+                            {% endif %}
+                            {% if request.GET.action %}
+                                <span class="badge rounded-pill bg-secondary">Action: {{ request.GET.action }}</span>
+                            {% endif %}
+                            {% if request.GET.success %}
+                                <span class="badge rounded-pill bg-secondary">Status: {{ request.GET.success|capfirst }}</span>
+                            {% endif %}
+                            {% if request.GET.date_from %}
+                                <span class="badge rounded-pill bg-secondary">From: {{ request.GET.date_from }}</span>
+                            {% endif %}
+                            {% if request.GET.date_to %}
+                                <span class="badge rounded-pill bg-secondary">To: {{ request.GET.date_to }}</span>
+                            {% endif %}
+                            {% if request.GET.search %}
+                                <span class="badge rounded-pill bg-secondary">Search: “{{ request.GET.search }}”</span>
+                            {% endif %}
+                            <a href="{% url 'access_management:access_history_list' %}" class="ms-2 small text-decoration-none">Clear all</a>
+                        </div>
+                        {% endif %}
+
                         <div class="row">
                             <div class="col-md-3">
                                 <label for="user" class="form-label">User</label>
@@ -53,11 +82,13 @@
                                 <label for="action" class="form-label">Action</label>
                                 <select class="form-select" id="action" name="action">
                                     <option value="">All Actions</option>
-                                    {% for action in action_types %}
-                                        <option value="{{ action.0 }}" {% if request.GET.action == action.0 %}selected{% endif %}>
-                                            {{ action.1 }}
-                                        </option>
-                                    {% endfor %}
+                                    {% if action_choices %}
+                                        {% for action in action_choices %}
+                                            <option value="{{ action.0 }}" {% if request.GET.action == action.0 %}selected{% endif %}>
+                                                {{ action.1 }}
+                                            </option>
+                                        {% endfor %}
+                                    {% endif %}
                                 </select>
                             </div>
                             <div class="col-md-2">
@@ -98,7 +129,7 @@
 
                     <!-- History Table -->
                     <div class="table-responsive">
-                        <table class="table table-striped table-hover">
+                        <table class="table table-striped table-hover align-middle">
                             <thead class="table-dark">
                                 <tr>
                                     <th>Date & Time</th>
@@ -116,33 +147,31 @@
                                 {% for history in access_history %}
                                 <tr>
                                     <td>
-                                        <small>{{ history.accessed_at|date:"Y-m-d" }}</small>
-                                        <br>{{ history.accessed_at|time:"H:i:s" }}
+                                        <small class="text-muted">{{ history.accessed_at|date:"Y-m-d" }}</small>
+                                        <div>{{ history.accessed_at|time:"H:i:s" }}</div>
                                     </td>
                                     <td>
-                                        <strong>{{ history.user.full_name }}</strong>
-                                        <br><small class="text-muted">{{ history.user.username }}</small>
+                                        <div class="fw-semibold">{{ history.user.full_name|default:history.user.username }}</div>
+                                        <div class="text-muted small">{{ history.user.username }}</div>
                                     </td>
                                     <td>
-                                        <strong>{{ history.system.name }}</strong>
-                                        <br><small class="text-muted">{{ history.system.code }}</small>
+                                        <div class="fw-semibold">{{ history.system.name }}</div>
+                                        <div class="text-muted small">{{ history.system.code }}</div>
                                     </td>
                                     <td>
-                                        <span class="badge bg-{{ history.get_action_color }}">
-                                            {{ history.action }}
-                                        </span>
+                                        <span class="badge bg-{{ history.get_action_color }}">{{ history.action }}</span>
                                     </td>
                                     <td>
-                                        {{ history.action_description|default:"No description" }}
+                                        <div>{{ history.action_description|default:"No description" }}</div>
                                         {% if history.error_message %}
-                                            <br><small class="text-danger">Error: {{ history.error_message|truncatewords:5 }}</small>
+                                            <div class="text-danger small mt-1">Error: {{ history.error_message|truncatewords:5 }}</div>
                                         {% endif %}
                                     </td>
                                     <td>
                                         <span class="badge bg-info">{{ history.access_level|default:"N/A" }}</span>
                                     </td>
                                     <td>
-                                        <small>{{ history.ip_address|default:"N/A" }}</small>
+                                        <small class="text-muted">{{ history.ip_address|default:"N/A" }}</small>
                                     </td>
                                     <td>
                                         {% if history.success %}
@@ -172,36 +201,36 @@
                     </div>
 
                     <!-- Pagination -->
-                    {% if is_paginated %}
+                    {% if access_history %}
                     <nav aria-label="Page navigation">
                         <ul class="pagination justify-content-center">
-                            {% if page_obj.has_previous %}
+                            {% if access_history.has_previous %}
                                 <li class="page-item">
                                     <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">First</a>
                                 </li>
                                 <li class="page-item">
-                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Previous</a>
+                                    <a class="page-link" href="?page={{ access_history.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Previous</a>
                                 </li>
                             {% endif %}
 
-                            {% for num in page_obj.paginator.page_range %}
-                                {% if page_obj.number == num %}
+                            {% for num in access_history.paginator.page_range %}
+                                {% if access_history.number == num %}
                                     <li class="page-item active">
                                         <span class="page-link">{{ num }}</span>
                                     </li>
-                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                {% elif num > access_history.number|add:'-3' and num < access_history.number|add:'3' %}
                                     <li class="page-item">
                                         <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
                                     </li>
                                 {% endif %}
                             {% endfor %}
 
-                            {% if page_obj.has_next %}
+                            {% if access_history.has_next %}
                                 <li class="page-item">
-                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Next</a>
+                                    <a class="page-link" href="?page={{ access_history.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Next</a>
                                 </li>
                                 <li class="page-item">
-                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Last</a>
+                                    <a class="page-link" href="?page={{ access_history.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Last</a>
                                 </li>
                             {% endif %}
                         </ul>
@@ -209,41 +238,43 @@
                     {% endif %}
 
                     <!-- Statistics -->
-                    <div class="row mt-4">
-                        <div class="col-md-3">
-                            <div class="card bg-primary text-white">
-                                <div class="card-body text-center">
-                                    <h5 class="card-title">Total Actions</h5>
-                                    <h3 class="display-4">{{ total_actions }}</h3>
+                    {% if total_actions or successful_actions or failed_actions or unique_users %}
+                        <div class="row mt-4">
+                            <div class="col-md-3">
+                                <div class="card bg-primary text-white">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">Total Actions</h5>
+                                        <h3 class="display-4">{{ total_actions|default:"—" }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-success text-white">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">Successful</h5>
+                                        <h3 class="display-4">{{ successful_actions|default:"—" }}</h3>
+                                        {% if success_rate %}<small>{{ success_rate }}% success rate</small>{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-danger text-white">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">Failed</h5>
+                                        <h3 class="display-4">{{ failed_actions|default:"—" }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-info text-white">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">Unique Users</h5>
+                                        <h3 class="display-4">{{ unique_users|default:"—" }}</h3>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="card bg-success text-white">
-                                <div class="card-body text-center">
-                                    <h5 class="card-title">Successful</h5>
-                                    <h3 class="display-4">{{ successful_actions }}</h3>
-                                    <small>{{ success_rate }}% success rate</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card bg-danger text-white">
-                                <div class="card-body text-center">
-                                    <h5 class="card-title">Failed</h5>
-                                    <h3 class="display-4">{{ failed_actions }}</h3>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card bg-info text-white">
-                                <div class="card-body text-center">
-                                    <h5 class="card-title">Unique Users</h5>
-                                    <h3 class="display-4">{{ unique_users }}</h3>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -251,17 +282,11 @@
 </div>
 {% endblock %}
 
-{% block extra_js %}
+{% block extrajs %}
 <script>
 function exportHistory() {
-    // Get current filter parameters
-    const params = new URLSearchParams(window.location.search);
-    
-    // Create export URL
-    const exportUrl = `{% url 'access_management:access_history_export' %}?${params.toString()}`;
-    
-    // Open export in new window
-    window.open(exportUrl, '_blank');
+    // Fallback to printing until an export endpoint is implemented
+    window.print();
 }
 
 // Auto-refresh functionality
