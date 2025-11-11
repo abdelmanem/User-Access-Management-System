@@ -16,6 +16,8 @@ Including another URLconf
 """
 from django.urls import path, include
 from dashboard.admin import dashboard_admin_site
+from django.http import JsonResponse
+from django.db import connection
 
 # Use the shared admin site instance
 admin_site = dashboard_admin_site
@@ -29,4 +31,8 @@ urlpatterns = [
     path('access-management/', include('access_management.urls')),
     path('search/', include('search.urls')),
     path('data-import-export/', include('data_import_export.urls')),
+    path('healthz/', lambda request: JsonResponse({
+        'status': 'ok',
+        'db': True if connection.cursor() else False
+    })),
 ]

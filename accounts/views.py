@@ -1,20 +1,28 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required, user_passes_test
 from .models import CustomUser
 from .forms import UserCreateForm, UserUpdateForm
 
 @login_required
+@user_passes_test(lambda u: u.is_staff)
 def user_list(request):
-    users = CustomUser.objects.all()
-    return render(request, 'accounts/user_list.html', {'users': users})
+    from django.core.paginator import Paginator
+
+    users_qs = CustomUser.objects.all().order_by('first_name', 'last_name')
+    paginator = Paginator(users_qs, 25)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'accounts/user_list.html', {'page_obj': page_obj, 'users': page_obj.object_list})
 
 @login_required
+@user_passes_test(lambda u: u.is_staff)
 def user_detail(request, pk):
     user = get_object_or_404(CustomUser, pk=pk)
     return render(request, 'accounts/user_detail.html', {'user': user})
 
 @login_required
+@permission_required('accounts.add_customuser', raise_exception=True)
 def user_create(request):
     if request.method == 'POST':
         form = UserCreateForm(request.POST, request.FILES)
@@ -32,6 +40,7 @@ def user_create(request):
     return render(request, 'accounts/user_form.html', {'form': form})
 
 @login_required
+@permission_required('accounts.change_customuser', raise_exception=True)
 def user_update(request, pk):
     user = get_object_or_404(CustomUser, pk=pk)
     if request.method == 'POST':
@@ -49,6 +58,7 @@ def user_update(request, pk):
     return render(request, 'accounts/user_form.html', {'form': form, 'user': user})
 
 @login_required
+@permission_required('accounts.delete_customuser', raise_exception=True)
 def user_delete(request, pk):
     user = get_object_or_404(CustomUser, pk=pk)
     if request.method == 'POST':

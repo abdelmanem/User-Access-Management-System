@@ -6,3 +6,8 @@ django-crispy-forms==2.1
 crispy-bootstrap4==2022.1
 django-filter==23.5
 django-import-export==4.0.0
+whitenoise==6.7.0
+dj-database-url==2.2.0
+psycopg[binary]==3.2.3
+sentry-sdk==2.16.0
+gunicorn==23.0.0

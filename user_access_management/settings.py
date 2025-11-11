@@ -12,6 +12,18 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from decouple import config
+import os
+
+try:
+    import dj_database_url  # type: ignore
+except Exception:
+    dj_database_url = None
+
+try:
+    import sentry_sdk  # type: ignore
+    from sentry_sdk.integrations.django import DjangoIntegration  # type: ignore
+except Exception:
+    sentry_sdk = None
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,12 +33,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-z*c%&lhyx1a28t7h2vc)1cub03k+-34am*(t2z2bjdkd7j2-d*')
+# In production, SECRET_KEY must be provided via environment and not fall back to a default.
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-development-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=lambda v: [s.strip() for s in v.split(',')])
+CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='', cast=lambda v: [s.strip() for s in v.split(',') if s.strip()]) or []
 
 
 # Application definition
@@ -49,6 +63,13 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # Optional WhiteNoise for serving static files in production
+    # Enable via USE_WHITENOISE=true
+    *(
+        ['whitenoise.middleware.WhiteNoiseMiddleware']
+        if config('USE_WHITENOISE', default=False, cast=bool)
+        else []
+    ),
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -86,6 +107,32 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# If DATABASE_URL is provided, use it (e.g., for Postgres in production)
+DATABASE_URL = config('DATABASE_URL', default='')
+if DATABASE_URL and dj_database_url:
+    DATABASES['default'] = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+else:
+    # Allow configuration via individual POSTGRES_* variables when DJANGO_DB=postgres
+    DJANGO_DB = config('DJANGO_DB', default='sqlite')
+    if DJANGO_DB.lower() == 'postgres':
+        pg_db = config('POSTGRES_DB', default='postgres')
+        pg_user = config('POSTGRES_USER', default='postgres')
+        pg_password = config('POSTGRES_PASSWORD', default='')
+        pg_host = config('POSTGRES_HOST', default='localhost')
+        pg_port = config('POSTGRES_PORT', default='5432')
+        if dj_database_url:
+            url = f"postgres://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_db}"
+            DATABASES['default'] = dj_database_url.parse(url, conn_max_age=600)
+        else:
+            DATABASES['default'] = {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': pg_db,
+                'USER': pg_user,
+                'PASSWORD': pg_password,
+                'HOST': pg_host,
+                'PORT': pg_port,
+            }
 
 
 # Password validation
@@ -126,6 +173,19 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
+# Directory for collectstatic (production)
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# WhiteNoise storage for gzip/brotli in production when enabled
+if config('USE_WHITENOISE', default=False, cast=bool):
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
 
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -150,3 +210,48 @@ LOGOUT_REDIRECT_URL = 'accounts:login'
 
 # Email Backend for development
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+
+# Security hardening when not in DEBUG
+if not DEBUG:
+    SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)
+    SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=True, cast=bool)
+    CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=True, cast=bool)
+    SECURE_HSTS_SECONDS = config('SECURE_HSTS_SECONDS', default=31536000, cast=int)
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = config('SECURE_HSTS_INCLUDE_SUBDOMAINS', default=True, cast=bool)
+    SECURE_HSTS_PRELOAD = config('SECURE_HSTS_PRELOAD', default=True, cast=bool)
+    X_FRAME_OPTIONS = config('X_FRAME_OPTIONS', default='DENY')
+    SECURE_REFERRER_POLICY = config('SECURE_REFERRER_POLICY', default='same-origin')
+
+# Basic logging configuration
+LOG_LEVEL = config('LOG_LEVEL', default='INFO')
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'standard': {
+            'format': '[%(asctime)s] %(levelname)s %(name)s: %(message)s'
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'standard',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': LOG_LEVEL,
+    },
+}
+
+# Optional Sentry integration (set SENTRY_DSN to enable)
+SENTRY_DSN = config('SENTRY_DSN', default='')
+if SENTRY_DSN and sentry_sdk:
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        integrations=[DjangoIntegration()],
+        traces_sample_rate=float(config('SENTRY_TRACES_SAMPLE_RATE', default='0.0')),
+        profiles_sample_rate=float(config('SENTRY_PROFILES_SAMPLE_RATE', default='0.0')),
+        send_default_pii=config('SENTRY_SEND_DEFAULT_PII', default=False, cast=bool),
+        environment=config('SENTRY_ENVIRONMENT', default='production' if not DEBUG else 'development'),
+    )

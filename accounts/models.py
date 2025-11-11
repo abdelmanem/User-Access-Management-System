@@ -4,6 +4,8 @@ from django.core.validators import RegexValidator
 from django.utils import timezone
 from departments.models import Department
 import uuid
+from django.core.exceptions import ValidationError
+from PIL import Image, UnidentifiedImageError
 
 
 class CustomUser(AbstractUser):
@@ -182,11 +184,37 @@ class CustomUser(AbstractUser):
     postal_code = models.CharField(max_length=20, blank=True, null=True)
     
     # Additional Information
+    def _validate_profile_photo(file_field):
+        if not file_field:
+            return
+        max_mb = 2
+        if getattr(file_field, 'size', 0) > max_mb * 1024 * 1024:
+            raise ValidationError(f"Profile photo must be <= {max_mb}MB.")
+        # Validate image integrity and format using Pillow
+        try:
+            # Ensure stream at start
+            if hasattr(file_field, 'seek'):
+                file_field.seek(0)
+            img = Image.open(file_field)
+            img.verify()  # verify file is not corrupted
+            fmt = getattr(img, 'format', None)
+            if fmt not in ['JPEG', 'PNG']:
+                raise ValidationError("Profile photo must be a JPG or PNG image.")
+        except (UnidentifiedImageError, OSError):
+            raise ValidationError("Invalid image file. Please upload a valid JPG or PNG image.")
+        finally:
+            try:
+                if hasattr(file_field, 'seek'):
+                    file_field.seek(0)
+            except Exception:
+                pass
+
     profile_photo = models.ImageField(
         upload_to='profiles/',
         blank=True,
         null=True,
-        help_text="Profile photo (max 2MB, JPG/PNG formats)"
+        help_text="Profile photo (max 2MB, JPG/PNG formats)",
+        validators=[_validate_profile_photo]
     )
     
     emergency_contact_name = models.CharField(

@@ -24,6 +24,7 @@ A comprehensive Django-based web application for managing user access to various
 - **Backend**: Django 5.2.8
 - **Frontend**: HTML5, CSS3, Bootstrap 4, JavaScript, Chart.js
 - **Database**: SQLite (development), PostgreSQL (production ready)
+- **PostgreSQL driver**: psycopg (v3, binary wheels)
 - **Authentication**: Django's built-in authentication system
 - **Icons**: Font Awesome
 
@@ -55,14 +56,21 @@ A comprehensive Django-based web application for managing user access to various
    ```bash
    pip install -r requirements.txt
    ```
+   - Note for Windows/Python 3.13: We use psycopg (v3) with binary wheels to avoid compiler toolchains.
 
 4. **Set up environment variables**
-   Create a `.env` file in the project root with the following content:
+   Copy `env.example` to `.env` and adjust as needed:
+   ```bash
+   copy env.example .env   # Windows
+   # or
+   cp env.example .env     # macOS/Linux
    ```
-   SECRET_KEY=your-secret-key-here
-   DEBUG=True
-   ALLOWED_HOSTS=localhost,127.0.0.1
-   EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
+   Generate and write a strong SECRET_KEY into your `.env`:
+   ```bash
+   # Windows
+   python generate_secret_key.py
+   # Ubuntu/macOS
+   python3 generate_secret_key.py
    ```
 
 5. **Run database migrations**
@@ -77,9 +85,7 @@ A comprehensive Django-based web application for managing user access to various
    ```
 
 7. **Load sample data (optional)**
-   ```bash
-   python manage.py loaddata fixtures/sample_data.json
-   ```
+   No default fixtures are provided. You can create your own with `dumpdata`.
 
 8. **Run the development server**
    ```bash
@@ -181,6 +187,109 @@ User Access Management System/
 - Implement proper backup strategies
 - Monitor access logs for suspicious activity
 - Use strong passwords and consider implementing password policies
+
+## Production Deployment
+
+1. Environment variables
+   - Use `env.prod.example` as a template in production environments.
+   - Ensure `DEBUG=False` and set a strong `SECRET_KEY`.
+   - Set `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS` to your domains.
+
+2. Database
+   - Provision PostgreSQL and set `DATABASE_URL` (e.g., `postgres://user:pass@host:5432/db`).
+   - psycopg (v3) is already included; no OS build tools needed on Windows.
+   - Alternative configuration using individual environment variables (set `DJANGO_DB=postgres`):
+     ```env
+     # PostgreSQL Settings (only used when DJANGO_DB=postgres)
+     DJANGO_DB=postgres
+     POSTGRES_DB=UAMS
+     POSTGRES_USER=UAMS_user
+     POSTGRES_PASSWORD=***************
+     POSTGRES_HOST=localhost
+     POSTGRES_PORT=5432
+     ```
+
+3. Static files
+   - Set `USE_WHITENOISE=True` (or serve static via your web server).
+   - Run `python manage.py collectstatic`.
+
+4. Security headers
+   - With `DEBUG=False`, HSTS and secure cookies are enabled by default.
+
+5. Run the app
+   - Use a WSGI server (e.g., gunicorn/uwsgi) behind a reverse proxy.
+   - Entry point: `user_access_management.wsgi:application`.
+
+## Production Installation (Step-by-step)
+
+1. System prerequisites
+   - Python 3.12+
+   - PostgreSQL 14+ (or managed Postgres)
+   - A reverse proxy (e.g., Nginx) with HTTPS enabled
+   - Ubuntu quick setup:
+     ```bash
+     sudo apt update
+     sudo apt install -y python3-venv python3-pip nginx
+     # If building native packages in future: sudo apt install -y build-essential libpq-dev
+     ```
+
+2. Get the code and set up a virtual environment
+   ```bash
+   git clone <repository-url>
+   cd User-Access-Management-System
+   python -m venv venv
+   source venv/bin/activate   # Windows: venv\\Scripts\\activate
+   pip install --upgrade pip
+   pip install -r requirements.txt
+   ```
+
+3. Configure environment variables
+   ```bash
+   cp env.prod.example .env
+   # Edit .env and set:
+   # - SECRET_KEY=<a long random string>
+   # - DEBUG=False
+   # - ALLOWED_HOSTS=yourdomain.com
+   # - CSRF_TRUSTED_ORIGINS=https://yourdomain.com
+   # - DATABASE_URL=postgres://user:pass@host:5432/dbname
+   # - USE_WHITENOISE=True
+   ```
+   Optionally, auto-generate and write a strong SECRET_KEY:
+   ```bash
+   # Ubuntu/macOS
+   python3 generate_secret_key.py
+   # Windows
+   python generate_secret_key.py
+   ```
+
+4. Initialize the database and collect static files
+   ```bash
+   python manage.py migrate
+   python manage.py collectstatic --noinput
+   python manage.py createsuperuser
+   ```
+
+5. Start the application with Gunicorn (example)
+   ```bash
+   # From project root
+   gunicorn --bind 0.0.0.0:8000 user_access_management.wsgi:application
+   ```
+   - Behind Nginx, proxy requests to `127.0.0.1:8000`.
+   - Ensure Nginx serves HTTPS and sets appropriate proxy headers.
+
+6. Health check
+   - Verify the app: `curl -fsS http://127.0.0.1:8000/healthz` → `{"status":"ok","db":true}`
+
+7. Optional: run with Docker Compose
+   ```bash
+   docker compose up --build -d
+   # Add/override env vars by pointing compose to a prod .env file
+   ```
+
+Notes
+- When `DEBUG=False`, make sure `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS` match your public domain(s).
+- If using external static serving (CDN or Nginx), you can disable WhiteNoise and serve `staticfiles/` directly.
+- Set `SENTRY_DSN` in the environment to enable error monitoring.
 
 ## Contributing
 
