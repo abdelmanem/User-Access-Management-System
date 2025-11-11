@@ -48,18 +48,45 @@ def _collect_row_errors(row_number: int, errors: Iterable[str]) -> str:
     return f"Row {row_number}: " + '; '.join(errors)
 
 
+def _generate_unique_employee_id() -> str:
+    """
+    Generate a unique employee ID with the prefix 'EMP'.
+    Ensures uniqueness against existing users.
+    """
+    prefix = 'EMP'
+    counter = User.objects.filter(employee_id__startswith=prefix).count() + 1
+    candidate = f"{prefix}{counter:06d}"
+    while User.objects.filter(employee_id=candidate).exists():
+        counter += 1
+        candidate = f"{prefix}{counter:06d}"
+    return candidate
+
+def _generate_unique_username(base_username: str, keep_employee_id: str) -> str:
+    """
+    Ensure username is unique. If the base exists for a different employee,
+    append an incrementing numeric suffix until it's unique.
+    """
+    base = (base_username or '').strip()
+    if not base:
+        base = 'user'
+    # If username belongs to the same employee, allow it
+    existing = User.objects.filter(username=base).first()
+    if existing and getattr(existing, 'employee_id', None) == keep_employee_id:
+        return base
+    if not User.objects.filter(username=base).exclude(employee_id=keep_employee_id).exists():
+        return base
+    counter = 1
+    while True:
+        candidate = f"{base}{counter}"
+        if not User.objects.filter(username=candidate).exclude(employee_id=keep_employee_id).exists():
+            return candidate
+        counter += 1
+
 def import_users_from_csv(file):
     """Import or update user records from a CSV file."""
     reader = _csv_reader(file)
-    required_columns = {
-        'username',
-        'email',
-        'first_name',
-        'last_name',
-        'employee_id',
-        'phone_primary',
-        'position',
-    }
+    # Relax required columns; only 'username' is mandatory.
+    required_columns = {'username'}
     errors = []
 
     with transaction.atomic():
@@ -79,14 +106,25 @@ def import_users_from_csv(file):
 
             join_date = parse_date(row.get('join_date') or '')
 
+            # Defaults for missing values
+            username = row['username'].strip()
+            first_name = (row.get('first_name') or 'User').strip()
+            last_name = (row.get('last_name') or 'Unknown').strip()
+            email = (row.get('email') or f"{username}@example.com").strip()
+            phone_primary = (row.get('phone_primary') or '+10000000000').strip()
+            position = (row.get('position') or 'Staff').strip()
+            employee_id = (row.get('employee_id') or '').strip() or _generate_unique_employee_id()
+            # Ensure username is unique across different employees
+            username = _generate_unique_username(username, employee_id)
+
             defaults = {
-                'username': row['username'].strip(),
-                'email': row['email'].strip(),
-                'first_name': row['first_name'].strip(),
-                'last_name': row['last_name'].strip(),
-                'employee_id': row['employee_id'].strip(),
-                'phone_primary': row['phone_primary'].strip(),
-                'position': row['position'].strip(),
+                'username': username,
+                'email': email,
+                'first_name': first_name,
+                'last_name': last_name,
+                'employee_id': employee_id,
+                'phone_primary': phone_primary,
+                'position': position,
                 'employment_type': (row.get('employment_type') or 'Full-time').strip(),
                 'employment_status': (row.get('employment_status') or 'Active').strip(),
                 'department': department,
