@@ -12,7 +12,6 @@ class UserBaseForm(forms.ModelForm):
             'last_name',
             'email',
             'personal_email',
-            'employee_id',
             'department',
             'sub_department',
             'reports_to',

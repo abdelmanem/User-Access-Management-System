@@ -1,13 +1,109 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db.models import Count, Q, F, Value, Case, When, IntegerField
+from django.db.models.functions import Concat, Cast
 from .models import Department
 from .forms import DepartmentForm
 
 @login_required
 def department_list(request):
-    departments = Department.objects.all()
-    return render(request, 'departments/department_list.html', {'departments': departments})
+    # Handle bulk actions
+    if request.method == 'POST':
+        selected_ids = request.POST.getlist('selected')
+        bulk_action = (request.POST.get('bulk_action') or '').strip()
+        next_url = request.META.get('HTTP_REFERER') or ''
+
+        if not selected_ids:
+            messages.error(request, 'No departments selected for bulk action.')
+            return redirect(request.path)
+
+        queryset = Department.objects.filter(id__in=selected_ids)
+
+        if bulk_action == 'activate':
+            updated = queryset.update(is_active=True)
+            messages.success(request, f'Activated {updated} department(s).')
+        elif bulk_action == 'deactivate':
+            updated = queryset.update(is_active=False)
+            messages.success(request, f'Deactivated {updated} department(s).')
+        elif bulk_action == 'set_parent':
+            parent_id = request.POST.get('parent_department_id')
+            parent = None
+            if parent_id:
+                parent = Department.objects.filter(id=parent_id).first()
+                if parent is None:
+                    messages.error(request, 'Selected parent department not found.')
+                    return redirect(request.path)
+            for dept in queryset:
+                # Prevent setting a department as parent of itself or creating cycles
+                if parent and (dept.id == parent.id or parent.full_path.startswith(dept.full_path)):
+                    continue
+                if dept.parent_department_id != (parent.id if parent else None):
+                    dept.parent_department = parent
+                    dept.save(update_fields=['parent_department'])
+            messages.success(request, 'Updated parent department for selected items.')
+        elif bulk_action == 'set_type':
+            dept_type = (request.POST.get('department_type') or '').strip()
+            valid_types = {k for k, _ in Department.DEPARTMENT_TYPE_CHOICES}
+            if dept_type not in valid_types:
+                messages.error(request, 'Invalid department type selected.')
+                return redirect(request.path)
+            updated = queryset.update(department_type=dept_type)
+            messages.success(request, f'Updated type for {updated} department(s).')
+        else:
+            messages.error(request, 'Invalid bulk action.')
+
+        return redirect(next_url or request.path)
+
+    # Supported sort keys -> ORM fields
+    sort_key = (request.GET.get('sort') or 'name').strip()
+    sort_dir = (request.GET.get('dir') or 'asc').strip().lower()
+
+    sortable_map = {
+        'name': 'name',
+        'code': 'code',
+        'parent': 'parent_department__name',
+        'head': 'head_of_department__first_name',
+        'member_count': 'member_count',
+    }
+
+    # Base queryset with annotations for sorting
+    queryset = Department.objects.all().annotate(
+        member_count=Count('department_members', distinct=True),
+        head_name=Concat(
+            F('head_of_department__first_name'),
+            Value(' '),
+            F('head_of_department__last_name'),
+        ),
+    )
+
+    # Special handling for code: natural numeric sort when codes are numeric
+    if sort_key == 'code':
+        queryset = queryset.annotate(
+            code_numeric=Case(
+                When(code__regex=r'^\d+$', then=Cast('code', IntegerField())),
+                default=Value(None),
+                output_field=IntegerField(),
+            )
+        )
+        if sort_dir == 'desc':
+            departments = queryset.order_by('-code_numeric', '-code', 'id')
+        else:
+            departments = queryset.order_by('code_numeric', 'code', 'id')
+    else:
+        order_field = sortable_map.get(sort_key, 'name')
+        if sort_dir == 'desc':
+            order_field = f'-{order_field}'
+        departments = queryset.order_by(order_field, 'id')
+
+    context = {
+        'departments': departments,
+        'current_sort': sort_key,
+        'current_dir': 'desc' if sort_dir == 'desc' else 'asc',
+        'all_departments': Department.objects.order_by('name'),
+        'type_choices': Department.DEPARTMENT_TYPE_CHOICES,
+    }
+    return render(request, 'departments/department_list.html', context)
 
 @login_required
 def department_detail(request, pk):

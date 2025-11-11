@@ -56,11 +56,7 @@
                                             {{ form.email|add_error_class:"is-invalid"|add_class:"form-control" }}
                                             {% if form.email.errors %}<div class="invalid-feedback d-block">{{ form.email.errors|striptags }}</div>{% endif %}
                                         </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label">Employee ID <span class="text-danger">*</span></label>
-                                            {{ form.employee_id|add_error_class:"is-invalid"|add_class:"form-control" }}
-                                            {% if form.employee_id.errors %}<div class="invalid-feedback d-block">{{ form.employee_id.errors|striptags }}</div>{% endif %}
-                                        </div>
+                                        {# Employee ID is auto-generated and not editable #}
                                         <div class="col-md-4">
                                             <label class="form-label">Position <span class="text-danger">*</span></label>
                                             {{ form.position|add_error_class:"is-invalid"|add_class:"form-control" }}

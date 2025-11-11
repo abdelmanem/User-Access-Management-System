@@ -18,38 +18,110 @@
                         </div>
                     </div>
                     <div class="card-body">
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="row mb-3">
+                                <div class="col-md-8">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <label class="me-2 fw-bold">Bulk actions:</label>
+                                        <select name="bulk_action" class="form-select w-auto" required>
+                                            <option value="" selected disabled>Choose...</option>
+                                            <option value="activate">Activate</option>
+                                            <option value="deactivate">Deactivate</option>
+                                            <option value="set_parent">Set parent</option>
+                                            <option value="set_type">Set type</option>
+                                        </select>
+                                        <select name="parent_department_id" class="form-select w-auto">
+                                            <option value="">— Select parent —</option>
+                                            {% for d in all_departments %}
+                                                <option value="{{ d.id }}">{{ d.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <select name="department_type" class="form-select w-auto">
+                                            <option value="">— Select type —</option>
+                                            {% for val,label in type_choices %}
+                                                <option value="{{ val }}">{{ label }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="submit" class="btn btn-secondary">
+                                            Apply
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         <table class="table table-bordered table-striped">
                             <thead>
                                 <tr>
-                                    <th>Name</th>
-                                    <th>Code</th>
-                                    <th>Parent Department</th>
-                                    <th>Head</th>
-                                    <th>Member Count</th>
+                                    <th style="width: 36px;">
+                                        <input type="checkbox" id="select-all" />
+                                    </th>
+                                    <th>
+                                        <a href="?sort=name&dir={% if current_sort == 'name' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
+                                            Name
+                                            {% if current_sort == 'name' %}
+                                                <span class="ms-1">{% if current_dir == 'asc' %}▲{% else %}▼{% endif %}</span>
+                                            {% endif %}
+                                        </a>
+                                    </th>
+                                    <th>
+                                        <a href="?sort=code&dir={% if current_sort == 'code' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
+                                            Code
+                                            {% if current_sort == 'code' %}
+                                                <span class="ms-1">{% if current_dir == 'asc' %}▲{% else %}▼{% endif %}</span>
+                                            {% endif %}
+                                        </a>
+                                    </th>
+                                    <th>
+                                        <a href="?sort=parent&dir={% if current_sort == 'parent' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
+                                            Parent Department
+                                            {% if current_sort == 'parent' %}
+                                                <span class="ms-1">{% if current_dir == 'asc' %}▲{% else %}▼{% endif %}</span>
+                                            {% endif %}
+                                        </a>
+                                    </th>
+                                    <th>
+                                        <a href="?sort=head&dir={% if current_sort == 'head' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
+                                            Head
+                                            {% if current_sort == 'head' %}
+                                                <span class="ms-1">{% if current_dir == 'asc' %}▲{% else %}▼{% endif %}</span>
+                                            {% endif %}
+                                        </a>
+                                    </th>
+                                    <th>
+                                        <a href="?sort=member_count&dir={% if current_sort == 'member_count' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
+                                            Member Count
+                                            {% if current_sort == 'member_count' %}
+                                                <span class="ms-1">{% if current_dir == 'asc' %}▲{% else %}▼{% endif %}</span>
+                                            {% endif %}
+                                        </a>
+                                    </th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for department in departments %}
                                 <tr>
+                                    <td>
+                                        <input type="checkbox" name="selected" value="{{ department.id }}" class="row-select" />
+                                    </td>
                                     <td>{{ department.name }}</td>
                                     <td>{{ department.code }}</td>
                                     <td>
-                                        {% if department.parent %}
-                                            {{ department.parent.name }}
+                                        {% if department.parent_department %}
+                                            {{ department.parent_department.name }}
                                         {% else %}
                                             <span class="text-muted">-</span>
                                         {% endif %}
                                     </td>
                                     <td>
-                                        {% if department.head %}
-                                            {{ department.head.get_full_name }}
+                                        {% if department.head_of_department %}
+                                            {{ department.head_name|default:department.head_of_department.get_full_name }}
                                         {% else %}
                                             <span class="text-muted">-</span>
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <span class="badge bg-info">{{ department.members.count }}</span>
+                                        <span class="badge bg-info">{{ department.member_count }}</span>
                                     </td>
                                     <td>
                                         <a href="{% url 'departments:department_detail' department.pk %}" class="btn btn-info btn-sm">
@@ -65,11 +137,22 @@
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted">No departments found.</td>
+                                    <td colspan="7" class="text-center text-muted">No departments found.</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
+                        </form>
+                        <script>
+                        (function() {
+                            const selectAll = document.getElementById('select-all');
+                            if (!selectAll) return;
+                            const rowCheckboxes = document.querySelectorAll('.row-select');
+                            selectAll.addEventListener('change', function() {
+                                rowCheckboxes.forEach(cb => cb.checked = selectAll.checked);
+                            });
+                        })();
+                        </script>
                     </div>
                 </div>
             </div>

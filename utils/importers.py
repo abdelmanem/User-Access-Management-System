@@ -134,9 +134,11 @@ def import_users_from_csv(file):
 def import_departments_from_csv(file):
     """Import or update department records from a CSV file."""
     reader = _csv_reader(file)
-    required_columns = {'name', 'code', 'department_type'}
+    # department_type is optional; defaults to 'Department' if omitted.
+    required_columns = {'name', 'code'}
     errors = []
-    parent_links: List[Tuple[Department, str]] = []
+    # Store (child_department, parent_code, parent_name) for post-processing
+    parent_links: List[Tuple[Department, str, str]] = []
 
     with transaction.atomic():
         for index, row in enumerate(reader, start=2):
@@ -145,10 +147,29 @@ def import_departments_from_csv(file):
                 errors.append(_collect_row_errors(index, [f"Missing required columns: {', '.join(missing_columns)}"]))
                 continue
 
+            code = (row['code'] or '').strip()
+            name = (row['name'] or '').strip()
+            raw_department_type = (row.get('department_type') or '').strip()
+            # Validate department_type if provided
+            if raw_department_type and raw_department_type not in dict(Department.DEPARTMENT_TYPE_CHOICES):
+                allowed = ', '.join(dict(Department.DEPARTMENT_TYPE_CHOICES).keys())
+                errors.append(_collect_row_errors(index, [f"Invalid department_type '{raw_department_type}'. Allowed: {allowed}"]))
+                continue
+
+            # Pre-check for unique name conflicts (model enforces unique=True on name)
+            # If another department already uses this name with a different code, report a readable error.
+            existing_with_name = Department.objects.filter(name=name).exclude(code=code).first()
+            if existing_with_name:
+                errors.append(_collect_row_errors(
+                    index,
+                    [f"Department name '{name}' already exists with code '{existing_with_name.code}'. Use a unique name or match the existing code."]
+                ))
+                continue
+
             defaults = {
-                'name': row['name'].strip(),
+                'name': name,
                 'description': (row.get('description') or '').strip(),
-                'department_type': row['department_type'].strip(),
+                'department_type': raw_department_type or 'Department',
                 'is_active': _parse_bool(row.get('is_active'), default=True),
             }
 
@@ -164,24 +185,74 @@ def import_departments_from_csv(file):
                     defaults[field_name] = row[field_name].strip()
 
             department, _ = Department.objects.update_or_create(
-                code=row['code'].strip(),
+                code=code,
                 defaults=defaults,
             )
 
-            parent_code = row.get('parent_department_code')
-            if parent_code:
-                parent_links.append((department, parent_code.strip()))
+            parent_code = (row.get('parent_department_code') or '').strip()
+            parent_name = (row.get('parent_department_name') or '').strip()
+            if parent_code or parent_name:
+                parent_links.append((department, parent_code, parent_name))
 
         # Resolve parent relationships outside the main loop to ensure all departments exist.
         if not errors and parent_links:
-            for department, parent_code in parent_links:
-                parent = Department.objects.filter(code=parent_code).first()
+            for department, parent_code, parent_name in parent_links:
+                parent = None
+                # 1) Try by code if provided
+                if parent_code:
+                    parent = Department.objects.filter(code=parent_code).first()
+                # 2) Try by name if not found and name provided
+                if parent is None and parent_name:
+                    parent = Department.objects.filter(name=parent_name).first()
+                # 3) If still not found, try interpreting provided code as a name (common CSV confusion)
+                if parent is None and parent_code:
+                    parent = Department.objects.filter(name=parent_code).first()
+                # 4) If still not found but we have a name, auto-create parent
+                if parent is None and parent_name:
+                    # Choose code: prefer provided parent_code, else use parent_name as code if unique, otherwise skip to slug-like variant
+                    candidate_code = parent_code or parent_name
+                    candidate_code = candidate_code.strip()
+                    # Ensure uniqueness of code
+                    if Department.objects.filter(code=candidate_code).exists():
+                        # Append incremental suffix to avoid collision
+                        base = candidate_code[:45]  # leave room for suffix
+                        suffix_idx = 1
+                        new_code = f"{base}-{suffix_idx}"
+                        while Department.objects.filter(code=new_code).exists():
+                            suffix_idx += 1
+                            new_code = f"{base}-{suffix_idx}"
+                        candidate_code = new_code
+                    parent = Department.objects.create(
+                        name=parent_name,
+                        code=candidate_code,
+                        department_type='Department',
+                        is_active=True,
+                    )
+                # 5) If still not found and only a parent_code was given (likely a human-readable name used as code), auto-create using it.
+                if parent is None and parent_code and not parent_name:
+                    candidate_code = parent_code.strip()
+                    candidate_name = parent_code.strip()
+                    if Department.objects.filter(code=candidate_code).exists():
+                        base = candidate_code[:45]
+                        suffix_idx = 1
+                        new_code = f"{base}-{suffix_idx}"
+                        while Department.objects.filter(code=new_code).exists():
+                            suffix_idx += 1
+                            new_code = f"{base}-{suffix_idx}"
+                        candidate_code = new_code
+                    parent = Department.objects.create(
+                        name=candidate_name,
+                        code=candidate_code,
+                        department_type='Department',
+                        is_active=True,
+                    )
                 if parent is None:
-                    errors.append(f"Parent department with code '{parent_code}' not found for department '{department.code}'")
-                else:
-                    if department.parent_department_id != parent.id:
-                        department.parent_department = parent
-                        department.save(update_fields=['parent_department'])
+                    ref = parent_code or parent_name or '(unspecified)'
+                    errors.append(f"Parent department with reference '{ref}' not found for department '{department.code}'")
+                    continue
+                if department.parent_department_id != parent.id:
+                    department.parent_department = parent
+                    department.save(update_fields=['parent_department'])
 
         if errors:
             raise ImportErrorCollection(errors)
