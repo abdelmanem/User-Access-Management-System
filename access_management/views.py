@@ -3,14 +3,159 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q, Count
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_http_methods
 from django.utils import timezone
 from datetime import timedelta
+from io import BytesIO
+from openpyxl import Workbook
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter, landscape
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
 
 from .models import UserSystemAccess, AccessHistory
 from accounts.models import CustomUser
 from systems.models import System
+
+
+def _format_datetime(value):
+    if not value:
+        return ''
+    try:
+        return timezone.localtime(value).strftime('%Y-%m-%d %H:%M')
+    except (ValueError, TypeError):
+        return value.strftime('%Y-%m-%d %H:%M') if hasattr(value, 'strftime') else ''
+
+
+def export_access_assignments_to_excel(queryset):
+    workbook = Workbook()
+    worksheet = workbook.active
+    worksheet.title = "Access Assignments"
+
+    headers = [
+        "User",
+        "Username",
+        "Department",
+        "System",
+        "System Code",
+        "Access Username",
+        "Access Type",
+        "Access Level",
+        "Status",
+        "Priority",
+        "Request Date",
+        "Access Start",
+        "Access End",
+        "Approved By",
+        "Approval Date",
+    ]
+    worksheet.append(headers)
+
+    for assignment in queryset:
+        user = assignment.user
+        system = assignment.system
+        approved_by = assignment.approved_by
+
+        worksheet.append([
+            user.get_full_name() if user else '',
+            user.username if user else '',
+            user.department.name if user and user.department else '',
+            system.name if system else '',
+            system.code if system else '',
+            assignment.access_username or '',
+            assignment.access_type or '',
+            assignment.granted_access_level or '',
+            assignment.status or '',
+            assignment.priority or '',
+            _format_datetime(assignment.request_date),
+            _format_datetime(assignment.access_start_date),
+            _format_datetime(assignment.access_end_date),
+            approved_by.get_full_name() if approved_by else '',
+            _format_datetime(assignment.approval_date),
+        ])
+
+    stream = BytesIO()
+    workbook.save(stream)
+    stream.seek(0)
+
+    response = HttpResponse(
+        stream.getvalue(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="access_assignments.xlsx"'
+    return response
+
+
+def export_access_assignments_to_pdf(queryset):
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=landscape(letter),
+        leftMargin=24,
+        rightMargin=24,
+        topMargin=24,
+        bottomMargin=24,
+    )
+
+    headers = [
+        "User",
+        "System",
+        "Access Type",
+        "Access Level",
+        "Status",
+        "Priority",
+        "Request Date",
+        "Access Period",
+        "Approved By",
+    ]
+
+    data = [headers]
+
+    for assignment in queryset:
+        user = assignment.user
+        system = assignment.system
+        approved_by = assignment.approved_by
+
+        access_period = _format_datetime(assignment.access_start_date)
+        if assignment.access_end_date:
+            access_period = f"{access_period} → {_format_datetime(assignment.access_end_date)}" if access_period else _format_datetime(assignment.access_end_date)
+
+        data.append([
+            f"{user.get_full_name()} ({user.username})" if user else '',
+            f"{system.name} ({system.code})" if system else '',
+            assignment.access_type or '',
+            assignment.granted_access_level or '',
+            assignment.status or '',
+            assignment.priority or '',
+            _format_datetime(assignment.request_date),
+            access_period or '',
+            approved_by.get_full_name() if approved_by else '',
+        ])
+
+    table = Table(data, repeatRows=1, hAlign='LEFT')
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1f2937')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.whitesmoke),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.whitesmoke, colors.lightgrey]),
+        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('LINEBEFORE', (0, 0), (0, -1), 0.25, colors.grey),
+        ('LINEAFTER', (-1, 0), (-1, -1), 0.25, colors.grey),
+        ('BOX', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.grey),
+        ('LEFTPADDING', (0, 0), (-1, -1), 6),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+    ]))
+
+    doc.build([table])
+    buffer.seek(0)
+
+    response = HttpResponse(buffer, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="access_assignments.pdf"'
+    return response
 
 
 @login_required
@@ -48,6 +193,13 @@ def access_assignment_list(request):
             Q(business_justification__icontains=search_query)
         )
     
+    export_format = request.GET.get('export')
+    if export_format in {'xlsx', 'pdf'}:
+        export_queryset = queryset.order_by('user__first_name', 'user__last_name', '-request_date', 'system__name')
+        if export_format == 'xlsx':
+            return export_access_assignments_to_excel(export_queryset)
+        return export_access_assignments_to_pdf(export_queryset)
+    
     # Pagination
     queryset = queryset.order_by('user__first_name', 'user__last_name', '-request_date', 'system__name')
 
@@ -58,7 +210,12 @@ def access_assignment_list(request):
     # Get filter options
     systems = System.objects.all().order_by('name')
     users = CustomUser.objects.all().order_by('first_name', 'last_name')
-    
+
+    query_params = request.GET.copy()
+    query_params.pop('page', None)
+    query_params.pop('export', None)
+    current_query = query_params.urlencode()
+
     context = {
         'access_assignments': access_assignments,
         'status_choices': UserSystemAccess.STATUS_CHOICES,
@@ -73,7 +230,8 @@ def access_assignment_list(request):
             'system': system_filter,
             'user': user_filter,
             'search': search_query,
-        }
+        },
+        'current_query': current_query,
     }
     
     return render(request, 'access_management/access_assignment_list.html', context)
