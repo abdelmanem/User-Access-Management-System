@@ -85,7 +85,59 @@
                                 </table>
                             </div>
                         </div>
-                        
+                        {% if member_form %}
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-header bg-white">
+                                        <h4 class="card-title mb-0">
+                                            <i class="fas fa-users-gear me-2"></i>Manage Department Membership
+                                        </h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <form method="post" novalidate>
+                                            {% csrf_token %}
+                                            {% if member_form.non_field_errors %}
+                                            <div class="alert alert-danger">
+                                                {{ member_form.non_field_errors }}
+                                            </div>
+                                            {% endif %}
+                                            <div class="row g-3">
+                                                <div class="col-12 col-lg-8">
+                                                    <label for="{{ member_form.users.id_for_label }}" class="form-label fw-semibold">
+                                                        {{ member_form.users.label }}
+                                                    </label>
+                                                    {{ member_form.users }}
+                                                    <div class="form-text">
+                                                        {{ member_form.users.help_text }}
+                                                    </div>
+                                                    {% for error in member_form.users.errors %}
+                                                        <div class="invalid-feedback d-block">{{ error }}</div>
+                                                    {% endfor %}
+                                                </div>
+                                                <div class="col-12 col-lg-4">
+                                                    <div class="alert alert-info small">
+                                                        <strong>Tips:</strong>
+                                                        <ul class="mb-0 ps-3">
+                                                            <li>Use Ctrl/Command + Click to select multiple users.</li>
+                                                            <li>Users not selected will be removed from this department.</li>
+                                                            <li>Changes are applied immediately upon saving.</li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex justify-content-end mt-3">
+                                                <button type="submit" class="btn btn-primary">
+                                                    <i class="fas fa-save me-1"></i>Save Membership
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
                         <div class="row mt-4">
                             <div class="col-12">
                                 <h4>Members</h4>

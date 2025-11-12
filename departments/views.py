@@ -4,7 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q, F, Value, Case, When, IntegerField
 from django.db.models.functions import Concat, Cast
 from .models import Department
-from .forms import DepartmentForm
+from .forms import DepartmentForm, DepartmentMemberAssignForm
+from accounts.models import CustomUser
 
 @login_required
 def department_list(request):
@@ -108,7 +109,42 @@ def department_list(request):
 @login_required
 def department_detail(request, pk):
     department = get_object_or_404(Department, pk=pk)
-    return render(request, 'departments/department_detail.html', {'department': department})
+
+    if request.method == 'POST':
+        member_form = DepartmentMemberAssignForm(request.POST, department=department)
+        if member_form.is_valid():
+            selected_users = member_form.cleaned_data['users']
+            selected_ids = list(selected_users.values_list('id', flat=True))
+
+            removed_count = CustomUser.objects.filter(department=department).exclude(id__in=selected_ids).update(
+                department=None,
+                updated_by=request.user
+            )
+
+            added_queryset = CustomUser.objects.filter(id__in=selected_ids)
+            added_count = added_queryset.exclude(department=department).update(
+                department=department,
+                updated_by=request.user
+            )
+
+            # Ensure all selected users are attached to this department (covers already members too)
+            added_queryset.filter(department=department).update(updated_by=request.user)
+
+            messages.success(
+                request,
+                f"Department membership updated. Assigned {added_count} user(s), removed {removed_count} user(s)."
+            )
+            return redirect('departments:department_detail', pk=department.pk)
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        member_form = DepartmentMemberAssignForm(department=department)
+
+    context = {
+        'department': department,
+        'member_form': member_form,
+    }
+    return render(request, 'departments/department_detail.html', context)
 
 @login_required
 def department_create(request):

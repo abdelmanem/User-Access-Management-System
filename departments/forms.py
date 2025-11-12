@@ -31,3 +31,18 @@ class DepartmentForm(forms.ModelForm):
         self.fields['parent_department'].queryset = Department.objects.order_by('name')
 
 
+class DepartmentMemberAssignForm(forms.Form):
+    users = forms.ModelMultipleChoiceField(
+        queryset=CustomUser.objects.none(),
+        required=False,
+        widget=forms.SelectMultiple(attrs={'class': 'form-select', 'size': 15}),
+        label='Department Members',
+        help_text='Select the users that should belong to this department.'
+    )
+
+    def __init__(self, *args, **kwargs):
+        department = kwargs.pop('department')
+        super().__init__(*args, **kwargs)
+        self.department = department
+        self.fields['users'].queryset = CustomUser.objects.order_by('first_name', 'last_name', 'username')
+        self.fields['users'].initial = department.department_members.values_list('id', flat=True)
