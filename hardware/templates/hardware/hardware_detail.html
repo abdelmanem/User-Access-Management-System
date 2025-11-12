@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ asset.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">{{ asset.name }}</h1>
+            <div class="text-muted">
+                Asset Tag: <span class="fw-semibold">{{ asset.asset_tag }}</span>
+                {% if asset.serial_number %}
+                · Serial No: <span class="fw-semibold">{{ asset.serial_number }}</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="btn-group">
+            <a href="{% url 'hardware:hardware_update' asset.pk %}" class="btn btn-secondary">
+                <i class="fa-solid fa-pen me-2"></i>Edit
+            </a>
+            <a href="{% url 'hardware:hardware_delete' asset.pk %}" class="btn btn-danger">
+                <i class="fa-solid fa-trash me-2"></i>Delete
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Asset Overview</h5>
+                    <span class="badge bg-{{ asset.lifecycle_state_color }}">{{ asset.status }}</span>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4 text-muted">Hardware Type</dt>
+                        <dd class="col-sm-8">{{ asset.get_hardware_type_display }}</dd>
+
+                        <dt class="col-sm-4 text-muted">Department</dt>
+                        <dd class="col-sm-8">
+                            {% if asset.department %}
+                                {{ asset.department.name }}
+                            {% else %}
+                                <span class="text-muted">Unassigned</span>
+                            {% endif %}
+                        </dd>
+
+                        <dt class="col-sm-4 text-muted">Primary User</dt>
+                        <dd class="col-sm-8">
+                            {% if asset.primary_user %}
+                                {{ asset.primary_user.full_name }}
+                                {% if asset.primary_user.position %}
+                                    <span class="text-muted small">({{ asset.primary_user.position }})</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">Unassigned</span>
+                            {% endif %}
+                        </dd>
+
+                        <dt class="col-sm-4 text-muted">Location</dt>
+                        <dd class="col-sm-8">{{ asset.location|default:"-" }}</dd>
+
+                        <dt class="col-sm-4 text-muted">Manufacturer / Model</dt>
+                        <dd class="col-sm-8">
+                            {% if asset.manufacturer or asset.model_number %}
+                                {{ asset.manufacturer|default:"?" }} {{ asset.model_number|default:"" }}
+                            {% else %}
+                                <span class="text-muted">Not specified</span>
+                            {% endif %}
+                        </dd>
+
+                        <dt class="col-sm-4 text-muted">Specifications</dt>
+                        <dd class="col-sm-8">
+                            <ul class="list-unstyled mb-0">
+                                <li>Operating System: {{ asset.operating_system|default:"-" }}</li>
+                                <li>CPU: {{ asset.cpu|default:"-" }}</li>
+                                <li>Memory: {{ asset.memory_gb|default:"-" }}{% if asset.memory_gb %} GB{% endif %}</li>
+                                <li>Storage: {{ asset.storage_capacity_gb|default:"-" }}{% if asset.storage_capacity_gb %} GB{% endif %}</li>
+                                <li>Virtualized: {% if asset.is_virtual %}<span class="badge bg-info text-dark">Yes</span>{% else %}No{% endif %}</li>
+                                <li>Patch Management: {% if asset.requires_patch_management %}Enabled{% else %}<span class="text-danger">Disabled</span>{% endif %}</li>
+                            </ul>
+                        </dd>
+
+                        <dt class="col-sm-4 text-muted">Network</dt>
+                        <dd class="col-sm-8">
+                            <div>IP Address: {{ asset.ip_address|default:"-" }}</div>
+                            <div>MAC Address: {{ asset.mac_address|default:"-" }}</div>
+                        </dd>
+
+                        <dt class="col-sm-4 text-muted">Notes</dt>
+                        <dd class="col-sm-8">
+                            {% if asset.notes %}
+                                <pre class="mb-0 small">{{ asset.notes }}</pre>
+                            {% else %}
+                                <span class="text-muted">No notes recorded.</span>
+                            {% endif %}
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Lifecycle</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="border rounded p-3 h-100">
+                                <small class="text-muted text-uppercase d-block mb-2">Purchase Date</small>
+                                <span class="fw-semibold">{{ asset.purchase_date|date:"M d, Y"|default:"-" }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mt-3 mt-md-0">
+                            <div class="border rounded p-3 h-100">
+                                <small class="text-muted text-uppercase d-block mb-2">Warranty Expires</small>
+                                <span class="fw-semibold">{{ asset.warranty_expiration|date:"M d, Y"|default:"-" }}</span>
+                                {% if asset.days_until_warranty_expires is not None %}
+                                    {% if asset.days_until_warranty_expires < 0 %}
+                                        <div class="small text-danger">Expired {{ asset.days_until_warranty_expires|abs }} days ago</div>
+                                    {% elif asset.days_until_warranty_expires == 0 %}
+                                        <div class="small text-warning">Expires today</div>
+                                    {% else %}
+                                        <div class="small text-muted">{{ asset.days_until_warranty_expires }} days remaining</div>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4 mt-3 mt-md-0">
+                            <div class="border rounded p-3 h-100">
+                                <small class="text-muted text-uppercase d-block mb-2">Next Inventory Check</small>
+                                <span class="fw-semibold">{{ asset.next_inventory_check|date:"M d, Y"|default:"-" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Assigned Users</h5>
+                </div>
+                <div class="card-body">
+                    {% if asset.assigned_users.exists %}
+                        <ul class="list-group list-group-flush">
+                            {% for user in asset.assigned_users.all %}
+                            <li class="list-group-item px-0">
+                                <div class="fw-semibold">{{ user.full_name }}</div>
+                                <div class="small text-muted">
+                                    {{ user.position|default:'-' }}
+                                    {% if user.department %}
+                                        · {{ user.department.name }}
+                                    {% endif %}
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted mb-0">No additional users assigned.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Related Systems</h5>
+                </div>
+                <div class="card-body">
+                    {% if asset.related_systems.exists %}
+                        <ul class="list-group list-group-flush">
+                            {% for system in asset.related_systems.all %}
+                            <li class="list-group-item px-0">
+                                <div class="fw-semibold">{{ system.name }}</div>
+                                <div class="small text-muted">Type: {{ system.get_system_type_display }}</div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted mb-0">No systems linked to this asset.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Audit</h5>
+                </div>
+                <div class="card-body small text-muted">
+                    <div>Created: {{ asset.created_at|date:"M d, Y H:i" }}</div>
+                    <div>Created By: {{ asset.created_by.full_name|default:'-' }}</div>
+                    <div class="mt-2">Last Updated: {{ asset.updated_at|date:"M d, Y H:i" }}</div>
+                    <div>Updated By: {{ asset.updated_by.full_name|default:'-' }}</div>
+                    <div class="mt-2">Last Inventory Check: {{ asset.last_inventory_check|date:"M d, Y"|default:"-" }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

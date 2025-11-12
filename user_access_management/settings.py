@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'access_management',
     'dashboard',
     'data_import_export',
+    'hardware',
 ]
 
 MIDDLEWARE = [

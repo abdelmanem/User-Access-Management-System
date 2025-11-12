@@ -193,6 +193,17 @@ def access_assignment_list(request):
             Q(business_justification__icontains=search_query)
         )
     
+    metrics_queryset = queryset
+
+    summary_metrics = {
+        'total': metrics_queryset.count(),
+        'active': metrics_queryset.filter(status='Active').count(),
+        'pending': metrics_queryset.filter(status='Pending').count(),
+        'expired': metrics_queryset.filter(status='Expired').count(),
+        'unique_users': metrics_queryset.values('user_id').distinct().count(),
+        'unique_systems': metrics_queryset.values('system_id').distinct().count(),
+    }
+
     export_format = request.GET.get('export')
     if export_format in {'xlsx', 'pdf'}:
         export_queryset = queryset.order_by('user__first_name', 'user__last_name', '-request_date', 'system__name')
@@ -232,6 +243,7 @@ def access_assignment_list(request):
             'search': search_query,
         },
         'current_query': current_query,
+        'summary_metrics': summary_metrics,
     }
     
     return render(request, 'access_management/access_assignment_list.html', context)

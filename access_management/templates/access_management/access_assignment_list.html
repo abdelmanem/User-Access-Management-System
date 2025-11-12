@@ -30,6 +30,59 @@
                     </div>
                 </div>
                 <div class="card-body">
+                    {% if summary_metrics %}
+                    <div class="row row-cols-1 row-cols-md-3 row-cols-xl-6 g-3 mb-4">
+                        <div class="col">
+                            <div class="card border-primary h-100">
+                                <div class="card-body text-primary">
+                                    <h6 class="card-subtitle text-uppercase fw-semibold mb-1 small">Total Assignments</h6>
+                                    <h3 class="card-title mb-0">{{ summary_metrics.total }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="card border-success h-100">
+                                <div class="card-body text-success">
+                                    <h6 class="card-subtitle text-uppercase fw-semibold mb-1 small">Active</h6>
+                                    <h3 class="card-title mb-0">{{ summary_metrics.active }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="card border-warning h-100">
+                                <div class="card-body text-warning">
+                                    <h6 class="card-subtitle text-uppercase fw-semibold mb-1 small">Pending</h6>
+                                    <h3 class="card-title mb-0">{{ summary_metrics.pending }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="card border-danger h-100">
+                                <div class="card-body text-danger">
+                                    <h6 class="card-subtitle text-uppercase fw-semibold mb-1 small">Expired</h6>
+                                    <h3 class="card-title mb-0">{{ summary_metrics.expired }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="card border-info h-100">
+                                <div class="card-body text-info">
+                                    <h6 class="card-subtitle text-uppercase fw-semibold mb-1 small">Unique Users</h6>
+                                    <h3 class="card-title mb-0">{{ summary_metrics.unique_users }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="card border-secondary h-100">
+                                <div class="card-body text-secondary">
+                                    <h6 class="card-subtitle text-uppercase fw-semibold mb-1 small">Unique Systems</h6>
+                                    <h3 class="card-title mb-0">{{ summary_metrics.unique_systems }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <!-- Filters -->
                     <form method="get" class="mb-4">
                         <div class="row">

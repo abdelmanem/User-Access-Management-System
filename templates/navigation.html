@@ -30,6 +30,11 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link{% nav_active_class 'hardware:hardware_*' %}" href="{% url 'hardware:hardware_list' %}">
+                        <i class="fa-solid fa-desktop me-1"></i> Hardware
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link{% nav_active_class 'access_management:access_assignment_*' 'access_management:user_access_*' 'access_management:system_access_*' 'access_management:access_history_*' 'access_management:approve_access_assignment' 'access_management:reject_access_assignment' %}" href="{% url 'access_management:access_assignment_list' %}">
                         <i class="fa-solid fa-key me-1"></i> Access
                     </a>

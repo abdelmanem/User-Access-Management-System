@@ -29,6 +29,7 @@ urlpatterns = [
     path('departments/', include('departments.urls')),
     path('systems/', include('systems.urls')),
     path('access-management/', include('access_management.urls')),
+    path('hardware/', include('hardware.urls')),
     path('search/', include('search.urls')),
     path('data-import-export/', include('data_import_export.urls')),
     path('healthz/', lambda request: JsonResponse({
