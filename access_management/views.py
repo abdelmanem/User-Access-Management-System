@@ -49,6 +49,8 @@ def access_assignment_list(request):
         )
     
     # Pagination
+    queryset = queryset.order_by('user__first_name', 'user__last_name', '-request_date', 'system__name')
+
     paginator = Paginator(queryset, 25)
     page_number = request.GET.get('page')
     access_assignments = paginator.get_page(page_number)
@@ -179,6 +181,19 @@ def access_assignment_create(request):
         'selected_request_type': selected_request_type,
         'selected_priority': selected_priority,
         'business_justification_value': request.POST.get('business_justification', ''),
+        'requested_access_duration_value': request.POST.get('requested_access_duration', ''),
+        'access_start_date_value': request.POST.get('access_start_date', ''),
+        'access_end_date_value': request.POST.get('access_end_date', ''),
+        'access_username_value': request.POST.get('access_username', ''),
+        'access_url_value': request.POST.get('access_url', ''),
+        'granted_access_level_value': request.POST.get('granted_access_level', ''),
+        'technical_requirements_value': request.POST.get('technical_requirements', ''),
+        'security_clearance_required_value': request.POST.get('security_clearance_required', ''),
+        'data_access_level_value': request.POST.get('data_access_level', ''),
+        'risk_assessment_score_value': request.POST.get('risk_assessment_score', ''),
+        'review_frequency_days_value': request.POST.get('review_frequency_days', ''),
+        'special_instructions_value': request.POST.get('special_instructions', ''),
+        'compliance_requirements_value': request.POST.get('compliance_requirements', ''),
     }
     
     return render(request, 'access_management/access_assignment_form.html', context)
@@ -199,6 +214,15 @@ def access_assignment_update(request, pk):
         access_start_date = request.POST.get('access_start_date')
         access_end_date = request.POST.get('access_end_date')
         status = request.POST.get('status') or access_assignment.status
+        access_username = request.POST.get('access_username')
+        access_url = request.POST.get('access_url')
+        granted_access_level = request.POST.get('granted_access_level')
+        security_clearance_required = request.POST.get('security_clearance_required')
+        data_access_level = request.POST.get('data_access_level')
+        risk_assessment_score = request.POST.get('risk_assessment_score')
+        review_frequency_days = request.POST.get('review_frequency_days')
+        special_instructions = request.POST.get('special_instructions')
+        compliance_requirements = request.POST.get('compliance_requirements')
         
         try:
             # Update fields
@@ -212,6 +236,15 @@ def access_assignment_update(request, pk):
             access_assignment.access_end_date = timezone.datetime.fromisoformat(access_end_date) if access_end_date else None
             access_assignment.status = status
             access_assignment.updated_by = request.user
+            access_assignment.access_username = access_username
+            access_assignment.access_url = access_url
+            access_assignment.granted_access_level = granted_access_level
+            access_assignment.security_clearance_required = security_clearance_required
+            access_assignment.data_access_level = data_access_level
+            access_assignment.risk_assessment_score = int(risk_assessment_score) if risk_assessment_score else None
+            access_assignment.review_frequency_days = int(review_frequency_days) if review_frequency_days else None
+            access_assignment.special_instructions = special_instructions
+            access_assignment.compliance_requirements = compliance_requirements
             
             access_assignment.save()
             
@@ -248,6 +281,25 @@ def access_assignment_update(request, pk):
         'users': CustomUser.objects.all().order_by('first_name', 'last_name'),
         'systems': System.objects.all().order_by('name'),
         'business_justification_value': request.POST.get('business_justification', access_assignment.business_justification or ''),
+        'requested_access_duration_value': request.POST.get('requested_access_duration', access_assignment.requested_access_duration or ''),
+        'access_start_date_value': request.POST.get(
+            'access_start_date',
+            timezone.localtime(access_assignment.access_start_date).strftime('%Y-%m-%dT%H:%M') if access_assignment.access_start_date else ''
+        ),
+        'access_end_date_value': request.POST.get(
+            'access_end_date',
+            timezone.localtime(access_assignment.access_end_date).strftime('%Y-%m-%dT%H:%M') if access_assignment.access_end_date else ''
+        ),
+        'access_username_value': request.POST.get('access_username', access_assignment.access_username or ''),
+        'access_url_value': request.POST.get('access_url', access_assignment.access_url or ''),
+        'granted_access_level_value': request.POST.get('granted_access_level', access_assignment.granted_access_level or ''),
+        'technical_requirements_value': request.POST.get('technical_requirements', access_assignment.technical_requirements or ''),
+        'security_clearance_required_value': request.POST.get('security_clearance_required', access_assignment.security_clearance_required or ''),
+        'data_access_level_value': request.POST.get('data_access_level', access_assignment.data_access_level or ''),
+        'risk_assessment_score_value': request.POST.get('risk_assessment_score', access_assignment.risk_assessment_score or ''),
+        'review_frequency_days_value': request.POST.get('review_frequency_days', access_assignment.review_frequency_days or ''),
+        'special_instructions_value': request.POST.get('special_instructions', access_assignment.special_instructions or ''),
+        'compliance_requirements_value': request.POST.get('compliance_requirements', access_assignment.compliance_requirements or ''),
     }
     
     return render(request, 'access_management/access_assignment_form.html', context)

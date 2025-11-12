@@ -87,11 +87,11 @@
 
                     <!-- Access Assignments Table -->
                     <div class="table-responsive">
-                        <table class="table table-striped table-hover">
+                        <table class="table table-striped table-hover align-middle">
                             <thead class="table-dark">
                                 <tr>
-                                    <th>User</th>
-                                    <th>System</th>
+                                    <th>User / System</th>
+                                    <th>Access Username</th>
                                     <th>Access Type</th>
                                     <th>Status</th>
                                     <th>Priority</th>
@@ -101,20 +101,35 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for assignment in access_assignments %}
-                                <tr>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div>
-                                                <div class="fw-bold">{{ assignment.user.full_name }}</div>
-                                                <small class="text-muted">{{ assignment.user.username }}</small>
+                                {% regroup access_assignments.object_list by user as user_groups %}
+                                {% for group in user_groups %}
+                                <tr class="table-primary">
+                                    <td colspan="8">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <button class="btn btn-sm btn-outline-light"
+                                                        type="button"
+                                                        data-bs-toggle="collapse"
+                                                        data-bs-target=".user-group-{{ group.grouper.id }}"
+                                                        aria-expanded="true"
+                                                        aria-controls="user-group-{{ group.grouper.id }}">
+                                                    <i class="fas fa-chevron-down"></i>
+                                                </button>
+                                                <div>
+                                                    <div class="fw-bold">{{ group.grouper.full_name }}</div>
+                                                    <small class="text-muted">{{ group.grouper.username }}</small>
+                                                </div>
                                             </div>
                                         </div>
                                     </td>
+                                </tr>
+                                {% for assignment in group.list %}
+                                <tr class="collapse show user-group-{{ group.grouper.id }}">
                                     <td>
                                         <div class="fw-bold">{{ assignment.system.name }}</div>
                                         <small class="text-muted">{{ assignment.system.code }}</small>
                                     </td>
+                                    <td>{{ assignment.access_username|default:"-" }}</td>
                                     <td>{{ assignment.access_type }}</td>
                                     <td>
                                         <span class="badge bg-{{ assignment.get_status_color }}">
@@ -160,6 +175,7 @@
                                         </div>
                                     </td>
                                 </tr>
+                                {% endfor %}
                                 {% empty %}
                                 <tr>
                                     <td colspan="8" class="text-center text-muted">
@@ -271,5 +287,40 @@ function rejectAccess(assignmentId) {
     form.action = `/access-management/assignments/${assignmentId}/reject/`;
     new bootstrap.Modal(document.getElementById('rejectModal')).show();
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(function (btn) {
+        const icon = btn.querySelector('i');
+        if (!icon) {
+            return;
+        }
+        const targetSelector = btn.getAttribute('data-bs-target');
+        const targets = document.querySelectorAll(targetSelector);
+
+        const setIcon = function (expanded) {
+            if (expanded) {
+                icon.classList.remove('fa-chevron-right');
+                icon.classList.add('fa-chevron-down');
+            } else {
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-right');
+            }
+        };
+
+        const anyShown = Array.from(targets).some(function (target) {
+            return target.classList.contains('show');
+        });
+        setIcon(anyShown);
+
+        targets.forEach(function (target) {
+            target.addEventListener('show.bs.collapse', function () {
+                setIcon(true);
+            });
+            target.addEventListener('hide.bs.collapse', function () {
+                setIcon(false);
+            });
+        });
+    });
+});
 </script>
 {% endblock %}

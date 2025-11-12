@@ -22,14 +22,7 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    {% if form.errors %}
-                    <div class="alert alert-danger">
-                        <strong>Please correct the errors below.</strong>
-                        {% if form.non_field_errors %}
-                        <div class="mt-2">{{ form.non_field_errors }}</div>
-                        {% endif %}
-                    </div>
-                    {% endif %}
+
                     <form method="post" class="needs-validation" novalidate>
                         {% csrf_token %}
                         
@@ -42,7 +35,7 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="{{ form.user.id_for_label }}" class="form-label">
+                                            <label for="user" class="form-label">
                                                 User <span class="text-danger">*</span>
                                             </label>
                                             <select class="form-select" id="user" name="user" required>
@@ -124,102 +117,72 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="{{ form.requested_access_duration.id_for_label }}" class="form-label">
+                                            <label for="requested_access_duration" class="form-label">
                                                 Requested Access Duration (days)
                                             </label>
-                                            <input type="number" class="form-control {% if form.requested_access_duration.errors %}is-invalid{% endif %}" 
-                                                   id="{{ form.requested_access_duration.id_for_label }}" 
-                                                   name="requested_access_duration" 
-                                                   value="{{ form.requested_access_duration.value|default:'' }}">
-                                            {% if form.requested_access_duration.errors %}
-                                                <div class="invalid-feedback">
-                                                    {{ form.requested_access_duration.errors.0 }}
-                                                </div>
-                                            {% endif %}
+                                            <input type="number" class="form-control"
+                                                   id="requested_access_duration"
+                                                   name="requested_access_duration"
+                                                   value="{{ requested_access_duration_value }}">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="{{ form.granted_access_level.id_for_label }}" class="form-label">
+                                            <label for="granted_access_level" class="form-label">
                                                 Granted Access Level
                                             </label>
-                                            <input type="text" class="form-control {% if form.granted_access_level.errors %}is-invalid{% endif %}" 
-                                                   id="{{ form.granted_access_level.id_for_label }}" 
-                                                   name="granted_access_level" 
-                                                   value="{{ form.granted_access_level.value|default:'' }}">
-                                            {% if form.granted_access_level.errors %}
-                                                <div class="invalid-feedback">
-                                                    {{ form.granted_access_level.errors.0 }}
-                                                </div>
-                                            {% endif %}
+                                            <input type="text" class="form-control"
+                                                   id="granted_access_level"
+                                                   name="granted_access_level"
+                                                   value="{{ granted_access_level_value }}">
                                         </div>
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="{{ form.access_start_date.id_for_label }}" class="form-label">
+                                            <label for="access_start_date" class="form-label">
                                                 Access Start Date
                                             </label>
-                                            <input type="datetime-local" class="form-control {% if form.access_start_date.errors %}is-invalid{% endif %}" 
-                                                   id="{{ form.access_start_date.id_for_label }}" 
-                                                   name="access_start_date" 
-                                                   value="{{ form.access_start_date.value|date:'Y-m-d\\TH:i' }}">
-                                            {% if form.access_start_date.errors %}
-                                                <div class="invalid-feedback">
-                                                    {{ form.access_start_date.errors.0 }}
-                                                </div>
-                                            {% endif %}
+                                            <input type="datetime-local" class="form-control"
+                                                   id="access_start_date"
+                                                   name="access_start_date"
+                                                   value="{{ access_start_date_value }}">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="{{ form.access_end_date.id_for_label }}" class="form-label">
+                                            <label for="access_end_date" class="form-label">
                                                 Access End Date
                                             </label>
-                                            <input type="datetime-local" class="form-control {% if form.access_end_date.errors %}is-invalid{% endif %}" 
-                                                   id="{{ form.access_end_date.id_for_label }}" 
-                                                   name="access_end_date" 
-                                                   value="{{ form.access_end_date.value|date:'Y-m-d\\TH:i' }}">
-                                            {% if form.access_end_date.errors %}
-                                                <div class="invalid-feedback">
-                                                    {{ form.access_end_date.errors.0 }}
-                                                </div>
-                                            {% endif %}
+                                            <input type="datetime-local" class="form-control"
+                                                   id="access_end_date"
+                                                   name="access_end_date"
+                                                   value="{{ access_end_date_value }}">
                                         </div>
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="{{ form.access_username.id_for_label }}" class="form-label">
+                                            <label for="access_username" class="form-label">
                                                 Access Username
                                             </label>
-                                            <input type="text" class="form-control {% if form.access_username.errors %}is-invalid{% endif %}" 
-                                                   id="{{ form.access_username.id_for_label }}" 
-                                                   name="access_username" 
-                                                   value="{{ form.access_username.value|default:'' }}">
-                                            {% if form.access_username.errors %}
-                                                <div class="invalid-feedback">
-                                                    {{ form.access_username.errors.0 }}
-                                                </div>
-                                            {% endif %}
+                                            <input type="text" class="form-control"
+                                                   id="access_username"
+                                                   name="access_username"
+                                                   value="{{ access_username_value }}">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="{{ form.access_url.id_for_label }}" class="form-label">
+                                            <label for="access_url" class="form-label">
                                                 Access URL
                                             </label>
-                                            <input type="url" class="form-control {% if form.access_url.errors %}is-invalid{% endif %}" 
-                                                   id="{{ form.access_url.id_for_label }}" 
-                                                   name="access_url" 
-                                                   value="{{ form.access_url.value|default:'' }}">
-                                            {% if form.access_url.errors %}
-                                                <div class="invalid-feedback">
-                                                    {{ form.access_url.errors.0 }}
-                                                </div>
-                                            {% endif %}
+                                            <input type="url" class="form-control"
+                                                   id="access_url"
+                                                   name="access_url"
+                                                   value="{{ access_url_value }}">
                                         </div>
                                     </div>
                                 </div>
@@ -235,69 +198,49 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="{{ form.security_clearance_required.id_for_label }}" class="form-label">
+                                            <label for="security_clearance_required" class="form-label">
                                                 Security Clearance Required
                                             </label>
-                                            <input type="text" class="form-control {% if form.security_clearance_required.errors %}is-invalid{% endif %}" 
-                                                   id="{{ form.security_clearance_required.id_for_label }}" 
-                                                   name="security_clearance_required" 
-                                                   value="{{ form.security_clearance_required.value|default:'' }}">
-                                            {% if form.security_clearance_required.errors %}
-                                                <div class="invalid-feedback">
-                                                    {{ form.security_clearance_required.errors.0 }}
-                                                </div>
-                                            {% endif %}
+                                            <input type="text" class="form-control"
+                                                   id="security_clearance_required"
+                                                   name="security_clearance_required"
+                                                   value="{{ security_clearance_required_value }}">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="{{ form.data_access_level.id_for_label }}" class="form-label">
+                                            <label for="data_access_level" class="form-label">
                                                 Data Access Level
                                             </label>
-                                            <input type="text" class="form-control {% if form.data_access_level.errors %}is-invalid{% endif %}" 
-                                                   id="{{ form.data_access_level.id_for_label }}" 
-                                                   name="data_access_level" 
-                                                   value="{{ form.data_access_level.value|default:'' }}">
-                                            {% if form.data_access_level.errors %}
-                                                <div class="invalid-feedback">
-                                                    {{ form.data_access_level.errors.0 }}
-                                                </div>
-                                            {% endif %}
+                                            <input type="text" class="form-control"
+                                                   id="data_access_level"
+                                                   name="data_access_level"
+                                                   value="{{ data_access_level_value }}">
                                         </div>
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="{{ form.risk_assessment_score.id_for_label }}" class="form-label">
+                                            <label for="risk_assessment_score" class="form-label">
                                                 Risk Assessment Score (1-10)
                                             </label>
-                                            <input type="number" class="form-control {% if form.risk_assessment_score.errors %}is-invalid{% endif %}" 
-                                                   id="{{ form.risk_assessment_score.id_for_label }}" 
-                                                   name="risk_assessment_score" 
+                                            <input type="number" class="form-control"
+                                                   id="risk_assessment_score"
+                                                   name="risk_assessment_score"
                                                    min="1" max="10"
-                                                   value="{{ form.risk_assessment_score.value|default:'' }}">
-                                            {% if form.risk_assessment_score.errors %}
-                                                <div class="invalid-feedback">
-                                                    {{ form.risk_assessment_score.errors.0 }}
-                                                </div>
-                                            {% endif %}
+                                                   value="{{ risk_assessment_score_value }}">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="{{ form.review_frequency_days.id_for_label }}" class="form-label">
+                                            <label for="review_frequency_days" class="form-label">
                                                 Review Frequency (days)
                                             </label>
-                                            <input type="number" class="form-control {% if form.review_frequency_days.errors %}is-invalid{% endif %}" 
-                                                   id="{{ form.review_frequency_days.id_for_label }}" 
-                                                   name="review_frequency_days" 
-                                                   value="{{ form.review_frequency_days.value|default:'' }}">
-                                            {% if form.review_frequency_days.errors %}
-                                                <div class="invalid-feedback">
-                                                    {{ form.review_frequency_days.errors.0 }}
-                                                </div>
-                                            {% endif %}
+                                            <input type="number" class="form-control"
+                                                   id="review_frequency_days"
+                                                   name="review_frequency_days"
+                                                   value="{{ review_frequency_days_value }}">
                                         </div>
                                     </div>
                                 </div>
@@ -311,7 +254,7 @@
                             </div>
                             <div class="card-body">
                                 <div class="mb-3">
-                                    <label for="{{ form.business_justification.id_for_label }}" class="form-label">
+                                    <label for="business_justification" class="form-label">
                                         Business Justification <span class="text-danger">*</span>
                                     </label>
                                     <textarea class="form-control" 
@@ -329,46 +272,31 @@
                             </div>
                             <div class="card-body">
                                 <div class="mb-3">
-                                    <label for="{{ form.technical_requirements.id_for_label }}" class="form-label">
+                                    <label for="technical_requirements" class="form-label">
                                         Technical Requirements
                                     </label>
-                                    <textarea class="form-control {% if form.technical_requirements.errors %}is-invalid{% endif %}" 
-                                              id="{{ form.technical_requirements.id_for_label }}" 
-                                              name="technical_requirements" 
-                                              rows="3">{{ form.technical_requirements.value|default:'' }}</textarea>
-                                    {% if form.technical_requirements.errors %}
-                                        <div class="invalid-feedback">
-                                            {{ form.technical_requirements.errors.0 }}
-                                        </div>
-                                    {% endif %}
+                                    <textarea class="form-control"
+                                              id="technical_requirements"
+                                              name="technical_requirements"
+                                              rows="3">{{ technical_requirements_value }}</textarea>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="{{ form.special_instructions.id_for_label }}" class="form-label">
+                                    <label for="special_instructions" class="form-label">
                                         Special Instructions
                                     </label>
-                                    <textarea class="form-control {% if form.special_instructions.errors %}is-invalid{% endif %}" 
-                                              id="{{ form.special_instructions.id_for_label }}" 
-                                              name="special_instructions" 
-                                              rows="3">{{ form.special_instructions.value|default:'' }}</textarea>
-                                    {% if form.special_instructions.errors %}
-                                        <div class="invalid-feedback">
-                                            {{ form.special_instructions.errors.0 }}
-                                        </div>
-                                    {% endif %}
+                                    <textarea class="form-control"
+                                              id="special_instructions"
+                                              name="special_instructions"
+                                              rows="3">{{ special_instructions_value }}</textarea>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="{{ form.compliance_requirements.id_for_label }}" class="form-label">
+                                    <label for="compliance_requirements" class="form-label">
                                         Compliance Requirements
                                     </label>
-                                    <textarea class="form-control {% if form.compliance_requirements.errors %}is-invalid{% endif %}" 
-                                              id="{{ form.compliance_requirements.id_for_label }}" 
-                                              name="compliance_requirements" 
-                                              rows="3">{{ form.compliance_requirements.value|default:'' }}</textarea>
-                                    {% if form.compliance_requirements.errors %}
-                                        <div class="invalid-feedback">
-                                            {{ form.compliance_requirements.errors.0 }}
-                                        </div>
-                                    {% endif %}
+                                    <textarea class="form-control"
+                                              id="compliance_requirements"
+                                              name="compliance_requirements"
+                                              rows="3">{{ compliance_requirements_value }}</textarea>
                                 </div>
                             </div>
                         </div>
