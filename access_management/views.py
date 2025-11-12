@@ -178,6 +178,7 @@ def access_assignment_create(request):
         'selected_access_type': selected_access_type,
         'selected_request_type': selected_request_type,
         'selected_priority': selected_priority,
+        'business_justification_value': request.POST.get('business_justification', ''),
     }
     
     return render(request, 'access_management/access_assignment_form.html', context)
@@ -246,6 +247,7 @@ def access_assignment_update(request, pk):
         # lists
         'users': CustomUser.objects.all().order_by('first_name', 'last_name'),
         'systems': System.objects.all().order_by('name'),
+        'business_justification_value': request.POST.get('business_justification', access_assignment.business_justification or ''),
     }
     
     return render(request, 'access_management/access_assignment_form.html', context)

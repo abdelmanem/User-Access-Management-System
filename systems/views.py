@@ -1,13 +1,25 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db.models import Count
 from .models import System
 from .forms import SystemForm
 
 @login_required
 def system_list(request):
-    systems = System.objects.all()
-    return render(request, 'systems/system_list.html', {'systems': systems})
+    systems = System.objects.all().annotate(user_count=Count('user_accesses', distinct=True))
+    total_count = systems.count()
+    active_count = systems.filter(is_active=True).count()
+    inactive_count = total_count - active_count
+    critical_count = systems.filter(criticality_level='Critical').count()
+    context = {
+        'systems': systems,
+        'total_count': total_count,
+        'active_count': active_count,
+        'inactive_count': inactive_count,
+        'critical_count': critical_count,
+    }
+    return render(request, 'systems/system_list.html', context)
 
 @login_required
 def system_detail(request, pk):

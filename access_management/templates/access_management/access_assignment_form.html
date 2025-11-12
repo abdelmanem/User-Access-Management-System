@@ -314,15 +314,10 @@
                                     <label for="{{ form.business_justification.id_for_label }}" class="form-label">
                                         Business Justification <span class="text-danger">*</span>
                                     </label>
-                                    <textarea class="form-control {% if form.business_justification.errors %}is-invalid{% endif %}" 
-                                              id="{{ form.business_justification.id_for_label }}" 
+                                    <textarea class="form-control" 
+                                              id="business_justification" 
                                               name="business_justification" 
-                                              rows="4" required>{{ form.business_justification.value|default:'' }}</textarea>
-                                    {% if form.business_justification.errors %}
-                                        <div class="invalid-feedback">
-                                            {{ form.business_justification.errors.0 }}
-                                        </div>
-                                    {% endif %}
+                                              rows="4" required>{{ business_justification_value }}</textarea>
                                 </div>
                             </div>
                         </div>

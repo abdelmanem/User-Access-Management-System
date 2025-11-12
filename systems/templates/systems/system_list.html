@@ -18,6 +18,40 @@
                         </div>
                     </div>
                     <div class="card-body">
+                        <div class="row row-cols-1 row-cols-md-4 g-3 mb-4">
+                            <div class="col">
+                                <div class="card border-primary h-100">
+                                    <div class="card-body text-primary">
+                                        <h6 class="card-subtitle text-uppercase fw-semibold mb-1">Total Systems</h6>
+                                        <h3 class="card-title mb-0">{{ total_count }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="card border-success h-100">
+                                    <div class="card-body text-success">
+                                        <h6 class="card-subtitle text-uppercase fw-semibold mb-1">Active</h6>
+                                        <h3 class="card-title mb-0">{{ active_count }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="card border-danger h-100">
+                                    <div class="card-body text-danger">
+                                        <h6 class="card-subtitle text-uppercase fw-semibold mb-1">Inactive</h6>
+                                        <h3 class="card-title mb-0">{{ inactive_count }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="card border-warning h-100">
+                                    <div class="card-body text-warning">
+                                        <h6 class="card-subtitle text-uppercase fw-semibold mb-1">Critical</h6>
+                                        <h3 class="card-title mb-0">{{ critical_count }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <table class="table table-bordered table-striped">
                             <thead>
                                 <tr>
@@ -28,6 +62,7 @@
                                     <th>Criticality</th>
                                     <th>Owner</th>
                                     <th>Lead</th>
+                                    <th>Users</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -40,40 +75,33 @@
                                         <span class="badge bg-info">{{ system.get_system_type_display }}</span>
                                     </td>
                                     <td>
-                                        {% if system.status == 'active' %}
+                                        {% if system.is_active %}
                                             <span class="badge bg-success">Active</span>
-                                        {% elif system.status == 'maintenance' %}
-                                            <span class="badge bg-warning text-dark">Maintenance</span>
-                                        {% elif system.status == 'retired' %}
-                                            <span class="badge bg-secondary">Retired</span>
                                         {% else %}
                                             <span class="badge bg-danger">Inactive</span>
                                         {% endif %}
                                     </td>
                                     <td>
-                                        {% if system.criticality == 'critical' %}
-                                            <span class="badge bg-danger">Critical</span>
-                                        {% elif system.criticality == 'high' %}
-                                            <span class="badge bg-warning text-dark">High</span>
-                                        {% elif system.criticality == 'medium' %}
-                                            <span class="badge bg-info">Medium</span>
-                                        {% else %}
-                                            <span class="badge bg-secondary">Low</span>
-                                        {% endif %}
+                                        <span class="badge {% if system.criticality_level == 'Critical' %}bg-danger{% elif system.criticality_level == 'High' %}bg-warning text-dark{% elif system.criticality_level == 'Medium' %}bg-info{% else %}bg-secondary{% endif %}">
+                                            {{ system.get_criticality_level_display }}
+                                        </span>
                                     </td>
                                     <td>
-                                        {% if system.owner %}
-                                            {{ system.owner.get_full_name }}
+                                        {% if system.system_owner %}
+                                            {{ system.system_owner.get_full_name }}
                                         {% else %}
                                             <span class="text-muted">-</span>
                                         {% endif %}
                                     </td>
                                     <td>
-                                        {% if system.lead %}
-                                            {{ system.lead.get_full_name }}
+                                        {% if system.technical_lead %}
+                                            {{ system.technical_lead.get_full_name }}
                                         {% else %}
                                             <span class="text-muted">-</span>
                                         {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ system.user_count }}</span>
                                     </td>
                                     <td>
                                         <a href="{% url 'systems:system_detail' system.pk %}" class="btn btn-info btn-sm">
