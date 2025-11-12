@@ -240,3 +240,21 @@ class HardwareAsset(models.Model):
         """Convenience method to schedule the next inventory check."""
         self.next_inventory_check = next_date
         self.save(update_fields=["next_inventory_check"])
+
+    def get_assigned_user_employee_ids(self):
+        """Return semicolon-separated list of assigned user employee IDs for exports."""
+        return ";".join(
+            filter(
+                None,
+                self.assigned_users.values_list("employee_id", flat=True),
+            )
+        )
+
+    def get_related_system_codes(self):
+        """Return semicolon-separated list of related system codes for exports."""
+        return ";".join(
+            filter(
+                None,
+                self.related_systems.values_list("code", flat=True),
+            )
+        )

@@ -8,6 +8,7 @@ from django.utils.dateparse import parse_date
 
 from departments.models import Department
 from systems.models import System
+from hardware.models import HardwareAsset
 
 User = get_user_model()
 
@@ -42,6 +43,15 @@ def _parse_bool(value, default=False):
     if isinstance(value, bool):
         return value
     return str(value).strip().lower() in {'true', '1', 'yes', 'y', 't'}
+
+
+def _parse_int(value, default=None):
+    if value in (None, ''):
+        return default
+    try:
+        return int(float(str(value).strip()))
+    except (ValueError, TypeError):
+        return default
 
 
 def _collect_row_errors(row_number: int, errors: Iterable[str]) -> str:
@@ -361,6 +371,139 @@ def import_systems_from_csv(file):
                 code=row['code'].strip(),
                 defaults=defaults,
             )
+
+        if errors:
+            raise ImportErrorCollection(errors)
+
+
+def import_hardware_from_csv(file):
+    """Import or update hardware asset records from a CSV file."""
+    reader = _csv_reader(file)
+    required_columns = {'name', 'asset_tag', 'hardware_type', 'status'}
+    errors = []
+
+    valid_hardware_types = dict(HardwareAsset.HARDWARE_TYPE_CHOICES).keys()
+    valid_statuses = dict(HardwareAsset.STATUS_CHOICES).keys()
+
+    with transaction.atomic():
+        for index, row in enumerate(reader, start=2):
+            missing_columns = [col for col in required_columns if not row.get(col)]
+            if missing_columns:
+                errors.append(_collect_row_errors(index, [f"Missing required columns: {', '.join(missing_columns)}"]))
+                continue
+
+            hardware_type = (row['hardware_type'] or '').strip()
+            if hardware_type not in valid_hardware_types:
+                errors.append(_collect_row_errors(index, [f"Invalid hardware_type '{hardware_type}'."]))
+                continue
+
+            status = (row['status'] or '').strip()
+            if status not in valid_statuses:
+                errors.append(_collect_row_errors(index, [f"Invalid status '{status}'."]))
+                continue
+
+            department = None
+            department_code = (row.get('department_code') or '').strip()
+            if department_code:
+                department = Department.objects.filter(code=department_code).first()
+                if department is None:
+                    errors.append(_collect_row_errors(index, [f"Department with code '{department_code}' not found"]))
+                    continue
+
+            primary_user = None
+            primary_user_employee_id = (row.get('primary_user_employee_id') or '').strip()
+            if primary_user_employee_id:
+                primary_user = User.objects.filter(employee_id=primary_user_employee_id).first()
+                if primary_user is None:
+                    errors.append(_collect_row_errors(index, [f"Primary user with employee ID '{primary_user_employee_id}' not found"]))
+                    continue
+
+            purchase_date = parse_date(row.get('purchase_date') or '')
+            warranty_expiration = parse_date(row.get('warranty_expiration') or '')
+            end_of_life_date = parse_date(row.get('end_of_life_date') or '')
+            last_inventory_check = parse_date(row.get('last_inventory_check') or '')
+            next_inventory_check = parse_date(row.get('next_inventory_check') or '')
+
+            defaults = {
+                'name': (row['name'] or '').strip(),
+                'hardware_type': hardware_type,
+                'status': status,
+                'serial_number': (row.get('serial_number') or '').strip() or None,
+                'manufacturer': (row.get('manufacturer') or '').strip() or None,
+                'model_number': (row.get('model_number') or '').strip() or None,
+                'operating_system': (row.get('operating_system') or '').strip() or None,
+                'cpu': (row.get('cpu') or '').strip() or None,
+                'memory_gb': _parse_int(row.get('memory_gb')),
+                'storage_capacity_gb': _parse_int(row.get('storage_capacity_gb')),
+                'location': (row.get('location') or '').strip() or None,
+                'ip_address': (row.get('ip_address') or '').strip() or None,
+                'mac_address': (row.get('mac_address') or '').strip() or None,
+                'notes': (row.get('notes') or '').strip() or None,
+                'is_virtual': _parse_bool(row.get('is_virtual'), default=False),
+                'requires_patch_management': _parse_bool(row.get('requires_patch_management'), default=True),
+                'department': department,
+                'primary_user': primary_user,
+            }
+
+            if purchase_date:
+                defaults['purchase_date'] = purchase_date
+            if warranty_expiration:
+                defaults['warranty_expiration'] = warranty_expiration
+            if end_of_life_date:
+                defaults['end_of_life_date'] = end_of_life_date
+            if last_inventory_check:
+                defaults['last_inventory_check'] = last_inventory_check
+            if next_inventory_check:
+                defaults['next_inventory_check'] = next_inventory_check
+
+            asset, _ = HardwareAsset.objects.update_or_create(
+                asset_tag=(row['asset_tag'] or '').strip(),
+                defaults=defaults,
+            )
+
+            # Assigned users (semicolon-separated employee IDs)
+            assigned_users_raw = row.get('assigned_user_employee_ids') or ''
+            assigned_user_ids = []
+            if assigned_users_raw:
+                missing_users = []
+                for employee_id in assigned_users_raw.split(';'):
+                    employee_id = employee_id.strip()
+                    if not employee_id:
+                        continue
+                    user = User.objects.filter(employee_id=employee_id).first()
+                    if user is None:
+                        missing_users.append(employee_id)
+                    else:
+                        assigned_user_ids.append(user.id)
+                if missing_users:
+                    errors.append(_collect_row_errors(index, [f"Assigned user(s) with employee IDs {', '.join(missing_users)} not found"]))
+                    continue
+            if assigned_user_ids:
+                asset.assigned_users.set(assigned_user_ids)
+            else:
+                asset.assigned_users.clear()
+
+            # Related systems (semicolon-separated system codes)
+            related_systems_raw = row.get('related_system_codes') or ''
+            related_system_ids = []
+            if related_systems_raw:
+                missing_systems = []
+                for system_code in related_systems_raw.split(';'):
+                    system_code = system_code.strip()
+                    if not system_code:
+                        continue
+                    system = System.objects.filter(code=system_code).first()
+                    if system is None:
+                        missing_systems.append(system_code)
+                    else:
+                        related_system_ids.append(system.id)
+                if missing_systems:
+                    errors.append(_collect_row_errors(index, [f"Related system(s) with code(s) {', '.join(missing_systems)} not found"]))
+                    continue
+            if related_system_ids:
+                asset.related_systems.set(related_system_ids)
+            else:
+                asset.related_systems.clear()
 
         if errors:
             raise ImportErrorCollection(errors)

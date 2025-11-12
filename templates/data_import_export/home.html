@@ -52,6 +52,14 @@
                                     </div>
                                     <p class="mb-1">Export all systems</p>
                                 </a>
+
+                                <a href="{% url 'data_import_export:export_hardware' %}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h5 class="mb-1">Hardware Assets</h5>
+                                        <i class="fas fa-download text-primary"></i>
+                                    </div>
+                                    <p class="mb-1">Export all hardware inventory</p>
+                                </a>
                                 
                                 <a href="{% url 'data_import_export:export_access_assignments' %}" class="list-group-item list-group-item-action">
                                     <div class="d-flex w-100 justify-content-between">
@@ -115,6 +123,17 @@
                                         </div>
                                     </form>
                                 </div>
+
+                                <div class="col-12 mb-3">
+                                    <h5 class="text-primary">Import Hardware Assets</h5>
+                                    <form method="post" enctype="multipart/form-data" action="{% url 'data_import_export:import_hardware' %}">
+                                        {% csrf_token %}
+                                        <div class="input-group">
+                                            <input type="file" class="form-control" id="hardwareFile" name="csv_file" accept=".csv" required>
+                                            <button class="btn btn-success" type="submit">Import</button>
+                                        </div>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -149,6 +168,11 @@
                                     <strong>Systems (required):</strong>
                                     name, code, system_type, criticality_level, environment_type.
                                     Optional columns: description, requires_approval, is_active, is_monitored, system_owner_employee_id, technical_lead_employee_id.
+                                </li>
+                                <li>
+                                    <strong>Hardware (required):</strong>
+                                    name, asset_tag, hardware_type, status.
+                                    Optional columns: manufacturer, model_number, operating_system, cpu, memory_gb, storage_capacity_gb, location, department_code, primary_user_employee_id, assigned_user_employee_ids (semicolon separated), related_system_codes (semicolon separated), purchase_date, warranty_expiration, end_of_life_date, is_virtual, requires_patch_management, last_inventory_check, next_inventory_check, ip_address, mac_address.
                                 </li>
                             </ul>
                             <p class="text-warning"><i class="fas fa-exclamation-triangle"></i> <strong>Important:</strong> Importing will create new records. Existing records will not be updated.</p>

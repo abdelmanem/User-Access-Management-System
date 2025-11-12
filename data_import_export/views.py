@@ -6,11 +6,13 @@ from django.contrib.auth import get_user_model
 from departments.models import Department
 from systems.models import System
 from access_management.models import UserSystemAccess, AccessHistory
+from hardware.models import HardwareAsset
 from utils.exporters import export_to_csv
 from utils.importers import (
     import_users_from_csv,
     import_departments_from_csv,
     import_systems_from_csv,
+    import_hardware_from_csv,
     ImportErrorCollection,
 )
 
@@ -117,6 +119,41 @@ def export_access_history(request):
     ]
     return export_to_csv(AccessHistory.objects.all(), 'access_history.csv', fields)
 
+
+@login_required
+def export_hardware(request):
+    """Export all hardware assets to CSV."""
+    fields = [
+        'name',
+        'asset_tag',
+        'serial_number',
+        'hardware_type',
+        'status',
+        'manufacturer',
+        'model_number',
+        'operating_system',
+        'cpu',
+        'memory_gb',
+        'storage_capacity_gb',
+        'location',
+        'ip_address',
+        'mac_address',
+        'is_virtual',
+        'requires_patch_management',
+        'purchase_date',
+        'warranty_expiration',
+        'end_of_life_date',
+        'last_inventory_check',
+        'next_inventory_check',
+        ('department_code', 'department__code'),
+        ('primary_user_employee_id', 'primary_user__employee_id'),
+        ('assigned_user_employee_ids', 'get_assigned_user_employee_ids'),
+        ('related_system_codes', 'get_related_system_codes'),
+        'created_at',
+        'updated_at',
+    ]
+    return export_to_csv(HardwareAsset.objects.all(), 'hardware_assets.csv', fields)
+
 @login_required
 def import_users(request):
     """Import users from CSV."""
@@ -160,4 +197,20 @@ def import_systems(request):
                 messages.error(request, error)
         except Exception as e:
             messages.error(request, f'Error importing systems: {str(e)}')
+    return redirect('data_import_export:home')
+
+
+@login_required
+def import_hardware(request):
+    """Import hardware assets from CSV."""
+    if request.method == 'POST' and request.FILES.get('csv_file'):
+        csv_file = request.FILES['csv_file']
+        try:
+            import_hardware_from_csv(csv_file)
+            messages.success(request, 'Hardware assets imported successfully.')
+        except ImportErrorCollection as error_collection:
+            for error in error_collection.errors:
+                messages.error(request, error)
+        except Exception as e:
+            messages.error(request, f'Error importing hardware: {str(e)}')
     return redirect('data_import_export:home')
