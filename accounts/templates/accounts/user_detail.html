@@ -97,14 +97,15 @@
                                             <table class="table table-bordered table-striped align-middle">
                                                 <thead>
                                                     <tr>
-                                                        <th>System</th>
-                                                        <th>Access Type</th>
-                                                        <th>Status</th>
-                                                        <th>Priority</th>
-                                                        <th>Request Type</th>
-                                                        <th>Start</th>
-                                                        <th>End</th>
-                                                        <th>Actions</th>
+                                                <th>System</th>
+                                                <th>System Username</th>
+                                                <th>Access Type</th>
+                                                <th>Status</th>
+                                                <th>Priority</th>
+                                                <th>Request Type</th>
+                                                <th>Start</th>
+                                                <th>End</th>
+                                                <th>Actions</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -115,6 +116,7 @@
                                                                 {{ acc.system.name }} ({{ acc.system.code }})
                                                             </a>
                                                         </td>
+                                                        <td>{{ acc.access_username|default:"-" }}</td>
                                                         <td>{{ acc.access_type }}</td>
                                                         <td>
                                                             <span class="badge bg-secondary">{{ acc.status }}</span>

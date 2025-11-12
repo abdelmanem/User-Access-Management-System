@@ -198,7 +198,7 @@ def access_assignment_update(request, pk):
         requested_access_duration = request.POST.get('requested_access_duration')
         access_start_date = request.POST.get('access_start_date')
         access_end_date = request.POST.get('access_end_date')
-        status = request.POST.get('status')
+        status = request.POST.get('status') or access_assignment.status
         
         try:
             # Update fields

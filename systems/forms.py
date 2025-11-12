@@ -1,4 +1,5 @@
 from django import forms
+from django.utils.text import slugify
 from .models import System
 from accounts.models import CustomUser
 
@@ -49,8 +50,28 @@ class SystemForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['code'].required = False
+        self.fields['code'].help_text = "Leave blank to auto-generate from the system name"
         qs = CustomUser.objects.order_by('first_name', 'last_name')
         self.fields['system_owner'].queryset = qs
         self.fields['technical_lead'].queryset = qs
+
+    def clean_code(self):
+        code = self.cleaned_data.get('code', '').strip()
+        if code:
+            return code
+
+        name = self.cleaned_data.get('name', '')
+        base = slugify(name).upper().replace('-', '')
+        if not base:
+            base = 'SYSTEM'
+        base = base[:50]
+        code_candidate = base
+        counter = 1
+        while System.objects.filter(code=code_candidate).exclude(pk=self.instance.pk).exists():
+            suffix = f"-{counter}"
+            code_candidate = f"{base[:50 - len(suffix)]}{suffix}"
+            counter += 1
+        return code_candidate
 
 
