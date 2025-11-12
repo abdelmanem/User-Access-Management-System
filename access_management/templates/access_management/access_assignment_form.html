@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}{% if form.instance.pk %}Edit{% else %}Create{% endif %} Access Assignment - User Access Management{% endblock %}
+{% block title %}{% if access_assignment %}Edit{% else %}Create{% endif %} Access Assignment{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -12,7 +12,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <h3 class="card-title mb-0">
                             <i class="fas fa-key"></i> 
-                            {% if form.instance.pk %}Edit Access Assignment{% else %}Create New Access Assignment{% endif %}
+                            {% if access_assignment %}Edit Access Assignment{% else %}Create New Access Assignment{% endif %}
                         </h3>
                         <div class="btn-group">
                             <a href="{% url 'access_management:access_assignment_list' %}" class="btn btn-outline-secondary">
@@ -45,111 +45,70 @@
                                             <label for="{{ form.user.id_for_label }}" class="form-label">
                                                 User <span class="text-danger">*</span>
                                             </label>
-                                            <select class="form-select {% if form.user.errors %}is-invalid{% endif %}" 
-                                                    id="{{ form.user.id_for_label }}" name="user" required>
+                                            <select class="form-select" id="user" name="user" required>
                                                 <option value="">Select User</option>
-                                                {% for choice in form.user.field.queryset %}
-                                                    <option value="{{ choice.pk }}" 
-                                                            {% if form.user.value == choice.pk %}selected{% endif %}>
-                                                        {{ choice.full_name }} ({{ choice.username }})
-                                                    </option>
+                                                {% for choice in users %}
+                                                <option value="{{ choice.pk }}" {% if selected_user_id == choice.pk|stringformat:"s" %}selected{% endif %}>
+                                                    {{ choice.get_full_name }} ({{ choice.username }})
+                                                </option>
                                                 {% endfor %}
                                             </select>
-                                            {% if form.user.errors %}
-                                                <div class="invalid-feedback">
-                                                    {{ form.user.errors.0 }}
-                                                </div>
-                                            {% endif %}
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="{{ form.system.id_for_label }}" class="form-label">
+                                            <label for="system" class="form-label">
                                                 System <span class="text-danger">*</span>
                                             </label>
-                                            <select class="form-select {% if form.system.errors %}is-invalid{% endif %}" 
-                                                    id="{{ form.system.id_for_label }}" name="system" required>
+                                            <select class="form-select" id="system" name="system" required>
                                                 <option value="">Select System</option>
-                                                {% for choice in form.system.field.queryset %}
-                                                    <option value="{{ choice.pk }}" 
-                                                            {% if form.system.value == choice.pk %}selected{% endif %}>
-                                                        {{ choice.name }} ({{ choice.code }})
-                                                    </option>
+                                                {% for choice in systems %}
+                                                <option value="{{ choice.pk }}" {% if selected_system_id == choice.pk|stringformat:"s" %}selected{% endif %}>
+                                                    {{ choice.name }} ({{ choice.code }})
+                                                </option>
                                                 {% endfor %}
                                             </select>
-                                            {% if form.system.errors %}
-                                                <div class="invalid-feedback">
-                                                    {{ form.system.errors.0 }}
-                                                </div>
-                                            {% endif %}
                                         </div>
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="{{ form.access_type.id_for_label }}" class="form-label">
+                                            <label for="access_type" class="form-label">
                                                 Access Type <span class="text-danger">*</span>
                                             </label>
-                                            <select class="form-select {% if form.access_type.errors %}is-invalid{% endif %}" 
-                                                    id="{{ form.access_type.id_for_label }}" name="access_type" required>
+                                            <select class="form-select" id="access_type" name="access_type" required>
                                                 <option value="">Select Access Type</option>
-                                                {% for choice in form.access_type.field.choices %}
-                                                    <option value="{{ choice.0 }}" 
-                                                            {% if form.access_type.value == choice.0 %}selected{% endif %}>
-                                                        {{ choice.1 }}
-                                                    </option>
+                                                {% for val,label in access_type_choices %}
+                                                <option value="{{ val }}" {% if selected_access_type == val %}selected{% endif %}>{{ label }}</option>
                                                 {% endfor %}
                                             </select>
-                                            {% if form.access_type.errors %}
-                                                <div class="invalid-feedback">
-                                                    {{ form.access_type.errors.0 }}
-                                                </div>
-                                            {% endif %}
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="{{ form.request_type.id_for_label }}" class="form-label">
+                                            <label for="request_type" class="form-label">
                                                 Request Type <span class="text-danger">*</span>
                                             </label>
-                                            <select class="form-select {% if form.request_type.errors %}is-invalid{% endif %}" 
-                                                    id="{{ form.request_type.id_for_label }}" name="request_type" required>
+                                            <select class="form-select" id="request_type" name="request_type" required>
                                                 <option value="">Select Request Type</option>
-                                                {% for choice in form.request_type.field.choices %}
-                                                    <option value="{{ choice.0 }}" 
-                                                            {% if form.request_type.value == choice.0 %}selected{% endif %}>
-                                                        {{ choice.1 }}
-                                                    </option>
+                                                {% for val,label in request_type_choices %}
+                                                <option value="{{ val }}" {% if selected_request_type == val %}selected{% endif %}>{{ label }}</option>
                                                 {% endfor %}
                                             </select>
-                                            {% if form.request_type.errors %}
-                                                <div class="invalid-feedback">
-                                                    {{ form.request_type.errors.0 }}
-                                                </div>
-                                            {% endif %}
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="{{ form.priority.id_for_label }}" class="form-label">
+                                            <label for="priority" class="form-label">
                                                 Priority <span class="text-danger">*</span>
                                             </label>
-                                            <select class="form-select {% if form.priority.errors %}is-invalid{% endif %}" 
-                                                    id="{{ form.priority.id_for_label }}" name="priority" required>
+                                            <select class="form-select" id="priority" name="priority" required>
                                                 <option value="">Select Priority</option>
-                                                {% for choice in form.priority.field.choices %}
-                                                    <option value="{{ choice.0 }}" 
-                                                            {% if form.priority.value == choice.0 %}selected{% endif %}>
-                                                        {{ choice.1 }}
-                                                    </option>
+                                                {% for val,label in priority_choices %}
+                                                <option value="{{ val }}" {% if selected_priority == val %}selected{% endif %}>{{ label }}</option>
                                                 {% endfor %}
                                             </select>
-                                            {% if form.priority.errors %}
-                                                <div class="invalid-feedback">
-                                                    {{ form.priority.errors.0 }}
-                                                </div>
-                                            {% endif %}
                                         </div>
                                     </div>
                                 </div>
@@ -426,7 +385,7 @@
                             </a>
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save"></i> 
-                                {% if form.instance.pk %}Update{% else %}Create{% endif %} Access Assignment
+                                {% if access_assignment %}Update{% else %}Create{% endif %} Access Assignment
                             </button>
                         </div>
                     </form>

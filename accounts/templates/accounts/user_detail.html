@@ -89,6 +89,62 @@
                         </div>
                         <div class="row mt-4">
                             <div class="col-12">
+                                <h4>User Access Assignments</h4>
+                                <div class="card">
+                                    <div class="card-body">
+                                        {% if accesses %}
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered table-striped align-middle">
+                                                <thead>
+                                                    <tr>
+                                                        <th>System</th>
+                                                        <th>Access Type</th>
+                                                        <th>Status</th>
+                                                        <th>Priority</th>
+                                                        <th>Request Type</th>
+                                                        <th>Start</th>
+                                                        <th>End</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for acc in accesses %}
+                                                    <tr>
+                                                        <td>
+                                                            <a href="{% url 'systems:system_detail' acc.system_id %}">
+                                                                {{ acc.system.name }} ({{ acc.system.code }})
+                                                            </a>
+                                                        </td>
+                                                        <td>{{ acc.access_type }}</td>
+                                                        <td>
+                                                            <span class="badge bg-secondary">{{ acc.status }}</span>
+                                                        </td>
+                                                        <td>{{ acc.priority }}</td>
+                                                        <td>{{ acc.request_type }}</td>
+                                                        <td>{{ acc.access_start_date|date:"Y-m-d H:i"|default:"-" }}</td>
+                                                        <td>{{ acc.access_end_date|date:"Y-m-d H:i"|default:"-" }}</td>
+                                                        <td>
+                                                            <a href="{% url 'access_management:access_assignment_detail' acc.id %}" class="btn btn-info btn-sm">
+                                                                View
+                                                            </a>
+                                                            <a href="{% url 'access_management:access_assignment_update' acc.id %}" class="btn btn-warning btn-sm">
+                                                                Edit
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        {% else %}
+                                        <div class="text-muted">No access assignments for this user.</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col-12">
                                 <a href="{% url 'accounts:user_list' %}" class="btn btn-secondary">
                                     <i class="fas fa-arrow-left"></i> Back to User List
                                 </a>

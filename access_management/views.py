@@ -106,6 +106,7 @@ def access_assignment_create(request):
         user_id = request.POST.get('user')
         system_id = request.POST.get('system')
         access_type = request.POST.get('access_type')
+        request_type = request.POST.get('request_type')
         priority = request.POST.get('priority')
         business_justification = request.POST.get('business_justification')
         requested_access_duration = request.POST.get('requested_access_duration')
@@ -127,6 +128,7 @@ def access_assignment_create(request):
                 user=user,
                 system=system,
                 access_type=access_type,
+                request_type=request_type or 'New Access',
                 priority=priority,
                 business_justification=business_justification,
                 requested_access_duration=int(requested_access_duration) if requested_access_duration else None,
@@ -159,12 +161,23 @@ def access_assignment_create(request):
     # Get data for form
     systems = System.objects.all().order_by('name')
     users = CustomUser.objects.all().order_by('first_name', 'last_name')
+    selected_user_id = (request.POST.get('user') if request.method == 'POST' else None) or ''
+    selected_system_id = (request.POST.get('system') if request.method == 'POST' else None) or (request.GET.get('system') or '')
+    selected_access_type = (request.POST.get('access_type') if request.method == 'POST' else '') or ''
+    selected_request_type = (request.POST.get('request_type') if request.method == 'POST' else '') or ''
+    selected_priority = (request.POST.get('priority') if request.method == 'POST' else '') or ''
     
     context = {
         'systems': systems,
         'users': users,
         'access_type_choices': UserSystemAccess.ACCESS_TYPE_CHOICES,
+        'request_type_choices': UserSystemAccess.REQUEST_TYPE_CHOICES,
         'priority_choices': UserSystemAccess.PRIORITY_CHOICES,
+        'selected_user_id': str(selected_user_id),
+        'selected_system_id': str(selected_system_id),
+        'selected_access_type': selected_access_type,
+        'selected_request_type': selected_request_type,
+        'selected_priority': selected_priority,
     }
     
     return render(request, 'access_management/access_assignment_form.html', context)
@@ -177,6 +190,7 @@ def access_assignment_update(request, pk):
     
     if request.method == 'POST':
         access_type = request.POST.get('access_type')
+        request_type = request.POST.get('request_type')
         priority = request.POST.get('priority')
         business_justification = request.POST.get('business_justification')
         technical_requirements = request.POST.get('technical_requirements')
@@ -188,6 +202,7 @@ def access_assignment_update(request, pk):
         try:
             # Update fields
             access_assignment.access_type = access_type
+            access_assignment.request_type = request_type or access_assignment.request_type
             access_assignment.priority = priority
             access_assignment.business_justification = business_justification
             access_assignment.technical_requirements = technical_requirements
@@ -217,9 +232,20 @@ def access_assignment_update(request, pk):
     
     context = {
         'access_assignment': access_assignment,
+        # dropdown choices
         'access_type_choices': UserSystemAccess.ACCESS_TYPE_CHOICES,
+        'request_type_choices': UserSystemAccess.REQUEST_TYPE_CHOICES,
         'priority_choices': UserSystemAccess.PRIORITY_CHOICES,
         'status_choices': UserSystemAccess.STATUS_CHOICES,
+        # pre-selected values for template
+        'selected_user_id': str(access_assignment.user_id),
+        'selected_system_id': str(access_assignment.system_id),
+        'selected_access_type': access_assignment.access_type,
+        'selected_request_type': access_assignment.request_type,
+        'selected_priority': access_assignment.priority,
+        # lists
+        'users': CustomUser.objects.all().order_by('first_name', 'last_name'),
+        'systems': System.objects.all().order_by('name'),
     }
     
     return render(request, 'access_management/access_assignment_form.html', context)

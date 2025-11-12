@@ -111,6 +111,36 @@
                                     </div>
                                 </div>
                             </div>
+                            <hr>
+                            <div class="row">
+                                <div class="col-12">
+                                    <h5 class="mb-3">Advanced Settings</h5>
+                                </div>
+                                {% comment %} Render any remaining fields not explicitly shown above {% endcomment %}
+                                {% for field in form %}
+                                    {% if field.name not in 'name,code,description,system_type,environment_type,criticality_level,system_owner,technical_lead,url,ip_address,version,support_contact,vendor,documentation_url' %}
+                                        {% if field.field.widget.input_type == 'checkbox' %}
+                                        <div class="col-md-6">
+                                            <div class="form-check mb-3">
+                                                {{ field|add_error_class:"is-invalid"|add_class:"form-check-input" }}
+                                                <label class="form-check-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                                {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors.0 }}</div>{% endif %}
+                                                {% if field.help_text %}<small class="form-text text-muted">{{ field.help_text }}</small>{% endif %}
+                                            </div>
+                                        </div>
+                                        {% else %}
+                                        <div class="col-md-6">
+                                            <div class="form-group mb-3">
+                                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                                {{ field|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                                {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors.0 }}</div>{% endif %}
+                                                {% if field.help_text %}<small class="form-text text-muted">{{ field.help_text }}</small>{% endif %}
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
                             <div class="row">
                                 <div class="col-12">
                                     <button type="submit" class="btn btn-primary">

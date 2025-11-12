@@ -1,7 +1,7 @@
-{% extends "admin/base_site.html" %}
+{% extends "base.html" %}
 {% load static %}
 
-{% block title %}Access Assignment Details - User Access Management{% endblock %}
+{% block title %}Access Assignment Details{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -481,7 +481,7 @@
 </div>
 {% endblock %}
 
-{% block extra_js %}
+{% block extrajs %}
 <script>
 function approveAccess() {
     new bootstrap.Modal(document.getElementById('approveModal')).show();

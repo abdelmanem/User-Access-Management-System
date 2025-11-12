@@ -38,12 +38,8 @@
                                     <tr>
                                         <th>Status:</th>
                                         <td>
-                                            {% if system.status == 'active' %}
+                                            {% if system.is_active %}
                                                 <span class="badge bg-success">Active</span>
-                                            {% elif system.status == 'maintenance' %}
-                                                <span class="badge bg-warning text-dark">Maintenance</span>
-                                            {% elif system.status == 'retired' %}
-                                                <span class="badge bg-secondary">Retired</span>
                                             {% else %}
                                                 <span class="badge bg-danger">Inactive</span>
                                             {% endif %}
@@ -52,15 +48,9 @@
                                     <tr>
                                         <th>Criticality:</th>
                                         <td>
-                                            {% if system.criticality == 'critical' %}
-                                                <span class="badge bg-danger">Critical</span>
-                                            {% elif system.criticality == 'high' %}
-                                                <span class="badge bg-warning text-dark">High</span>
-                                            {% elif system.criticality == 'medium' %}
-                                                <span class="badge bg-info">Medium</span>
-                                            {% else %}
-                                                <span class="badge bg-secondary">Low</span>
-                                            {% endif %}
+                                            <span class="badge {% if system.criticality_level == 'Critical' %}bg-danger{% elif system.criticality_level == 'High' %}bg-warning text-dark{% elif system.criticality_level == 'Medium' %}bg-info{% else %}bg-secondary{% endif %}">
+                                                {{ system.get_criticality_level_display }}
+                                            </span>
                                         </td>
                                     </tr>
                                 </table>
@@ -71,9 +61,9 @@
                                     <tr>
                                         <th>Owner:</th>
                                         <td>
-                                            {% if system.owner %}
-                                                <a href="{% url 'accounts:user_detail' system.owner.pk %}">
-                                                    {{ system.owner.get_full_name }}
+                                            {% if system.system_owner %}
+                                                <a href="{% url 'accounts:user_detail' system.system_owner.pk %}">
+                                                    {{ system.system_owner.get_full_name }}
                                                 </a>
                                             {% else %}
                                                 <span class="text-muted">-</span>
@@ -83,9 +73,9 @@
                                     <tr>
                                         <th>Technical Lead:</th>
                                         <td>
-                                            {% if system.lead %}
-                                                <a href="{% url 'accounts:user_detail' system.lead.pk %}">
-                                                    {{ system.lead.get_full_name }}
+                                            {% if system.technical_lead %}
+                                                <a href="{% url 'accounts:user_detail' system.technical_lead.pk %}">
+                                                    {{ system.technical_lead.get_full_name }}
                                                 </a>
                                             {% else %}
                                                 <span class="text-muted">-</span>
@@ -93,12 +83,8 @@
                                         </td>
                                     </tr>
                                     <tr>
-                                        <th>Support Email:</th>
-                                        <td>{{ system.support_email|default:"-" }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Support Phone:</th>
-                                        <td>{{ system.support_phone|default:"-" }}</td>
+                                        <th>Support Contact:</th>
+                                        <td>{{ system.support_contact|default:"-" }}</td>
                                     </tr>
                                     <tr>
                                         <th>Documentation URL:</th>
@@ -142,11 +128,11 @@
                                     </tr>
                                     <tr>
                                         <th>Last Maintenance:</th>
-                                        <td>{{ system.last_maintenance|default:"-" }}</td>
+                                        <td>{{ system.last_maintenance_date|default:"-" }}</td>
                                     </tr>
                                     <tr>
                                         <th>Next Maintenance:</th>
-                                        <td>{{ system.next_maintenance|default:"-" }}</td>
+                                        <td>{{ system.next_maintenance_date|default:"-" }}</td>
                                     </tr>
                                 </table>
                             </div>
@@ -161,7 +147,7 @@
                                     </tr>
                                     <tr>
                                         <th>Uptime:</th>
-                                        <td>{{ system.get_uptime_display }}</td>
+                                        <td>{{ system.uptime_percentage_display }}</td>
                                     </tr>
                                     <tr>
                                         <th>Created:</th>
