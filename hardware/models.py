@@ -241,6 +241,14 @@ class HardwareAsset(models.Model):
         self.next_inventory_check = next_date
         self.save(update_fields=["next_inventory_check"])
 
+    @property
+    def warranty_overdue_days(self):
+        """Return positive integer of overdue days if warranty expired."""
+        days = self.days_until_warranty_expires
+        if days is None or days >= 0:
+            return None
+        return abs(days)
+
     def get_assigned_user_employee_ids(self):
         """Return semicolon-separated list of assigned user employee IDs for exports."""
         return ";".join(

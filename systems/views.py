@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 from django.utils import timezone
 from .models import System
-from .forms import SystemForm, SystemUserAssignForm
+from .forms import SystemForm, SystemUserAssignForm, SystemHardwareAssignForm
 from access_management.models import UserSystemAccess
 from accounts.models import CustomUser
 
@@ -26,62 +26,90 @@ def system_list(request):
 
 @login_required
 def system_detail(request, pk):
-    system = get_object_or_404(System, pk=pk)
+    system = get_object_or_404(
+        System.objects.prefetch_related('hardware_assets'),
+        pk=pk
+    )
     assignments = UserSystemAccess.objects.filter(system=system).select_related('user', 'approved_by').order_by(
         'user__first_name', 'user__last_name'
     )
 
     if request.method == 'POST':
-        assign_form = SystemUserAssignForm(request.POST, system=system)
-        if assign_form.is_valid():
-            selected_users = assign_form.cleaned_data['users']
-            selected_ids = set(selected_users.values_list('id', flat=True))
+        # Check which form was submitted
+        if 'manage_users' in request.POST:
+            assign_form = SystemUserAssignForm(request.POST, system=system)
+            hardware_form = SystemHardwareAssignForm(system=system)
+            
+            if assign_form.is_valid():
+                selected_users = assign_form.cleaned_data['users']
+                selected_ids = set(selected_users.values_list('id', flat=True))
 
-            existing_assignments = UserSystemAccess.objects.filter(system=system)
-            existing_ids = set(existing_assignments.values_list('user_id', flat=True))
+                existing_assignments = UserSystemAccess.objects.filter(system=system)
+                existing_ids = set(existing_assignments.values_list('user_id', flat=True))
 
-            removed_queryset = existing_assignments.exclude(user_id__in=selected_ids)
-            removed_count = removed_queryset.count()
-            removed_queryset.delete()
+                removed_queryset = existing_assignments.exclude(user_id__in=selected_ids)
+                removed_count = removed_queryset.count()
+                removed_queryset.delete()
 
-            to_add_ids = selected_ids - existing_ids
-            added_count = 0
-            if to_add_ids:
-                bulk_users = CustomUser.objects.filter(id__in=to_add_ids)
-                now = timezone.now()
-                new_assignments = []
-                for user in bulk_users:
-                    new_assignments.append(UserSystemAccess(
-                        user=user,
-                        system=system,
-                        access_type='Read Only',
-                        status='Approved',
-                        request_type='New Access',
-                        priority='Medium',
-                        business_justification='Assigned via system management interface.',
-                        requested_by=request.user if request.user.is_authenticated else None,
-                        created_by=request.user if request.user.is_authenticated else None,
-                        updated_by=request.user if request.user.is_authenticated else None,
-                        approved_by=request.user if request.user.is_authenticated else None,
-                        approval_date=now,
-                        access_start_date=now,
-                    ))
-                UserSystemAccess.objects.bulk_create(new_assignments)
-                added_count = len(new_assignments)
+                to_add_ids = selected_ids - existing_ids
+                added_count = 0
+                if to_add_ids:
+                    bulk_users = CustomUser.objects.filter(id__in=to_add_ids)
+                    now = timezone.now()
+                    new_assignments = []
+                    for user in bulk_users:
+                        new_assignments.append(UserSystemAccess(
+                            user=user,
+                            system=system,
+                            access_type='Read Only',
+                            status='Approved',
+                            request_type='New Access',
+                            priority='Medium',
+                            business_justification='Assigned via system management interface.',
+                            requested_by=request.user if request.user.is_authenticated else None,
+                            created_by=request.user if request.user.is_authenticated else None,
+                            updated_by=request.user if request.user.is_authenticated else None,
+                            approved_by=request.user if request.user.is_authenticated else None,
+                            approval_date=now,
+                            access_start_date=now,
+                        ))
+                    UserSystemAccess.objects.bulk_create(new_assignments)
+                    added_count = len(new_assignments)
 
-            messages.success(
-                request,
-                f"System assignments updated. Added {added_count} user(s), removed {removed_count} user(s)."
-            )
-            return redirect('systems:system_detail', pk=system.pk)
+                messages.success(
+                    request,
+                    f"System user assignments updated. Added {added_count} user(s), removed {removed_count} user(s)."
+                )
+                return redirect('systems:system_detail', pk=system.pk)
+            else:
+                messages.error(request, 'Please correct the errors below.')
+        
+        elif 'manage_hardware' in request.POST:
+            assign_form = SystemUserAssignForm(system=system)
+            hardware_form = SystemHardwareAssignForm(request.POST, system=system)
+            
+            if hardware_form.is_valid():
+                selected_hardware = hardware_form.cleaned_data['hardware_assets']
+                system.hardware_assets.set(selected_hardware)
+                
+                messages.success(
+                    request,
+                    f"Hardware assignments updated. {selected_hardware.count()} hardware asset(s) linked to this system."
+                )
+                return redirect('systems:system_detail', pk=system.pk)
+            else:
+                messages.error(request, 'Please correct the errors below.')
         else:
-            messages.error(request, 'Please correct the errors below.')
+            assign_form = SystemUserAssignForm(system=system)
+            hardware_form = SystemHardwareAssignForm(system=system)
     else:
         assign_form = SystemUserAssignForm(system=system)
+        hardware_form = SystemHardwareAssignForm(system=system)
 
     context = {
         'system': system,
         'assign_form': assign_form,
+        'hardware_form': hardware_form,
         'assignments': assignments,
     }
     return render(request, 'systems/system_detail.html', context)

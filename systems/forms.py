@@ -3,6 +3,7 @@ from django.utils.text import slugify
 from .models import System
 from accounts.models import CustomUser
 from access_management.models import UserSystemAccess
+from hardware.models import HardwareAsset
 
 
 class SystemForm(forms.ModelForm):
@@ -92,3 +93,21 @@ class SystemUserAssignForm(forms.Form):
         self.fields['users'].queryset = CustomUser.objects.order_by('first_name', 'last_name', 'username')
         existing_user_ids = UserSystemAccess.objects.filter(system=system).values_list('user_id', flat=True)
         self.fields['users'].initial = existing_user_ids
+
+
+class SystemHardwareAssignForm(forms.Form):
+    hardware_assets = forms.ModelMultipleChoiceField(
+        queryset=HardwareAsset.objects.none(),
+        required=False,
+        widget=forms.SelectMultiple(attrs={'class': 'form-select', 'size': 15}),
+        label='Hardware Assets',
+        help_text='Select hardware assets that host or are associated with this system.'
+    )
+
+    def __init__(self, *args, **kwargs):
+        system = kwargs.pop('system')
+        super().__init__(*args, **kwargs)
+        self.system = system
+        self.fields['hardware_assets'].queryset = HardwareAsset.objects.order_by('name', 'asset_tag')
+        existing_hardware_ids = system.hardware_assets.values_list('id', flat=True)
+        self.fields['hardware_assets'].initial = existing_hardware_ids
