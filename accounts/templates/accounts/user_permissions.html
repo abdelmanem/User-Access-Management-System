@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Permissions - {{ user.get_full_name|default:user.username }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="row">
+        <div class="col-12 col-xl-9">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="h5 mb-1">Manage Permissions</h1>
+                        <div class="text-muted small">
+                            Adjust group membership and direct permissions for <strong>{{ user.get_full_name|default:user.username }}</strong>.
+                        </div>
+                    </div>
+                    <div>
+                        <a href="{% url 'accounts:user_detail' user.id %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-arrow-left me-1"></i>Back to User
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                        {% endif %}
+
+                        <div class="row g-4 mb-3">
+                            <div class="col-12">
+                                <div class="card border-light-subtle">
+                                    <div class="card-body">
+                                        <div class="form-check form-switch mb-3">
+                                            {{ form.is_staff }}
+                                            <label class="form-check-label" for="{{ form.is_staff.id_for_label }}">
+                                                {{ form.is_staff.label }}
+                                            </label>
+                                            <div class="form-text">{{ form.is_staff.help_text }}</div>
+                                            {% for error in form.is_staff.errors %}
+                                                <div class="invalid-feedback d-block">{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            {{ form.is_superuser }}
+                                            <label class="form-check-label" for="{{ form.is_superuser.id_for_label }}">
+                                                {{ form.is_superuser.label }}
+                                            </label>
+                                            <div class="form-text text-danger">{{ form.is_superuser.help_text }}</div>
+                                            {% for error in form.is_superuser.errors %}
+                                                <div class="invalid-feedback d-block">{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-4">
+                            <div class="col-12 col-lg-4">
+                                <h2 class="h6 text-uppercase text-muted fw-semibold mb-2">{{ form.groups.label }}</h2>
+                                <p class="text-muted small mb-3">{{ form.groups.help_text }}</p>
+                                <div class="border rounded p-3 bg-light">
+                                    {{ form.groups }}
+                                </div>
+                                {% for error in form.groups.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-12 col-lg-8">
+                                <h2 class="h6 text-uppercase text-muted fw-semibold mb-2">{{ form.permissions.label }}</h2>
+                                <p class="text-muted small mb-3">{{ form.permissions.help_text }}</p>
+                                {{ form.permissions }}
+                                {% for error in form.permissions.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-xl-3">
+            <div class="card shadow-sm border-0 mb-3">
+                <div class="card-header bg-white py-3">
+                    <h2 class="h6 mb-0 text-primary fw-bold">Quick Facts</h2>
+                </div>
+                <div class="card-body">
+                    <dl class="mb-0">
+                        <dt class="text-muted small text-uppercase">Username</dt>
+                        <dd>{{ user.username }}</dd>
+                        <dt class="text-muted small text-uppercase">Email</dt>
+                        <dd>{{ user.email|default:"—" }}</dd>
+                        <dt class="text-muted small text-uppercase">Is Staff</dt>
+                        <dd>
+                            {% if user.is_staff %}
+                                <span class="badge bg-success">Yes</span>
+                            {% else %}
+                                <span class="badge bg-secondary">No</span>
+                            {% endif %}
+                        </dd>
+                        <dt class="text-muted small text-uppercase">Is Superuser</dt>
+                        <dd>
+                            {% if user.is_superuser %}
+                                <span class="badge bg-danger">Yes</span>
+                            {% else %}
+                                <span class="badge bg-secondary">No</span>
+                            {% endif %}
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <h2 class="h6 mb-0 text-primary fw-bold">Direct Permissions</h2>
+                </div>
+                <div class="card-body">
+                    {% if direct_permissions %}
+                        <ul class="list-unstyled mb-0">
+                            {% for perm in direct_permissions %}
+                            <li class="mb-2">
+                                <span class="fw-semibold">{{ perm.name }}</span>
+                                <div class="text-muted small">{{ perm.content_type.app_label }}.{{ perm.codename }}</div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <div class="text-muted small">No direct permissions assigned.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

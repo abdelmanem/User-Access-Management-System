@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
+from django.contrib.auth.models import Group, Permission
 from .models import CustomUser
 
 
@@ -84,4 +85,52 @@ class UserUpdateForm(UserBaseForm):
             self.initial['password'] = self.instance.password
         self.fields['password'].disabled = True
 
+
+class UserPermissionForm(forms.Form):
+    is_staff = forms.BooleanField(
+        required=False,
+        label='Staff Status',
+        help_text='Staff users can access the administrative areas that rely on the is_staff flag.'
+    )
+    is_superuser = forms.BooleanField(
+        required=False,
+        label='Superuser Status',
+        help_text='Superusers bypass permission checks. Use with caution.'
+    )
+    groups = forms.ModelMultipleChoiceField(
+        queryset=Group.objects.none(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        label='Groups',
+        help_text='Select the groups this user should belong to.'
+    )
+    permissions = forms.ModelMultipleChoiceField(
+        queryset=Permission.objects.none(),
+        required=False,
+        widget=forms.SelectMultiple(attrs={'class': 'form-select', 'size': 15}),
+        label='Individual Permissions',
+        help_text='Hold Ctrl (Windows) or Command (Mac) to select multiple permissions.'
+    )
+
+    def __init__(self, *args, **kwargs):
+        user_instance = kwargs.pop('user_instance')
+        super().__init__(*args, **kwargs)
+
+        self.fields['is_staff'].initial = user_instance.is_staff
+        self.fields['is_superuser'].initial = user_instance.is_superuser
+        self.fields['is_staff'].widget.attrs.update({'class': 'form-check-input'})
+        self.fields['is_superuser'].widget.attrs.update({'class': 'form-check-input'})
+
+        self.fields['groups'].queryset = Group.objects.order_by('name')
+        self.fields['permissions'].queryset = Permission.objects.select_related('content_type').order_by(
+            'content_type__app_label', 'codename'
+        )
+
+        self.fields['groups'].initial = user_instance.groups.all()
+        self.fields['permissions'].initial = user_instance.user_permissions.all()
+
+        def permission_label(perm: Permission) -> str:
+            return f"{perm.content_type.app_label} | {perm.name}"
+
+        self.fields['permissions'].label_from_instance = permission_label
 

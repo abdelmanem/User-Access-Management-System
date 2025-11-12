@@ -5,7 +5,7 @@ from django.contrib.auth.forms import SetPasswordForm
 from django.db.models import Q, F, Value
 from django.db.models.functions import Concat
 from .models import CustomUser
-from .forms import UserCreateForm, UserUpdateForm
+from .forms import UserCreateForm, UserUpdateForm, UserPermissionForm
 from departments.models import Department
 from urllib.parse import urlencode
 from django.http import HttpResponse
@@ -396,6 +396,55 @@ def user_bulk_action(request):
         messages.warning(request, 'Please choose a valid bulk action.')
 
     return redirect(redirect_url)
+
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def user_manage_permissions(request, pk):
+    """Allow superusers to manage a user's group memberships and direct permissions."""
+    target_user = get_object_or_404(CustomUser, pk=pk)
+
+    if request.method == 'POST':
+        form = UserPermissionForm(request.POST, user_instance=target_user)
+        if form.is_valid():
+            is_staff = form.cleaned_data['is_staff']
+            is_superuser_flag = form.cleaned_data['is_superuser']
+            groups = form.cleaned_data['groups']
+            permissions = form.cleaned_data['permissions']
+
+            if target_user.is_superuser and not is_superuser_flag:
+                other_superusers = CustomUser.objects.filter(is_superuser=True).exclude(pk=target_user.pk).exists()
+                if not other_superusers:
+                    messages.error(request, 'At least one superuser account must remain. Promote another superuser before demoting this user.')
+                    return redirect('accounts:user_manage_permissions', pk=target_user.pk)
+
+            target_user.groups.set(groups)
+            target_user.user_permissions.set(permissions)
+            target_user.is_staff = is_staff
+            target_user.is_superuser = is_superuser_flag
+            target_user.updated_by = request.user
+            target_user.save(update_fields=['is_staff', 'is_superuser', 'updated_by', 'updated_at'])
+
+            messages.success(request, 'Permissions updated successfully.')
+            return redirect('accounts:user_detail', pk=target_user.pk)
+
+        messages.error(request, 'Please correct the errors below.')
+    else:
+        form = UserPermissionForm(user_instance=target_user)
+
+    direct_permissions = target_user.user_permissions.select_related('content_type').order_by(
+        'content_type__app_label', 'codename'
+    )
+
+    return render(
+        request,
+        'accounts/user_permissions.html',
+        {
+            'form': form,
+            'user': target_user,
+            'direct_permissions': direct_permissions,
+        },
+    )
 
 
 @login_required
