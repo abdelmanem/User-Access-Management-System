@@ -160,7 +160,127 @@
                                 </table>
                             </div>
                         </div>
-                        
+                        {% if assign_form %}
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-header bg-white">
+                                        <h4 class="card-title mb-0">
+                                            <i class="fas fa-user-plus me-2"></i>Manage System Users
+                                        </h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <form method="post" novalidate>
+                                            {% csrf_token %}
+                                            {% if assign_form.non_field_errors %}
+                                            <div class="alert alert-danger">
+                                                {{ assign_form.non_field_errors }}
+                                            </div>
+                                            {% endif %}
+                                            <div class="row g-3">
+                                                <div class="col-12 col-lg-8">
+                                                    <label for="{{ assign_form.users.id_for_label }}" class="form-label fw-semibold">
+                                                        {{ assign_form.users.label }}
+                                                    </label>
+                                                    {{ assign_form.users }}
+                                                    <div class="form-text">
+                                                        {{ assign_form.users.help_text }}
+                                                    </div>
+                                                    {% for error in assign_form.users.errors %}
+                                                        <div class="invalid-feedback d-block">{{ error }}</div>
+                                                    {% endfor %}
+                                                </div>
+                                                <div class="col-12 col-lg-4">
+                                                    <div class="alert alert-info small">
+                                                        <strong>Tips:</strong>
+                                                        <ul class="mb-0 ps-3">
+                                                            <li>Use Ctrl/Command + Click to select multiple users.</li>
+                                                            <li>Users not selected will have their assignments removed.</li>
+                                                            <li>New assignments default to read-only access.</li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex justify-content-end mt-3">
+                                                <button type="submit" class="btn btn-primary">
+                                                    <i class="fas fa-save me-1"></i>Save Assignments
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h4>Assigned Users</h4>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-striped align-middle">
+                                        <thead>
+                                            <tr>
+                                                <th>User</th>
+                                                <th>Access Type</th>
+                                                <th>Status</th>
+                                                <th>Priority</th>
+                                                <th>Approved By</th>
+                                                <th>Updated</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for assignment in assignments %}
+                                            <tr>
+                                                <td>
+                                                    <div class="fw-semibold">
+                                                        <a href="{% url 'accounts:user_detail' assignment.user.pk %}">
+                                                            {{ assignment.user.get_full_name }}
+                                                        </a>
+                                                    </div>
+                                                    <div class="text-muted small">{{ assignment.user.username }}</div>
+                                                </td>
+                                                <td>{{ assignment.access_type }}</td>
+                                                <td>
+                                                    <span class="badge bg-{{ assignment.get_status_color }}">
+                                                        {{ assignment.status }}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-{{ assignment.get_priority_color }}">
+                                                        {{ assignment.priority }}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    {% if assignment.approved_by %}
+                                                        {{ assignment.approved_by.get_full_name }}
+                                                    {% else %}
+                                                        <span class="text-muted">—</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ assignment.updated_at|date:"Y-m-d H:i" }}</td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <a href="{% url 'access_management:access_assignment_detail' assignment.pk %}" class="btn btn-outline-primary">
+                                                            <i class="fas fa-eye"></i>
+                                                        </a>
+                                                        <a href="{% url 'access_management:access_assignment_update' assignment.pk %}" class="btn btn-outline-secondary">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% empty %}
+                                            <tr>
+                                                <td colspan="7" class="text-center text-muted">No user assignments found for this system.</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="row mt-4">
                             <div class="col-12">
                                 <a href="{% url 'systems:system_update' system.pk %}" class="btn btn-warning">

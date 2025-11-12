@@ -2,6 +2,7 @@ from django import forms
 from django.utils.text import slugify
 from .models import System
 from accounts.models import CustomUser
+from access_management.models import UserSystemAccess
 
 
 class SystemForm(forms.ModelForm):
@@ -75,3 +76,19 @@ class SystemForm(forms.ModelForm):
         return code_candidate
 
 
+class SystemUserAssignForm(forms.Form):
+    users = forms.ModelMultipleChoiceField(
+        queryset=CustomUser.objects.none(),
+        required=False,
+        widget=forms.SelectMultiple(attrs={'class': 'form-select', 'size': 15}),
+        label='System Users',
+        help_text='Select users who should have access assignments for this system.'
+    )
+
+    def __init__(self, *args, **kwargs):
+        system = kwargs.pop('system')
+        super().__init__(*args, **kwargs)
+        self.system = system
+        self.fields['users'].queryset = CustomUser.objects.order_by('first_name', 'last_name', 'username')
+        existing_user_ids = UserSystemAccess.objects.filter(system=system).values_list('user_id', flat=True)
+        self.fields['users'].initial = existing_user_ids
