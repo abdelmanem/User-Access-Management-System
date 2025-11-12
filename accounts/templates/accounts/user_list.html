@@ -240,6 +240,11 @@
                                             <a href="{% url 'accounts:user_update' user.id %}" class="btn btn-warning">
                                                 <i class="fas fa-edit"></i>
                                             </a>
+                                            {% if perms.accounts.change_customuser %}
+                                            <a href="{% url 'accounts:user_reset_password' user.id %}" class="btn btn-secondary">
+                                                <i class="fas fa-key"></i>
+                                            </a>
+                                            {% endif %}
                                             <a href="{% url 'accounts:user_delete' user.id %}" class="btn btn-danger">
                                                 <i class="fas fa-trash"></i>
                                             </a>
