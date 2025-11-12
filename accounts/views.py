@@ -392,6 +392,12 @@ def user_bulk_action(request):
             # Clear department assignment
             updated = queryset.update(department=None, updated_by=request.user)
             messages.success(request, f'Removed department assignment for {updated} user(s).')
+    elif action == 'clear_email':
+        if not request.user.has_perm('accounts.change_customuser'):
+            messages.error(request, 'You do not have permission to modify user emails.')
+            return redirect(redirect_url)
+        cleared = queryset.update(email='', updated_by=request.user)
+        messages.success(request, f'Cleared email addresses for {cleared} user(s).')
     else:
         messages.warning(request, 'Please choose a valid bulk action.')
 

@@ -329,10 +329,6 @@ class CustomUser(AbstractUser):
     
     def save(self, *args, **kwargs):
         """Override save to handle validation and auto-fields"""
-        # Ensure email is set from username if not provided
-        if not self.email and self.username:
-            self.email = f"{self.username}@company.com"
-        
         # Set position from job_title if position is empty
         if not self.position and self.job_title:
             self.position = self.job_title
