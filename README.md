@@ -220,76 +220,189 @@ User Access Management System/
    - Use a WSGI server (e.g., gunicorn/uwsgi) behind a reverse proxy.
    - Entry point: `user_access_management.wsgi:application`.
 
-## Production Installation (Step-by-step)
+## Production Installation (Step-by-Step)
 
-1. System prerequisites
-   - Python 3.12+
-   - PostgreSQL 14+ (or managed Postgres)
-   - A reverse proxy (e.g., Nginx) with HTTPS enabled
-   - Ubuntu quick setup:
-     ```bash
-     sudo apt update
-     sudo apt install -y python3-venv python3-pip nginx
-     # If building native packages in future: sudo apt install -y build-essential libpq-dev
-     ```
+### 1. Prepare the host
 
-2. Get the code and set up a virtual environment
+1. Update the OS and install base packages:
    ```bash
-   git clone <repository-url>
-   cd User-Access-Management-System
-   python -m venv venv
-   source venv/bin/activate   # Windows: venv\\Scripts\\activate
+   sudo apt update && sudo apt upgrade -y
+   sudo apt install -y python3.12 python3.12-venv python3-pip nginx postgresql postgresql-contrib
+   ```
+2. (Recommended) Create a dedicated application user:
+   ```bash
+   sudo adduser --disabled-password --gecos "" uams
+   sudo usermod -aG www-data uams
+   sudo mkdir -p /srv/uams
+   sudo chown -R uams:www-data /srv/uams
+   ```
+3. Lock down the firewall:
+   ```bash
+   sudo ufw allow OpenSSH
+   sudo ufw allow 'Nginx Full'
+   sudo ufw enable
+   ```
+
+### 2. Provision PostgreSQL
+
+1. Create a role and database:
+   ```bash
+   sudo -u postgres psql
+   ```
+   Inside the prompt:
+   ```sql
+   CREATE ROLE uams_user WITH LOGIN PASSWORD 'change-me-now';
+   CREATE DATABASE uams_prod OWNER uams_user;
+   GRANT ALL PRIVILEGES ON DATABASE uams_prod TO uams_user;
+   \q
+   ```
+2. If PostgreSQL runs on another host, adjust `pg_hba.conf` and restart the service.
+
+### 3. Fetch the code and install dependencies
+
+1. Become the app user and clone the repository:
+   ```bash
+   sudo -u uams -H bash
+   cd /srv/uams
+   git clone <repository-url> app
+   cd app
+   ```
+2. Create the virtual environment and install requirements:
+   ```bash
+   python3.12 -m venv venv
+   source venv/bin/activate
    pip install --upgrade pip
    pip install -r requirements.txt
    ```
 
-3. Configure environment variables
+### 4. Configure environment variables
+
+1. Copy the production template and set required values:
    ```bash
    cp env.prod.example .env
-   # Edit .env and set:
-   # - SECRET_KEY=<a long random string>
-   # - DEBUG=False
-   # - ALLOWED_HOSTS=yourdomain.com
-   # - CSRF_TRUSTED_ORIGINS=https://yourdomain.com
-   # - DATABASE_URL=postgres://user:pass@host:5432/dbname
-   # - USE_WHITENOISE=True
    ```
-   Optionally, auto-generate and write a strong SECRET_KEY:
+   Minimum configuration:
+   ```env
+   DEBUG=False
+   SECRET_KEY=generate-a-long-random-string
+   ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
+   CSRF_TRUSTED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
+   DATABASE_URL=postgres://uams_user:change-me-now@127.0.0.1:5432/uams_prod
+   USE_WHITENOISE=True
+   ```
+2. Generate a random secret (helper script):
    ```bash
-   # Ubuntu/macOS
-   python3 generate_secret_key.py
-   # Windows
    python generate_secret_key.py
    ```
-
-4. Initialize the database and collect static files
+3. Restrict permissions:
    ```bash
-   python manage.py migrate
-   python manage.py collectstatic --noinput
-   python manage.py createsuperuser
+   chmod 600 .env
    ```
 
-5. Start the application with Gunicorn (example)
+### 5. Prepare the Django project
+
+With the virtual environment active:
+```bash
+python manage.py migrate
+python manage.py collectstatic --noinput
+python manage.py createsuperuser
+```
+
+### 6. Run Gunicorn under systemd
+
+1. Smoke test Gunicorn:
    ```bash
-   # From project root
-   gunicorn --bind 0.0.0.0:8000 user_access_management.wsgi:application
+   gunicorn --bind 127.0.0.1:8000 user_access_management.wsgi:application
    ```
-   - Behind Nginx, proxy requests to `127.0.0.1:8000`.
-   - Ensure Nginx serves HTTPS and sets appropriate proxy headers.
+   Verify the site, then stop the process (`Ctrl+C`).
 
-6. Health check
-   - Verify the app: `curl -fsS http://127.0.0.1:8000/healthz` → `{"status":"ok","db":true}`
+2. Create `/etc/systemd/system/uams.service`:
+   ```ini
+   [Unit]
+   Description=User Access Management System Gunicorn Service
+   After=network.target
 
-7. Optional: run with Docker Compose
+   [Service]
+   User=uams
+   Group=www-data
+   WorkingDirectory=/srv/uams/app
+   Environment="PATH=/srv/uams/app/venv/bin"
+   EnvironmentFile=/srv/uams/app/.env
+   ExecStart=/srv/uams/app/venv/bin/gunicorn --workers 4 --bind unix:/run/uams.sock user_access_management.wsgi:application
+   Restart=always
+   RestartSec=5
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+3. Enable the service:
    ```bash
-   docker compose up --build -d
-   # Add/override env vars by pointing compose to a prod .env file
+   sudo systemctl daemon-reload
+   sudo systemctl enable uams
+   sudo systemctl start uams
+   sudo systemctl status uams
    ```
 
-Notes
-- When `DEBUG=False`, make sure `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS` match your public domain(s).
-- If using external static serving (CDN or Nginx), you can disable WhiteNoise and serve `staticfiles/` directly.
-- Set `SENTRY_DSN` in the environment to enable error monitoring.
+### 7. Configure Nginx
+
+1. Create `/etc/nginx/sites-available/uams`:
+   ```nginx
+   server {
+       listen 80;
+       server_name yourdomain.com www.yourdomain.com;
+
+       location /static/ {
+           alias /srv/uams/app/staticfiles/;
+       }
+
+       location /media/ {
+           alias /srv/uams/app/media/;
+       }
+
+       location / {
+           include proxy_params;
+           proxy_pass http://unix:/run/uams.sock;
+       }
+
+       client_max_body_size 20M;
+   }
+   ```
+2. Enable and reload:
+   ```bash
+   sudo ln -s /etc/nginx/sites-available/uams /etc/nginx/sites-enabled/
+   sudo nginx -t
+   sudo systemctl reload nginx
+   ```
+3. Obtain HTTPS certificates (Let’s Encrypt example):
+   ```bash
+   sudo snap install core; sudo snap refresh core
+   sudo snap install --classic certbot
+   sudo ln -s /snap/bin/certbot /usr/bin/certbot
+   sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
+   ```
+
+### 8. Post-deployment checklist
+
+- Browse to `https://yourdomain.com/` and confirm the app and admin are reachable.
+- Monitor logs: `journalctl -u uams -f` and `/var/log/nginx/access.log`.
+- Schedule automated PostgreSQL backups (`pg_dump` or managed service snapshots).
+- Ensure sufficient disk for `/srv/uams/app/staticfiles` and `/srv/uams/app/media`.
+- Keep Ubuntu, Python packages, and certificates updated.
+- Integrate monitoring/alerting (Sentry, Prometheus, etc.) as needed.
+
+### 9. Optional: Docker / Compose
+
+```bash
+docker compose up --build -d
+```
+- Supply a hardened `.env`.
+- Mount persistent volumes for Postgres, static files, and media.
+- Terminate TLS with a reverse proxy such as Traefik or Nginx.
+
+**Notes**
+- Always deploy with `DEBUG=False` and tight `ALLOWED_HOSTS`/`CSRF_TRUSTED_ORIGINS` settings.
+- If you use a CDN or object storage for static assets, disable WhiteNoise and configure the appropriate storage backend.
+- Set `SENTRY_DSN`, `LOG_LEVEL`, or other observability variables for production monitoring.
 
 ## Contributing
 
