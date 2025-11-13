@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Deactivation Audit{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h1 class="h4 mb-0">Deactivation Audit Record</h1>
+            <p class="text-muted mb-0">Full context for the user deactivation performed on {{ audit.deactivated_at|date:"M d, Y H:i" }}.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'accounts:user_deactivation_audit_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>Back to Audit List
+            </a>
+            {% if audit.user %}
+            <a href="{% url 'accounts:user_detail' audit.user.pk %}" class="btn btn-primary">
+                <i class="fas fa-user me-1"></i>View User
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">User Information</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4 text-muted">Username</dt>
+                        <dd class="col-sm-8">{{ audit.user_username }}</dd>
+
+                        <dt class="col-sm-4 text-muted">Full Name</dt>
+                        <dd class="col-sm-8">{{ audit.user_full_name|default:'—' }}</dd>
+
+                        <dt class="col-sm-4 text-muted">Employee ID</dt>
+                        <dd class="col-sm-8">{{ audit.user_employee_id|default:'—' }}</dd>
+
+                        <dt class="col-sm-4 text-muted">Linked User</dt>
+                        <dd class="col-sm-8">
+                            {% if audit.user %}
+                                <span class="badge bg-success">Present</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Deleted</span>
+                            {% endif %}
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Action Details</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4 text-muted">Performed By</dt>
+                        <dd class="col-sm-8">{{ audit.admin.get_full_name|default:audit.admin.username|default:"—" }}</dd>
+
+                        <dt class="col-sm-4 text-muted">Deactivated At</dt>
+                        <dd class="col-sm-8">{{ audit.deactivated_at|date:"M d, Y H:i" }}</dd>
+
+                        <dt class="col-sm-4 text-muted">System Confirmed</dt>
+                        <dd class="col-sm-8">
+                            {% if audit.system_confirmed %}
+                                <span class="badge bg-success">Yes</span>
+                            {% else %}
+                                <span class="badge bg-secondary">No</span>
+                            {% endif %}
+                        </dd>
+
+                        <dt class="col-sm-4 text-muted">Hardware Confirmed</dt>
+                        <dd class="col-sm-8">
+                            {% if audit.hardware_confirmed %}
+                                <span class="badge bg-success">Yes</span>
+                            {% else %}
+                                <span class="badge bg-secondary">No</span>
+                            {% endif %}
+                        </dd>
+
+                        <dt class="col-sm-4 text-muted">Hardware Status</dt>
+                        <dd class="col-sm-8">
+                            {{ audit.hardware_status_action|title|replace:"_"," " }}
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mt-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">System Assignments Affected</h5>
+            <span class="badge bg-primary-subtle text-primary">{{ audit.system_assignments|length }}</span>
+        </div>
+        <div class="card-body">
+            {% if audit.system_assignments %}
+            <div class="table-responsive">
+                <table class="table table-striped align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>System</th>
+                            <th>Code</th>
+                            <th>Access Type</th>
+                            <th>Status Before</th>
+                            <th>Status After</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for assignment in audit.system_assignments %}
+                        <tr>
+                            <td>{{ assignment.system_name|default:"Unknown System" }}</td>
+                            <td>{{ assignment.system_code|default:"—" }}</td>
+                            <td>{{ assignment.access_type|default:"—" }}</td>
+                            <td>{{ assignment.status_before|default:"—" }}</td>
+                            <td>{{ assignment.status_after|default:"—" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">No system assignments were linked to this user at the time of deactivation.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mt-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Hardware Assignments Affected</h5>
+            <span class="badge bg-info-subtle text-info">{{ audit.hardware_assignments|length }}</span>
+        </div>
+        <div class="card-body">
+            {% if audit.hardware_assignments %}
+            <div class="table-responsive">
+                <table class="table table-striped align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Asset</th>
+                            <th>Asset Tag</th>
+                            <th>Roles</th>
+                            <th>Status Before</th>
+                            <th>Status After</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in audit.hardware_assignments %}
+                        <tr>
+                            <td>{{ item.asset_name|default:"Unknown Asset" }}</td>
+                            <td>{{ item.asset_tag|default:"—" }}</td>
+                            <td>
+                                {% for role in item.roles %}
+                                    <span class="badge bg-secondary-subtle text-secondary me-1">{{ role }}</span>
+                                {% empty %}
+                                    <span class="text-muted">—</span>
+                                {% endfor %}
+                            </td>
+                            <td>{{ item.status_before|default:"—" }}</td>
+                            <td>{{ item.status_after|default:"—" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">No hardware was linked to this user at the time of deactivation.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

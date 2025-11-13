@@ -366,3 +366,64 @@ class CustomUser(AbstractUser):
             next_seq += 1
             candidate = f"{prefix}{next_seq:05d}"
         return candidate
+
+
+class UserDeactivationAudit(models.Model):
+    user = models.ForeignKey(
+        'accounts.CustomUser',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='deactivation_audits',
+    )
+    user_username = models.CharField(max_length=150)
+    user_full_name = models.CharField(max_length=255, blank=True)
+    user_employee_id = models.CharField(max_length=50, blank=True)
+    admin = models.ForeignKey(
+        'accounts.CustomUser',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='deactivation_actions',
+    )
+    deactivated_at = models.DateTimeField(auto_now_add=True)
+    system_confirmed = models.BooleanField(default=False)
+    hardware_confirmed = models.BooleanField(default=False)
+    hardware_status_action = models.CharField(max_length=20, default='no_change')
+    system_assignments = models.JSONField(default=list, blank=True)
+    hardware_assignments = models.JSONField(default=list, blank=True)
+    notes = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['-deactivated_at']
+        verbose_name = 'User Deactivation Audit'
+        verbose_name_plural = 'User Deactivation Audits'
+
+    def __str__(self):
+        return f"{self.user_username} deactivated on {self.deactivated_at:%Y-%m-%d %H:%M}"
+
+
+class UserArchive(models.Model):
+    source_user_id = models.IntegerField()
+    username = models.CharField(max_length=150)
+    full_name = models.CharField(max_length=255, blank=True)
+    employee_id = models.CharField(max_length=50, blank=True)
+    email = models.CharField(max_length=254, blank=True)
+    department_name = models.CharField(max_length=200, blank=True)
+    archived_by = models.ForeignKey(
+        'accounts.CustomUser',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='user_archives_created',
+    )
+    archived_at = models.DateTimeField(auto_now_add=True)
+    payload = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        ordering = ['-archived_at']
+        verbose_name = 'Archived User'
+        verbose_name_plural = 'Archived Users'
+
+    def __str__(self):
+        return f"Archived user {self.username} ({self.employee_id}) at {self.archived_at:%Y-%m-%d %H:%M}"

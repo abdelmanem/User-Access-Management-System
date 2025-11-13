@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Archived User{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h1 class="h4 mb-0">Archived User Snapshot</h1>
+            <p class="text-muted mb-0">Historical record captured when {{ archive.username }} was deleted on {{ archive.archived_at|date:"M d, Y H:i" }}.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'accounts:user_archive_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>Back to Archive
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-xl-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">User Information</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4 text-muted">Username</dt>
+                        <dd class="col-sm-8">{{ archive.username }}</dd>
+
+                        <dt class="col-sm-4 text-muted">Full Name</dt>
+                        <dd class="col-sm-8">{{ archive.full_name|default:"—" }}</dd>
+
+                        <dt class="col-sm-4 text-muted">Employee ID</dt>
+                        <dd class="col-sm-8">{{ archive.employee_id|default:"—" }}</dd>
+
+                        <dt class="col-sm-4 text-muted">Email</dt>
+                        <dd class="col-sm-8">{{ archive.email|default:"—" }}</dd>
+
+                        <dt class="col-sm-4 text-muted">Department</dt>
+                        <dd class="col-sm-8">{{ archive.department_name|default:"—" }}</dd>
+
+                        <dt class="col-sm-4 text-muted">Archived By</dt>
+                        <dd class="col-sm-8">{{ archive.archived_by.get_full_name|default:archive.archived_by.username|default:"System" }}</dd>
+
+                        <dt class="col-sm-4 text-muted">Archived At</dt>
+                        <dd class="col-sm-8">{{ archive.archived_at|date:"M d, Y H:i" }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Snapshot Summary</h5>
+                </div>
+                <div class="card-body">
+                    {% with user_payload=archive.payload.user %}
+                    {% if user_payload %}
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4 text-muted">Employment Status</dt>
+                        <dd class="col-sm-8">{{ user_payload.employment_status|default:"—" }}</dd>
+
+                        <dt class="col-sm-4 text-muted">Employment Type</dt>
+                        <dd class="col-sm-8">{{ user_payload.employment_type|default:"—" }}</dd>
+
+                        <dt class="col-sm-4 text-muted">Join Date</dt>
+                        <dd class="col-sm-8">
+                            {% if user_payload.join_date %}
+                                {{ user_payload.join_date|date:"M d, Y" }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </dd>
+
+                        <dt class="col-sm-4 text-muted">Created At</dt>
+                        <dd class="col-sm-8">
+                            {% if user_payload.created_at %}
+                                {{ user_payload.created_at|date:"M d, Y H:i" }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </dd>
+
+                        <dt class="col-sm-4 text-muted">Last Updated</dt>
+                        <dd class="col-sm-8">
+                            {% if user_payload.updated_at %}
+                                {{ user_payload.updated_at|date:"M d, Y H:i" }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </dd>
+                    </dl>
+                    {% else %}
+                    <p class="text-muted mb-0">No additional profile metadata captured.</p>
+                    {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mt-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">System Assignments at Deletion</h5>
+            <span class="badge bg-primary-subtle text-primary">{{ archive.payload.system_assignments|length }}</span>
+        </div>
+        <div class="card-body">
+            {% if archive.payload.system_assignments %}
+            <div class="table-responsive">
+                <table class="table table-striped align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>System</th>
+                            <th>Code</th>
+                            <th>Status</th>
+                            <th>Access Type</th>
+                            <th>Priority</th>
+                            <th>Start</th>
+                            <th>End</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for assignment in archive.payload.system_assignments %}
+                        <tr>
+                            <td>{{ assignment.system_name|default:"—" }}</td>
+                            <td>{{ assignment.system_code|default:"—" }}</td>
+                            <td>{{ assignment.status|default:"—" }}</td>
+                            <td>{{ assignment.access_type|default:"—" }}</td>
+                            <td>{{ assignment.priority|default:"—" }}</td>
+                            <td>
+                                {% if assignment.start_date %}
+                                    {{ assignment.start_date|date:"M d, Y H:i" }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if assignment.end_date %}
+                                    {{ assignment.end_date|date:"M d, Y H:i" }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">No system assignments were recorded for this user.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mt-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Hardware Assignments at Deletion</h5>
+            <span class="badge bg-info-subtle text-info">
+                {% with hardware=archive.payload.hardware %}
+                    {{ hardware.primary|length|add:hardware.shared|length }}
+                {% endwith %}
+            </span>
+        </div>
+        <div class="card-body">
+            {% with hardware=archive.payload.hardware %}
+            {% if hardware.primary or hardware.shared %}
+                {% if hardware.primary %}
+                <h6 class="text-muted text-uppercase small">Primary Ownership</h6>
+                <div class="table-responsive mb-3">
+                    <table class="table table-striped align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Asset</th>
+                                <th>Asset Tag</th>
+                                <th>Status</th>
+                                <th>Department</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for asset in hardware.primary %}
+                            <tr>
+                                <td>{{ asset.asset_name|default:"—" }}</td>
+                                <td>{{ asset.asset_tag|default:"—" }}</td>
+                                <td>{{ asset.status|default:"—" }}</td>
+                                <td>{{ asset.department|default:"—" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+
+                {% if hardware.shared %}
+                <h6 class="text-muted text-uppercase small">Shared Usage</h6>
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Asset</th>
+                                <th>Asset Tag</th>
+                                <th>Status</th>
+                                <th>Department</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for asset in hardware.shared %}
+                            <tr>
+                                <td>{{ asset.asset_name|default:"—" }}</td>
+                                <td>{{ asset.asset_tag|default:"—" }}</td>
+                                <td>{{ asset.status|default:"—" }}</td>
+                                <td>{{ asset.department|default:"—" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+            {% else %}
+                <p class="text-muted mb-0">No hardware assignments were recorded for this user.</p>
+            {% endif %}
+            {% endwith %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

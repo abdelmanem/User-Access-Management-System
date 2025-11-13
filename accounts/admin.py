@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django import forms
 from django.utils.html import format_html
-from .models import CustomUser
+from .models import CustomUser, UserDeactivationAudit, UserArchive
 from dashboard.admin import dashboard_admin_site
 
 
@@ -127,3 +127,55 @@ if admin.site.is_registered(CustomUser):
 
 # Register with the custom admin site
 dashboard_admin_site.register(CustomUser, CustomUserAdmin)
+
+
+class UserDeactivationAuditAdmin(admin.ModelAdmin):
+    list_display = (
+        'user_username',
+        'user_full_name',
+        'user_employee_id',
+        'admin',
+        'deactivated_at',
+        'system_confirmed',
+        'hardware_confirmed',
+        'hardware_status_action',
+    )
+    list_filter = ('hardware_status_action', 'system_confirmed', 'hardware_confirmed', 'deactivated_at')
+    search_fields = ('user_username', 'user_full_name', 'user_employee_id', 'admin__username')
+    readonly_fields = (
+        'user',
+        'user_username',
+        'user_full_name',
+        'user_employee_id',
+        'admin',
+        'deactivated_at',
+        'system_confirmed',
+        'hardware_confirmed',
+        'hardware_status_action',
+        'system_assignments',
+        'hardware_assignments',
+        'notes',
+    )
+    ordering = ['-deactivated_at']
+
+
+class UserArchiveAdmin(admin.ModelAdmin):
+    list_display = ('username', 'employee_id', 'department_name', 'archived_at', 'archived_by')
+    list_filter = ('archived_at', 'department_name')
+    search_fields = ('username', 'employee_id', 'full_name', 'department_name')
+    readonly_fields = (
+        'source_user_id',
+        'username',
+        'full_name',
+        'employee_id',
+        'email',
+        'department_name',
+        'archived_by',
+        'archived_at',
+        'payload',
+    )
+    ordering = ['-archived_at']
+
+
+dashboard_admin_site.register(UserDeactivationAudit, UserDeactivationAuditAdmin)
+dashboard_admin_site.register(UserArchive, UserArchiveAdmin)

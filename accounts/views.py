@@ -6,7 +6,7 @@ from django.db import transaction
 from django.db.models import Q, F, Value
 from django.db.models.functions import Concat
 from django.utils import timezone
-from .models import CustomUser
+from .models import CustomUser, UserDeactivationAudit, UserArchive
 from .forms import UserCreateForm, UserUpdateForm, UserPermissionForm
 from departments.models import Department
 from hardware.models import HardwareAsset
@@ -316,11 +316,88 @@ def user_reset_password(request, pk):
 @permission_required('accounts.delete_customuser', raise_exception=True)
 def user_delete(request, pk):
     user = get_object_or_404(CustomUser, pk=pk)
+    system_assignments = list(UserSystemAccess.objects.filter(user=user).select_related('system'))
+    hardware_primary = list(HardwareAsset.objects.filter(primary_user=user))
+    hardware_shared = list(HardwareAsset.objects.filter(assigned_users=user))
+
     if request.method == 'POST':
+        archive_payload = {
+            'user': {
+                'username': user.username,
+                'full_name': user.get_full_name(),
+                'employee_id': user.employee_id,
+                'email': user.email,
+                'department': user.department.name if user.department else None,
+                'position': user.position,
+                'employment_status': user.employment_status,
+                'employment_type': user.employment_type,
+                'join_date': user.join_date.isoformat() if user.join_date else None,
+                'created_at': user.created_at.isoformat() if hasattr(user, 'created_at') and user.created_at else None,
+                'updated_at': user.updated_at.isoformat() if hasattr(user, 'updated_at') and user.updated_at else None,
+            },
+            'system_assignments': [
+                {
+                    'system_id': assignment.system_id,
+                    'system_name': assignment.system.name if assignment.system else None,
+                    'system_code': assignment.system.code if assignment.system else None,
+                    'status': assignment.status,
+                    'access_type': assignment.access_type,
+                    'request_type': assignment.request_type,
+                    'priority': assignment.priority,
+                    'start_date': assignment.access_start_date.isoformat() if assignment.access_start_date else None,
+                    'end_date': assignment.access_end_date.isoformat() if assignment.access_end_date else None,
+                }
+                for assignment in system_assignments
+            ],
+            'hardware': {
+                'primary': [
+                    {
+                        'asset_id': asset.id,
+                        'asset_name': asset.name,
+                        'asset_tag': asset.asset_tag,
+                        'status': asset.status,
+                        'department': asset.department.name if asset.department else None,
+                    }
+                    for asset in hardware_primary
+                ],
+                'shared': [
+                    {
+                        'asset_id': asset.id,
+                        'asset_name': asset.name,
+                        'asset_tag': asset.asset_tag,
+                        'status': asset.status,
+                        'department': asset.department.name if asset.department else None,
+                    }
+                    for asset in hardware_shared
+                ],
+            },
+        }
+
+        UserArchive.objects.create(
+            source_user_id=user.id,
+            username=user.username,
+            full_name=user.get_full_name(),
+            employee_id=user.employee_id or '',
+            email=user.email or '',
+            department_name=user.department.name if user.department else '',
+            archived_by=request.user if request.user.is_authenticated else None,
+            payload=archive_payload,
+        )
+
         user.delete()
-        messages.success(request, 'User deleted successfully.')
+        messages.success(request, 'User deleted successfully. Archived snapshot is available for reference.')
         return redirect('accounts:user_list')
-    return render(request, 'accounts/user_confirm_delete.html', {'user': user})
+
+    return render(
+        request,
+        'accounts/user_confirm_delete.html',
+        {
+            'user': user,
+            'system_assignments': system_assignments,
+            'hardware_primary': hardware_primary,
+            'hardware_shared': hardware_shared,
+        },
+    )
 
 @login_required
 @permission_required('accounts.change_customuser', raise_exception=True)
@@ -332,6 +409,10 @@ def user_toggle_active(request, pk):
         return redirect(next_url)
 
     target_status = not user.is_active
+    audit_record_created = False
+    system_snapshot = []
+    hardware_snapshot = []
+    hardware_status_action = 'no_change'
 
     if user.is_active and not target_status:
         active_assignments = list(UserSystemAccess.objects.filter(
@@ -344,11 +425,33 @@ def user_toggle_active(request, pk):
 
         hardware_assets_map = {}
         for asset in hardware_primary:
-            hardware_assets_map.setdefault(asset.id, {'asset': asset, 'roles': set()})
-            hardware_assets_map[asset.id]['roles'].add('Primary Owner')
+            data = hardware_assets_map.setdefault(
+                asset.id,
+                {
+                    'asset': asset,
+                    'roles': set(),
+                    'status_before': asset.status,
+                    'status_after': asset.status,
+                    'was_primary': False,
+                    'was_shared': False,
+                },
+            )
+            data['roles'].add('Primary Owner')
+            data['was_primary'] = True
         for asset in hardware_shared:
-            hardware_assets_map.setdefault(asset.id, {'asset': asset, 'roles': set()})
-            hardware_assets_map[asset.id]['roles'].add('Shared User')
+            data = hardware_assets_map.setdefault(
+                asset.id,
+                {
+                    'asset': asset,
+                    'roles': set(),
+                    'status_before': asset.status,
+                    'status_after': asset.status,
+                    'was_primary': False,
+                    'was_shared': False,
+                },
+            )
+            data['roles'].add('Shared User')
+            data['was_shared'] = True
         hardware_assets = []
         for entry in hardware_assets_map.values():
             entry['roles'] = sorted(entry['roles'])
@@ -384,6 +487,18 @@ def user_toggle_active(request, pk):
                 }
                 return render(request, 'accounts/user_deactivate_confirm.html', context)
 
+            system_snapshot = [
+                {
+                    'system_id': assignment.system_id,
+                    'system_name': assignment.system.name if assignment.system else None,
+                    'access_type': assignment.access_type,
+                    'status_before': assignment.status,
+                }
+                for assignment in active_assignments
+            ]
+
+            hardware_status_action = request.POST.get('hardware_status_action', 'no_change') if hardware_assets else 'no_change'
+
             with transaction.atomic():
                 if active_assignments:
                     now = timezone.now()
@@ -396,23 +511,31 @@ def user_toggle_active(request, pk):
                         status='Pending'
                     ).update(status='Cancelled')
 
+                    for snapshot in system_snapshot:
+                        before = snapshot['status_before']
+                        if before in ['Active', 'Approved']:
+                            snapshot['status_after'] = 'Suspended'
+                        elif before == 'Pending':
+                            snapshot['status_after'] = 'Cancelled'
+                        else:
+                            snapshot['status_after'] = before
+
                 if hardware_assets:
-                    status_action = request.POST.get('hardware_status_action', 'no_change')
                     for entry in hardware_assets:
                         asset = entry['asset']
                         fields_to_update = set()
 
-                        if asset.primary_user_id == user.id:
+                        if entry.get('was_primary'):
                             asset.primary_user = None
                             fields_to_update.add('primary_user')
 
                         if asset.assigned_users.filter(id=user.id).exists():
                             asset.assigned_users.remove(user)
 
-                        if status_action == 'in_storage' and asset.status != 'In Storage':
+                        if hardware_status_action == 'in_storage' and asset.status != 'In Storage':
                             asset.status = 'In Storage'
                             fields_to_update.add('status')
-                        elif status_action == 'retired' and asset.status != 'Retired':
+                        elif hardware_status_action == 'retired' and asset.status != 'Retired':
                             asset.status = 'Retired'
                             fields_to_update.add('status')
 
@@ -421,6 +544,21 @@ def user_toggle_active(request, pk):
                                 asset.updated_by = request.user
                                 fields_to_update.add('updated_by')
                             asset.save(update_fields=list(fields_to_update))
+                        entry['status_after'] = asset.status
+
+                    hardware_snapshot = [
+                        {
+                            'asset_id': entry['asset'].id,
+                            'asset_name': entry['asset'].name,
+                            'asset_tag': entry['asset'].asset_tag,
+                            'roles': entry['roles'],
+                            'status_before': entry.get('status_before'),
+                            'status_after': entry.get('status_after', entry.get('status_before')),
+                            'was_primary': entry.get('was_primary', False),
+                            'was_shared': entry.get('was_shared', False),
+                        }
+                        for entry in hardware_assets
+                    ]
 
                 user.is_active = False
                 if hasattr(user, 'updated_by'):
@@ -428,6 +566,20 @@ def user_toggle_active(request, pk):
                     user.save(update_fields=['is_active', 'updated_by'])
                 else:
                     user.save(update_fields=['is_active'])
+
+                UserDeactivationAudit.objects.create(
+                    user=user,
+                    user_username=user.username,
+                    user_full_name=user.get_full_name(),
+                    user_employee_id=user.employee_id or '',
+                    admin=request.user if request.user.is_authenticated else None,
+                    system_confirmed=bool(active_assignments),
+                    hardware_confirmed=bool(hardware_assets),
+                    hardware_status_action=hardware_status_action if hardware_assets else 'no_change',
+                    system_assignments=system_snapshot,
+                    hardware_assignments=hardware_snapshot,
+                )
+                audit_record_created = True
 
                 messages.success(request, 'User deactivated. Related assignments have been updated.')
                 return redirect(next_url)
@@ -438,6 +590,20 @@ def user_toggle_active(request, pk):
         user.save(update_fields=['is_active', 'updated_by'])
     else:
         user.save(update_fields=['is_active'])
+
+    if not target_status and not audit_record_created:
+        UserDeactivationAudit.objects.create(
+            user=user,
+            user_username=user.username,
+            user_full_name=user.get_full_name(),
+            user_employee_id=user.employee_id or '',
+            admin=request.user if request.user.is_authenticated else None,
+            system_confirmed=False,
+            hardware_confirmed=False,
+            hardware_status_action='not_applicable',
+            system_assignments=[],
+            hardware_assignments=[],
+        )
 
     messages.success(request, f"User {'activated' if user.is_active else 'deactivated'} successfully.")
     return redirect(next_url)
@@ -610,3 +776,75 @@ def user_assign_department(request, pk):
 
     messages.success(request, f"Assigned {user.username} to {dept_label}.")
     return redirect(next_url)
+
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def user_deactivation_audit_list(request):
+    query = (request.GET.get('q') or '').strip()
+    audits = UserDeactivationAudit.objects.select_related('user', 'admin').order_by('-deactivated_at')
+    if query:
+        audits = audits.filter(
+            Q(user_username__icontains=query)
+            | Q(user_full_name__icontains=query)
+            | Q(user_employee_id__icontains=query)
+            | Q(admin__username__icontains=query)
+        )
+
+    return render(
+        request,
+        'accounts/user_deactivation_audit_list.html',
+        {
+            'audits': audits,
+            'query': query,
+        },
+    )
+
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def user_deactivation_audit_detail(request, pk):
+    audit = get_object_or_404(UserDeactivationAudit.objects.select_related('user', 'admin'), pk=pk)
+    return render(
+        request,
+        'accounts/user_deactivation_audit_detail.html',
+        {
+            'audit': audit,
+        },
+    )
+
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def user_archive_list(request):
+    query = (request.GET.get('q') or '').strip()
+    archives = UserArchive.objects.select_related('archived_by').order_by('-archived_at')
+    if query:
+        archives = archives.filter(
+            Q(username__icontains=query)
+            | Q(full_name__icontains=query)
+            | Q(employee_id__icontains=query)
+            | Q(department_name__icontains=query)
+        )
+
+    return render(
+        request,
+        'accounts/user_archive_list.html',
+        {
+            'archives': archives,
+            'query': query,
+        },
+    )
+
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def user_archive_detail(request, pk):
+    archive = get_object_or_404(UserArchive.objects.select_related('archived_by'), pk=pk)
+    return render(
+        request,
+        'accounts/user_archive_detail.html',
+        {
+            'archive': archive,
+        },
+    )

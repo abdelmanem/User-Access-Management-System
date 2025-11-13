@@ -14,20 +14,82 @@
                     </div>
                     <div class="card-body">
                         <div class="alert alert-danger">
-                            <i class="fas fa-exclamation-triangle"></i>
+                            <i class="fas fa-exclamation-triangle me-2"></i>
                             <strong>Warning:</strong> Are you sure you want to delete the user "{{ user.get_full_name }}" ({{ user.username }})?
-                            This action cannot be undone.
+                            A snapshot of this user's data, system assignments, and hardware relationships will be archived before deletion. This action cannot be undone.
                         </div>
+
+                        {% if system_assignments %}
+                        <div class="mb-4">
+                            <h5 class="mb-2 text-primary">System Assignments</h5>
+                            <ul class="list-group">
+                                {% for assignment in system_assignments %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ assignment.system.name }}</strong>
+                                        <div class="text-muted small">
+                                            Status: {{ assignment.status }} · Access Type: {{ assignment.access_type }} · Priority: {{ assignment.priority }}
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-secondary">{{ assignment.system.code }}</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+
+                        {% if hardware_primary or hardware_shared %}
+                        <div class="mb-4">
+                            <h5 class="mb-2 text-primary">Hardware Assignments</h5>
+                            {% if hardware_primary %}
+                            <div class="mb-3">
+                                <h6 class="text-muted text-uppercase small">Primary Ownership</h6>
+                                <ul class="list-group">
+                                    {% for asset in hardware_primary %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>{{ asset.name }}</strong>
+                                            <div class="text-muted small">
+                                                Asset Tag: {{ asset.asset_tag }} · Status: {{ asset.status }}
+                                            </div>
+                                        </div>
+                                        <a href="{% url 'hardware:hardware_detail' asset.id %}" class="btn btn-sm btn-outline-primary">View</a>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+                            {% if hardware_shared %}
+                            <div>
+                                <h6 class="text-muted text-uppercase small">Shared Usage</h6>
+                                <ul class="list-group">
+                                    {% for asset in hardware_shared %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>{{ asset.name }}</strong>
+                                            <div class="text-muted small">
+                                                Asset Tag: {{ asset.asset_tag }} · Status: {{ asset.status }}
+                                            </div>
+                                        </div>
+                                        <a href="{% url 'hardware:hardware_detail' asset.id %}" class="btn btn-sm btn-outline-primary">View</a>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
                         <form method="post">
                             {% csrf_token %}
                             <div class="row">
-                                <div class="col-12">
-                                    <button type="submit" class="btn btn-danger">
-                                        <i class="fas fa-trash"></i> Yes, Delete User
-                                    </button>
+                                <div class="col-12 d-flex justify-content-end gap-2">
                                     <a href="{% url 'accounts:user_list' %}" class="btn btn-secondary">
                                         <i class="fas fa-arrow-left"></i> Cancel
                                     </a>
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="fas fa-trash"></i> Yes, Archive & Delete User
+                                    </button>
                                 </div>
                             </div>
                         </form>
