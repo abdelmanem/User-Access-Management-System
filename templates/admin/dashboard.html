@@ -22,123 +22,386 @@
             <h1 class="h4 mb-0">{{ title }}</h1>
         </div>
 
-        <!-- Info Cards -->
-        <div class="row">
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card shadow h-100 py-2">
-                    <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-uppercase text-muted small mb-1">Total Users</div>
-                                <div class="h4 fw-bold mb-0">{{ stats.total_users }}</div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="fas fa-users fa-2x text-primary"></i>
-                            </div>
+        <!-- Metric Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-xxl-3 col-md-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-uppercase text-muted small">Total Users</div>
+                            <div class="h4 fw-bold mb-0">{{ stats.total_users }}</div>
                         </div>
+                        <span class="text-primary fs-2"><i class="fas fa-users"></i></span>
                     </div>
                 </div>
             </div>
-
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card shadow h-100 py-2">
-                    <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-uppercase text-muted small mb-1">Active Systems</div>
-                                <div class="h4 fw-bold mb-0">{{ stats.active_systems }}</div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="fas fa-server fa-2x text-success"></i>
-                            </div>
+            <div class="col-xxl-3 col-md-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-uppercase text-muted small">Active Users</div>
+                            <div class="h4 fw-bold mb-0">{{ stats.active_users }}</div>
                         </div>
+                        <span class="text-success fs-2"><i class="fas fa-user-check"></i></span>
                     </div>
                 </div>
             </div>
-
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card shadow h-100 py-2">
-                    <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-uppercase text-muted small mb-1">Pending Requests</div>
-                                <div class="h4 fw-bold mb-0">{{ stats.pending_requests }}</div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="fas fa-clipboard-list fa-2x text-info"></i>
-                            </div>
+            <div class="col-xxl-3 col-md-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-uppercase text-muted small">Total Hardware</div>
+                            <div class="h4 fw-bold mb-0">{{ stats.total_hardware }}</div>
                         </div>
+                        <span class="text-info fs-2"><i class="fas fa-boxes-stacked"></i></span>
                     </div>
                 </div>
             </div>
-
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card shadow h-100 py-2">
-                    <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-uppercase text-muted small mb-1">Failed Logins (24h)</div>
-                                <div class="h4 fw-bold mb-0">{{ stats.failed_logins_24h }}</div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
-                            </div>
+            <div class="col-xxl-3 col-md-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-uppercase text-muted small">Active Hardware</div>
+                            <div class="h4 fw-bold mb-0">{{ stats.active_hardware }}</div>
+                            <div class="small text-muted">Currently in service</div>
                         </div>
+                        <span class="text-success fs-2"><i class="fas fa-laptop"></i></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-xxl-3 col-md-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-uppercase text-muted small">Pending Requests</div>
+                            <div class="h4 fw-bold mb-0">{{ stats.pending_requests }}</div>
+                            {% if stats.suspicious_activities %}
+                            <div class="small text-muted">{{ stats.suspicious_activities }} suspicious events today</div>
+                            {% endif %}
+                        </div>
+                        <span class="text-warning fs-2"><i class="fas fa-clipboard-list"></i></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xxl-3 col-md-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-uppercase text-muted small">Failed Logins (24h)</div>
+                            <div class="h4 fw-bold mb-0">{{ stats.failed_logins_24h }}</div>
+                        </div>
+                        <span class="text-danger fs-2"><i class="fas fa-exclamation-triangle"></i></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xxl-3 col-md-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-uppercase text-muted small">Warranties ≤ 60 Days</div>
+                            <div class="h4 fw-bold mb-0">{{ stats.warranty_expiring }}</div>
+                        </div>
+                        <span class="text-warning fs-2"><i class="fas fa-calendar-check"></i></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xxl-3 col-md-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-uppercase text-muted small">Patch Exceptions</div>
+                            <div class="h4 fw-bold mb-0">{{ stats.patch_exceptions }}</div>
+                            <div class="small text-muted">Require manual updates</div>
+                        </div>
+                        <span class="text-secondary fs-2"><i class="fas fa-screwdriver-wrench"></i></span>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Charts -->
-        <div class="row">
-            <div class="col-lg-7">
-                <div class="card shadow-sm mb-4">
+        <div class="row g-3 mb-4">
+            <div class="col-xl-8">
+                <div class="card shadow-sm border-0 h-100">
                     <div class="card-header py-3">
                         <h6 class="m-0 fw-bold text-primary">Access Trends (Last 7 Days)</h6>
                     </div>
                     <div class="card-body">
-                        <div class="chart-area">
+                        <div class="chart-area" style="height: 320px;">
                             <canvas id="access-trends-chart"></canvas>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-5">
-                <div class="card shadow-sm mb-4">
+            <div class="col-xl-4">
+                <div class="card shadow-sm border-0 h-100">
                     <div class="card-header py-3">
                         <h6 class="m-0 fw-bold text-primary">System Usage</h6>
                     </div>
                     <div class="card-body">
-                        <div class="chart-pie pt-4">
+                        {% if system_usage.data %}
+                        <div class="chart-pie pt-3" style="height: 280px;">
                             <canvas id="system-usage-chart"></canvas>
                         </div>
+                        {% else %}
+                        <p class="text-muted mb-0">No access activity recorded yet.</p>
+                        {% endif %}
                     </div>
                 </div>
             </div>
         </div>
-        
+
+        <div class="row g-3 mb-4">
+            <div class="col-xl-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 fw-bold text-primary">Hardware Type Distribution</h6>
+                    </div>
+                    <div class="card-body">
+                        {% if hardware_counts.total %}
+                        <div class="chart-pie pt-3" style="height: 280px;">
+                            <canvas id="hardware-type-chart"></canvas>
+                        </div>
+                        {% else %}
+                        <p class="text-muted mb-0">No hardware assets recorded yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-8">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 fw-bold text-primary">Hardware Status Overview</h6>
+                        <span class="badge bg-info-subtle text-info">{{ stats.virtual_assets }} virtual assets</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap gap-4 mb-3">
+                            <div>
+                                <div class="text-uppercase text-muted small">In Service</div>
+                                <div class="h5 fw-bold mb-0">{{ hardware_counts.in_service }}</div>
+                            </div>
+                            <div>
+                                <div class="text-uppercase text-muted small">In Storage</div>
+                                <div class="h5 fw-bold mb-0">{{ hardware_counts.in_storage }}</div>
+                            </div>
+                            <div>
+                                <div class="text-uppercase text-muted small">Retired/Disposed</div>
+                                <div class="h5 fw-bold mb-0">{{ hardware_counts.retired }}</div>
+                            </div>
+                        </div>
+                        {% if hardware_status_breakdown %}
+                            {% for status in hardware_status_breakdown %}
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between small fw-semibold">
+                                    <span>{{ status.label }}</span>
+                                    <span>{{ status.count }} ({{ status.percentage }}%)</span>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-{{ status.color }}" role="progressbar" style="width: {{ status.percentage }}%;" aria-valuenow="{{ status.percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                        <p class="text-muted mb-0">No hardware assets to display.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-xl-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 fw-bold text-primary">Upcoming Warranties (≤ 90 days)</h6>
+                    </div>
+                    <div class="card-body">
+                        {% if hardware_warranties.upcoming %}
+                        <ul class="list-group list-group-flush">
+                            {% for entry in hardware_warranties.upcoming %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <a href="{% url 'hardware:hardware_detail' entry.id %}" class="fw-semibold text-decoration-none">{{ entry.name }}</a>
+                                    <div class="text-muted small">{{ entry.asset_tag }}{% if entry.department %} · {{ entry.department }}{% endif %}</div>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-warning-subtle text-warning">{{ entry.days_remaining }}d</span>
+                                    <div class="small text-muted">{{ entry.warranty_expiration|date:"M d, Y" }}</div>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p class="text-muted mb-0">No warranties expiring in the next 90 days.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 fw-bold text-primary">Hardware Alerts</h6>
+                    </div>
+                    <div class="card-body">
+                        <h6 class="text-danger text-uppercase small">Overdue Warranties</h6>
+                        {% if hardware_warranties.overdue %}
+                        <ul class="list-group list-group-flush mb-3">
+                            {% for entry in hardware_warranties.overdue %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <a href="{% url 'hardware:hardware_detail' entry.id %}" class="fw-semibold text-decoration-none">{{ entry.name }}</a>
+                                    <div class="text-muted small">{{ entry.asset_tag }}{% if entry.department %} · {{ entry.department }}{% endif %}</div>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-danger-subtle text-danger">{{ entry.overdue_days }}d</span>
+                                    <div class="small text-muted">{{ entry.warranty_expiration|date:"M d, Y" }}</div>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p class="text-muted mb-3">No overdue warranties detected.</p>
+                        {% endif %}
+
+                        <h6 class="text-warning text-uppercase small">Patch Exceptions</h6>
+                        {% if hardware_patch_exceptions %}
+                        <ul class="list-group list-group-flush">
+                            {% for asset in hardware_patch_exceptions %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <a href="{% url 'hardware:hardware_detail' asset.id %}" class="fw-semibold text-decoration-none">{{ asset.name }}</a>
+                                    <div class="text-muted small">{{ asset.asset_tag }}{% if asset.department %} · {{ asset.department }}{% endif %}</div>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-{{ asset.status_badge }}">{{ asset.status }}</span>
+                                    <div class="small text-muted">{{ asset.systems_count }} system{{ asset.systems_count|pluralize }}</div>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p class="text-muted mb-0">All hardware assets are enrolled in patch management.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-xl-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 fw-bold text-primary">Pending Access Requests</h6>
+                    </div>
+                    <div class="card-body">
+                        {% if pending_requests %}
+                        <ul class="list-group list-group-flush">
+                            {% for request in pending_requests %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="fw-semibold">{{ request.user_name }}</div>
+                                    <div class="text-muted small">{{ request.system_name }}</div>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-{{ request.priority_badge }}">{{ request.priority }}</span>
+                                    <div class="small text-muted">{{ request.submitted|date:"M d, Y H:i" }}</div>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p class="text-muted mb-0">No pending access requests at this time.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 fw-bold text-primary">Recent Activity</h6>
+                    </div>
+                    <div class="card-body">
+                        {% if recent_activity %}
+                        <ul class="list-group list-group-flush">
+                            {% for item in recent_activity %}
+                            <li class="list-group-item">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge rounded-pill bg-primary-subtle text-primary me-3">
+                                        <i class="fas fa-{{ item.icon }}"></i>
+                                    </span>
+                                    <div>
+                                        <div class="small fw-semibold">{{ item.title }}</div>
+                                        <div class="text-muted small">{{ item.timestamp|date:"M d, Y H:i" }}</div>
+                                    </div>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p class="text-muted mb-0">No recent activity recorded.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 fw-bold text-primary">Top Systems with Hardware</h6>
+                    </div>
+                    <div class="card-body">
+                        {% if hardware_top_systems %}
+                        <ul class="list-group list-group-flush">
+                            {% for system in hardware_top_systems %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <a href="{% url 'systems:system_detail' system.id %}" class="fw-semibold text-decoration-none">{{ system.name }}</a>
+                                    <div class="text-muted small">Code: {{ system.code }}</div>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-primary-subtle text-primary">{{ system.hardware_count }} HW</span>
+                                    <div class="small text-muted">{{ system.active_assignments }} active users</div>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p class="text-muted mb-0">No systems have hardware mapped yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Quick Actions -->
-        <div class="row">
+        <div class="row g-3">
             <div class="col-12">
-                <div class="card shadow-sm mb-4">
+                <div class="card shadow-sm border-0">
                     <div class="card-header py-3">
                         <h6 class="m-0 fw-bold text-primary">Quick Actions</h6>
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-lg-4 col-md-6 mb-3">
-                                <a href="{% url 'data_import_export:home' %}" class="btn btn-primary btn-block">
-                                    <i class="fas fa-exchange-alt mr-2"></i>Data Import/Export
+                        <div class="row g-3">
+                            <div class="col-sm-6 col-xl-3">
+                                <a href="{% url 'access_management:access_assignment_list' %}" class="btn btn-primary w-100 h-100">
+                                    <i class="fas fa-tasks me-2"></i> Manage Access
                                 </a>
                             </div>
-                            <div class="col-lg-4 col-md-6 mb-3">
-                                <a href="{% url 'access_management:access_assignment_list' %}" class="btn btn-success btn-block">
-                                    <i class="fas fa-tasks mr-2"></i>Manage Access
+                            <div class="col-sm-6 col-xl-3">
+                                <a href="{% url 'hardware:hardware_list' %}" class="btn btn-info w-100 h-100 text-white">
+                                    <i class="fas fa-desktop me-2"></i> Hardware Inventory
                                 </a>
                             </div>
-                            <div class="col-lg-4 col-md-6 mb-3">
-                                <a href="{% url 'admin:index' %}" class="btn btn-info btn-block">
-                                    <i class="fas fa-cog mr-2"></i>Admin Panel
+                            <div class="col-sm-6 col-xl-3">
+                                <a href="{% url 'hardware_inventory_report' %}" class="btn btn-outline-primary w-100 h-100">
+                                    <i class="fas fa-chart-column me-2"></i> Hardware Reports
+                                </a>
+                            </div>
+                            <div class="col-sm-6 col-xl-3">
+                                <a href="{% url 'data_import_export:home' %}" class="btn btn-outline-secondary w-100 h-100">
+                                    <i class="fas fa-exchange-alt me-2"></i> Data Import/Export
                                 </a>
                             </div>
                         </div>
@@ -155,66 +418,125 @@
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         // Access Trends Chart
-        var ctx_line = document.getElementById('access-trends-chart').getContext('2d');
-        var accessTrendsChart = new Chart(ctx_line, {
-            type: 'line',
-            data: {
-                labels: {{ access_trends.labels|safe }},
-                datasets: [{
-                    label: 'Access Events',
-                    data: {{ access_trends.data|safe }},
-                    backgroundColor: 'rgba(78, 115, 223, 0.05)',
-                    borderColor: 'rgba(78, 115, 223, 1)',
-                    pointRadius: 3,
-                    pointBackgroundColor: "rgba(78, 115, 223, 1)",
-                    pointBorderColor: "rgba(78, 115, 223, 1)",
-                    pointHoverRadius: 3,
-                    pointHoverBackgroundColor: "rgba(78, 115, 223, 1)",
-                    pointHoverBorderColor: "rgba(78, 115, 223, 1)",
-                    pointHitRadius: 10,
-                    pointBorderWidth: 2,
-                }]
-            },
-            options: {
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true
+        const accessTrendsEl = document.getElementById('access-trends-chart');
+        if (accessTrendsEl) {
+            const accessLabels = {{ access_trends.labels|safe }};
+            const accessData = {{ access_trends.data|safe }};
+            new Chart(accessTrendsEl.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: accessLabels,
+                    datasets: [{
+                        label: 'Access Events',
+                        data: accessData,
+                        backgroundColor: 'rgba(13, 110, 253, 0.08)',
+                        borderColor: 'rgba(13, 110, 253, 1)',
+                        pointRadius: 3,
+                        pointBackgroundColor: 'rgba(13, 110, 253, 1)',
+                        pointBorderColor: 'rgba(13, 110, 253, 1)',
+                        pointHoverRadius: 4,
+                        pointHoverBackgroundColor: 'rgba(13, 110, 253, 1)',
+                        pointHoverBorderColor: 'rgba(13, 110, 253, 1)',
+                        tension: 0.35,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            },
+                            grid: {
+                                color: 'rgba(0,0,0,0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
 
         // System Usage Chart
-        var ctx_pie = document.getElementById('system-usage-chart').getContext('2d');
-        var systemUsageChart = new Chart(ctx_pie, {
-            type: 'doughnut',
-            data: {
-                labels: {{ system_usage.labels|safe }},
-                datasets: [{
-                    data: {{ system_usage.data|safe }},
-                    backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'],
-                }],
-            },
-            options: {
-                maintainAspectRatio: false,
-                tooltips: {
-                    backgroundColor: "rgb(255,255,255)",
-                    bodyFontColor: "#858796",
-                    borderColor: '#dddfeb',
-                    borderWidth: 1,
-                    xPadding: 15,
-                    yPadding: 15,
-                    displayColors: false,
-                    caretPadding: 10,
-                },
-                legend: {
-                    display: true,
-                    position: 'bottom'
-                },
-                cutoutPercentage: 80,
-            },
-        });
+        const systemUsageEl = document.getElementById('system-usage-chart');
+        if (systemUsageEl) {
+            const systemUsageLabels = {{ system_usage.labels|safe }};
+            const systemUsageData = {{ system_usage.data|safe }};
+            if (systemUsageData.length) {
+                new Chart(systemUsageEl.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: systemUsageLabels,
+                        datasets: [{
+                            data: systemUsageData,
+                            backgroundColor: ['#0d6efd', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#6f42c1', '#20c997'],
+                            borderWidth: 0,
+                        }],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'bottom'
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(255,255,255,0.95)',
+                                bodyColor: '#495057',
+                                titleColor: '#495057',
+                                borderColor: '#dee2e6',
+                                borderWidth: 1,
+                                padding: 12,
+                            }
+                        },
+                        cutout: '65%',
+                    },
+                });
+            }
+        }
+
+        // Hardware Type Chart
+        const hardwareTypeEl = document.getElementById('hardware-type-chart');
+        if (hardwareTypeEl) {
+            const hardwareLabels = {{ hardware_distribution.labels|safe }};
+            const hardwareData = {{ hardware_distribution.data|safe }};
+            if (hardwareData.length) {
+                new Chart(hardwareTypeEl.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: hardwareLabels,
+                        datasets: [{
+                            data: hardwareData,
+                            backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#fd7e14', '#e74a3b', '#20c997'],
+                            borderWidth: 0,
+                        }],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'bottom'
+                            },
+                        },
+                        cutout: '65%',
+                    },
+                });
+            }
+        }
     });
 </script>
 {% endblock %}
