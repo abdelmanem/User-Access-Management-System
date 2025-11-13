@@ -176,6 +176,17 @@
                                 </li>
                             </ul>
                             <p class="text-warning"><i class="fas fa-exclamation-triangle"></i> <strong>Important:</strong> Importing will create new records. Existing records will not be updated.</p>
+
+                            <h5 class="text-info mt-4">Active Directory Export Helper</h5>
+                            <p>Need a starting CSV straight from Active Directory? Download the ready-made PowerShell script below. It gathers usernames, contact details, department, status, description, and location fields. Run it on a domain-joined machine (with the RSAT <code>ActiveDirectory</code> module) and it will generate <code>C:\ADUsers.csv</code> ready for import.</p>
+                            <ol>
+                                <li>Open PowerShell as an administrator on a machine with AD RSAT tools.</li>
+                                <li>Run the script: <code>.\export-ad-users.ps1</code> (adjust the download location as needed).</li>
+                                <li>Upload the generated <code>ADUsers.csv</code> using the <strong>Import Users</strong> form above.</li>
+                            </ol>
+                            <a class="btn btn-outline-secondary" href="{% static 'scripts/export-ad-users.ps1' %}" download>
+                                <i class="fas fa-file-code me-2"></i>Download PowerShell Export Script
+                            </a>
                         </div>
                     </div>
                 </div>

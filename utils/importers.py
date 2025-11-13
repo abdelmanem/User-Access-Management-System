@@ -29,15 +29,39 @@ def _csv_reader(uploaded_file) -> csv.DictReader:
     """
     Normalise uploaded files/in-memory file-like objects into a CSV DictReader.
     Ensures UTF-8 decoding (with BOM support) and positions the pointer at the start.
+    Attempts to auto-detect common delimiters used by Active Directory exports.
     """
     if hasattr(uploaded_file, 'seek'):
         uploaded_file.seek(0)
     raw_data = uploaded_file.read()
 
     if isinstance(raw_data, bytes):
-        raw_data = raw_data.decode('utf-8-sig')
+        raw_data = raw_data.decode('utf-8-sig', errors='replace')
+    elif not isinstance(raw_data, str):
+        raw_data = str(raw_data)
 
-    return csv.DictReader(io.StringIO(raw_data))
+    if raw_data.startswith('#TYPE'):
+        raw_data = '\n'.join(
+            line for line in raw_data.splitlines() if not line.startswith('#TYPE')
+        )
+
+    sample = raw_data[:4096]
+    delimiter = ','
+    dialect = None
+    try:
+        dialect = csv.Sniffer().sniff(sample, delimiters=[',', ';', '\t', '|'])
+    except csv.Error:
+        if sample.count('\t') > sample.count(delimiter):
+            delimiter = '\t'
+        elif sample.count(';') > sample.count(delimiter):
+            delimiter = ';'
+    if hasattr(uploaded_file, 'seek'):
+        uploaded_file.seek(0)
+
+    buffer = io.StringIO(raw_data)
+    if dialect:
+        return csv.DictReader(buffer, dialect=dialect)
+    return csv.DictReader(buffer, delimiter=delimiter)
 
 
 def _excel_dict_rows(uploaded_file) -> List[Tuple[int, Dict[str, Any]]]:
@@ -104,22 +128,48 @@ USER_FIELD_ALIASES = {
     'user_logon_name': 'username',
     'user_logon_name_pre_windows_2000': 'username',
     'samaccountname': 'username',
+    'user_id': 'username',
     'user_principal_name': 'email',
     'userprincipalname': 'email',
     'mail': 'email',
     'email_address': 'email',
+    'work_email': 'email',
     'givenname': 'first_name',
     'first_name': 'first_name',
+    'sn': 'last_name',
     'surname': 'last_name',
     'last_name': 'last_name',
     'telephonenumber': 'phone_primary',
     'telephone_number': 'phone_primary',
+    'business_phone': 'phone_primary',
+    'work_phone': 'phone_primary',
+    'office_phone': 'phone_primary',
     'mobile': 'phone_secondary',
     'mobile_phone': 'phone_secondary',
+    'home_phone': 'phone_secondary',
+    'pager': 'phone_secondary',
     'title': 'position',
     'job_title': 'position',
     'department': 'department_name',
     'employeeid': 'employee_id',
+    'employee_number': 'employee_id',
+    'employeenumber': 'employee_id',
+    'employee_no': 'employee_id',
+    'account_active': 'is_active',
+    'enabled': 'is_active',
+    'account_enabled': 'is_active',
+    'physical_delivery_office_name': 'office_location',
+    'office': 'office_location',
+    'street_address': 'work_address',
+    'address': 'work_address',
+    'state': 'state_province',
+    'state_or_province': 'state_province',
+    'zip': 'postal_code',
+    'zip_code': 'postal_code',
+    'country_region': 'country',
+    'co': 'country',
+    'description': 'notes',
+    'comment': 'notes',
 }
 
 
@@ -142,6 +192,101 @@ def _normalise_user_row(row: Dict[str, Any]) -> Dict[str, Any]:
     return normalised
 
 
+def _populate_name_from_display_fields(row: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Populate missing first_name/last_name values using display-style columns
+    commonly present in Active Directory exports.
+    """
+    first = (row.get('first_name') or '').strip()
+    last = (row.get('last_name') or '').strip()
+    if first and last:
+        return row
+
+    display_candidates = (
+        row.get('display_name'),
+        row.get('name'),
+        row.get('full_name'),
+        row.get('fullname'),
+    )
+    display_value = next((value for value in display_candidates if value), None)
+    if not display_value:
+        return row
+
+    display_value = str(display_value).strip()
+    if not display_value:
+        return row
+
+    extracted_first = ''
+    extracted_last = ''
+
+    if ',' in display_value:
+        last_part, remainder = [part.strip() for part in display_value.split(',', 1)]
+        extracted_last = last_part or extracted_last
+        remainder_parts = [part for part in re.split(r'\s+', remainder) if part]
+        if remainder_parts:
+            extracted_first = remainder_parts[0]
+            if len(remainder_parts) > 1 and not extracted_last:
+                extracted_last = remainder_parts[-1]
+    else:
+        parts = [part for part in re.split(r'\s+', display_value) if part]
+        if len(parts) == 1:
+            extracted_first = extracted_first or parts[0]
+        elif len(parts) >= 2:
+            extracted_first = parts[0]
+            extracted_last = parts[-1]
+
+    if not first and extracted_first:
+        row['first_name'] = extracted_first
+    if not last and extracted_last:
+        row['last_name'] = extracted_last
+
+    return row
+
+
+def _sanitize_username(candidate: str) -> str:
+    candidate = (candidate or '').strip().lower()
+    candidate = re.sub(r'[^a-z0-9._-]+', '', candidate)
+    return candidate
+
+
+def _derive_username(row: Dict[str, Any]) -> str:
+    username = _sanitize_username(row.get('username', ''))
+    if username:
+        return username
+
+    email = (row.get('email') or '').strip()
+    if email and '@' in email:
+        user_part = email.split('@', 1)[0]
+        username = _sanitize_username(user_part)
+        if username:
+            return username
+
+    employee_id = _sanitize_username(row.get('employee_id', ''))
+    if employee_id:
+        return employee_id
+
+    first = _sanitize_username(row.get('first_name', ''))
+    last = _sanitize_username(row.get('last_name', ''))
+    if first and last:
+        username = _sanitize_username(f"{first}.{last}")
+        if username:
+            return username
+    if first:
+        return first
+    if last:
+        return last
+
+    display = (row.get('display_name') or row.get('name') or row.get('full_name') or row.get('fullname') or '').strip()
+    if display:
+        display = re.sub(r'\s+', ' ', display)
+        candidate = display.split(' ')[0]
+        username = _sanitize_username(candidate)
+        if username:
+            return username
+
+    return 'user'
+
+
 def _iter_user_rows(uploaded_file) -> Iterator[Tuple[int, Dict[str, Any]]]:
     name = getattr(uploaded_file, 'name', '') or ''
     lower_name = name.lower()
@@ -150,7 +295,7 @@ def _iter_user_rows(uploaded_file) -> Iterator[Tuple[int, Dict[str, Any]]]:
     if lower_name.endswith(excel_extensions):
         rows = _excel_dict_rows(uploaded_file)
         for index, row in rows:
-            yield index, _normalise_user_row(row)
+            yield index, _populate_name_from_display_fields(_normalise_user_row(row))
         return
 
     # Fallback to signature detection for Excel files without an extension.
@@ -162,12 +307,12 @@ def _iter_user_rows(uploaded_file) -> Iterator[Tuple[int, Dict[str, Any]]]:
     if isinstance(excel_signature, bytes) and excel_signature.startswith(b'PK\x03\x04'):
         rows = _excel_dict_rows(uploaded_file)
         for index, row in rows:
-            yield index, _normalise_user_row(row)
+            yield index, _populate_name_from_display_fields(_normalise_user_row(row))
         return
 
     reader = _csv_reader(uploaded_file)
     for index, row in enumerate(reader, start=2):
-        yield index, _normalise_user_row(row)
+        yield index, _populate_name_from_display_fields(_normalise_user_row(row))
 
 
 def _parse_bool(value, default=False):
@@ -233,6 +378,11 @@ def import_users_from_csv(file):
 
     with transaction.atomic():
         for index, row in _iter_user_rows(file):
+            if not row.get('username'):
+                derived_username = _derive_username(row)
+                if derived_username:
+                    row['username'] = derived_username
+
             missing_columns = [col for col in required_columns if not row.get(col)]
             if missing_columns:
                 errors.append(_collect_row_errors(index, [f"Missing required columns: {', '.join(missing_columns)}"]))
