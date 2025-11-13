@@ -1,0 +1,419 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<section class="py-3">
+    <div class="container-fluid">
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-4 gap-3">
+            <div>
+                <h1 class="h4 mb-0">{{ title }}</h1>
+                <p class="text-muted mb-0">Track hardware lifecycle, ownership, and warranty posture across the organisation.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'reports' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Reports
+                </a>
+                <a href="?export=csv" class="btn btn-success">
+                    <i class="fas fa-download me-1"></i>Export CSV
+                </a>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-md-6 col-xxl-3">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-uppercase text-muted small">Total Assets</div>
+                            <div class="h4 fw-bold mb-0">{{ summary.total_assets }}</div>
+                        </div>
+                        <span class="text-primary fs-3"><i class="fas fa-desktop"></i></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-xxl-3">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-uppercase text-muted small">In Service</div>
+                            <div class="h4 fw-bold mb-0">{{ summary.in_service }}</div>
+                        </div>
+                        <span class="text-success fs-3"><i class="fas fa-check-circle"></i></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-xxl-3">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-uppercase text-muted small">In Storage</div>
+                            <div class="h4 fw-bold mb-0">{{ summary.in_storage }}</div>
+                        </div>
+                        <span class="text-info fs-3"><i class="fas fa-warehouse"></i></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-xxl-3">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-uppercase text-muted small">Retired / Disposed</div>
+                            <div class="h4 fw-bold mb-0">{{ summary.retired }}</div>
+                        </div>
+                        <span class="text-secondary fs-3"><i class="fas fa-archive"></i></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-md-6 col-xxl-3">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-uppercase text-muted small">Virtual Assets</div>
+                            <div class="h4 fw-bold mb-0">{{ summary.virtual_assets }}</div>
+                        </div>
+                        <span class="text-info fs-3"><i class="fas fa-cloud"></i></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-xxl-3">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-uppercase text-muted small">Patch Exceptions</div>
+                            <div class="h4 fw-bold mb-0">{{ summary.patch_exceptions }}</div>
+                        </div>
+                        <span class="text-warning fs-3"><i class="fas fa-screwdriver-wrench"></i></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-xxl-3">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-uppercase text-muted small">Warranties (≤ 90d)</div>
+                            <div class="h4 fw-bold mb-0">{{ summary.warranty_expiring }}</div>
+                        </div>
+                        <span class="text-warning fs-3"><i class="fas fa-calendar-check"></i></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-xxl-3">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-uppercase text-muted small">Warranties Overdue</div>
+                            <div class="h4 fw-bold mb-0">{{ summary.warranty_overdue }}</div>
+                        </div>
+                        <span class="text-danger fs-3"><i class="fas fa-triangle-exclamation"></i></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3">
+                <h2 class="h6 mb-0 text-primary fw-bold">Hardware Inventory</h2>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table align-middle table-striped" id="hardware-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Name</th>
+                                <th>Asset Tag</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Department</th>
+                                <th>Primary User</th>
+                                <th>Systems</th>
+                                <th>Users</th>
+                                <th>Location</th>
+                                <th>Warranty</th>
+                                <th>Flags</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for asset in assets %}
+                            <tr>
+                                <td>
+                                    <strong>{{ asset.name }}</strong>
+                                    <div class="text-muted small">Serial: {{ asset.serial_number|default:"—" }}</div>
+                                </td>
+                                <td><span class="badge bg-secondary-subtle text-secondary">{{ asset.asset_tag }}</span></td>
+                                <td>{{ asset.hardware_type }}</td>
+                                <td>
+                                    <span class="badge bg-{{ asset.status_badge }}">{{ asset.status }}</span>
+                                </td>
+                                <td>{{ asset.department|default:"—" }}</td>
+                                <td>
+                                    {% if asset.primary_user %}
+                                        <a href="{% url 'accounts:user_detail' asset.primary_user_id %}">
+                                            {{ asset.primary_user }}
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-info-subtle text-info">{{ asset.systems_count }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary-subtle text-primary">{{ asset.users_count }}</span>
+                                </td>
+                                <td>{{ asset.location|default:"—" }}</td>
+                                <td>
+                                    {% if asset.warranty_expiration %}
+                                        <div>{{ asset.warranty_expiration|date:"M d, Y" }}</div>
+                                        {% if asset.days_until_warranty is not None %}
+                                            {% if asset.days_until_warranty < 0 %}
+                                                <small class="text-danger">Expired {{ asset.warranty_overdue_days }}d ago</small>
+                                            {% elif asset.days_until_warranty == 0 %}
+                                                <small class="text-warning">Expires today</small>
+                                            {% else %}
+                                                <small class="text-muted">{{ asset.days_until_warranty }}d remaining</small>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if asset.is_virtual %}
+                                        <span class="badge bg-info-subtle text-info me-1">Virtual</span>
+                                    {% endif %}
+                                    {% if not asset.requires_patch_management %}
+                                        <span class="badge bg-warning-subtle text-warning me-1">Patch Exempt</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-xl-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white py-3">
+                        <h2 class="h6 mb-0 text-primary fw-bold">By Hardware Type</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Type</th>
+                                        <th>Total</th>
+                                        <th>In Service</th>
+                                        <th>Virtual</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for row in type_breakdown %}
+                                    <tr>
+                                        <td>{{ row.hardware_type }}</td>
+                                        <td>{{ row.count }}</td>
+                                        <td>{{ row.in_service }}</td>
+                                        <td>{{ row.virtual_count }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-xl-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white py-3">
+                        <h2 class="h6 mb-0 text-primary fw-bold">By Status</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Status</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for row in status_breakdown %}
+                                    <tr>
+                                        <td>{{ row.status }}</td>
+                                        <td>{{ row.count }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-xl-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white py-3">
+                        <h2 class="h6 mb-0 text-primary fw-bold">By Department</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Department</th>
+                                        <th>Total</th>
+                                        <th>In Service</th>
+                                        <th>Virtual</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for row in department_breakdown %}
+                                    <tr>
+                                        <td>{{ row.department }}</td>
+                                        <td>{{ row.count }}</td>
+                                        <td>{{ row.in_service }}</td>
+                                        <td>{{ row.virtual }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3">
+                <h2 class="h6 mb-0 text-primary fw-bold">Warranties Expiring Soon (≤ 90 days)</h2>
+            </div>
+            <div class="card-body">
+                {% if upcoming_warranties %}
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Asset</th>
+                                <th>Department</th>
+                                <th>Primary User</th>
+                                <th>Warranty Expiration</th>
+                                <th>Days Remaining</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entry in upcoming_warranties %}
+                            <tr>
+                                <td>{{ entry.asset.name }} <span class="text-muted small">({{ entry.asset.asset_tag }})</span></td>
+                                <td>{{ entry.asset.department.name|default:"—" }}</td>
+                                <td>{{ entry.asset.primary_user.full_name|default:"—" }}</td>
+                                <td>{{ entry.asset.warranty_expiration|date:"M d, Y" }}</td>
+                                <td>
+                                    <span class="badge bg-warning-subtle text-warning">{{ entry.days_remaining }}</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">No warranties are set to expire in the next 90 days.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-12 col-xl-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white py-3">
+                        <h2 class="h6 mb-0 text-danger fw-bold">Warranties Overdue</h2>
+                    </div>
+                    <div class="card-body">
+                        {% if overdue_warranties %}
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Asset</th>
+                                        <th>Department</th>
+                                        <th>Expired On</th>
+                                        <th>Days Overdue</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for asset in overdue_warranties %}
+                                    <tr>
+                                        <td>{{ asset.name }} <span class="text-muted small">({{ asset.asset_tag }})</span></td>
+                                    <td>{{ asset.department.name|default:"—" }}</td>
+                                    <td>{{ asset.warranty_expiration|date:"M d, Y" }}</td>
+                                    <td><span class="badge bg-danger-subtle text-danger">{{ asset.warranty_overdue_days }}</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <p class="text-muted mb-0">No overdue warranties detected.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-xl-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white py-3">
+                        <h2 class="h6 mb-0 text-warning fw-bold">Patch Management Exceptions</h2>
+                    </div>
+                    <div class="card-body">
+                        {% if patch_exceptions %}
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Asset</th>
+                                        <th>Department</th>
+                                        <th>Status</th>
+                                        <th>Systems</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for asset in patch_exceptions %}
+                                    <tr>
+                                        <td>{{ asset.name }} <span class="text-muted small">({{ asset.asset_tag }})</span></td>
+                                        <td>{{ asset.department.name|default:"—" }}</td>
+                                        <td><span class="badge bg-{{ asset.lifecycle_state_color }}">{{ asset.status }}</span></td>
+                                        <td>{{ asset.related_systems.count }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <p class="text-muted mb-0">All hardware assets are enrolled in patch management.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extrajs %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (window.jQuery && $.fn.DataTable) {
+        $('#hardware-table').DataTable({
+            pageLength: 25,
+            order: [[3, 'asc']]
+        });
+    }
+});
+</script>
+{% endblock %}
+

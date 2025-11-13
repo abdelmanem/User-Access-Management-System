@@ -216,6 +216,11 @@ class DashboardAdminSite(admin.AdminSite):
                 'icon': 'chart-line',
             },
             {
+                'name': 'Hardware Inventory Report',
+                'description': 'Lifecycle, warranty, and ownership insights for hardware assets',
+                'icon': 'desktop',
+            },
+            {
                 'name': 'Security Audit Report',
                 'description': 'Security events, failed logins, and access violations',
                 'icon': 'shield-alt',

@@ -36,7 +36,7 @@
                                     <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
                                         Total Systems
                                     </div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ systems.count }}</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ summary.total_systems }}</div>
                                 </div>
                                 <div class="col-auto">
                                     <i class="fas fa-server fa-2x text-gray-300"></i>
@@ -55,11 +55,7 @@
                                         Total Access Events
                                     </div>
                                     <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                        {% for system in systems %}
-                                            {% if forloop.first %}
-                                                {{ system.total_access }}
-                                            {% endif %}
-                                        {% endfor %}
+                                        {{ summary.total_access }}
                                     </div>
                                 </div>
                                 <div class="col-auto">
@@ -78,13 +74,7 @@
                                     <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
                                         Failed Access
                                     </div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                        {% for system in systems %}
-                                            {% if forloop.first %}
-                                                {{ system.failed_access }}
-                                            {% endif %}
-                                        {% endfor %}
-                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ summary.failed_access }}</div>
                                 </div>
                                 <div class="col-auto">
                                     <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
@@ -102,16 +92,30 @@
                                     <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
                                         Unique Users
                                     </div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                        {% for system in systems %}
-                                            {% if forloop.first %}
-                                                {{ system.unique_users }}
-                                            {% endif %}
-                                        {% endfor %}
-                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ summary.unique_users }}</div>
                                 </div>
                                 <div class="col-auto">
                                     <i class="fas fa-users fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-info shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                        Linked Hardware Assets
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ summary.hardware_assets }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-desktop fa-2x text-gray-300"></i>
                                 </div>
                             </div>
                         </div>
@@ -136,6 +140,7 @@
                                     <th>Success Rate</th>
                                     <th>Unique Users</th>
                                     <th>Active Assignments</th>
+                                    <th>Hardware Assets</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -163,6 +168,9 @@
                                     </td>
                                     <td>
                                         <span class="badge bg-warning-subtle text-warning">{{ system.active_assignments }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary-subtle text-secondary">{{ system.hardware_count }}</span>
                                     </td>
                                     <td>
                                         <a href="{% url 'access_management:system_access_assignments' system.id %}" class="btn btn-sm btn-info">

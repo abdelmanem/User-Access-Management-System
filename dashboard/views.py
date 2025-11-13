@@ -12,6 +12,7 @@ import json
 from access_management.models import UserSystemAccess, AccessHistory
 from systems.models import System
 from departments.models import Department
+from hardware.models import HardwareAsset
 
 User = get_user_model()
 
@@ -224,9 +225,33 @@ def reports_view(request):
             'url': reverse('department_access_report'),
             'export_url': f"{reverse('department_access_report')}?export=csv",
         },
+        {
+            'name': 'Hardware Inventory Report',
+            'description': 'Inventory health, lifecycle, and system mappings for hardware assets.',
+            'icon': 'desktop',
+            'url': reverse('hardware_inventory_report'),
+            'export_url': f"{reverse('hardware_inventory_report')}?export=csv",
+        },
     ]
     
     now = timezone.now()
+    today = now.date()
+    warranty_threshold = today + timedelta(days=60)
+    
+    total_hardware = HardwareAsset.objects.count()
+    in_service_hardware = HardwareAsset.objects.filter(status='In Service').count()
+    warranty_expiring_soon = HardwareAsset.objects.filter(
+        warranty_expiration__isnull=False,
+        warranty_expiration__gte=today,
+        warranty_expiration__lte=warranty_threshold
+    ).count()
+    overdue_warranty = HardwareAsset.objects.filter(
+        warranty_expiration__isnull=False,
+        warranty_expiration__lt=today
+    ).count()
+    patch_exceptions = HardwareAsset.objects.filter(requires_patch_management=False).count()
+    virtual_assets = HardwareAsset.objects.filter(is_virtual=True).count()
+    
     quick_insights = [
         {
             'label': 'Failed Logins (24h)',
@@ -263,6 +288,42 @@ def reports_view(request):
             'icon': 'user-slash',
             'variant': 'secondary',
         },
+        {
+            'label': 'Hardware Assets (Total)',
+            'value': total_hardware,
+            'icon': 'desktop',
+            'variant': 'primary',
+        },
+        {
+            'label': 'Hardware Assets (Active)',
+            'value': in_service_hardware,
+            'icon': 'laptop',
+            'variant': 'success',
+        },
+        {
+            'label': 'Warranties Expiring (60d)',
+            'value': warranty_expiring_soon,
+            'icon': 'calendar-check',
+            'variant': 'warning',
+        },
+        {
+            'label': 'Warranty Overdue',
+            'value': overdue_warranty,
+            'icon': 'triangle-exclamation',
+            'variant': 'danger',
+        },
+        {
+            'label': 'Virtual Hardware',
+            'value': virtual_assets,
+            'icon': 'cloud',
+            'variant': 'info',
+        },
+        {
+            'label': 'Patch Exceptions',
+            'value': patch_exceptions,
+            'icon': 'screwdriver-wrench',
+            'variant': 'secondary',
+        },
     ]
     
     context = {
@@ -283,7 +344,9 @@ def generate_user_access_report(request):
         total_access=Count('system_accesses', distinct=True),
         active_access=Count('system_accesses', filter=Q(system_accesses__status='Active'), distinct=True),
         pending_requests=Count('system_accesses', filter=Q(system_accesses__status='Pending'), distinct=True),
-        expired_access=Count('system_accesses', filter=Q(system_accesses__status='Expired'), distinct=True)
+        expired_access=Count('system_accesses', filter=Q(system_accesses__status='Expired'), distinct=True),
+        shared_hardware=Count('hardware_assets', distinct=True),
+        primary_hardware=Count('primary_hardware_assets', distinct=True),
     ).order_by('-total_access')
     
     access_summary = UserSystemAccess.objects.aggregate(
@@ -338,12 +401,32 @@ def generate_user_access_report(request):
             'access_per_user': per_user,
         })
     
+    hardware_totals = users.aggregate(
+        total_shared=Sum('shared_hardware'),
+        total_primary=Sum('primary_hardware')
+    )
+    hardware_summary = {
+        'total_shared': hardware_totals['total_shared'] or 0,
+        'total_primary': hardware_totals['total_primary'] or 0,
+        'users_with_shared': users.filter(shared_hardware__gt=0).count(),
+        'users_with_primary': users.filter(primary_hardware__gt=0).count(),
+    }
+    
     if request.GET.get('export') == 'csv':
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="user_access_report.csv"'
         
         writer = csv.writer(response)
-        writer.writerow(['User', 'Department', 'Total Access', 'Active Access', 'Pending Requests', 'Expired Access'])
+        writer.writerow([
+            'User',
+            'Department',
+            'Total Access',
+            'Active Access',
+            'Pending Requests',
+            'Expired Access',
+            'Primary Hardware Assets',
+            'Shared Hardware Assets',
+        ])
         
         for user in users:
             writer.writerow([
@@ -352,7 +435,9 @@ def generate_user_access_report(request):
                 user.total_access,
                 user.active_access,
                 user.pending_requests,
-                user.expired_access
+                user.expired_access,
+                user.primary_hardware,
+                user.shared_hardware,
             ])
         
         return response
@@ -368,6 +453,7 @@ def generate_user_access_report(request):
             'pending_requests': access_summary['pending_requests'] or 0,
             'expired_access': access_summary['expired_access'] or 0,
         },
+        'hardware_summary': hardware_summary,
     }
     
     return render(request, 'admin/reports/user_access_report.html', context)
@@ -382,7 +468,8 @@ def generate_system_usage_report(request):
         successful_access=Count('access_history', filter=Q(access_history__action__in=['Approved', 'Activated', 'Login'])),
         failed_access=Count('access_history', filter=Q(access_history__action__in=['Access Denied', 'Failed Login'])),
         unique_users=Count('access_history__user', distinct=True),
-        active_assignments=Count('user_accesses', filter=Q(user_accesses__status='Active'))
+        active_assignments=Count('user_accesses', filter=Q(user_accesses__status='Active')),
+        hardware_count=Count('hardware_assets', distinct=True),
     ).order_by('-total_access')
     
     systems = []
@@ -398,7 +485,22 @@ def generate_system_usage_report(request):
             'success_rate': success_rate,
             'unique_users': system.unique_users,
             'active_assignments': system.active_assignments,
+            'hardware_count': system.hardware_count,
         })
+    
+    system_totals = systems_qs.aggregate(
+        total_access_sum=Sum('total_access'),
+        failed_access_sum=Sum('failed_access'),
+        unique_users_sum=Sum('unique_users'),
+        hardware_sum=Sum('hardware_count'),
+    )
+    summary = {
+        'total_systems': systems_qs.count(),
+        'total_access': system_totals['total_access_sum'] or 0,
+        'failed_access': system_totals['failed_access_sum'] or 0,
+        'unique_users': system_totals['unique_users_sum'] or 0,
+        'hardware_assets': system_totals['hardware_sum'] or 0,
+    }
     
     # Get daily usage trends for last 30 days
     end_date = timezone.now().date()
@@ -456,7 +558,7 @@ def generate_system_usage_report(request):
         response['Content-Disposition'] = 'attachment; filename="system_usage_report.csv"'
         
         writer = csv.writer(response)
-        writer.writerow(['System', 'Total Access', 'Successful Access', 'Failed Access', 'Unique Users', 'Active Assignments'])
+        writer.writerow(['System', 'Total Access', 'Successful Access', 'Failed Access', 'Unique Users', 'Active Assignments', 'Linked Hardware Assets'])
         
         for system in systems_qs:
             writer.writerow([
@@ -465,7 +567,8 @@ def generate_system_usage_report(request):
                 system.successful_access,
                 system.failed_access,
                 system.unique_users,
-                system.active_assignments
+                system.active_assignments,
+                system.hardware_count,
             ])
         
         return response
@@ -476,6 +579,7 @@ def generate_system_usage_report(request):
         'daily_usage': daily_usage,
         'peak_hours': peak_hours,
         'day_patterns': day_patterns,
+        'summary': summary,
     }
     
     return render(request, 'admin/reports/system_usage_report.html', context)
@@ -669,6 +773,165 @@ def generate_department_access_report(request):
     }
     
     return render(request, 'admin/reports/department_access_report.html', context)
+
+
+@login_required
+def generate_hardware_inventory_report(request):
+    """Generate comprehensive hardware inventory report."""
+    
+    assets_qs = HardwareAsset.objects.select_related('department', 'primary_user').prefetch_related('assigned_users', 'related_systems')
+    today = timezone.now().date()
+    warranty_threshold = today + timedelta(days=90)
+    
+    summary = {
+        'total_assets': assets_qs.count(),
+        'in_service': assets_qs.filter(status='In Service').count(),
+        'in_storage': assets_qs.filter(status='In Storage').count(),
+        'retired': assets_qs.filter(status__in=['Retired', 'Disposed']).count(),
+        'patch_exceptions': assets_qs.filter(requires_patch_management=False).count(),
+        'virtual_assets': assets_qs.filter(is_virtual=True).count(),
+        'physical_assets': assets_qs.filter(is_virtual=False).count(),
+        'warranty_expiring': assets_qs.filter(
+            warranty_expiration__isnull=False,
+            warranty_expiration__gte=today,
+            warranty_expiration__lte=warranty_threshold
+        ).count(),
+        'warranty_overdue': assets_qs.filter(
+            warranty_expiration__isnull=False,
+            warranty_expiration__lt=today
+        ).count(),
+    }
+    
+    assets = []
+    for asset in assets_qs:
+        assigned_users = list(asset.assigned_users.all())
+        related_systems = list(asset.related_systems.all())
+        assets.append({
+            'id': asset.id,
+            'name': asset.name,
+            'asset_tag': asset.asset_tag,
+            'serial_number': asset.serial_number,
+            'hardware_type': asset.get_hardware_type_display(),
+            'status': asset.status,
+            'status_badge': asset.lifecycle_state_color,
+            'department': asset.department.name if asset.department else None,
+            'primary_user': asset.primary_user.full_name if asset.primary_user else None,
+            'primary_user_id': asset.primary_user.id if asset.primary_user else None,
+            'systems_count': len(related_systems),
+            'users_count': len(assigned_users),
+            'location': asset.location,
+            'warranty_expiration': asset.warranty_expiration,
+            'days_until_warranty': asset.days_until_warranty_expires,
+            'warranty_overdue_days': asset.warranty_overdue_days,
+            'is_virtual': asset.is_virtual,
+            'requires_patch_management': asset.requires_patch_management,
+            'related_systems': related_systems,
+            'assigned_users': assigned_users,
+        })
+    
+    type_breakdown = list(
+        assets_qs.values('hardware_type').annotate(
+            count=Count('id'),
+            in_service=Count('id', filter=Q(status='In Service')),
+            virtual_count=Count('id', filter=Q(is_virtual=True)),
+        ).order_by('-count')
+    )
+    
+    status_breakdown = list(
+        assets_qs.values('status').annotate(
+            count=Count('id')
+        ).order_by('-count')
+    )
+    
+    department_breakdown = []
+    for row in assets_qs.values('department__name').annotate(
+        count=Count('id'),
+        in_service=Count('id', filter=Q(status='In Service')),
+        virtual_count=Count('id', filter=Q(is_virtual=True))
+    ).order_by('-count'):
+        department_breakdown.append({
+            'department': row['department__name'] or 'Unassigned',
+            'count': row['count'],
+            'in_service': row['in_service'],
+            'virtual': row['virtual_count'],
+        })
+    
+    upcoming_warranties = []
+    for asset in assets_qs.filter(
+        warranty_expiration__isnull=False,
+        warranty_expiration__gte=today,
+        warranty_expiration__lte=warranty_threshold
+    ).order_by('warranty_expiration'):
+        upcoming_warranties.append({
+            'asset': asset,
+            'days_remaining': asset.days_until_warranty_expires,
+        })
+    
+    overdue_warranties = assets_qs.filter(
+        warranty_expiration__isnull=False,
+        warranty_expiration__lt=today
+    ).order_by('warranty_expiration')
+    
+    patch_exceptions = assets_qs.filter(requires_patch_management=False).order_by('name')
+    
+    if request.GET.get('export') == 'csv':
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="hardware_inventory_report.csv"'
+        
+        writer = csv.writer(response)
+        writer.writerow([
+            'Name',
+            'Asset Tag',
+            'Serial Number',
+            'Hardware Type',
+            'Status',
+            'Department',
+            'Primary User',
+            'Systems Linked',
+            'Assigned Users',
+            'Location',
+            'Warranty Expiration',
+            'Days Until Warranty',
+            'Is Virtual',
+            'Requires Patch Management',
+        ])
+        
+        for asset in assets_qs:
+            related_systems = list(asset.related_systems.all())
+            assigned_users = list(asset.assigned_users.all())
+            writer.writerow([
+                asset.name,
+                asset.asset_tag,
+                asset.serial_number or '',
+                asset.get_hardware_type_display(),
+                asset.status,
+                asset.department.name if asset.department else '',
+                asset.primary_user.full_name if asset.primary_user else '',
+                len(related_systems),
+                len(assigned_users),
+                asset.location or '',
+                asset.warranty_expiration.isoformat() if asset.warranty_expiration else '',
+                asset.days_until_warranty_expires if asset.days_until_warranty_expires is not None else '',
+                'Yes' if asset.is_virtual else 'No',
+                'Yes' if asset.requires_patch_management else 'No',
+            ])
+        
+        return response
+    
+    context = {
+        'title': 'Hardware Inventory Report',
+        'summary': summary,
+        'assets': assets,
+        'type_breakdown': type_breakdown,
+        'status_breakdown': status_breakdown,
+        'department_breakdown': department_breakdown,
+        'upcoming_warranties': upcoming_warranties,
+        'overdue_warranties': overdue_warranties,
+        'patch_exceptions': patch_exceptions,
+    }
+    
+    return render(request, 'admin/reports/hardware_inventory_report.html', context)
+
 
 @login_required
 def api_dashboard_data(request):
