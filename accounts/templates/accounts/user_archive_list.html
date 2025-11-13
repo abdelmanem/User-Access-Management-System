@@ -70,7 +70,15 @@
                             <td>{{ archive.employee_id|default:"—" }}</td>
                             <td>{{ archive.department_name|default:"—" }}</td>
                             <td>{{ archive.archived_at|date:"M d, Y H:i" }}</td>
-                            <td>{{ archive.archived_by.get_full_name|default:archive.archived_by.username|default:"System" }}</td>
+                            <td>
+                                {% with archived_user=archive.archived_by %}
+                                    {% if archived_user %}
+                                        {{ archived_user.get_full_name|default:archived_user.username }}
+                                    {% else %}
+                                        System
+                                    {% endif %}
+                                {% endwith %}
+                            </td>
                             <td>
                                 <a href="{% url 'accounts:user_archive_detail' archive.id %}" class="btn btn-sm btn-outline-primary">
                                     View

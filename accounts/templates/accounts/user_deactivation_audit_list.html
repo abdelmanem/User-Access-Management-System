@@ -69,7 +69,15 @@
                                 <div class="text-muted small">{{ audit.user_username }}</div>
                             </td>
                             <td>{{ audit.user_employee_id|default:"—" }}</td>
-                            <td>{{ audit.admin.get_full_name|default:audit.admin.username|default:"—" }}</td>
+                            <td>
+                                {% with admin_user=audit.admin %}
+                                    {% if admin_user %}
+                                        {{ admin_user.get_full_name|default:admin_user.username }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                {% endwith %}
+                            </td>
                             <td>{{ audit.deactivated_at|date:"M d, Y H:i" }}</td>
                             <td>
                                 {% if audit.system_assignments %}
