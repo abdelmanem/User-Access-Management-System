@@ -2,11 +2,14 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required, user_passes_test
 from django.contrib.auth.forms import SetPasswordForm
+from django.db import transaction
 from django.db.models import Q, F, Value
 from django.db.models.functions import Concat
+from django.utils import timezone
 from .models import CustomUser
 from .forms import UserCreateForm, UserUpdateForm, UserPermissionForm
 from departments.models import Department
+from hardware.models import HardwareAsset
 from urllib.parse import urlencode
 from django.http import HttpResponse
 from django.urls import reverse
@@ -323,11 +326,121 @@ def user_delete(request, pk):
 @permission_required('accounts.change_customuser', raise_exception=True)
 def user_toggle_active(request, pk):
     user = get_object_or_404(CustomUser, pk=pk)
-    if request.method == 'POST':
-        user.is_active = not user.is_active
+    next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or reverse('accounts:user_list')
+
+    if request.method != 'POST':
+        return redirect(next_url)
+
+    target_status = not user.is_active
+
+    if user.is_active and not target_status:
+        active_assignments = list(UserSystemAccess.objects.filter(
+            user=user,
+            status__in=['Active', 'Approved', 'Pending']
+        ).select_related('system'))
+
+        hardware_primary = list(HardwareAsset.objects.filter(primary_user=user))
+        hardware_shared = list(HardwareAsset.objects.filter(assigned_users=user).exclude(primary_user=user))
+
+        hardware_assets_map = {}
+        for asset in hardware_primary:
+            hardware_assets_map.setdefault(asset.id, {'asset': asset, 'roles': set()})
+            hardware_assets_map[asset.id]['roles'].add('Primary Owner')
+        for asset in hardware_shared:
+            hardware_assets_map.setdefault(asset.id, {'asset': asset, 'roles': set()})
+            hardware_assets_map[asset.id]['roles'].add('Shared User')
+        hardware_assets = []
+        for entry in hardware_assets_map.values():
+            entry['roles'] = sorted(entry['roles'])
+            hardware_assets.append(entry)
+
+        needs_confirmation = bool(active_assignments or hardware_assets)
+        confirmed = request.POST.get('confirm_deactivate') == '1'
+
+        if needs_confirmation and not confirmed:
+            context = {
+                'user': user,
+                'next_url': next_url,
+                'system_assignments': active_assignments,
+                'hardware_assets': hardware_assets,
+            }
+            return render(request, 'accounts/user_deactivate_confirm.html', context)
+
+        if needs_confirmation and confirmed:
+            errors = []
+            if active_assignments and request.POST.get('confirm_system', '') != '1':
+                errors.append('Please confirm system assignments should be suspended.')
+            if hardware_assets and request.POST.get('confirm_hardware', '') != '1':
+                errors.append('Please confirm any assigned hardware has been collected.')
+
+            if errors:
+                for error in errors:
+                    messages.error(request, error)
+                context = {
+                    'user': user,
+                    'next_url': next_url,
+                    'system_assignments': active_assignments,
+                    'hardware_assets': hardware_assets,
+                }
+                return render(request, 'accounts/user_deactivate_confirm.html', context)
+
+            with transaction.atomic():
+                if active_assignments:
+                    now = timezone.now()
+                    UserSystemAccess.objects.filter(
+                        user=user,
+                        status__in=['Active', 'Approved']
+                    ).update(status='Suspended', access_end_date=now)
+                    UserSystemAccess.objects.filter(
+                        user=user,
+                        status='Pending'
+                    ).update(status='Cancelled')
+
+                if hardware_assets:
+                    status_action = request.POST.get('hardware_status_action', 'no_change')
+                    for entry in hardware_assets:
+                        asset = entry['asset']
+                        fields_to_update = set()
+
+                        if asset.primary_user_id == user.id:
+                            asset.primary_user = None
+                            fields_to_update.add('primary_user')
+
+                        if asset.assigned_users.filter(id=user.id).exists():
+                            asset.assigned_users.remove(user)
+
+                        if status_action == 'in_storage' and asset.status != 'In Storage':
+                            asset.status = 'In Storage'
+                            fields_to_update.add('status')
+                        elif status_action == 'retired' and asset.status != 'Retired':
+                            asset.status = 'Retired'
+                            fields_to_update.add('status')
+
+                        if fields_to_update:
+                            if hasattr(asset, 'updated_by'):
+                                asset.updated_by = request.user
+                                fields_to_update.add('updated_by')
+                            asset.save(update_fields=list(fields_to_update))
+
+                user.is_active = False
+                if hasattr(user, 'updated_by'):
+                    user.updated_by = request.user
+                    user.save(update_fields=['is_active', 'updated_by'])
+                else:
+                    user.save(update_fields=['is_active'])
+
+                messages.success(request, 'User deactivated. Related assignments have been updated.')
+                return redirect(next_url)
+
+    user.is_active = target_status
+    if hasattr(user, 'updated_by'):
+        user.updated_by = request.user
+        user.save(update_fields=['is_active', 'updated_by'])
+    else:
         user.save(update_fields=['is_active'])
-        messages.success(request, f"User {'activated' if user.is_active else 'deactivated'} successfully.")
-    return redirect(request.META.get('HTTP_REFERER', 'accounts:user_list'))
+
+    messages.success(request, f"User {'activated' if user.is_active else 'deactivated'} successfully.")
+    return redirect(next_url)
 
 @login_required
 @user_passes_test(lambda u: u.is_staff)
@@ -366,6 +479,21 @@ def user_bulk_action(request):
     elif action == 'deactivate':
         if not request.user.has_perm('accounts.change_customuser'):
             messages.error(request, 'You do not have permission to deactivate users.')
+            return redirect(redirect_url)
+        dependency_users = queryset.filter(
+            Q(system_accesses__status__in=['Active', 'Approved', 'Pending']) |
+            Q(primary_hardware_assets__isnull=False) |
+            Q(hardware_assets__isnull=False)
+        ).distinct()
+        if dependency_users.exists():
+            sample = ', '.join(dependency_users.values_list('username', flat=True)[:5])
+            if dependency_users.count() > 5:
+                sample += ', …'
+            messages.error(
+                request,
+                f"Bulk deactivation halted. The following users still have system or hardware assignments: {sample}. "
+                "Please review and deactivate these accounts individually so dependencies can be addressed."
+            )
             return redirect(redirect_url)
         updated = queryset.update(is_active=False)
         messages.success(request, f'Deactivated {updated} user(s).')

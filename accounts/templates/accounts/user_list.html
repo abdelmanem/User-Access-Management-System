@@ -253,6 +253,7 @@
                                         {% if perms.accounts.change_customuser %}
                                         <form action="{% url 'accounts:user_toggle_active' user.id %}" method="post" class="d-inline">
                                             {% csrf_token %}
+                                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
                                             {% if user.is_active %}
                                             <button type="submit" class="btn btn-outline-danger btn-sm">
                                                 <i class="fas fa-user-slash"></i> Deactivate

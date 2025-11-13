@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Deactivate {{ user.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-xl-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0">Deactivate {{ user.get_full_name }}</h4>
+                        <small class="text-muted">Review dependencies before disabling this account.</small>
+                    </div>
+                    <span class="badge bg-warning text-dark">Manual Review Required</span>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Deactivating a user with active system or hardware assignments may impact access and asset tracking.
+                        Please review and confirm the steps below before proceeding.
+                    </div>
+
+                    <form method="post" class="needs-validation">
+                        {% csrf_token %}
+                        <input type="hidden" name="confirm_deactivate" value="1">
+                        <input type="hidden" name="next" value="{{ next_url }}">
+
+                        {% if system_assignments %}
+                        <div class="mb-4">
+                            <h5 class="mb-2">System Assignments</h5>
+                            <p class="text-muted mb-2">
+                                The following system assignments will be suspended and end-dated automatically.
+                            </p>
+                            <ul class="list-group mb-3">
+                                {% for assignment in system_assignments %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ assignment.system.name }}</strong>
+                                        <div class="text-muted small">
+                                            Status: {{ assignment.status }} · Access Type: {{ assignment.access_type }}
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-secondary">{{ assignment.system.code }}</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="1" id="confirmSystem" name="confirm_system">
+                                <label class="form-check-label fw-semibold" for="confirmSystem">
+                                    I understand all system assignments will be suspended when the user is deactivated.
+                                </label>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if hardware_assets %}
+                        <div class="mb-4">
+                            <h5 class="mb-2">Hardware Dependencies</h5>
+                            <p class="text-muted mb-2">
+                                Ensure assigned hardware has been collected and the inventory status is accurate.
+                            </p>
+                            <ul class="list-group mb-3">
+                                {% for entry in hardware_assets %}
+                                {% with asset=entry.asset %}
+                                <li class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <strong>{{ asset.name }}</strong>
+                                            <div class="text-muted small">
+                                                Asset Tag: {{ asset.asset_tag }} · Current Status: {{ asset.status }}
+                                            </div>
+                                            <div class="text-muted small">
+                                                Role: {{ entry.roles|join:", " }}
+                                            </div>
+                                        </div>
+                                        <a href="{% url 'hardware:hardware_detail' asset.id %}" class="btn btn-sm btn-outline-primary">
+                                            View
+                                        </a>
+                                    </div>
+                                </li>
+                                {% endwith %}
+                                {% endfor %}
+                            </ul>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" value="1" id="confirmHardware" name="confirm_hardware">
+                                <label class="form-check-label fw-semibold" for="confirmHardware">
+                                    I confirm all assigned hardware has been collected or reassigned.
+                                </label>
+                            </div>
+                            <div class="mb-3">
+                                <label for="hardwareStatusAction" class="form-label fw-semibold">Hardware status update</label>
+                                <select class="form-select" id="hardwareStatusAction" name="hardware_status_action">
+                                    <option value="no_change">Leave hardware status unchanged</option>
+                                    <option value="in_storage">Mark collected hardware as "In Storage"</option>
+                                    <option value="retired">Mark collected hardware as "Retired"</option>
+                                </select>
+                                <small class="text-muted">Primary ownership will be cleared automatically.</small>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="alert alert-info d-flex align-items-start">
+                            <span class="me-2">
+                                <i class="fas fa-info-circle"></i>
+                            </span>
+                            <span>
+                                The user's account will be deactivated immediately after confirmation. You can reactivate it later if needed from the user list.
+                            </span>
+                        </div>
+
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a href="{{ next_url }}" class="btn btn-secondary">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-user-slash me-1"></i>Confirm Deactivate User
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
