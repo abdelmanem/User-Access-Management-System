@@ -1,10 +1,13 @@
 import csv
 import io
-from typing import Iterable, Tuple, List
+import re
+from typing import Iterable, Tuple, List, Dict, Any, Iterator
 
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.utils.dateparse import parse_date
+
+from openpyxl import load_workbook
 
 from departments.models import Department
 from systems.models import System
@@ -35,6 +38,136 @@ def _csv_reader(uploaded_file) -> csv.DictReader:
         raw_data = raw_data.decode('utf-8-sig')
 
     return csv.DictReader(io.StringIO(raw_data))
+
+
+def _excel_dict_rows(uploaded_file) -> List[Tuple[int, Dict[str, Any]]]:
+    """
+    Convert an uploaded Excel file into a list of (row_number, row_dict) tuples.
+    """
+    if hasattr(uploaded_file, 'seek'):
+        uploaded_file.seek(0)
+    raw_data = uploaded_file.read()
+
+    if isinstance(raw_data, str):
+        raw_data = raw_data.encode('utf-8')
+
+    workbook = load_workbook(filename=io.BytesIO(raw_data), data_only=True, read_only=True)
+    worksheet = workbook.active
+
+    rows_iter = worksheet.iter_rows(values_only=True)
+    headers = next(rows_iter, None)
+    if not headers:
+        return []
+
+    headers = [(_clean_value(header) or '').strip() for header in headers]
+    normalized_rows: List[Tuple[int, Dict[str, Any]]] = []
+    for excel_index, row_values in enumerate(rows_iter, start=2):
+        row_dict: Dict[str, Any] = {}
+        is_empty = True
+        for header, value in zip(headers, row_values):
+            if not header:
+                continue
+            cleaned_value = _clean_value(value)
+            if cleaned_value not in ('', None):
+                is_empty = False
+            row_dict[header] = cleaned_value
+        if is_empty:
+            continue
+        normalized_rows.append((excel_index, row_dict))
+
+    if hasattr(uploaded_file, 'seek'):
+        uploaded_file.seek(0)
+
+    return normalized_rows
+
+
+def _clean_value(value: Any) -> str:
+    if value is None:
+        return ''
+    if isinstance(value, str):
+        return value.strip()
+    if isinstance(value, (int, float)):
+        if isinstance(value, float) and value.is_integer():
+            return str(int(value))
+        return str(value)
+    return str(value).strip()
+
+
+def _normalize_header_key(header: str) -> str:
+    header = (header or '').strip().lower()
+    header = re.sub(r'\(.*?\)', '', header)
+    header = re.sub(r'[^a-z0-9]+', '_', header)
+    return header.strip('_')
+
+
+USER_FIELD_ALIASES = {
+    'user_logon_name': 'username',
+    'user_logon_name_pre_windows_2000': 'username',
+    'samaccountname': 'username',
+    'user_principal_name': 'email',
+    'userprincipalname': 'email',
+    'mail': 'email',
+    'email_address': 'email',
+    'givenname': 'first_name',
+    'first_name': 'first_name',
+    'surname': 'last_name',
+    'last_name': 'last_name',
+    'telephonenumber': 'phone_primary',
+    'telephone_number': 'phone_primary',
+    'mobile': 'phone_secondary',
+    'mobile_phone': 'phone_secondary',
+    'title': 'position',
+    'job_title': 'position',
+    'department': 'department_name',
+    'employeeid': 'employee_id',
+}
+
+
+def _normalise_user_row(row: Dict[str, Any]) -> Dict[str, Any]:
+    normalised: Dict[str, Any] = {}
+    interim: Dict[str, Any] = {}
+
+    for key, value in row.items():
+        normalised_key = _normalize_header_key(key)
+        if not normalised_key:
+            continue
+        if normalised_key not in interim or interim[normalised_key] in ('', None):
+            interim[normalised_key] = _clean_value(value)
+
+    for key, value in interim.items():
+        target_key = USER_FIELD_ALIASES.get(key, key)
+        if target_key not in normalised or normalised[target_key] in ('', None):
+            normalised[target_key] = value
+
+    return normalised
+
+
+def _iter_user_rows(uploaded_file) -> Iterator[Tuple[int, Dict[str, Any]]]:
+    name = getattr(uploaded_file, 'name', '') or ''
+    lower_name = name.lower()
+
+    excel_extensions = ('.xlsx', '.xlsm', '.xls', '.xlsb')
+    if lower_name.endswith(excel_extensions):
+        rows = _excel_dict_rows(uploaded_file)
+        for index, row in rows:
+            yield index, _normalise_user_row(row)
+        return
+
+    # Fallback to signature detection for Excel files without an extension.
+    excel_signature = None
+    if hasattr(uploaded_file, 'seek'):
+        uploaded_file.seek(0)
+        excel_signature = uploaded_file.read(4)
+        uploaded_file.seek(0)
+    if isinstance(excel_signature, bytes) and excel_signature.startswith(b'PK\x03\x04'):
+        rows = _excel_dict_rows(uploaded_file)
+        for index, row in rows:
+            yield index, _normalise_user_row(row)
+        return
+
+    reader = _csv_reader(uploaded_file)
+    for index, row in enumerate(reader, start=2):
+        yield index, _normalise_user_row(row)
 
 
 def _parse_bool(value, default=False):
@@ -93,14 +226,13 @@ def _generate_unique_username(base_username: str, keep_employee_id: str) -> str:
         counter += 1
 
 def import_users_from_csv(file):
-    """Import or update user records from a CSV file."""
-    reader = _csv_reader(file)
-    # Relax required columns; only 'username' is mandatory.
+    """Import or update user records from a CSV or Excel file."""
+    # Relax required columns; only 'username' is mandatory (aliases allowed).
     required_columns = {'username'}
     errors = []
 
     with transaction.atomic():
-        for index, row in enumerate(reader, start=2):  # Header is row 1
+        for index, row in _iter_user_rows(file):
             missing_columns = [col for col in required_columns if not row.get(col)]
             if missing_columns:
                 errors.append(_collect_row_errors(index, [f"Missing required columns: {', '.join(missing_columns)}"]))
@@ -108,10 +240,16 @@ def import_users_from_csv(file):
 
             department = None
             department_code = row.get('department_code')
+            department_name = row.get('department_name')
             if department_code:
                 department = Department.objects.filter(code=department_code).first()
                 if department is None:
                     errors.append(_collect_row_errors(index, [f"Department with code '{department_code}' not found"]))
+                    continue
+            elif department_name:
+                department = Department.objects.filter(name__iexact=department_name).first()
+                if department is None:
+                    errors.append(_collect_row_errors(index, [f"Department with name '{department_name}' not found"]))
                     continue
 
             join_date = parse_date(row.get('join_date') or '')
