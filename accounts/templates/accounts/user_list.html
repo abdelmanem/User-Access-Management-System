@@ -190,6 +190,7 @@
                                             {% endif %}
                                         </a>
                                     </th>
+                                    <th>Description</th>
                                     <th>
                                         <a href="?{% if base_query %}{{ base_query }}&{% endif %}sort=status&dir={% if current_sort == 'status' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
                                             Status
@@ -213,6 +214,13 @@
                                     <td>{{ user.email }}</td>
                                     <td>{{ user.department.name|default:"N/A" }}</td>
                                     <td>{{ user.position|default:"N/A" }}</td>
+                                    <td>
+                                        {% if user.notes %}
+                                            <span title="{{ user.notes }}">{{ user.notes|truncatewords:10|default:"N/A" }}</span>
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
                                     <td>
                                         {% if user.is_active %}
                                             <span class="badge bg-success">Active</span>
