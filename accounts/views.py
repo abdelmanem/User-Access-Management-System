@@ -79,6 +79,7 @@ def user_list(request):
         'email': 'email',
         'department': 'department__name',
         'position': 'position',
+        'notes': 'notes',
         'status': 'is_active',
     }
 
@@ -165,6 +166,7 @@ def _build_filtered_users_queryset(request):
         'email': 'email',
         'department': 'department__name',
         'position': 'position',
+        'notes': 'notes',
         'status': 'is_active',
     }
     order_field = sort_map.get(sort_key, 'sort_full_name')

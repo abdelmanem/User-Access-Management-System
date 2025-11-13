@@ -190,7 +190,14 @@
                                             {% endif %}
                                         </a>
                                     </th>
-                                    <th>Description</th>
+                                    <th>
+                                        <a href="?{% if base_query %}{{ base_query }}&{% endif %}sort=notes&dir={% if current_sort == 'notes' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
+                                            Description
+                                            {% if current_sort == 'notes' %}
+                                                <span class="ms-1">{% if current_dir == 'asc' %}▲{% else %}▼{% endif %}</span>
+                                            {% endif %}
+                                        </a>
+                                    </th>
                                     <th>
                                         <a href="?{% if base_query %}{{ base_query }}&{% endif %}sort=status&dir={% if current_sort == 'status' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
                                             Status
