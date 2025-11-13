@@ -24,6 +24,10 @@ urlpatterns = [
     path('users/<int:pk>/permissions/', views.user_manage_permissions, name='user_manage_permissions'),
     path('audit/deactivations/', views.user_deactivation_audit_list, name='user_deactivation_audit_list'),
     path('audit/deactivations/<int:pk>/', views.user_deactivation_audit_detail, name='user_deactivation_audit_detail'),
+    path('audit/deactivations/export/excel/', views.user_deactivation_audit_export_excel, name='user_deactivation_audit_export_excel'),
+    path('audit/deactivations/export/pdf/', views.user_deactivation_audit_export_pdf, name='user_deactivation_audit_export_pdf'),
     path('audit/archives/', views.user_archive_list, name='user_archive_list'),
     path('audit/archives/<int:pk>/', views.user_archive_detail, name='user_archive_detail'),
+    path('audit/archives/export/excel/', views.user_archive_export_excel, name='user_archive_export_excel'),
+    path('audit/archives/export/pdf/', views.user_archive_export_pdf, name='user_archive_export_pdf'),
 ]

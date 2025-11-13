@@ -173,6 +173,32 @@ def _build_filtered_users_queryset(request):
     return users_qs.order_by(order_field, 'id')
 
 
+def _filtered_deactivation_audits(query: str = ''):
+    audits = UserDeactivationAudit.objects.select_related('user', 'admin').order_by('-deactivated_at')
+    if query:
+        audits = audits.filter(
+            Q(user_username__icontains=query)
+            | Q(user_full_name__icontains=query)
+            | Q(user_employee_id__icontains=query)
+            | Q(admin__username__icontains=query)
+            | Q(admin__first_name__icontains=query)
+            | Q(admin__last_name__icontains=query)
+        )
+    return audits
+
+
+def _filtered_user_archives(query: str = ''):
+    archives = UserArchive.objects.select_related('archived_by').order_by('-archived_at')
+    if query:
+        archives = archives.filter(
+            Q(username__icontains=query)
+            | Q(full_name__icontains=query)
+            | Q(employee_id__icontains=query)
+            | Q(department_name__icontains=query)
+        )
+    return archives
+
+
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def user_export_excel(request):
@@ -782,15 +808,7 @@ def user_assign_department(request, pk):
 @user_passes_test(lambda u: u.is_staff)
 def user_deactivation_audit_list(request):
     query = (request.GET.get('q') or '').strip()
-    audits = UserDeactivationAudit.objects.select_related('user', 'admin').order_by('-deactivated_at')
-    if query:
-        audits = audits.filter(
-            Q(user_username__icontains=query)
-            | Q(user_full_name__icontains=query)
-            | Q(user_employee_id__icontains=query)
-            | Q(admin__username__icontains=query)
-        )
-
+    audits = _filtered_deactivation_audits(query)
     return render(
         request,
         'accounts/user_deactivation_audit_list.html',
@@ -818,15 +836,7 @@ def user_deactivation_audit_detail(request, pk):
 @user_passes_test(lambda u: u.is_staff)
 def user_archive_list(request):
     query = (request.GET.get('q') or '').strip()
-    archives = UserArchive.objects.select_related('archived_by').order_by('-archived_at')
-    if query:
-        archives = archives.filter(
-            Q(username__icontains=query)
-            | Q(full_name__icontains=query)
-            | Q(employee_id__icontains=query)
-            | Q(department_name__icontains=query)
-        )
-
+    archives = _filtered_user_archives(query)
     return render(
         request,
         'accounts/user_archive_list.html',
@@ -848,3 +858,163 @@ def user_archive_detail(request, pk):
             'archive': archive,
         },
     )
+
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def user_deactivation_audit_export_excel(request):
+    query = (request.GET.get('q') or '').strip()
+    audits = _filtered_deactivation_audits(query)
+
+    headers = [
+        'User',
+        'Employee ID',
+        'Admin',
+        'Deactivated At',
+        'Systems Affected',
+        'Hardware Affected',
+        'Hardware Action',
+    ]
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = 'Deactivation Audit'
+    ws.append(headers)
+    for audit in audits:
+        ws.append([
+            audit.user_full_name or audit.user_username,
+            audit.user_employee_id or '',
+            audit.admin.get_full_name() if audit.admin else (audit.admin.username if audit.admin else ''),
+            timezone.localtime(audit.deactivated_at).strftime('%Y-%m-%d %H:%M'),
+            len(audit.system_assignments or []),
+            len(audit.hardware_assignments or []),
+            audit.hardware_status_action,
+        ])
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    filename_suffix = f"_q_{query}" if query else ""
+    response['Content-Disposition'] = f'attachment; filename="user_deactivation_audit{filename_suffix}.xlsx"'
+    wb.save(response)
+    return response
+
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def user_deactivation_audit_export_pdf(request):
+    query = (request.GET.get('q') or '').strip()
+    audits = _filtered_deactivation_audits(query)
+
+    data = [['User', 'Employee ID', 'Admin', 'Deactivated At', 'Systems', 'Hardware', 'Hardware Action']]
+    for audit in audits:
+        data.append([
+            audit.user_full_name or audit.user_username,
+            audit.user_employee_id or '',
+            audit.admin.get_full_name() if audit.admin else (audit.admin.username if audit.admin else ''),
+            timezone.localtime(audit.deactivated_at).strftime('%Y-%m-%d %H:%M'),
+            str(len(audit.system_assignments or [])),
+            str(len(audit.hardware_assignments or [])),
+            audit.hardware_status_action,
+        ])
+
+    buffer_response = HttpResponse(content_type='application/pdf')
+    filename_suffix = f"_q_{query}" if query else ""
+    buffer_response['Content-Disposition'] = f'attachment; filename="user_deactivation_audit{filename_suffix}.pdf"'
+
+    page_size = landscape(A4)
+    c = canvas.Canvas(buffer_response, pagesize=page_size)
+    width, height = page_size
+    table = Table(data, repeatRows=1)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.grey),
+        ('BOX', (0, 0), (-1, -1), 0.25, colors.grey),
+    ]))
+
+    available_width = width - 40
+    available_height = height - 60
+    table.wrapOn(c, available_width, available_height)
+    table.drawOn(c, 20, height - 40 - table._height)
+    c.showPage()
+    c.save()
+    return buffer_response
+
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def user_archive_export_excel(request):
+    query = (request.GET.get('q') or '').strip()
+    archives = _filtered_user_archives(query)
+
+    headers = ['Username', 'Full Name', 'Employee ID', 'Department', 'Archived By', 'Archived At']
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = 'Archived Users'
+    ws.append(headers)
+    for record in archives:
+        ws.append([
+            record.username,
+            record.full_name or '',
+            record.employee_id or '',
+            record.department_name or '',
+            record.archived_by.get_full_name() if record.archived_by else (record.archived_by.username if record.archived_by else ''),
+            timezone.localtime(record.archived_at).strftime('%Y-%m-%d %H:%M'),
+        ])
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    filename_suffix = f"_q_{query}" if query else ""
+    response['Content-Disposition'] = f'attachment; filename="archived_users{filename_suffix}.xlsx"'
+    wb.save(response)
+    return response
+
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def user_archive_export_pdf(request):
+    query = (request.GET.get('q') or '').strip()
+    archives = _filtered_user_archives(query)
+
+    data = [['Username', 'Full Name', 'Employee ID', 'Department', 'Archived By', 'Archived At']]
+    for record in archives:
+        data.append([
+            record.username,
+            record.full_name or '',
+            record.employee_id or '',
+            record.department_name or '',
+            record.archived_by.get_full_name() if record.archived_by else (record.archived_by.username if record.archived_by else ''),
+            timezone.localtime(record.archived_at).strftime('%Y-%m-%d %H:%M'),
+        ])
+
+    buffer_response = HttpResponse(content_type='application/pdf')
+    filename_suffix = f"_q_{query}" if query else ""
+    buffer_response['Content-Disposition'] = f'attachment; filename="archived_users{filename_suffix}.pdf"'
+
+    page_size = landscape(A4)
+    c = canvas.Canvas(buffer_response, pagesize=page_size)
+    width, height = page_size
+    table = Table(data, repeatRows=1)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.grey),
+        ('BOX', (0, 0), (-1, -1), 0.25, colors.grey),
+    ]))
+
+    available_width = width - 40
+    available_height = height - 60
+    table.wrapOn(c, available_width, available_height)
+    table.drawOn(c, 20, height - 40 - table._height)
+    c.showPage()
+    c.save()
+    return buffer_response

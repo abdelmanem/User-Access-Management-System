@@ -84,7 +84,7 @@
 
                         <dt class="col-sm-4 text-muted">Hardware Status</dt>
                         <dd class="col-sm-8">
-                            {{ audit.hardware_status_action|title|replace:"_"," " }}
+                            {{ audit.hardware_status_action|default:"not_applicable"|cut:"_"|title }}
                         </dd>
                     </dl>
                 </div>
