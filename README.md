@@ -361,7 +361,7 @@ python manage.py createsuperuser
 
        location / {
            include proxy_params;
-           proxy_pass http://unix:/run/uams.sock;
+           proxy_pass http://unix:/run/uams/uams.sock;
        }
 
        client_max_body_size 20M;
