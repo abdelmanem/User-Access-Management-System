@@ -218,20 +218,34 @@ body.dark-mode .table,
 
 [data-theme="dark"] .table thead th,
 .dark-mode .table thead th {
-    background-color: var(--table-header-bg);
-    color: var(--text-primary);
-    border-color: var(--table-border);
+    background-color: var(--table-header-bg) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--table-border) !important;
 }
 
 [data-theme="dark"] .table tbody tr,
 .dark-mode .table tbody tr {
-    background-color: var(--table-bg);
-    border-color: var(--table-border);
+    background-color: var(--table-bg) !important;
+    border-color: var(--table-border) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .table tbody td,
+.dark-mode .table tbody td {
+    background-color: var(--table-bg) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--table-border) !important;
 }
 
 [data-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd),
 .dark-mode .table-striped > tbody > tr:nth-of-type(odd) {
-    background-color: var(--table-striped-bg);
+    background-color: var(--table-striped-bg) !important;
+}
+
+[data-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) td,
+.dark-mode .table-striped > tbody > tr:nth-of-type(odd) td {
+    background-color: var(--table-striped-bg) !important;
+    color: var(--text-primary) !important;
 }
 
 [data-theme="dark"] .form-control,
@@ -423,7 +437,15 @@ body.dark-mode .table thead th {
 html[data-theme="dark"] .table tbody td,
 html.dark-mode .table tbody td,
 body.dark-mode .table tbody td {
+    background-color: var(--table-bg) !important;
     border-color: var(--table-border) !important;
+    color: var(--text-primary) !important;
+}
+
+html[data-theme="dark"] .table tbody tr,
+html.dark-mode .table tbody tr,
+body.dark-mode .table tbody tr {
+    background-color: var(--table-bg) !important;
     color: var(--text-primary) !important;
 }
 
@@ -431,6 +453,38 @@ html[data-theme="dark"] .table tbody tr:hover,
 html.dark-mode .table tbody tr:hover,
 body.dark-mode .table tbody tr:hover {
     background-color: var(--bg-tertiary) !important;
+}
+
+html[data-theme="dark"] .table.table-striped tbody tr:nth-of-type(odd),
+html.dark-mode .table.table-striped tbody tr:nth-of-type(odd),
+body.dark-mode .table.table-striped tbody tr:nth-of-type(odd) {
+    background-color: var(--table-striped-bg) !important;
+}
+
+html[data-theme="dark"] .table.table-striped tbody tr:nth-of-type(even),
+html.dark-mode .table.table-striped tbody tr:nth-of-type(even),
+body.dark-mode .table.table-striped tbody tr:nth-of-type(even) {
+    background-color: var(--table-bg) !important;
+}
+
+html[data-theme="dark"] .table.table-bordered,
+html.dark-mode .table.table-bordered,
+body.dark-mode .table.table-bordered {
+    border-color: var(--table-border) !important;
+}
+
+html[data-theme="dark"] .table.table-hover tbody tr:hover,
+html.dark-mode .table.table-hover tbody tr:hover,
+body.dark-mode .table.table-hover tbody tr:hover {
+    background-color: var(--bg-tertiary) !important;
+}
+
+html[data-theme="dark"] .table thead.table-light th,
+html.dark-mode .table thead.table-light th,
+body.dark-mode .table thead.table-light th {
+    background-color: var(--table-header-bg) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--table-border) !important;
 }
 
 /* Badges Dark Mode */
@@ -804,6 +858,46 @@ body.dark-mode .card-body {
     color: var(--text-primary) !important;
 }
 
+/* Card body text colors - ensure all text is visible */
+html[data-theme="dark"] .card-body *,
+html.dark-mode .card-body *,
+body.dark-mode .card-body * {
+    color: inherit;
+}
+
+html[data-theme="dark"] .card-body .card-title,
+html.dark-mode .card-body .card-title,
+body.dark-mode .card-body .card-title {
+    color: var(--text-primary) !important;
+}
+
+html[data-theme="dark"] .card-body .card-subtitle,
+html.dark-mode .card-body .card-subtitle,
+body.dark-mode .card-body .card-subtitle {
+    color: var(--text-secondary) !important;
+}
+
+html[data-theme="dark"] .card-body h1,
+html.dark-mode .card-body h1,
+body.dark-mode .card-body h1,
+html[data-theme="dark"] .card-body h2,
+html.dark-mode .card-body h2,
+body.dark-mode .card-body h2,
+html[data-theme="dark"] .card-body h3,
+html.dark-mode .card-body h3,
+body.dark-mode .card-body h3,
+html[data-theme="dark"] .card-body h4,
+html.dark-mode .card-body h4,
+body.dark-mode .card-body h4,
+html[data-theme="dark"] .card-body h5,
+html.dark-mode .card-body h5,
+body.dark-mode .card-body h5,
+html[data-theme="dark"] .card-body h6,
+html.dark-mode .card-body h6,
+body.dark-mode .card-body h6 {
+    color: var(--text-primary) !important;
+}
+
 /* Links Dark Mode */
 html[data-theme="dark"] a,
 html.dark-mode a,
@@ -889,27 +983,371 @@ body.dark-mode .navbar .dropdown-item:hover {
     color: var(--text-primary) !important;
 }
 
-/* Stats cards */
+/* Stats cards - Border colors */
 html[data-theme="dark"] .card.border-primary,
 html.dark-mode .card.border-primary,
 body.dark-mode .card.border-primary {
     border-color: var(--primary-color) !important;
+    background-color: var(--card-bg) !important;
 }
 
 html[data-theme="dark"] .card.border-success,
 html.dark-mode .card.border-success,
 body.dark-mode .card.border-success {
     border-color: #28a745 !important;
+    background-color: var(--card-bg) !important;
 }
 
 html[data-theme="dark"] .card.border-danger,
 html.dark-mode .card.border-danger,
 body.dark-mode .card.border-danger {
     border-color: #dc3545 !important;
+    background-color: var(--card-bg) !important;
 }
 
 html[data-theme="dark"] .card.border-warning,
 html.dark-mode .card.border-warning,
 body.dark-mode .card.border-warning {
     border-color: #ffc107 !important;
+    background-color: var(--card-bg) !important;
+}
+
+/* Fix for table responsive wrapper */
+html[data-theme="dark"] .table-responsive,
+html.dark-mode .table-responsive,
+body.dark-mode .table-responsive {
+    background-color: transparent !important;
+}
+
+/* Fix for fw-semibold and other text utilities */
+html[data-theme="dark"] .fw-semibold,
+html.dark-mode .fw-semibold,
+body.dark-mode .fw-semibold {
+    color: var(--text-primary) !important;
+}
+
+html[data-theme="dark"] .text-decoration-none,
+html.dark-mode .text-decoration-none,
+body.dark-mode .text-decoration-none {
+    color: var(--text-primary) !important;
+}
+
+html[data-theme="dark"] .text-decoration-none:hover,
+html.dark-mode .text-decoration-none:hover,
+body.dark-mode .text-decoration-none:hover {
+    color: var(--primary-color) !important;
+}
+
+/* Fix for align-middle in tables */
+html[data-theme="dark"] .align-middle,
+html.dark-mode .align-middle,
+body.dark-mode .align-middle {
+    color: var(--text-primary) !important;
+}
+
+/* Fix for text-end */
+html[data-theme="dark"] .text-end,
+html.dark-mode .text-end,
+body.dark-mode .text-end {
+    color: var(--text-primary) !important;
+}
+
+/* Additional table cell fixes - ensure all cells have dark background */
+html[data-theme="dark"] .table td,
+html.dark-mode .table td,
+body.dark-mode .table td {
+    background-color: var(--table-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+html[data-theme="dark"] .table th,
+html.dark-mode .table th,
+body.dark-mode .table th {
+    background-color: var(--table-header-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Fix for table links and spans */
+html[data-theme="dark"] .table span,
+html.dark-mode .table span,
+body.dark-mode .table span {
+    color: var(--text-primary) !important;
+}
+
+html[data-theme="dark"] .table .text-muted,
+html.dark-mode .table .text-muted,
+body.dark-mode .table .text-muted {
+    color: var(--text-muted) !important;
+}
+
+/* Fix for card body text in stat cards */
+html[data-theme="dark"] .card-body .card-title.mb-0,
+html.dark-mode .card-body .card-title.mb-0,
+body.dark-mode .card-body .card-title.mb-0 {
+    color: inherit !important;
+}
+
+html[data-theme="dark"] .card-body .card-subtitle,
+html.dark-mode .card-body .card-subtitle,
+body.dark-mode .card-body .card-subtitle {
+    color: inherit !important;
+}
+
+/* Ensure all text in cards is visible */
+html[data-theme="dark"] .card-body p,
+html.dark-mode .card-body p,
+body.dark-mode .card-body p {
+    color: var(--text-primary) !important;
+}
+
+html[data-theme="dark"] .card-body span,
+html.dark-mode .card-body span,
+body.dark-mode .card-body span {
+    color: inherit;
+}
+
+/* Fix for badge text-dark in dark mode */
+html[data-theme="dark"] .badge.text-dark,
+html.dark-mode .badge.text-dark,
+body.dark-mode .badge.text-dark {
+    color: #000 !important;
+}
+
+/* Fix for table hover rows */
+html[data-theme="dark"] .table-hover tbody tr:hover td,
+html.dark-mode .table-hover tbody tr:hover td,
+body.dark-mode .table-hover tbody tr:hover td {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Fix for all table elements - comprehensive */
+html[data-theme="dark"] table,
+html.dark-mode table,
+body.dark-mode table {
+    background-color: var(--table-bg) !important;
+}
+
+html[data-theme="dark"] table *,
+html.dark-mode table *,
+body.dark-mode table * {
+    border-color: var(--table-border) !important;
+}
+
+/* Fix for list group items in import/export */
+html[data-theme="dark"] .list-group-item,
+html.dark-mode .list-group-item,
+body.dark-mode .list-group-item {
+    background-color: var(--card-bg) !important;
+    border-color: var(--card-border) !important;
+    color: var(--text-primary) !important;
+}
+
+html[data-theme="dark"] .list-group-item-action:hover,
+html.dark-mode .list-group-item-action:hover,
+body.dark-mode .list-group-item-action:hover {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+}
+
+html[data-theme="dark"] .list-group-item h5,
+html.dark-mode .list-group-item h5,
+body.dark-mode .list-group-item h5 {
+    color: var(--text-primary) !important;
+}
+
+html[data-theme="dark"] .list-group-item p,
+html.dark-mode .list-group-item p,
+body.dark-mode .list-group-item p {
+    color: var(--text-secondary) !important;
+}
+
+/* Fix for card headers with colored backgrounds */
+html[data-theme="dark"] .card-header.bg-primary,
+html.dark-mode .card-header.bg-primary,
+body.dark-mode .card-header.bg-primary {
+    background-color: var(--primary-color) !important;
+    color: var(--light-text) !important;
+}
+
+html[data-theme="dark"] .card-header.bg-success,
+html.dark-mode .card-header.bg-success,
+body.dark-mode .card-header.bg-success {
+    background-color: #28a745 !important;
+    color: var(--light-text) !important;
+}
+
+html[data-theme="dark"] .card-header.bg-info,
+html.dark-mode .card-header.bg-info,
+body.dark-mode .card-header.bg-info {
+    background-color: #17a2b8 !important;
+    color: var(--light-text) !important;
+}
+
+html[data-theme="dark"] .card-header.bg-primary h5,
+html.dark-mode .card-header.bg-primary h5,
+body.dark-mode .card-header.bg-primary h5,
+html[data-theme="dark"] .card-header.bg-primary h6,
+html.dark-mode .card-header.bg-primary h6,
+body.dark-mode .card-header.bg-primary h6 {
+    color: var(--light-text) !important;
+}
+
+html[data-theme="dark"] .card-header.bg-success h5,
+html.dark-mode .card-header.bg-success h5,
+body.dark-mode .card-header.bg-success h5,
+html[data-theme="dark"] .card-header.bg-success h6,
+html.dark-mode .card-header.bg-success h6,
+body.dark-mode .card-header.bg-success h6 {
+    color: var(--light-text) !important;
+}
+
+html[data-theme="dark"] .card-header.bg-info h5,
+html.dark-mode .card-header.bg-info h5,
+body.dark-mode .card-header.bg-info h5,
+html[data-theme="dark"] .card-header.bg-info h6,
+html.dark-mode .card-header.bg-info h6,
+body.dark-mode .card-header.bg-info h6 {
+    color: var(--light-text) !important;
+}
+
+/* Fix for text-gray-800 and similar utilities */
+html[data-theme="dark"] .text-gray-800,
+html.dark-mode .text-gray-800,
+body.dark-mode .text-gray-800 {
+    color: var(--text-primary) !important;
+}
+
+html[data-theme="dark"] .font-weight-bold,
+html.dark-mode .font-weight-bold,
+body.dark-mode .font-weight-bold {
+    color: var(--text-primary) !important;
+}
+
+html[data-theme="dark"] .m-0,
+html.dark-mode .m-0,
+body.dark-mode .m-0 {
+    color: inherit;
+}
+
+/* Fix for code elements */
+html[data-theme="dark"] code,
+html.dark-mode code,
+body.dark-mode code {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+}
+
+/* Fix for ul and li in dark mode */
+html[data-theme="dark"] ul,
+html.dark-mode ul,
+body.dark-mode ul,
+html[data-theme="dark"] ol,
+html.dark-mode ol,
+body.dark-mode ol {
+    color: var(--text-primary) !important;
+}
+
+html[data-theme="dark"] ul li,
+html.dark-mode ul li,
+body.dark-mode ul li,
+html[data-theme="dark"] ol li,
+html.dark-mode ol li,
+body.dark-mode ol li {
+    color: var(--text-primary) !important;
+}
+
+html[data-theme="dark"] ul li strong,
+html.dark-mode ul li strong,
+body.dark-mode ul li strong {
+    color: var(--text-primary) !important;
+}
+
+/* Stats cards - Text colors in dark mode */
+html[data-theme="dark"] .card.border-primary .text-primary,
+html.dark-mode .card.border-primary .text-primary,
+body.dark-mode .card.border-primary .text-primary {
+    color: var(--primary-color) !important;
+}
+
+html[data-theme="dark"] .card.border-success .text-success,
+html.dark-mode .card.border-success .text-success,
+body.dark-mode .card.border-success .text-success {
+    color: #28a745 !important;
+}
+
+html[data-theme="dark"] .card.border-danger .text-danger,
+html.dark-mode .card.border-danger .text-danger,
+body.dark-mode .card.border-danger .text-danger {
+    color: #dc3545 !important;
+}
+
+html[data-theme="dark"] .card.border-warning .text-warning,
+html.dark-mode .card.border-warning .text-warning,
+body.dark-mode .card.border-warning .text-warning {
+    color: #ffc107 !important;
+}
+
+/* Card borders - ensure visibility */
+html[data-theme="dark"] .card,
+html.dark-mode .card,
+body.dark-mode .card {
+    border-color: var(--card-border) !important;
+}
+
+html[data-theme="dark"] .card.border-0,
+html.dark-mode .card.border-0,
+body.dark-mode .card.border-0 {
+    border: none !important;
+}
+
+/* Colored background cards in dark mode */
+html[data-theme="dark"] .card.bg-primary,
+html.dark-mode .card.bg-primary,
+body.dark-mode .card.bg-primary {
+    background-color: var(--primary-color) !important;
+    color: var(--light-text) !important;
+}
+
+html[data-theme="dark"] .card.bg-success,
+html.dark-mode .card.bg-success,
+body.dark-mode .card.bg-success {
+    background-color: #28a745 !important;
+    color: var(--light-text) !important;
+}
+
+html[data-theme="dark"] .card.bg-secondary,
+html.dark-mode .card.bg-secondary,
+body.dark-mode .card.bg-secondary {
+    background-color: #6c757d !important;
+    color: var(--light-text) !important;
+}
+
+html[data-theme="dark"] .card.bg-dark,
+html.dark-mode .card.bg-dark,
+body.dark-mode .card.bg-dark {
+    background-color: #343a40 !important;
+    color: var(--light-text) !important;
+}
+
+/* Table links in dark mode */
+html[data-theme="dark"] .table a,
+html.dark-mode .table a,
+body.dark-mode .table a {
+    color: var(--primary-color) !important;
+}
+
+html[data-theme="dark"] .table a:hover,
+html.dark-mode .table a:hover,
+body.dark-mode .table a:hover {
+    color: var(--secondary-color) !important;
+}
+
+/* Table empty state */
+html[data-theme="dark"] .table .text-center.text-muted,
+html.dark-mode .table .text-center.text-muted,
+body.dark-mode .table .text-center.text-muted {
+    color: var(--text-muted) !important;
+    background-color: var(--table-bg) !important;
 }

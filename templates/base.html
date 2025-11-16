@@ -95,6 +95,7 @@
       body.dark-mode .card {
         background-color: #252932 !important;
         color: #e9ecef !important;
+        border-color: #3a3f48 !important;
       }
       
       html.dark-mode .card-header,
@@ -102,6 +103,76 @@
         background-color: #2d3138 !important;
         border-bottom-color: #3a3f48 !important;
         color: #e9ecef !important;
+      }
+      
+      /* Fix stat cards with colored borders */
+      html.dark-mode .card.border-primary,
+      body.dark-mode .card.border-primary {
+        background-color: #252932 !important;
+        border-color: #5a7bc8 !important;
+      }
+      
+      html.dark-mode .card.border-primary .text-primary,
+      body.dark-mode .card.border-primary .text-primary {
+        color: #5a7bc8 !important;
+      }
+      
+      html.dark-mode .card.border-success,
+      body.dark-mode .card.border-success {
+        background-color: #252932 !important;
+        border-color: #28a745 !important;
+      }
+      
+      html.dark-mode .card.border-success .text-success,
+      body.dark-mode .card.border-success .text-success {
+        color: #28a745 !important;
+      }
+      
+      html.dark-mode .card.border-danger,
+      body.dark-mode .card.border-danger {
+        background-color: #252932 !important;
+        border-color: #dc3545 !important;
+      }
+      
+      html.dark-mode .card.border-danger .text-danger,
+      body.dark-mode .card.border-danger .text-danger {
+        color: #dc3545 !important;
+      }
+      
+      html.dark-mode .card.border-warning,
+      body.dark-mode .card.border-warning {
+        background-color: #252932 !important;
+        border-color: #ffc107 !important;
+      }
+      
+      html.dark-mode .card.border-warning .text-warning,
+      body.dark-mode .card.border-warning .text-warning {
+        color: #ffc107 !important;
+      }
+      
+      /* Fix colored background cards */
+      html.dark-mode .card.bg-primary,
+      body.dark-mode .card.bg-primary {
+        background-color: #4a69bd !important;
+        color: #ffffff !important;
+      }
+      
+      html.dark-mode .card.bg-success,
+      body.dark-mode .card.bg-success {
+        background-color: #28a745 !important;
+        color: #ffffff !important;
+      }
+      
+      html.dark-mode .card.bg-secondary,
+      body.dark-mode .card.bg-secondary {
+        background-color: #6c757d !important;
+        color: #ffffff !important;
+      }
+      
+      html.dark-mode .card.bg-dark,
+      body.dark-mode .card.bg-dark {
+        background-color: #343a40 !important;
+        color: #ffffff !important;
       }
       
       html.dark-mode .content-wrapper,
@@ -124,7 +195,31 @@
       
       html.dark-mode .table tbody td,
       body.dark-mode .table tbody td {
+        background-color: #252932 !important;
         border-color: #3a3f48 !important;
+        color: #e9ecef !important;
+      }
+      
+      html.dark-mode .table tbody tr,
+      body.dark-mode .table tbody tr {
+        background-color: #252932 !important;
+        color: #e9ecef !important;
+      }
+      
+      html.dark-mode .table.table-striped tbody tr:nth-of-type(odd),
+      body.dark-mode .table.table-striped tbody tr:nth-of-type(odd) {
+        background-color: #2d3138 !important;
+      }
+      
+      html.dark-mode .table.table-striped tbody tr:nth-of-type(odd) td,
+      body.dark-mode .table.table-striped tbody tr:nth-of-type(odd) td {
+        background-color: #2d3138 !important;
+        color: #e9ecef !important;
+      }
+      
+      html.dark-mode .table.table-striped tbody tr:nth-of-type(even) td,
+      body.dark-mode .table.table-striped tbody tr:nth-of-type(even) td {
+        background-color: #252932 !important;
         color: #e9ecef !important;
       }
       
@@ -164,6 +259,59 @@
       html.dark-mode .text-center,
       body.dark-mode .text-center {
         color: var(--text-primary) !important;
+      }
+      
+      /* Force table backgrounds in dark mode */
+      html.dark-mode table.table,
+      body.dark-mode table.table {
+        background-color: #252932 !important;
+      }
+      
+      html.dark-mode table.table tbody tr,
+      body.dark-mode table.table tbody tr {
+        background-color: #252932 !important;
+      }
+      
+      html.dark-mode table.table tbody tr td,
+      body.dark-mode table.table tbody tr td {
+        background-color: #252932 !important;
+        color: #e9ecef !important;
+      }
+      
+      html.dark-mode table.table.table-striped tbody tr:nth-of-type(odd) td,
+      body.dark-mode table.table.table-striped tbody tr:nth-of-type(odd) td {
+        background-color: #2d3138 !important;
+        color: #e9ecef !important;
+      }
+      
+      html.dark-mode table.table.table-striped tbody tr:nth-of-type(even) td,
+      body.dark-mode table.table.table-striped tbody tr:nth-of-type(even) td {
+        background-color: #252932 !important;
+        color: #e9ecef !important;
+      }
+      
+      /* Ensure card borders are visible */
+      html.dark-mode .card:not(.border-0):not(.bg-primary):not(.bg-success):not(.bg-secondary):not(.bg-dark),
+      body.dark-mode .card:not(.border-0):not(.bg-primary):not(.bg-success):not(.bg-secondary):not(.bg-dark) {
+        border: 1px solid #3a3f48 !important;
+      }
+      
+      /* Fix for all text in stat cards */
+      html.dark-mode .card.border-primary .card-body,
+      body.dark-mode .card.border-primary .card-body,
+      html.dark-mode .card.border-success .card-body,
+      body.dark-mode .card.border-success .card-body,
+      html.dark-mode .card.border-danger .card-body,
+      body.dark-mode .card.border-danger .card-body,
+      html.dark-mode .card.border-warning .card-body,
+      body.dark-mode .card.border-warning .card-body {
+        background-color: #252932 !important;
+      }
+      
+      /* Fix for shadow utility in dark mode */
+      html.dark-mode .shadow,
+      body.dark-mode .shadow {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.5) !important;
       }
     </style>
   </head>
