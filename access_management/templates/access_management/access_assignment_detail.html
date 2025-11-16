@@ -209,15 +209,57 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th>Access Username:</th>
+                                            <th>System Username:</th>
                                             <td>
-                                                {% if access_assignment.access_username %}
-                                                    {{ access_assignment.access_username }}
+                                                {% if access_assignment.system_username %}
+                                                    <code>{{ access_assignment.system_username }}</code>
+                                                    {% if access_assignment.is_generic_account %}
+                                                    <br><span class="badge bg-danger mt-1">
+                                                        <i class="fas fa-exclamation-triangle"></i> Generic Account
+                                                    </span>
+                                                    {% endif %}
+                                                {% elif access_assignment.access_username %}
+                                                    <code>{{ access_assignment.access_username }}</code>
+                                                    <br><small class="text-muted">(Legacy field)</small>
                                                 {% else %}
                                                     <span class="text-muted">Not specified</span>
                                                 {% endif %}
                                             </td>
                                         </tr>
+                                        {% if access_assignment.is_generic_account %}
+                                        <tr>
+                                            <th>Generic Account Status:</th>
+                                            <td>
+                                                {% if access_assignment.generic_account_remediated %}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check-circle"></i> Remediated
+                                                </span>
+                                                {% if access_assignment.remediation_date %}
+                                                <br><small class="text-muted">
+                                                    Remediated on {{ access_assignment.remediation_date|date:"Y-m-d H:i" }}
+                                                    {% if access_assignment.remediated_by %}
+                                                    by {{ access_assignment.remediated_by.full_name }}
+                                                    {% endif %}
+                                                </small>
+                                                {% endif %}
+                                                {% else %}
+                                                <span class="badge bg-warning">
+                                                    <i class="fas fa-exclamation-triangle"></i> Needs Remediation
+                                                </span>
+                                                <br><a href="{% url 'access_management:mark_generic_account_remediated' access_assignment.pk %}" 
+                                                       class="btn btn-sm btn-success mt-1">
+                                                    <i class="fas fa-check"></i> Mark as Remediated
+                                                </a>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% if access_assignment.remediation_notes %}
+                                        <tr>
+                                            <th>Remediation Notes:</th>
+                                            <td>{{ access_assignment.remediation_notes|linebreaks }}</td>
+                                        </tr>
+                                        {% endif %}
+                                        {% endif %}
                                         <tr>
                                             <th>Access URL:</th>
                                             <td>

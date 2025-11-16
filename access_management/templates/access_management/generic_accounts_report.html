@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Generic Accounts Report{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="card-title mb-0">
+                            <i class="fas fa-exclamation-triangle text-warning"></i> Generic Accounts Report
+                        </h3>
+                        <div class="btn-group">
+                            <a href="{% url 'access_management:access_assignment_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Assignments
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Statistics Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="card bg-danger text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <i class="fas fa-exclamation-circle"></i> Total Generic Accounts
+                                    </h5>
+                                    <h2 class="mb-0">{{ total_generic }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-warning text-dark">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <i class="fas fa-clock"></i> Unremediated
+                                    </h5>
+                                    <h2 class="mb-0">{{ unremediated }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-success text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <i class="fas fa-check-circle"></i> Remediated
+                                    </h5>
+                                    <h2 class="mb-0">{{ remediated }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-filter"></i> Filters</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="get" class="row g-3">
+                                <div class="col-md-4">
+                                    <label for="system" class="form-label">System</label>
+                                    <select class="form-select" id="system" name="system">
+                                        <option value="">All Systems</option>
+                                        {% for system in systems %}
+                                        <option value="{{ system.pk }}" {% if selected_system_id == system.pk|stringformat:"s" %}selected{% endif %}>
+                                            {{ system.name }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="search" class="form-label">Search</label>
+                                    <input type="text" class="form-control" id="search" name="search" 
+                                           value="{{ search }}" placeholder="Username, User Name, or System">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">&nbsp;</label>
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" id="show_remediated" 
+                                               name="show_remediated" value="true" 
+                                               {% if show_remediated %}checked{% endif %}>
+                                        <label class="form-check-label" for="show_remediated">
+                                            Show Remediated Accounts
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-search"></i> Apply Filters
+                                    </button>
+                                    <a href="{% url 'access_management:generic_accounts_report' %}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-times"></i> Clear
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Generic Accounts by System -->
+                    {% if by_system %}
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Generic Accounts by System</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>System</th>
+                                            <th>Count</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for item in by_system %}
+                                        <tr>
+                                            <td>{{ item.system__name }} ({{ item.system__code }})</td>
+                                            <td><span class="badge bg-danger">{{ item.count }}</span></td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Generic Accounts Table -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-list"></i> Generic Accounts
+                                <span class="badge bg-danger">{{ page_obj.paginator.count }}</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if page_obj %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>User</th>
+                                            <th>System</th>
+                                            <th>System Username</th>
+                                            <th>Status</th>
+                                            <th>Remediation Status</th>
+                                            <th>Remediation Date</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for account in page_obj %}
+                                        <tr class="{% if not account.generic_account_remediated %}table-warning{% else %}table-success{% endif %}">
+                                            <td>
+                                                <strong>{{ account.user.full_name }}</strong>
+                                                <br><small class="text-muted">{{ account.user.username }}</small>
+                                            </td>
+                                            <td>
+                                                <strong>{{ account.system.name }}</strong>
+                                                <br><small class="text-muted">{{ account.system.code }}</small>
+                                            </td>
+                                            <td>
+                                                <code>{{ account.system_username|default:"N/A" }}</code>
+                                                {% if account.is_generic_account %}
+                                                <br><span class="badge bg-danger">Generic</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-{{ account.get_status_color }}">
+                                                    {{ account.status }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {% if account.generic_account_remediated %}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check"></i> Remediated
+                                                </span>
+                                                {% else %}
+                                                <span class="badge bg-warning">
+                                                    <i class="fas fa-exclamation-triangle"></i> Needs Remediation
+                                                </span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if account.remediation_date %}
+                                                {{ account.remediation_date|date:"Y-m-d H:i" }}
+                                                <br><small class="text-muted">By: {{ account.remediated_by.full_name|default:"N/A" }}</small>
+                                                {% else %}
+                                                <span class="text-muted">Not remediated</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <a href="{% url 'access_management:access_assignment_detail' account.pk %}" 
+                                                       class="btn btn-outline-primary" title="View Details">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    {% if not account.generic_account_remediated %}
+                                                    <a href="{% url 'access_management:mark_generic_account_remediated' account.pk %}" 
+                                                       class="btn btn-outline-success" title="Mark as Remediated">
+                                                        <i class="fas fa-check"></i>
+                                                    </a>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="7" class="text-center text-muted py-4">
+                                                <i class="fas fa-check-circle fa-2x mb-2"></i>
+                                                <p>No generic accounts found.</p>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Pagination -->
+                            {% if page_obj.has_other_pages %}
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination justify-content-center">
+                                    {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1{% if selected_system_id %}&system={{ selected_system_id }}{% endif %}{% if search %}&search={{ search }}{% endif %}{% if show_remediated %}&show_remediated=true{% endif %}">First</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if selected_system_id %}&system={{ selected_system_id }}{% endif %}{% if search %}&search={{ search }}{% endif %}{% if show_remediated %}&show_remediated=true{% endif %}">Previous</a>
+                                    </li>
+                                    {% endif %}
+                                    
+                                    <li class="page-item active">
+                                        <span class="page-link">
+                                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                                        </span>
+                                    </li>
+                                    
+                                    {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if selected_system_id %}&system={{ selected_system_id }}{% endif %}{% if search %}&search={{ search }}{% endif %}{% if show_remediated %}&show_remediated=true{% endif %}">Next</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if selected_system_id %}&system={{ selected_system_id }}{% endif %}{% if search %}&search={{ search }}{% endif %}{% if show_remediated %}&show_remediated=true{% endif %}">Last</a>
+                                    </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                            {% endif %}
+                            {% else %}
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle"></i> 
+                                <strong>Great!</strong> No generic accounts found matching your filters.
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extrajs %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %}
+

@@ -20,6 +20,9 @@
                             <a href="?{% if current_query %}{{ current_query }}&{% endif %}export=pdf" class="btn btn-outline-danger">
                                 <i class="fas fa-file-pdf"></i> Export PDF
                             </a>
+                            <a href="{% url 'access_management:generic_accounts_report' %}" class="btn btn-warning">
+                                <i class="fas fa-exclamation-triangle"></i> Generic Accounts Report
+                            </a>
                             <a href="{% url 'access_management:access_assignment_create' %}" class="btn btn-primary">
                                 <i class="fas fa-plus"></i> New Assignment
                             </a>

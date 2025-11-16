@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Mark Generic Account as Remediated{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="card-title mb-0">
+                            <i class="fas fa-check-circle"></i> Mark Generic Account as Remediated
+                        </h3>
+                        <div class="btn-group">
+                            <a href="{% url 'access_management:generic_accounts_report' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Report
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Account Information -->
+                    <div class="alert alert-warning">
+                        <h5 class="alert-heading">
+                            <i class="fas fa-exclamation-triangle"></i> Generic Account Detected
+                        </h5>
+                        <p class="mb-0">
+                            The account <strong>"{{ access_assignment.system_username }}"</strong> in 
+                            <strong>{{ access_assignment.system.name }}</strong> has been flagged as a generic account.
+                        </p>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-info-circle"></i> Account Details</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <th width="40%">User:</th>
+                                            <td>
+                                                <strong>{{ access_assignment.user.full_name }}</strong>
+                                                <br><small class="text-muted">{{ access_assignment.user.username }} ({{ access_assignment.user.employee_id }})</small>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>System:</th>
+                                            <td>
+                                                <strong>{{ access_assignment.system.name }}</strong>
+                                                <br><small class="text-muted">{{ access_assignment.system.code }}</small>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>System Username:</th>
+                                            <td>
+                                                <code class="text-danger">{{ access_assignment.system_username }}</code>
+                                                <span class="badge bg-danger ms-2">Generic Account</span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <th width="40%">Access Type:</th>
+                                            <td>{{ access_assignment.access_type }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Status:</th>
+                                            <td>
+                                                <span class="badge bg-{{ access_assignment.get_status_color }}">
+                                                    {{ access_assignment.status }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Current Status:</th>
+                                            <td>
+                                                {% if access_assignment.generic_account_remediated %}
+                                                <span class="badge bg-success">Already Remediated</span>
+                                                {% else %}
+                                                <span class="badge bg-warning">Needs Remediation</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Remediation Form -->
+                    {% if not access_assignment.generic_account_remediated %}
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-check-double"></i> Remediation Documentation
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post">
+                                {% csrf_token %}
+                                
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i>
+                                    <strong>Note:</strong> This form documents that the generic account has been remediated 
+                                    in the external system ({{ access_assignment.system.name }}). 
+                                    Please ensure the account has been replaced with a unique account or removed 
+                                    from the external system before marking as remediated.
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="remediation_date" class="form-label">
+                                                Remediation Date <span class="text-danger">*</span>
+                                            </label>
+                                            <input type="datetime-local" class="form-control"
+                                                   id="remediation_date"
+                                                   name="remediation_date"
+                                                   value="{% now 'Y-m-d\TH:i' %}"
+                                                   required>
+                                            <small class="form-text text-muted">
+                                                Date when the generic account was remediated in the external system
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">
+                                                Documented By
+                                            </label>
+                                            <input type="text" class="form-control" 
+                                                   value="{{ user.get_full_name }} ({{ user.username }})" 
+                                                   readonly>
+                                            <small class="form-text text-muted">
+                                                This will be automatically recorded
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="remediation_notes" class="form-label">
+                                        Remediation Notes <span class="text-danger">*</span>
+                                    </label>
+                                    <textarea class="form-control"
+                                              id="remediation_notes"
+                                              name="remediation_notes"
+                                              rows="5"
+                                              placeholder="Describe how the generic account was remediated in the external system. For example:&#10;- Account was replaced with unique account 'john.doe'&#10;- Account was removed from the system&#10;- Account password was changed and access restricted&#10;- Other remediation steps taken..."
+                                              required></textarea>
+                                    <small class="form-text text-muted">
+                                        Please provide detailed notes on how the generic account was remediated. 
+                                        This documentation is required for audit compliance.
+                                    </small>
+                                </div>
+
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <strong>Important:</strong> By marking this account as remediated, you are confirming that:
+                                    <ul class="mb-0 mt-2">
+                                        <li>The generic account has been addressed in the external system</li>
+                                        <li>The account has been replaced with a unique account OR removed from the system</li>
+                                        <li>All remediation steps have been completed</li>
+                                    </ul>
+                                </div>
+
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="{% url 'access_management:generic_accounts_report' %}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-check"></i> Mark as Remediated
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-check-circle"></i> Already Remediated
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle"></i>
+                                This generic account has already been marked as remediated.
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <th width="40%">Remediation Date:</th>
+                                            <td>{{ access_assignment.remediation_date|date:"Y-m-d H:i" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Remediated By:</th>
+                                            <td>
+                                                {% if access_assignment.remediated_by %}
+                                                {{ access_assignment.remediated_by.full_name }}
+                                                {% else %}
+                                                N/A
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            {% if access_assignment.remediation_notes %}
+                            <div class="mt-3">
+                                <h6>Remediation Notes:</h6>
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        {{ access_assignment.remediation_notes|linebreaks }}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="mt-3">
+                                <a href="{% url 'access_management:access_assignment_detail' access_assignment.pk %}" 
+                                   class="btn btn-outline-primary">
+                                    <i class="fas fa-eye"></i> View Full Assignment Details
+                                </a>
+                                <a href="{% url 'access_management:generic_accounts_report' %}" 
+                                   class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left"></i> Back to Report
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extrajs %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set default remediation date to now if not set
+    const remediationDateInput = document.getElementById('remediation_date');
+    if (remediationDateInput && !remediationDateInput.value) {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        remediationDateInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+    }
+});
+</script>
+{% endblock %}
+

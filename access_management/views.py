@@ -14,6 +14,12 @@ from reportlab.lib.pagesizes import letter, landscape
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
 
 from .models import UserSystemAccess, AccessHistory
+from .utils import (
+    is_generic_username,
+    detect_generic_accounts,
+    get_generic_accounts_by_system,
+    get_unremediated_generic_accounts
+)
 from accounts.models import CustomUser
 from systems.models import System
 
@@ -295,6 +301,10 @@ def access_assignment_create(request):
                 messages.error(request, f'Access assignment for {user.full_name} to {system.name} already exists.')
                 return redirect('access_management:access_assignment_create')
             
+            # Get new fields
+            system_username = request.POST.get('system_username', '').strip()
+            is_generic = request.POST.get('is_generic_account') == 'on'
+            
             # Create new access assignment
             access_assignment = UserSystemAccess.objects.create(
                 user=user,
@@ -307,10 +317,25 @@ def access_assignment_create(request):
                 technical_requirements=technical_requirements,
                 access_start_date=timezone.datetime.fromisoformat(access_start_date) if access_start_date else None,
                 access_end_date=timezone.datetime.fromisoformat(access_end_date) if access_end_date else None,
+                system_username=system_username,
+                is_generic_account=is_generic,
                 requested_by=request.user,
                 created_by=request.user,
                 updated_by=request.user
             )
+            
+            # Auto-detect generic accounts
+            if system_username:
+                access_assignment.mark_as_generic_if_needed()
+                access_assignment.save()
+                
+                # Show warning if generic account detected
+                if access_assignment.is_generic_account:
+                    messages.warning(
+                        request,
+                        f'Warning: Username "{system_username}" appears to be a generic account. '
+                        f'Please ensure this is remediated per RHG Access Control Policy.'
+                    )
             
             # Create access history entry
             AccessHistory.objects.create(
@@ -364,6 +389,7 @@ def access_assignment_create(request):
         'review_frequency_days_value': request.POST.get('review_frequency_days', ''),
         'special_instructions_value': request.POST.get('special_instructions', ''),
         'compliance_requirements_value': request.POST.get('compliance_requirements', ''),
+        'system_username_value': request.POST.get('system_username', ''),
     }
     
     return render(request, 'access_management/access_assignment_form.html', context)
@@ -385,6 +411,7 @@ def access_assignment_update(request, pk):
         access_end_date = request.POST.get('access_end_date')
         status = request.POST.get('status') or access_assignment.status
         access_username = request.POST.get('access_username')
+        system_username = request.POST.get('system_username', '').strip()
         access_url = request.POST.get('access_url')
         granted_access_level = request.POST.get('granted_access_level')
         security_clearance_required = request.POST.get('security_clearance_required')
@@ -393,6 +420,12 @@ def access_assignment_update(request, pk):
         review_frequency_days = request.POST.get('review_frequency_days')
         special_instructions = request.POST.get('special_instructions')
         compliance_requirements = request.POST.get('compliance_requirements')
+        
+        # Generic account fields
+        is_generic = request.POST.get('is_generic_account') == 'on'
+        generic_remediated = request.POST.get('generic_account_remediated') == 'on'
+        remediation_date = request.POST.get('remediation_date')
+        remediation_notes = request.POST.get('remediation_notes', '')
         
         try:
             # Update fields
@@ -407,6 +440,7 @@ def access_assignment_update(request, pk):
             access_assignment.status = status
             access_assignment.updated_by = request.user
             access_assignment.access_username = access_username
+            access_assignment.system_username = system_username
             access_assignment.access_url = access_url
             access_assignment.granted_access_level = granted_access_level
             access_assignment.security_clearance_required = security_clearance_required
@@ -415,6 +449,25 @@ def access_assignment_update(request, pk):
             access_assignment.review_frequency_days = int(review_frequency_days) if review_frequency_days else None
             access_assignment.special_instructions = special_instructions
             access_assignment.compliance_requirements = compliance_requirements
+            
+            # Update generic account fields
+            access_assignment.is_generic_account = is_generic
+            access_assignment.generic_account_remediated = generic_remediated
+            if remediation_date:
+                access_assignment.remediation_date = timezone.datetime.fromisoformat(remediation_date)
+            access_assignment.remediation_notes = remediation_notes
+            if generic_remediated and not access_assignment.remediated_by:
+                access_assignment.remediated_by = request.user
+            
+            # Auto-detect generic accounts
+            if system_username:
+                access_assignment.mark_as_generic_if_needed()
+                if access_assignment.is_generic_account and not is_generic:
+                    messages.warning(
+                        request,
+                        f'Warning: Username "{system_username}" appears to be a generic account. '
+                        f'It has been automatically flagged.'
+                    )
             
             access_assignment.save()
             
@@ -461,6 +514,7 @@ def access_assignment_update(request, pk):
             timezone.localtime(access_assignment.access_end_date).strftime('%Y-%m-%dT%H:%M') if access_assignment.access_end_date else ''
         ),
         'access_username_value': request.POST.get('access_username', access_assignment.access_username or ''),
+        'system_username_value': request.POST.get('system_username', access_assignment.system_username or ''),
         'access_url_value': request.POST.get('access_url', access_assignment.access_url or ''),
         'granted_access_level_value': request.POST.get('granted_access_level', access_assignment.granted_access_level or ''),
         'technical_requirements_value': request.POST.get('technical_requirements', access_assignment.technical_requirements or ''),
@@ -928,3 +982,117 @@ def assignment_access_history(request, assignment_id):
     }
     
     return render(request, 'access_management/access_history_list.html', context)
+
+
+@login_required
+def generic_accounts_report(request):
+    """Report of all generic accounts across external systems"""
+    # Get filter parameters
+    system_id = request.GET.get('system')
+    show_remediated = request.GET.get('show_remediated', 'false') == 'true'
+    search = request.GET.get('search', '').strip()
+    
+    # Start with all generic accounts
+    queryset = UserSystemAccess.objects.filter(is_generic_account=True).select_related('user', 'system')
+    
+    # Filter by system
+    if system_id:
+        queryset = queryset.filter(system_id=system_id)
+    
+    # Filter by remediation status
+    if not show_remediated:
+        queryset = queryset.filter(generic_account_remediated=False)
+    
+    # Search filter
+    if search:
+        queryset = queryset.filter(
+            Q(system_username__icontains=search) |
+            Q(user__first_name__icontains=search) |
+            Q(user__last_name__icontains=search) |
+            Q(user__username__icontains=search) |
+            Q(system__name__icontains=search)
+        )
+    
+    # Order by system, then username
+    queryset = queryset.order_by('system__name', 'system_username')
+    
+    # Pagination
+    paginator = Paginator(queryset, 25)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Statistics
+    total_generic = UserSystemAccess.objects.filter(is_generic_account=True).count()
+    unremediated = UserSystemAccess.objects.filter(
+        is_generic_account=True,
+        generic_account_remediated=False
+    ).count()
+    remediated = total_generic - unremediated
+    
+    # Group by system
+    by_system = queryset.values('system__name', 'system__code').annotate(
+        count=Count('id')
+    ).order_by('system__name')
+    
+    context = {
+        'page_obj': page_obj,
+        'generic_accounts': page_obj,
+        'systems': System.objects.all().order_by('name'),
+        'selected_system_id': system_id,
+        'show_remediated': show_remediated,
+        'search': search,
+        'total_generic': total_generic,
+        'unremediated': unremediated,
+        'remediated': remediated,
+        'by_system': by_system,
+    }
+    
+    return render(request, 'access_management/generic_accounts_report.html', context)
+
+
+@login_required
+def mark_generic_account_remediated(request, pk):
+    """Mark a generic account as remediated"""
+    access_assignment = get_object_or_404(UserSystemAccess, pk=pk)
+    
+    if not access_assignment.is_generic_account:
+        messages.error(request, 'This account is not marked as generic.')
+        return redirect('access_management:generic_accounts_report')
+    
+    if request.method == 'POST':
+        remediation_notes = request.POST.get('remediation_notes', '')
+        remediation_date = request.POST.get('remediation_date')
+        
+        access_assignment.generic_account_remediated = True
+        access_assignment.remediated_by = request.user
+        access_assignment.remediation_notes = remediation_notes
+        if remediation_date:
+            try:
+                access_assignment.remediation_date = timezone.datetime.fromisoformat(remediation_date.replace('Z', '+00:00'))
+            except:
+                access_assignment.remediation_date = timezone.now()
+        else:
+            access_assignment.remediation_date = timezone.now()
+        access_assignment.save()
+        
+        # Create access history entry
+        AccessHistory.objects.create(
+            user=access_assignment.user,
+            system=access_assignment.system,
+            user_system_access=access_assignment,
+            action='Modified',
+            action_description=f'Generic account "{access_assignment.system_username}" marked as remediated by {request.user.full_name}',
+            created_by=request.user
+        )
+        
+        messages.success(
+            request,
+            f'Generic account "{access_assignment.system_username}" has been marked as remediated.'
+        )
+        return redirect('access_management:generic_accounts_report')
+    
+    context = {
+        'access_assignment': access_assignment,
+    }
+    
+    return render(request, 'access_management/mark_remediated.html', context)

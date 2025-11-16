@@ -166,14 +166,37 @@
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label for="access_username" class="form-label">
-                                                Access Username
+                                                Access Username (Legacy)
                                             </label>
                                             <input type="text" class="form-control"
                                                    id="access_username"
                                                    name="access_username"
                                                    value="{{ access_username_value }}">
+                                            <small class="form-text text-muted">Deprecated - use System Username below</small>
                                         </div>
                                     </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="system_username" class="form-label">
+                                                System Username <span class="text-danger">*</span>
+                                                <i class="fas fa-info-circle" data-bs-toggle="tooltip" 
+                                                   title="Actual username in the external system (e.g., 'john.doe' in AD, 'jdoe' in Opera Cloud)"></i>
+                                            </label>
+                                            <input type="text" class="form-control"
+                                                   id="system_username"
+                                                   name="system_username"
+                                                   value="{% if access_assignment %}{{ access_assignment.system_username }}{% else %}{{ system_username_value }}{% endif %}"
+                                                   required>
+                                            <small class="form-text text-muted">The actual username used in the external system</small>
+                                            <div id="generic-account-warning" class="alert alert-warning mt-2" style="display: none;">
+                                                <i class="fas fa-exclamation-triangle"></i> 
+                                                <strong>Warning:</strong> This username appears to be a generic account. 
+                                                Generic accounts are not allowed per RHG Access Control Policy.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label for="access_url" class="form-label">
@@ -188,6 +211,102 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Generic Account Detection (Compliance Tracking) -->
+                        {% if access_assignment and access_assignment.is_generic_account or system_username_value %}
+                        <div class="card mb-4 border-warning" id="generic-account-section" style="{% if not access_assignment or not access_assignment.is_generic_account %}display: none;{% endif %}">
+                            <div class="card-header bg-warning text-dark">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-exclamation-triangle"></i> Generic Account Detection
+                                    <span class="badge bg-danger">Non-Compliant</span>
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-warning" id="generic-account-alert">
+                                    <strong><i class="fas fa-info-circle"></i> Generic Account Detected:</strong>
+                                    <span id="generic-account-message">
+                                        {% if access_assignment %}
+                                        The username "{{ access_assignment.system_username }}" in {{ access_assignment.system.name }} 
+                                        {% else %}
+                                        The username entered
+                                        {% endif %}
+                                        has been flagged as a generic account. Generic accounts are not allowed per RHG Access Control Policy.
+                                    </span>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="mb-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" 
+                                                       id="is_generic_account" 
+                                                       name="is_generic_account" 
+                                                       {% if access_assignment and access_assignment.is_generic_account %}checked{% endif %}>
+                                                <label class="form-check-label" for="is_generic_account">
+                                                    This is a generic account in the external system
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="mb-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" 
+                                                       id="generic_account_remediated" 
+                                                       name="generic_account_remediated" 
+                                                       {% if access_assignment and access_assignment.generic_account_remediated %}checked{% endif %}>
+                                                <label class="form-check-label" for="generic_account_remediated">
+                                                    Generic account has been remediated in the external system
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="remediation-details-section" style="{% if not access_assignment or not access_assignment.generic_account_remediated %}display: none;{% endif %}">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="remediation_date" class="form-label">
+                                                Remediation Date
+                                            </label>
+                                            <input type="datetime-local" class="form-control"
+                                                   id="remediation_date"
+                                                   name="remediation_date"
+                                                   value="{% if access_assignment and access_assignment.remediation_date %}{{ access_assignment.remediation_date|date:'Y-m-d\TH:i' }}{% endif %}">
+                                            <small class="form-text text-muted">Date when the generic account was remediated in the external system</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">
+                                                Remediated By
+                                            </label>
+                                            <input type="text" class="form-control" 
+                                                   value="{% if access_assignment and access_assignment.remediated_by %}{{ access_assignment.remediated_by.full_name }}{% else %}Will be recorded automatically{% endif %}" 
+                                                   readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="mb-3">
+                                            <label for="remediation_notes" class="form-label">
+                                                Remediation Notes
+                                            </label>
+                                            <textarea class="form-control"
+                                                      id="remediation_notes"
+                                                      name="remediation_notes"
+                                                      rows="3"
+                                                      placeholder="Describe how the generic account was remediated in the external system...">{% if access_assignment and access_assignment.remediation_notes %}{{ access_assignment.remediation_notes }}{% endif %}</textarea>
+                                            <small class="form-text text-muted">Document how the generic account was remediated in the external system (required for audit compliance)</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
 
                         <!-- Security & Compliance -->
                         <div class="card mb-4">
@@ -366,6 +485,90 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('System selected:', selectedOption.text);
             }
         });
+    }
+
+    // Generic account detection on system_username input
+    const systemUsernameInput = document.querySelector('input[name="system_username"]');
+    const genericWarning = document.getElementById('generic-account-warning');
+    const isGenericCheckbox = document.getElementById('is_generic_account');
+    
+    if (systemUsernameInput) {
+        // Generic username patterns
+        const genericPatterns = [
+            'admin', 'administrator', 'root', 'user', 'test', 'guest',
+            'demo', 'temp', 'temporary', 'service', 'system', 'default',
+            'operator', 'support', 'helpdesk', 'help', 'info', 'mail',
+            'postmaster', 'webmaster', 'noreply', 'no-reply', 'supervisor',
+            'interface', 'michael.brandt', 'roger.bergh'
+        ];
+        
+        function checkGenericUsername(username) {
+            if (!username) return false;
+            const usernameLower = username.toLowerCase().trim();
+            
+            // Exact match
+            if (genericPatterns.includes(usernameLower)) {
+                return true;
+            }
+            
+            // Check if starts with generic pattern
+            for (const pattern of genericPatterns) {
+                if (usernameLower.startsWith(pattern + '_') || 
+                    usernameLower.startsWith(pattern + '.') ||
+                    (usernameLower.startsWith(pattern) && usernameLower.length > pattern.length)) {
+                    const suffix = usernameLower.substring(pattern.length);
+                    if (suffix.match(/^[\d._-]*$/)) {
+                        return true;
+                    }
+                }
+            }
+            
+            return false;
+        }
+        
+        const genericAccountSection = document.getElementById('generic-account-section');
+        const genericAccountAlert = document.getElementById('generic-account-alert');
+        const genericAccountMessage = document.getElementById('generic-account-message');
+        const remediationDetailsSection = document.getElementById('remediation-details-section');
+        const genericRemediatedCheckbox = document.getElementById('generic_account_remediated');
+        
+        function handleGenericAccountDetection(username) {
+            if (username && checkGenericUsername(username)) {
+                genericWarning.style.display = 'block';
+                if (genericAccountSection) {
+                    genericAccountSection.style.display = 'block';
+                }
+                if (isGenericCheckbox) {
+                    isGenericCheckbox.checked = true;
+                }
+                if (genericAccountMessage) {
+                    genericAccountMessage.textContent = 
+                        `The username "${username}" has been flagged as a generic account. Generic accounts are not allowed per RHG Access Control Policy.`;
+                }
+            } else {
+                genericWarning.style.display = 'none';
+                if (genericAccountSection && !isGenericCheckbox?.checked) {
+                    genericAccountSection.style.display = 'none';
+                }
+            }
+        }
+        
+        systemUsernameInput.addEventListener('blur', function() {
+            handleGenericAccountDetection(this.value.trim());
+        });
+        
+        systemUsernameInput.addEventListener('input', function() {
+            handleGenericAccountDetection(this.value.trim());
+        });
+        
+        // Show/hide remediation details based on checkbox
+        if (genericRemediatedCheckbox) {
+            genericRemediatedCheckbox.addEventListener('change', function() {
+                if (remediationDetailsSection) {
+                    remediationDetailsSection.style.display = this.checked ? 'block' : 'none';
+                }
+            });
+        }
     }
 });
 </script>

@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.exceptions import ValidationError
 
 
 class UserSystemAccess(models.Model):
@@ -159,7 +160,47 @@ class UserSystemAccess(models.Model):
         max_length=100,
         blank=True,
         null=True,
-        help_text="Username or account name in the system"
+        help_text="Username or account name in the system (deprecated - use system_username)"
+    )
+    
+    # System-specific username tracking (for compliance tracking)
+    system_username = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text="Actual username in the external system (e.g., 'john.doe' in AD, 'jdoe' in Opera Cloud)"
+    )
+    
+    # Generic account detection and documentation
+    is_generic_account = models.BooleanField(
+        default=False,
+        help_text="Flag if this account in the external system is generic (admin, guest, etc.)"
+    )
+    
+    generic_account_remediated = models.BooleanField(
+        default=False,
+        help_text="Whether generic account has been replaced with unique account in external system"
+    )
+    
+    remediation_date = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text="Date when generic account was remediated in external system"
+    )
+    
+    remediation_notes = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Notes on how the generic account was remediated"
+    )
+    
+    remediated_by = models.ForeignKey(
+        'accounts.CustomUser',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='generic_account_remediations',
+        help_text="User who documented the remediation"
     )
     
     temporary_password = models.CharField(
@@ -453,6 +494,39 @@ class UserSystemAccess(models.Model):
             'Critical': 'danger'
         }
         return colors.get(self.priority, 'secondary')
+    
+    @property
+    def effective_username(self):
+        """Get the effective username (system_username if available, else access_username)"""
+        return self.system_username or self.access_username or ''
+    
+    def check_if_generic_account(self):
+        """Check if the system_username is a generic account"""
+        if not self.system_username:
+            return False
+        from .utils import is_generic_username
+        return is_generic_username(self.system_username)
+    
+    def mark_as_generic_if_needed(self):
+        """Automatically mark as generic if username matches generic patterns"""
+        if self.system_username:
+            self.is_generic_account = self.check_if_generic_account()
+    
+    def clean(self):
+        """Validate the model instance"""
+        super().clean()
+        # Validate system_username is not generic (warning only, not blocking)
+        if self.system_username:
+            from .utils import is_generic_username
+            if is_generic_username(self.system_username) and not self.is_generic_account:
+                # Auto-detect and mark as generic
+                self.is_generic_account = True
+    
+    def save(self, *args, **kwargs):
+        """Override save to auto-detect generic accounts"""
+        # Auto-detect generic accounts before saving
+        self.mark_as_generic_if_needed()
+        super().save(*args, **kwargs)
 
 
 class AccessHistory(models.Model):

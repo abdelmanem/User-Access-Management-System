@@ -26,4 +26,8 @@ urlpatterns = [
     path('history/user/<int:user_id>/', views.user_access_history, name='user_access_history'),
     path('history/system/<int:system_id>/', views.system_access_history, name='system_access_history'),
     path('history/assignment/<int:assignment_id>/', views.assignment_access_history, name='assignment_access_history'),
+    
+    # Generic Accounts Report
+    path('generic-accounts/', views.generic_accounts_report, name='generic_accounts_report'),
+    path('generic-accounts/<int:pk>/remediate/', views.mark_generic_account_remediated, name='mark_generic_account_remediated'),
 ]
