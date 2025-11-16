@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'dashboard',
     'data_import_export',
     'hardware',
+    'service_accounts',
 ]
 
 MIDDLEWARE = [
