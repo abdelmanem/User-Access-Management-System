@@ -211,7 +211,12 @@
                                             {% if form.profile_photo.errors %}<div class="invalid-feedback d-block">{{ form.profile_photo.errors|striptags }}</div>{% endif %}
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="form-label">Notes</label>
+                                            <label class="form-label">Description</label>
+                                            {{ form.description|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                            {% if form.description.errors %}<div class="invalid-feedback d-block">{{ form.description.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Notes (Admin Only)</label>
                                             {{ form.notes|add_error_class:"is-invalid"|add_class:"form-control" }}
                                             {% if form.notes.errors %}<div class="invalid-feedback d-block">{{ form.notes.errors|striptags }}</div>{% endif %}
                                         </div>

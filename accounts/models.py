@@ -243,6 +243,12 @@ class CustomUser(AbstractUser):
         help_text="For birthday reminders"
     )
     
+    description = models.TextField(
+        blank=True,
+        null=True,
+        help_text="User description (visible to users)"
+    )
+    
     notes = models.TextField(
         blank=True,
         null=True,

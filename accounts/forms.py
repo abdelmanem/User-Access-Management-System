@@ -42,6 +42,7 @@ class UserBaseForm(forms.ModelForm):
             'emergency_contact_phone',
             'emergency_contact_relation',
             'profile_photo',
+            'description',
             'notes',
             'is_active',
         ]

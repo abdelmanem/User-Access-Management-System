@@ -191,9 +191,9 @@
                                         </a>
                                     </th>
                                     <th>
-                                        <a href="?{% if base_query %}{{ base_query }}&{% endif %}sort=notes&dir={% if current_sort == 'notes' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
+                                        <a href="?{% if base_query %}{{ base_query }}&{% endif %}sort=description&dir={% if current_sort == 'description' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
                                             Description
-                                            {% if current_sort == 'notes' %}
+                                            {% if current_sort == 'description' %}
                                                 <span class="ms-1">{% if current_dir == 'asc' %}▲{% else %}▼{% endif %}</span>
                                             {% endif %}
                                         </a>
@@ -222,8 +222,8 @@
                                     <td>{{ user.department.name|default:"N/A" }}</td>
                                     <td>{{ user.position|default:"N/A" }}</td>
                                     <td>
-                                        {% if user.notes %}
-                                            <span title="{{ user.notes }}">{{ user.notes|truncatewords:10|default:"N/A" }}</span>
+                                        {% if user.description %}
+                                            <span title="{{ user.description }}">{{ user.description|truncatewords:10|default:"N/A" }}</span>
                                         {% else %}
                                             N/A
                                         {% endif %}

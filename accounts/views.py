@@ -79,6 +79,7 @@ def user_list(request):
         'email': 'email',
         'department': 'department__name',
         'position': 'position',
+        'description': 'description',
         'notes': 'notes',
         'status': 'is_active',
     }
@@ -166,6 +167,7 @@ def _build_filtered_users_queryset(request):
         'email': 'email',
         'department': 'department__name',
         'position': 'position',
+        'description': 'description',
         'notes': 'notes',
         'status': 'is_active',
     }

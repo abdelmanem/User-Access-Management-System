@@ -78,10 +78,10 @@
                                             <span class="ms-2">{{ user.join_date|date:"Y-m-d"|default:"N/A" }}</span>
                                         </div>
                                     </div>
-                                    {% if user.notes %}
+                                    {% if user.description %}
                                     <div class="mt-auto">
-                                        <strong><i class="fas fa-sticky-note"></i> Notes:</strong>
-                                        <p class="text-muted mb-0 mt-1">{{ user.notes }}</p>
+                                        <strong><i class="fas fa-align-left"></i> Description:</strong>
+                                        <p class="text-muted mb-0 mt-1">{{ user.description }}</p>
                                     </div>
                                     {% endif %}
                                 </div>
