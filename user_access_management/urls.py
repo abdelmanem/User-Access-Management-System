@@ -15,6 +15,8 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 from dashboard.admin import dashboard_admin_site
 from django.http import JsonResponse
 from django.db import connection
@@ -37,3 +39,7 @@ urlpatterns = [
         'db': True if connection.cursor() else False
     })),
 ]
+
+# Serve media files in development
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
