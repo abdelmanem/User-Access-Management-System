@@ -22,6 +22,7 @@ from .utils import (
 )
 from accounts.models import CustomUser
 from systems.models import System
+from departments.models import Department
 
 
 def _format_datetime(value):
@@ -303,7 +304,17 @@ def access_assignment_create(request):
             
             # Get new fields
             system_username = request.POST.get('system_username', '').strip()
+            access_username = request.POST.get('access_username', '').strip()
             is_generic = request.POST.get('is_generic_account') == 'on'
+            
+            # If system_username is empty but access_username exists, use access_username
+            # This helps migrate legacy data
+            if not system_username and access_username:
+                system_username = access_username
+            
+            # Convert empty string to None for database consistency
+            system_username = system_username if system_username else None
+            access_username = access_username if access_username else None
             
             # Create new access assignment
             access_assignment = UserSystemAccess.objects.create(
@@ -318,6 +329,7 @@ def access_assignment_create(request):
                 access_start_date=timezone.datetime.fromisoformat(access_start_date) if access_start_date else None,
                 access_end_date=timezone.datetime.fromisoformat(access_end_date) if access_end_date else None,
                 system_username=system_username,
+                access_username=access_username,
                 is_generic_account=is_generic,
                 requested_by=request.user,
                 created_by=request.user,
@@ -410,7 +422,7 @@ def access_assignment_update(request, pk):
         access_start_date = request.POST.get('access_start_date')
         access_end_date = request.POST.get('access_end_date')
         status = request.POST.get('status') or access_assignment.status
-        access_username = request.POST.get('access_username')
+        access_username = request.POST.get('access_username', '').strip()
         system_username = request.POST.get('system_username', '').strip()
         access_url = request.POST.get('access_url')
         granted_access_level = request.POST.get('granted_access_level')
@@ -426,6 +438,15 @@ def access_assignment_update(request, pk):
         generic_remediated = request.POST.get('generic_account_remediated') == 'on'
         remediation_date = request.POST.get('remediation_date')
         remediation_notes = request.POST.get('remediation_notes', '')
+        
+        # If system_username is empty but access_username exists, use access_username
+        # This helps migrate legacy data
+        if not system_username and access_username:
+            system_username = access_username
+        
+        # Convert empty string to None for database consistency
+        system_username = system_username if system_username else None
+        access_username = access_username if access_username else None
         
         try:
             # Update fields
@@ -514,7 +535,8 @@ def access_assignment_update(request, pk):
             timezone.localtime(access_assignment.access_end_date).strftime('%Y-%m-%dT%H:%M') if access_assignment.access_end_date else ''
         ),
         'access_username_value': request.POST.get('access_username', access_assignment.access_username or ''),
-        'system_username_value': request.POST.get('system_username', access_assignment.system_username or ''),
+        # Pre-populate system_username from effective_username if system_username is empty (for legacy data migration)
+        'system_username_value': request.POST.get('system_username', access_assignment.effective_username or ''),
         'access_url_value': request.POST.get('access_url', access_assignment.access_url or ''),
         'granted_access_level_value': request.POST.get('granted_access_level', access_assignment.granted_access_level or ''),
         'technical_requirements_value': request.POST.get('technical_requirements', access_assignment.technical_requirements or ''),
@@ -1003,18 +1025,21 @@ def generic_accounts_report(request):
     if not show_remediated:
         queryset = queryset.filter(generic_account_remediated=False)
     
-    # Search filter
+    # Search filter - search in both system_username and access_username (for legacy data)
     if search:
         queryset = queryset.filter(
             Q(system_username__icontains=search) |
+            Q(access_username__icontains=search) |
             Q(user__first_name__icontains=search) |
             Q(user__last_name__icontains=search) |
             Q(user__username__icontains=search) |
             Q(system__name__icontains=search)
         )
     
-    # Order by system, then username
-    queryset = queryset.order_by('system__name', 'system_username')
+    # Order by system, then username (use system_username first, fallback to access_username)
+    # Note: We can't order by effective_username directly, so we order by system_username
+    # Records with only access_username will appear after those with system_username
+    queryset = queryset.order_by('system__name', 'system_username', 'access_username')
     
     # Pagination
     paginator = Paginator(queryset, 25)
@@ -1096,3 +1121,136 @@ def mark_generic_account_remediated(request, pk):
     }
     
     return render(request, 'access_management/mark_remediated.html', context)
+
+
+@login_required
+def cross_system_account_mapping(request):
+    """Cross-system account mapping showing all employees and their usernames across all systems"""
+    # Get filter parameters
+    user_id = request.GET.get('user')
+    system_id = request.GET.get('system')
+    department_id = request.GET.get('department')
+    search = request.GET.get('search', '').strip()
+    show_only_with_access = request.GET.get('show_only_with_access', 'false') == 'true'
+    
+    # Get all users
+    users = CustomUser.objects.all().select_related('department')
+    
+    # Get all systems
+    systems = System.objects.filter(is_active=True).order_by('name')
+    
+    # Apply filters
+    if user_id:
+        users = users.filter(id=user_id)
+    if department_id:
+        users = users.filter(department_id=department_id)
+    if search:
+        users = users.filter(
+            Q(first_name__icontains=search) |
+            Q(last_name__icontains=search) |
+            Q(username__icontains=search) |
+            Q(employee_id__icontains=search) |
+            Q(email__icontains=search)
+        )
+    
+    # Get all access assignments with system usernames
+    access_assignments = UserSystemAccess.objects.filter(
+        status__in=['Active', 'Approved']
+    ).select_related('user', 'system')
+    
+    if system_id:
+        access_assignments = access_assignments.filter(system_id=system_id)
+    
+    # Build mapping: user_id -> {system_id: system_username}
+    user_system_mapping = {}
+    for access in access_assignments:
+        user_id = access.user_id
+        system_id = access.system_id
+        # Use effective_username property which handles system_username and access_username fallback
+        username = access.effective_username
+        
+        if user_id not in user_system_mapping:
+            user_system_mapping[user_id] = {}
+        user_system_mapping[user_id][system_id] = {
+            'username': username,
+            'access_type': access.access_type,
+            'status': access.status,
+            'is_generic': access.is_generic_account,
+            'access_id': access.id,
+        }
+    
+    # Filter users if show_only_with_access
+    if show_only_with_access:
+        users = users.filter(id__in=user_system_mapping.keys())
+    
+    # Order users
+    users = users.order_by('first_name', 'last_name')
+    
+    # Pagination
+    paginator = Paginator(users, 50)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Statistics
+    total_users = users.count()
+    users_with_access = len(user_system_mapping)
+    total_systems = systems.count()
+    
+    context = {
+        'page_obj': page_obj,
+        'users': page_obj,
+        'systems': systems,
+        'user_system_mapping': user_system_mapping,
+        'selected_user_id': user_id,
+        'selected_system_id': system_id,
+        'selected_department_id': department_id,
+        'search': search,
+        'show_only_with_access': show_only_with_access,
+        'total_users': total_users,
+        'users_with_access': users_with_access,
+        'total_systems': total_systems,
+        'departments': Department.objects.filter(is_active=True).order_by('name'),
+    }
+    
+    return render(request, 'access_management/cross_system_account_mapping.html', context)
+
+
+@login_required
+def user_cross_system_accounts(request, user_id):
+    """Show all usernames for a single employee across all systems"""
+    user = get_object_or_404(CustomUser, pk=user_id)
+    
+    # Get all access assignments for this user
+    access_assignments = UserSystemAccess.objects.filter(
+        user=user
+    ).select_related('system').order_by('system__name')
+    
+    # Build mapping: system -> access details
+    system_accounts = []
+    for access in access_assignments:
+        system_accounts.append({
+            'system': access.system,
+            'system_username': access.effective_username or 'N/A',
+            'access_type': access.access_type,
+            'status': access.status,
+            'is_generic': access.is_generic_account,
+            'generic_remediated': access.generic_account_remediated,
+            'access_start_date': access.access_start_date,
+            'access_end_date': access.access_end_date,
+            'access_id': access.id,
+        })
+    
+    # Get all systems to show which ones user doesn't have access to
+    all_systems = System.objects.filter(is_active=True).order_by('name')
+    systems_with_access = {acc['system'].id for acc in system_accounts}
+    systems_without_access = [sys for sys in all_systems if sys.id not in systems_with_access]
+    
+    context = {
+        'user': user,
+        'system_accounts': system_accounts,
+        'systems_without_access': systems_without_access,
+        'total_systems': all_systems.count(),
+        'systems_with_access_count': len(system_accounts),
+    }
+    
+    return render(request, 'access_management/user_cross_system_accounts.html', context)

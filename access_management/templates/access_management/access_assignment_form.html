@@ -185,7 +185,7 @@
                                             <input type="text" class="form-control"
                                                    id="system_username"
                                                    name="system_username"
-                                                   value="{% if access_assignment %}{{ access_assignment.system_username }}{% else %}{{ system_username_value }}{% endif %}"
+                                                   value="{% if access_assignment %}{{ access_assignment.effective_username }}{% else %}{{ system_username_value }}{% endif %}"
                                                    required>
                                             <small class="form-text text-muted">The actual username used in the external system</small>
                                             <div id="generic-account-warning" class="alert alert-warning mt-2" style="display: none;">
@@ -226,7 +226,7 @@
                                     <strong><i class="fas fa-info-circle"></i> Generic Account Detected:</strong>
                                     <span id="generic-account-message">
                                         {% if access_assignment %}
-                                        The username "{{ access_assignment.system_username }}" in {{ access_assignment.system.name }} 
+                                        The username "{{ access_assignment.effective_username }}" in {{ access_assignment.system.name }} 
                                         {% else %}
                                         The username entered
                                         {% endif %}

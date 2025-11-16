@@ -20,14 +20,8 @@
                             <a href="?{% if current_query %}{{ current_query }}&{% endif %}export=pdf" class="btn btn-outline-danger">
                                 <i class="fas fa-file-pdf"></i> Export PDF
                             </a>
-                            <a href="{% url 'access_management:generic_accounts_report' %}" class="btn btn-warning">
-                                <i class="fas fa-exclamation-triangle"></i> Generic Accounts Report
-                            </a>
                             <a href="{% url 'access_management:access_assignment_create' %}" class="btn btn-primary">
                                 <i class="fas fa-plus"></i> New Assignment
-                            </a>
-                            <a href="{% url 'access_management:access_history_list' %}" class="btn btn-info">
-                                <i class="fas fa-history"></i> History
                             </a>
                         </div>
                     </div>
@@ -191,7 +185,13 @@
                                         <div class="fw-bold">{{ assignment.system.name }}</div>
                                         <small class="text-muted">{{ assignment.system.code }}</small>
                                     </td>
-                                    <td>{{ assignment.access_username|default:"-" }}</td>
+                                    <td>
+                                        {% if assignment.effective_username %}
+                                            <code>{{ assignment.effective_username }}</code>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
                                     <td>{{ assignment.access_type }}</td>
                                     <td>
                                         <span class="badge bg-{{ assignment.get_status_color }}">

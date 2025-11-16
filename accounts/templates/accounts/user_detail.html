@@ -185,6 +185,12 @@
                         </div>
                         <!-- User Access Assignments Section -->
                         <div class="row mt-4">
+                            <div class="col-12 mb-3">
+                                <a href="{% url 'access_management:user_cross_system_accounts' user.id %}" 
+                                   class="btn btn-info btn-sm">
+                                    <i class="fas fa-network-wired"></i> View Cross-System Account Mapping
+                                </a>
+                            </div>
                             <div class="col-12">
                                 <div class="card border-0 shadow-sm">
                                     <div class="card-header bg-light">
@@ -218,8 +224,8 @@
                                                             </a>
                                                         </td>
                                                         <td>
-                                                            {% if acc.access_username %}
-                                                                <code>{{ acc.access_username }}</code>
+                                                            {% if acc.effective_username %}
+                                                                <code>{{ acc.effective_username }}</code>
                                                             {% else %}
                                                                 <span class="text-muted">-</span>
                                                             {% endif %}

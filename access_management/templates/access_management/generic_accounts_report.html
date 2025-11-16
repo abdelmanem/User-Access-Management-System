@@ -165,7 +165,7 @@
                                                 <br><small class="text-muted">{{ account.system.code }}</small>
                                             </td>
                                             <td>
-                                                <code>{{ account.system_username|default:"N/A" }}</code>
+                                                <code>{{ account.effective_username|default:"N/A" }}</code>
                                                 {% if account.is_generic_account %}
                                                 <br><span class="badge bg-danger">Generic</span>
                                                 {% endif %}
@@ -252,9 +252,22 @@
                             </nav>
                             {% endif %}
                             {% else %}
-                            <div class="alert alert-success">
-                                <i class="fas fa-check-circle"></i> 
-                                <strong>Great!</strong> No generic accounts found matching your filters.
+                            <div class="alert {% if show_remediated %}alert-info{% else %}alert-warning{% endif %}">
+                                <i class="fas fa-{% if show_remediated %}info-circle{% else %}filter{% endif %}"></i> 
+                                {% if show_remediated %}
+                                    <strong>No Results:</strong> No generic accounts found matching your filters.
+                                {% else %}
+                                    <strong>Filtered Results:</strong> No unremediated generic accounts found.
+                                    {% if remediated > 0 %}
+                                        <br><small class="mt-2 d-block">
+                                            <i class="fas fa-info-circle"></i> 
+                                            There {{ remediated|pluralize:"is,are" }} {{ remediated }} remediated account{{ remediated|pluralize }} that {{ remediated|pluralize:"is,are" }} hidden. 
+                                            <a href="?show_remediated=true{% if selected_system_id %}&system={{ selected_system_id }}{% endif %}{% if search %}&search={{ search }}{% endif %}" class="alert-link">
+                                                Check "Show Remediated Accounts" to view them.
+                                            </a>
+                                        </small>
+                                    {% endif %}
+                                {% endif %}
                             </div>
                             {% endif %}
                         </div>

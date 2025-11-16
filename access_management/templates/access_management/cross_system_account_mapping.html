@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+{% load static %}
+{% load dict_extras %}
+
+{% block title %}Cross-System Account Mapping{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="card-title mb-0">
+                            <i class="fas fa-network-wired"></i> Cross-System Account Mapping
+                        </h3>
+                        <div class="btn-group">
+                            <a href="{% url 'access_management:access_assignment_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Assignments
+                            </a>
+                            <button type="button" class="btn btn-outline-primary" onclick="exportMapping()">
+                                <i class="fas fa-download"></i> Export
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Statistics -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <i class="fas fa-users"></i> Total Users
+                                    </h5>
+                                    <h2 class="mb-0">{{ total_users }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-success text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <i class="fas fa-check-circle"></i> Users with Access
+                                    </h5>
+                                    <h2 class="mb-0">{{ users_with_access }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-info text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <i class="fas fa-server"></i> Total Systems
+                                    </h5>
+                                    <h2 class="mb-0">{{ total_systems }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-filter"></i> Filters</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="get" class="row g-3">
+                                <div class="col-md-3">
+                                    <label for="search" class="form-label">Search</label>
+                                    <input type="text" class="form-control" id="search" name="search" 
+                                           value="{{ search }}" placeholder="Name, Username, Employee ID">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="department" class="form-label">Department</label>
+                                    <select class="form-select" id="department" name="department">
+                                        <option value="">All Departments</option>
+                                        {% for dept in departments %}
+                                        <option value="{{ dept.pk }}" {% if selected_department_id == dept.pk|stringformat:"s" %}selected{% endif %}>
+                                            {{ dept.name }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="system" class="form-label">System</label>
+                                    <select class="form-select" id="system" name="system">
+                                        <option value="">All Systems</option>
+                                        {% for sys in systems %}
+                                        <option value="{{ sys.pk }}" {% if selected_system_id == sys.pk|stringformat:"s" %}selected{% endif %}>
+                                            {{ sys.name }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">&nbsp;</label>
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" id="show_only_with_access" 
+                                               name="show_only_with_access" value="true" 
+                                               {% if show_only_with_access %}checked{% endif %}>
+                                        <label class="form-check-label" for="show_only_with_access">
+                                            Show Only Users with Access
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-search"></i> Apply Filters
+                                    </button>
+                                    <a href="{% url 'access_management:cross_system_account_mapping' %}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-times"></i> Clear
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Account Mapping Matrix -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-table"></i> Account Mapping Matrix
+                                <small class="text-muted">(Employee → System Usernames)</small>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if page_obj %}
+                            <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+                                <table class="table table-bordered table-hover table-sm" style="font-size: 0.9rem;">
+                                    <thead class="table-light sticky-top">
+                                        <tr>
+                                            <th rowspan="2" class="align-middle text-center" style="min-width: 200px;">
+                                                <i class="fas fa-user"></i> Employee
+                                            </th>
+                                            <th rowspan="2" class="align-middle text-center" style="min-width: 120px;">
+                                                <i class="fas fa-id-badge"></i> Employee ID
+                                            </th>
+                                            <th rowspan="2" class="align-middle text-center" style="min-width: 150px;">
+                                                <i class="fas fa-building"></i> Department
+                                            </th>
+                                            {% for system in systems %}
+                                            <th class="text-center" style="min-width: 150px; writing-mode: vertical-rl; text-orientation: mixed;">
+                                                <div class="d-flex flex-column align-items-center">
+                                                    <strong>{{ system.name }}</strong>
+                                                    <small class="text-muted">({{ system.code }})</small>
+                                                </div>
+                                            </th>
+                                            {% endfor %}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for user in page_obj %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ user.full_name }}</strong>
+                                                <br><small class="text-muted">{{ user.username }}</small>
+                                            </td>
+                                            <td>
+                                                <code>{{ user.employee_id }}</code>
+                                            </td>
+                                            <td>
+                                                {% if user.department %}
+                                                {{ user.department.name }}
+                                                {% else %}
+                                                <span class="text-muted">N/A</span>
+                                                {% endif %}
+                                            </td>
+                                            {% for system in systems %}
+                                            <td class="text-center">
+                                                {% with user_dict=user_system_mapping|get_item:user.id %}
+                                                    {% if user_dict %}
+                                                        {% with account=user_dict|get_item:system.id %}
+                                                            {% if account %}
+                                                            <div class="d-flex flex-column align-items-center">
+                                                                <code class="mb-1">{{ account.username }}</code>
+                                                                <small class="badge bg-secondary">
+                                                                    {{ account.access_type }}
+                                                                </small>
+                                                                {% if account.is_generic %}
+                                                                <small class="badge bg-danger mt-1">
+                                                                    <i class="fas fa-exclamation-triangle"></i> Generic
+                                                                </small>
+                                                                {% endif %}
+                                                                <a href="{% url 'access_management:access_assignment_detail' account.access_id %}" 
+                                                                   class="btn btn-sm btn-outline-primary mt-1" title="View Details">
+                                                                    <i class="fas fa-eye"></i>
+                                                                </a>
+                                                            </div>
+                                                            {% else %}
+                                                            <span class="text-muted">-</span>
+                                                            {% endif %}
+                                                        {% endwith %}
+                                                    {% else %}
+                                                    <span class="text-muted">-</span>
+                                                    {% endif %}
+                                                {% endwith %}
+                                            </td>
+                                            {% endfor %}
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="{{ systems|length|add:3 }}" class="text-center text-muted py-4">
+                                                <i class="fas fa-info-circle fa-2x mb-2"></i>
+                                                <p>No users found matching your filters.</p>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Pagination -->
+                            {% if page_obj.has_other_pages %}
+                            <nav aria-label="Page navigation" class="mt-4">
+                                <ul class="pagination justify-content-center">
+                                    {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1{% if selected_user_id %}&user={{ selected_user_id }}{% endif %}{% if selected_system_id %}&system={{ selected_system_id }}{% endif %}{% if selected_department_id %}&department={{ selected_department_id }}{% endif %}{% if search %}&search={{ search }}{% endif %}{% if show_only_with_access %}&show_only_with_access=true{% endif %}">First</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if selected_user_id %}&user={{ selected_user_id }}{% endif %}{% if selected_system_id %}&system={{ selected_system_id }}{% endif %}{% if selected_department_id %}&department={{ selected_department_id }}{% endif %}{% if search %}&search={{ search }}{% endif %}{% if show_only_with_access %}&show_only_with_access=true{% endif %}">Previous</a>
+                                    </li>
+                                    {% endif %}
+                                    
+                                    <li class="page-item active">
+                                        <span class="page-link">
+                                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                                        </span>
+                                    </li>
+                                    
+                                    {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if selected_user_id %}&user={{ selected_user_id }}{% endif %}{% if selected_system_id %}&system={{ selected_system_id }}{% endif %}{% if selected_department_id %}&department={{ selected_department_id }}{% endif %}{% if search %}&search={{ search }}{% endif %}{% if show_only_with_access %}&show_only_with_access=true{% endif %}">Next</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if selected_user_id %}&user={{ selected_user_id }}{% endif %}{% if selected_system_id %}&system={{ selected_system_id }}{% endif %}{% if selected_department_id %}&department={{ selected_department_id }}{% endif %}{% if search %}&search={{ search }}{% endif %}{% if show_only_with_access %}&show_only_with_access=true{% endif %}">Last</a>
+                                    </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                            {% endif %}
+                            {% else %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> No users found.
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extrajs %}
+<script>
+function exportMapping() {
+    // Get current filter parameters
+    const params = new URLSearchParams(window.location.search);
+    params.set('export', 'csv');
+    window.location.href = '?' + params.toString();
+}
+
+// Make table header sticky on scroll
+document.addEventListener('DOMContentLoaded', function() {
+    const table = document.querySelector('.table-responsive');
+    if (table) {
+        table.addEventListener('scroll', function() {
+            const thead = this.querySelector('thead');
+            if (thead) {
+                thead.style.transform = `translateY(${this.scrollTop}px)`;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+

@@ -30,4 +30,8 @@ urlpatterns = [
     # Generic Accounts Report
     path('generic-accounts/', views.generic_accounts_report, name='generic_accounts_report'),
     path('generic-accounts/<int:pk>/remediate/', views.mark_generic_account_remediated, name='mark_generic_account_remediated'),
+    
+    # Cross-System Account Mapping
+    path('cross-system-mapping/', views.cross_system_account_mapping, name='cross_system_account_mapping'),
+    path('users/<int:user_id>/cross-system-accounts/', views.user_cross_system_accounts, name='user_cross_system_accounts'),
 ]

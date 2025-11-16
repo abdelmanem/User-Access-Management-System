@@ -27,7 +27,7 @@
                             <i class="fas fa-exclamation-triangle"></i> Generic Account Detected
                         </h5>
                         <p class="mb-0">
-                            The account <strong>"{{ access_assignment.system_username }}"</strong> in 
+                            The account <strong>"{{ access_assignment.effective_username }}"</strong> in 
                             <strong>{{ access_assignment.system.name }}</strong> has been flagged as a generic account.
                         </p>
                     </div>
@@ -57,7 +57,7 @@
                                         <tr>
                                             <th>System Username:</th>
                                             <td>
-                                                <code class="text-danger">{{ access_assignment.system_username }}</code>
+                                                <code class="text-danger">{{ access_assignment.effective_username }}</code>
                                                 <span class="badge bg-danger ms-2">Generic Account</span>
                                             </td>
                                         </tr>

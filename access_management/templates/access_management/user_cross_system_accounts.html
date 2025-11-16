@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Cross-System Accounts for {{ user.full_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="card-title mb-0">
+                            <i class="fas fa-network-wired"></i> Cross-System Accounts for {{ user.full_name }}
+                        </h3>
+                        <div class="btn-group">
+                            <a href="{% url 'accounts:user_detail' user.id %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to User Details
+                            </a>
+                            <a href="{% url 'access_management:cross_system_account_mapping' %}?user={{ user.id }}" class="btn btn-outline-primary">
+                                <i class="fas fa-table"></i> View in Matrix
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- User Information Summary -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <i class="fas fa-user"></i> Employee Information
+                                    </h5>
+                                    <table class="table table-sm mb-0">
+                                        <tr>
+                                            <th width="40%">Name:</th>
+                                            <td><strong>{{ user.full_name }}</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Employee ID:</th>
+                                            <td><code>{{ user.employee_id }}</code></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Username:</th>
+                                            <td>{{ user.username }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Email:</th>
+                                            <td>{{ user.email }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Department:</th>
+                                            <td>
+                                                {% if user.department %}
+                                                {{ user.department.name }}
+                                                {% else %}
+                                                <span class="text-muted">N/A</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-info text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <i class="fas fa-chart-pie"></i> Access Summary
+                                    </h5>
+                                    <div class="row text-center">
+                                        <div class="col-6">
+                                            <h2 class="mb-0">{{ systems_with_access_count }}</h2>
+                                            <small>Systems with Access</small>
+                                        </div>
+                                        <div class="col-6">
+                                            <h2 class="mb-0">{{ total_systems }}</h2>
+                                            <small>Total Systems</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Systems with Access -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-check-circle"></i> Systems with Access
+                                <span class="badge bg-light text-dark">{{ system_accounts|length }}</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if system_accounts %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>System</th>
+                                            <th>System Code</th>
+                                            <th>System Username</th>
+                                            <th>Access Type</th>
+                                            <th>Status</th>
+                                            <th>Generic Account</th>
+                                            <th>Access Start</th>
+                                            <th>Access End</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for account in system_accounts %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ account.system.name }}</strong>
+                                            </td>
+                                            <td>
+                                                <code>{{ account.system.code }}</code>
+                                            </td>
+                                            <td>
+                                                <code class="text-primary">{{ account.system_username }}</code>
+                                                {% if account.is_generic %}
+                                                <br><span class="badge bg-danger">
+                                                    <i class="fas fa-exclamation-triangle"></i> Generic
+                                                </span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-secondary">{{ account.access_type }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-{% if account.status == 'Active' %}success{% elif account.status == 'Approved' %}info{% else %}warning{% endif %}">
+                                                    {{ account.status }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {% if account.is_generic %}
+                                                    {% if account.generic_remediated %}
+                                                    <span class="badge bg-success">
+                                                        <i class="fas fa-check"></i> Remediated
+                                                    </span>
+                                                    {% else %}
+                                                    <span class="badge bg-warning">
+                                                        <i class="fas fa-exclamation-triangle"></i> Needs Remediation
+                                                    </span>
+                                                    {% endif %}
+                                                {% else %}
+                                                <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if account.access_start_date %}
+                                                {{ account.access_start_date|date:"Y-m-d" }}
+                                                {% else %}
+                                                <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if account.access_end_date %}
+                                                {{ account.access_end_date|date:"Y-m-d" }}
+                                                {% else %}
+                                                <span class="text-muted">No expiration</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <a href="{% url 'access_management:access_assignment_detail' account.access_id %}" 
+                                                       class="btn btn-outline-primary" title="View Details">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a href="{% url 'access_management:access_assignment_update' account.access_id %}" 
+                                                       class="btn btn-outline-warning" title="Edit">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i> 
+                                This user does not have access to any systems yet.
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Systems without Access -->
+                    {% if systems_without_access %}
+                    <div class="card">
+                        <div class="card-header bg-secondary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-times-circle"></i> Systems without Access
+                                <span class="badge bg-light text-dark">{{ systems_without_access|length }}</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                {% for system in systems_without_access %}
+                                <div class="col-md-4 mb-2">
+                                    <div class="card border-secondary">
+                                        <div class="card-body p-2">
+                                            <strong>{{ system.name }}</strong>
+                                            <br><small class="text-muted">{{ system.code }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Account Mapping Summary Table -->
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-table"></i> Account Mapping Summary
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-sm">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>System</th>
+                                            <th>System Username</th>
+                                            <th>Access Type</th>
+                                            <th>Status</th>
+                                            <th>Generic Account</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for account in system_accounts %}
+                                        <tr>
+                                            <td><strong>{{ account.system.name }}</strong> ({{ account.system.code }})</td>
+                                            <td><code>{{ account.system_username }}</code></td>
+                                            <td>{{ account.access_type }}</td>
+                                            <td>
+                                                <span class="badge bg-{% if account.status == 'Active' %}success{% elif account.status == 'Approved' %}info{% else %}warning{% endif %}">
+                                                    {{ account.status }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {% if account.is_generic %}
+                                                    {% if account.generic_remediated %}
+                                                    <span class="badge bg-success">Remediated</span>
+                                                    {% else %}
+                                                    <span class="badge bg-danger">Generic - Needs Remediation</span>
+                                                    {% endif %}
+                                                {% else %}
+                                                <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted py-4">
+                                                No system access found for this user.
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extrajs %}
+<script>
+// Add any additional JavaScript if needed
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips if needed
+});
+</script>
+{% endblock %}
+

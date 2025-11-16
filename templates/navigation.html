@@ -43,10 +43,29 @@
                         <li><a class="dropdown-item" href="{% url 'accounts:user_archive_list' %}">Archived Users</a></li>
                     </ul>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link{% nav_active_class 'access_management:access_assignment_*' 'access_management:user_access_*' 'access_management:system_access_*' 'access_management:access_history_*' 'access_management:approve_access_assignment' 'access_management:reject_access_assignment' %}" href="{% url 'access_management:access_assignment_list' %}">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle{% nav_active_class 'access_management:access_assignment_*' 'access_management:user_access_*' 'access_management:system_access_*' 'access_management:access_history_*' 'access_management:approve_access_assignment' 'access_management:reject_access_assignment' 'access_management:cross_system_account_mapping' 'access_management:generic_accounts_report' 'access_management:user_cross_system_accounts' 'access_management:mark_generic_account_remediated' %}" href="#" id="accessDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fa-solid fa-key me-1"></i> Access
                     </a>
+                    <ul class="dropdown-menu" aria-labelledby="accessDropdown">
+                        <li><a class="dropdown-item{% nav_active_class 'access_management:access_assignment_list' 'access_management:access_assignment_detail' 'access_management:access_assignment_update' 'access_management:access_assignment_delete' 'access_management:user_access_assignments' 'access_management:system_access_assignments' 'access_management:approve_access_assignment' 'access_management:reject_access_assignment' %}" href="{% url 'access_management:access_assignment_list' %}">
+                            <i class="fa-solid fa-list me-2"></i> Access Assignments
+                        </a></li>
+                        <li><a class="dropdown-item{% nav_active_class 'access_management:access_assignment_create' %}" href="{% url 'access_management:access_assignment_create' %}">
+                            <i class="fa-solid fa-plus me-2"></i> New Assignment
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item{% nav_active_class 'access_management:cross_system_account_mapping' 'access_management:user_cross_system_accounts' %}" href="{% url 'access_management:cross_system_account_mapping' %}">
+                            <i class="fa-solid fa-network-wired me-2"></i> Cross-System Account Mapping
+                        </a></li>
+                        <li><a class="dropdown-item{% nav_active_class 'access_management:generic_accounts_report' 'access_management:mark_generic_account_remediated' %}" href="{% url 'access_management:generic_accounts_report' %}">
+                            <i class="fa-solid fa-exclamation-triangle me-2"></i> Generic Accounts Report
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item{% nav_active_class 'access_management:access_history_*' %}" href="{% url 'access_management:access_history_list' %}">
+                            <i class="fa-solid fa-history me-2"></i> Access History
+                        </a></li>
+                    </ul>
                 </li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle{% nav_active_class 'data_import_export:home' 'data_import_export:export_*' 'data_import_export:import_*' 'data_import_export:custom_export' %}" href="#" id="importExportDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">

@@ -211,16 +211,16 @@
                                         <tr>
                                             <th>System Username:</th>
                                             <td>
-                                                {% if access_assignment.system_username %}
-                                                    <code>{{ access_assignment.system_username }}</code>
+                                                {% if access_assignment.effective_username %}
+                                                    <code>{{ access_assignment.effective_username }}</code>
                                                     {% if access_assignment.is_generic_account %}
                                                     <br><span class="badge bg-danger mt-1">
                                                         <i class="fas fa-exclamation-triangle"></i> Generic Account
                                                     </span>
                                                     {% endif %}
-                                                {% elif access_assignment.access_username %}
-                                                    <code>{{ access_assignment.access_username }}</code>
-                                                    <br><small class="text-muted">(Legacy field)</small>
+                                                    {% if access_assignment.access_username and not access_assignment.system_username %}
+                                                    <br><small class="text-muted">(from legacy field)</small>
+                                                    {% endif %}
                                                 {% else %}
                                                     <span class="text-muted">Not specified</span>
                                                 {% endif %}
