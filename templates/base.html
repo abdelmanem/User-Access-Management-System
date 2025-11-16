@@ -13,14 +13,158 @@
     <!-- Custom -->
     <link href="{% static 'css/custom_admin.css' %}" rel="stylesheet">
     {% block extrahead %}{% endblock %}
+    <!-- Theme initialization - must be in head to prevent flash -->
+    <script>
+      // Initialize theme immediately before page renders
+      (function() {
+        const THEME_KEY = 'uams-theme';
+        const THEME_LIGHT = 'light';
+        const THEME_DARK = 'dark';
+        
+        function getTheme() {
+          try {
+            const stored = localStorage.getItem(THEME_KEY);
+            if (stored === THEME_DARK || stored === THEME_LIGHT) {
+              return stored;
+            }
+            // Check system preference
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+              return THEME_DARK;
+            }
+          } catch (e) {
+            console.error('Error reading theme from localStorage:', e);
+          }
+          return THEME_LIGHT;
+        }
+        
+        function applyTheme(theme) {
+          const html = document.documentElement;
+          if (theme === THEME_DARK) {
+            html.setAttribute('data-theme', 'dark');
+            html.classList.add('dark-mode');
+            html.classList.remove('light-mode');
+          } else {
+            html.setAttribute('data-theme', 'light');
+            html.classList.add('light-mode');
+            html.classList.remove('dark-mode');
+          }
+        }
+        
+        // Apply theme immediately
+        const theme = getTheme();
+        applyTheme(theme);
+      })();
+    </script>
     <style>
-      body { background-color: #f8fafc; }
-      .card { border: 0; border-radius: .75rem; }
-      .card .card-header { background-color: #ffffff; border-bottom: 1px solid #eef2f7; }
+      body { 
+        background-color: var(--bg-secondary, #f8fafc);
+        color: var(--text-primary, #343a40);
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+      .card { 
+        border: 0; 
+        border-radius: .75rem;
+        background-color: var(--card-bg, #ffffff);
+        transition: background-color 0.3s ease;
+      }
+      .card .card-header { 
+        background-color: var(--card-header-bg, #ffffff); 
+        border-bottom: 1px solid var(--card-border, #eef2f7);
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+      }
       .table thead th { white-space: nowrap; }
-      .content-wrapper { padding: 24px; }
-      .footer { color: #6b7280; }
+      .content-wrapper { 
+        padding: 24px;
+        background-color: var(--bg-primary, transparent);
+        transition: background-color 0.3s ease;
+      }
+      .footer { 
+        color: var(--text-secondary, #6b7280);
+        transition: color 0.3s ease;
+      }
       .toast-container { z-index: 1080; }
+      
+      /* Force dark mode styles when class is present */
+      html.dark-mode body,
+      body.dark-mode {
+        background-color: #1a1d24 !important;
+        color: #e9ecef !important;
+      }
+      
+      html.dark-mode .card,
+      body.dark-mode .card {
+        background-color: #252932 !important;
+        color: #e9ecef !important;
+      }
+      
+      html.dark-mode .card-header,
+      body.dark-mode .card-header {
+        background-color: #2d3138 !important;
+        border-bottom-color: #3a3f48 !important;
+        color: #e9ecef !important;
+      }
+      
+      html.dark-mode .content-wrapper,
+      body.dark-mode .content-wrapper {
+        background-color: #1a1d24 !important;
+      }
+      
+      /* Additional dark mode enhancements */
+      html.dark-mode .table,
+      body.dark-mode .table {
+        color: #e9ecef !important;
+      }
+      
+      html.dark-mode .table thead th,
+      body.dark-mode .table thead th {
+        background-color: #2d3138 !important;
+        color: #e9ecef !important;
+        border-color: #3a3f48 !important;
+      }
+      
+      html.dark-mode .table tbody td,
+      body.dark-mode .table tbody td {
+        border-color: #3a3f48 !important;
+        color: #e9ecef !important;
+      }
+      
+      html.dark-mode .form-control,
+      html.dark-mode .form-select,
+      body.dark-mode .form-control,
+      body.dark-mode .form-select {
+        background-color: #2d3138 !important;
+        border-color: #3a3f48 !important;
+        color: #e9ecef !important;
+      }
+      
+      html.dark-mode .form-control:focus,
+      html.dark-mode .form-select:focus,
+      body.dark-mode .form-control:focus,
+      body.dark-mode .form-select:focus {
+        background-color: #2d3138 !important;
+        border-color: #5a7bc8 !important;
+        color: #e9ecef !important;
+      }
+      
+      html.dark-mode .btn-group .btn,
+      body.dark-mode .btn-group .btn {
+        border-color: var(--border-color) !important;
+      }
+      
+      html.dark-mode .card-tools,
+      body.dark-mode .card-tools {
+        color: var(--text-primary) !important;
+      }
+      
+      html.dark-mode h1, html.dark-mode h2, html.dark-mode h3, html.dark-mode h4, html.dark-mode h5, html.dark-mode h6,
+      body.dark-mode h1, body.dark-mode h2, body.dark-mode h3, body.dark-mode h4, body.dark-mode h5, body.dark-mode h6 {
+        color: var(--text-primary) !important;
+      }
+      
+      html.dark-mode .text-center,
+      body.dark-mode .text-center {
+        color: var(--text-primary) !important;
+      }
     </style>
   </head>
   <body>
@@ -57,11 +201,24 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <!-- Theme Switcher -->
+    <script src="{% static 'js/theme.js' %}"></script>
     <script>
       // Auto-show toasts
       document.addEventListener('DOMContentLoaded', function () {
         var toastElList = [].slice.call(document.querySelectorAll('.toast'));
         toastElList.map(function (toastEl) { return new bootstrap.Toast(toastEl).show(); });
+        
+        // Debug: Check if theme functions are available
+        console.log('Theme functions available:', {
+          toggleTheme: typeof window.toggleTheme,
+          getCurrentTheme: typeof window.getCurrentTheme,
+          currentTheme: window.getCurrentTheme ? window.getCurrentTheme() : 'N/A'
+        });
+        
+        // Debug: Check button
+        const btn = document.getElementById('theme-toggle-btn');
+        console.log('Theme button found:', !!btn, btn ? btn.outerHTML : 'N/A');
       });
     </script>
     {% block extrajs %}{% endblock %}

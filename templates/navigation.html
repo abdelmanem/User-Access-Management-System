@@ -121,6 +121,12 @@
             </ul>
             <ul class="navbar-nav ms-auto">
                 {% if user.is_authenticated %}
+                <li class="nav-item d-flex align-items-center me-3">
+                    <button type="button" id="theme-toggle-btn" class="btn btn-sm theme-toggle-btn" title="Switch Theme" onclick="if(typeof window.toggleTheme === 'function') { window.toggleTheme(); } else { console.error('toggleTheme not available'); } return false;">
+                        <i class="fa-solid fa-moon"></i>
+                        <span class="theme-text">Dark Mode</span>
+                    </button>
+                </li>
                 <li class="nav-item d-flex align-items-center me-3 text-white-50">
                     <i class="fa-solid fa-circle-user me-2"></i>
                     <span class="small">{{ user.get_full_name|default:user.username }}</span>
