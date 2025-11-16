@@ -48,10 +48,19 @@
                         <i class="fa-solid fa-key me-1"></i> Access
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link{% nav_active_class 'data_import_export:home' 'data_import_export:export_*' 'data_import_export:import_*' %}" href="{% url 'data_import_export:home' %}">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle{% nav_active_class 'data_import_export:home' 'data_import_export:export_*' 'data_import_export:import_*' 'data_import_export:custom_export' %}" href="#" id="importExportDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fa-solid fa-file-import me-1"></i> Import/Export
                     </a>
+                    <ul class="dropdown-menu" aria-labelledby="importExportDropdown">
+                        <li><a class="dropdown-item" href="{% url 'data_import_export:home' %}">
+                            <i class="fa-solid fa-home me-2"></i>Home
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{% url 'data_import_export:custom_export' %}">
+                            <i class="fa-solid fa-sliders me-2"></i>Custom Export
+                        </a></li>
+                    </ul>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link{% nav_active_class 'reports' 'user_access_report' 'system_usage_report' 'security_audit_report' 'department_access_report' %}" href="{% url 'reports' %}">

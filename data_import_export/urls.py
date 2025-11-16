@@ -5,6 +5,7 @@ app_name = 'data_import_export'
 
 urlpatterns = [
     path('', views.data_import_export_home, name='home'),
+    path('custom-export/', views.custom_export, name='custom_export'),
     path('export/users/', views.export_users, name='export_users'),
     path('export/departments/', views.export_departments, name='export_departments'),
     path('export/systems/', views.export_systems, name='export_systems'),
