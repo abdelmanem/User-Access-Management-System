@@ -1,19 +1,21 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+import csv
+from io import BytesIO, StringIO
+
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q, Count
 from django.http import JsonResponse, HttpResponse
-from django.views.decorators.http import require_http_methods
+from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
-from datetime import timedelta
-from io import BytesIO
+from django.views.decorators.http import require_http_methods
 from openpyxl import Workbook
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter, landscape
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Spacer
 
 from .models import UserSystemAccess, AccessHistory
+from .reporting import build_policy_drift_snapshot, generate_policy_drift_rows
 from .utils import (
     is_generic_username,
     detect_generic_accounts,
@@ -162,6 +164,127 @@ def export_access_assignments_to_pdf(queryset):
 
     response = HttpResponse(buffer, content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="access_assignments.pdf"'
+    return response
+
+
+def export_policy_drift_rows_to_csv(rows):
+    headers = [
+        "Issue Type",
+        "User",
+        "User Login",
+        "Department",
+        "System",
+        "System Code",
+        "External Username",
+        "Status",
+        "Last Review",
+        "Next Review",
+        "Detail",
+        "Assignment ID",
+    ]
+    output = StringIO()
+    writer = csv.writer(output)
+    writer.writerow(headers)
+
+    for row in rows:
+        writer.writerow([
+            row["issue_type"],
+            row["user_name"],
+            row["user_username"],
+            row["department"],
+            row["system_name"],
+            row["system_code"],
+            row["external_username"],
+            row["status"],
+            row["last_review"],
+            row["next_review"],
+            row["detail"],
+            row["assignment_id"],
+        ])
+
+    response = HttpResponse(output.getvalue(), content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="policy_drift_snapshot.csv"'
+    return response
+
+
+def export_policy_drift_rows_to_pdf(rows, summary, stale_threshold_days):
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=landscape(letter),
+        leftMargin=24,
+        rightMargin=24,
+        topMargin=24,
+        bottomMargin=24,
+    )
+
+    summary_data = [
+        ["Metric", "Count"],
+        ["Missing Usernames", summary["missing_usernames"]],
+        ["Stale Reviews", summary["stale_reviews"]],
+        ["Overlapping Usernames", summary["overlapping_usernames"]],
+        ["Assignments Scanned", summary["total_assignments"]],
+        ["Threshold (days)", stale_threshold_days],
+    ]
+    summary_table = Table(summary_data, hAlign='LEFT')
+    summary_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1f2937')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.whitesmoke),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.whitesmoke, colors.lightgrey]),
+        ('BOX', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.grey),
+    ]))
+
+    details_headers = [
+        "Issue",
+        "User",
+        "System",
+        "External Username",
+        "Status",
+        "Last Review",
+        "Next Review",
+        "Detail",
+    ]
+    data = [details_headers]
+    for row in rows[:200]:
+        system_label = f"{row['system_name']} ({row['system_code']})" if row['system_code'] else row['system_name']
+        user_label = f"{row['user_name']} ({row['user_username']})" if row['user_username'] else row['user_name']
+        data.append([
+            row['issue_type'],
+            user_label,
+            system_label,
+            row['external_username'],
+            row['status'],
+            row['last_review'],
+            row['next_review'],
+            row['detail'],
+        ])
+
+    details_table = Table(data, repeatRows=1, hAlign='LEFT')
+    details_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1f2937')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 8),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.whitesmoke),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.whitesmoke, colors.lightgrey]),
+        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('BOX', (0, 0), (-1, -1), 0.25, colors.grey),
+        ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.grey),
+        ('LEFTPADDING', (0, 0), (-1, -1), 4),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 4),
+    ]))
+
+    doc.build([summary_table, Spacer(1, 12), details_table])
+    buffer.seek(0)
+
+    response = HttpResponse(buffer, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="policy_drift_snapshot.pdf"'
     return response
 
 
@@ -1078,6 +1201,86 @@ def generic_accounts_report(request):
     }
     
     return render(request, 'access_management/generic_accounts_report.html', context)
+
+
+@login_required
+def policy_drift_monitoring(request):
+    """
+    Highlight access records that indicate potential policy drift:
+    - Accounts missing external usernames
+    - Accounts with stale or overdue reviews
+    - Usernames reused by multiple employees in the same system
+    """
+    default_threshold_days = 90
+
+    system_id_param = request.GET.get('system')
+    department_id_param = request.GET.get('department')
+    status_scope = request.GET.get('status_scope', 'active')
+    threshold_param = request.GET.get('stale_threshold')
+
+    def _coerce_int(value):
+        if not value:
+            return None
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+
+    system_id = _coerce_int(system_id_param)
+    department_id = _coerce_int(department_id_param)
+
+    try:
+        stale_threshold_days = int(threshold_param) if threshold_param else default_threshold_days
+        if stale_threshold_days <= 0:
+            raise ValueError
+    except (TypeError, ValueError):
+        stale_threshold_days = default_threshold_days
+
+    snapshot = build_policy_drift_snapshot(
+        system_id=system_id,
+        department_id=department_id,
+        status_scope=status_scope,
+        stale_threshold_days=stale_threshold_days,
+    )
+
+    export_format = request.GET.get('export')
+    if export_format in {'csv', 'pdf'}:
+        rows = list(generate_policy_drift_rows(snapshot))
+        if export_format == 'csv':
+            return export_policy_drift_rows_to_csv(rows)
+        return export_policy_drift_rows_to_pdf(rows, snapshot['issue_summary'], stale_threshold_days)
+
+    query_params = request.GET.copy()
+    query_params.pop('page', None)
+    query_params.pop('export', None)
+    base_query = query_params.urlencode()
+    csv_link = f"?{base_query}&export=csv" if base_query else "?export=csv"
+    pdf_link = f"?{base_query}&export=pdf" if base_query else "?export=pdf"
+
+    context = {
+        'issue_summary': snapshot['issue_summary'],
+        'missing_usernames': snapshot['missing_usernames_qs'].select_related('user', 'system')[:50],
+        'stale_reviews': snapshot['stale_reviews_qs'].select_related('user', 'system')[:50],
+        'overlapping_groups': snapshot['overlapping_groups'].values(),
+        'system_issue_counts': snapshot['system_issue_counts'],
+        'systems': System.objects.filter(is_active=True).order_by('name'),
+        'departments': Department.objects.filter(is_active=True).order_by('name'),
+        'filters': {
+            'system': system_id_param or '',
+            'department': department_id_param or '',
+            'status_scope': status_scope,
+            'stale_threshold': stale_threshold_days,
+        },
+        'threshold_options': [30, 60, 90, 120, 180],
+        'now': snapshot['now'],
+        'stale_reference': snapshot['stale_reference'],
+        'export_links': {
+            'csv': csv_link,
+            'pdf': pdf_link,
+        },
+    }
+
+    return render(request, 'access_management/policy_drift_monitoring.html', context)
 
 
 @login_required

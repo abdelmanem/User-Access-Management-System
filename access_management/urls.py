@@ -31,6 +31,9 @@ urlpatterns = [
     path('generic-accounts/', views.generic_accounts_report, name='generic_accounts_report'),
     path('generic-accounts/<int:pk>/remediate/', views.mark_generic_account_remediated, name='mark_generic_account_remediated'),
     
+    # Policy Drift Monitoring
+    path('policy-drift-monitoring/', views.policy_drift_monitoring, name='policy_drift_monitoring'),
+    
     # Cross-System Account Mapping
     path('cross-system-mapping/', views.cross_system_account_mapping, name='cross_system_account_mapping'),
     path('users/<int:user_id>/cross-system-accounts/', views.user_cross_system_accounts, name='user_cross_system_accounts'),

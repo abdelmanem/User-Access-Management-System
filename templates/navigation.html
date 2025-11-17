@@ -127,7 +127,7 @@
                 </a>
             </div>
 
-            {% nav_active_class 'access_management:access_assignment_*' 'access_management:user_access_*' 'access_management:system_access_*' 'access_management:access_history_*' 'access_management:approve_access_assignment' 'access_management:reject_access_assignment' 'access_management:cross_system_account_mapping' 'access_management:generic_accounts_report' 'access_management:user_cross_system_accounts' 'access_management:mark_generic_account_remediated' as access_active %}
+            {% nav_active_class 'access_management:access_assignment_*' 'access_management:user_access_*' 'access_management:system_access_*' 'access_management:access_history_*' 'access_management:approve_access_assignment' 'access_management:reject_access_assignment' 'access_management:cross_system_account_mapping' 'access_management:generic_accounts_report' 'access_management:user_cross_system_accounts' 'access_management:mark_generic_account_remediated' 'access_management:policy_drift_monitoring' as access_active %}
             <button class="sidebar-link{{ access_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarAccess" aria-expanded="false" aria-controls="sidebarAccess">
                 <span><i class="fa-solid fa-key"></i> Access</span>
                 <i class="fa-solid fa-angle-down collapse-arrow"></i>
@@ -148,6 +148,10 @@
                 {% nav_active_class 'access_management:generic_accounts_report' 'access_management:mark_generic_account_remediated' as access_generic_active %}
                 <a class="sidebar-sublink{{ access_generic_active }}" href="{% url 'access_management:generic_accounts_report' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-triangle-exclamation"></i> Generic Accounts
+                </a>
+                {% nav_active_class 'access_management:policy_drift_monitoring' as policy_drift_active %}
+                <a class="sidebar-sublink{{ policy_drift_active }}" href="{% url 'access_management:policy_drift_monitoring' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-radar"></i> Policy Drift Monitor
                 </a>
                 {% nav_active_class 'access_management:access_history_list' 'access_management:user_access_history' 'access_management:system_access_history' 'access_management:assignment_access_history' as access_history_active %}
                 <a class="sidebar-sublink{{ access_history_active }}" href="{% url 'access_management:access_history_list' %}" data-sidebar-close="true">
