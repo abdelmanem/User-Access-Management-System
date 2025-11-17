@@ -139,3 +139,17 @@ class UserPermissionForm(forms.Form):
 
         self.fields['permissions'].label_from_instance = permission_label
 
+
+class UserPhotoForm(forms.ModelForm):
+    """
+    Standalone form to handle profile photo uploads/removals without
+    requiring the full user form.
+    """
+
+    class Meta:
+        model = CustomUser
+        fields = ['profile_photo']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['profile_photo'].required = False
