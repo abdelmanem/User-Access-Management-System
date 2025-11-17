@@ -7,7 +7,12 @@ from django.db.models import Q, F, Value
 from django.db.models.functions import Concat
 from django.utils import timezone
 from .models import CustomUser, UserDeactivationAudit, UserArchive
-from .forms import UserCreateForm, UserUpdateForm, UserPermissionForm
+from .forms import (
+    UserCreateForm,
+    UserUpdateForm,
+    UserPermissionForm,
+    UserPhotoForm,
+)
 from departments.models import Department
 from hardware.models import HardwareAsset
 from urllib.parse import urlencode
