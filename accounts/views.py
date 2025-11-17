@@ -295,6 +295,59 @@ def user_detail(request, pk):
     accesses = UserSystemAccess.objects.filter(user=user).select_related('system').order_by('-created_at')
     return render(request, 'accounts/user_detail.html', {'user': user, 'accesses': accesses})
 
+
+@login_required
+@permission_required('accounts.change_customuser', raise_exception=True)
+def user_photo_update(request, pk):
+    user = get_object_or_404(CustomUser, pk=pk)
+    if request.method != 'POST':
+        messages.error(request, 'Invalid request method for updating profile photos.')
+        return redirect('accounts:user_detail', pk=pk)
+
+    if 'profile_photo' not in request.FILES:
+        messages.error(request, 'Please choose an image to upload.')
+        return redirect('accounts:user_detail', pk=pk)
+
+    form = UserPhotoForm(request.POST, request.FILES, instance=user)
+    if form.is_valid():
+        new_photo = form.cleaned_data.get('profile_photo')
+        if new_photo:
+            if user.profile_photo:
+                user.profile_photo.delete(save=False)
+            user.profile_photo = new_photo
+            user.updated_by = request.user
+            user.save(update_fields=['profile_photo', 'updated_by'])
+            messages.success(request, 'Profile photo updated successfully.')
+        else:
+            messages.error(request, 'No photo was provided.')
+    else:
+        photo_errors = form.errors.get('profile_photo')
+        if photo_errors:
+            messages.error(request, photo_errors[0])
+        else:
+            messages.error(request, 'Unable to update profile photo.')
+    return redirect('accounts:user_detail', pk=pk)
+
+
+@login_required
+@permission_required('accounts.change_customuser', raise_exception=True)
+def user_photo_delete(request, pk):
+    user = get_object_or_404(CustomUser, pk=pk)
+    if request.method != 'POST':
+        messages.error(request, 'Invalid request method for deleting profile photos.')
+        return redirect('accounts:user_detail', pk=pk)
+
+    if user.profile_photo:
+        user.profile_photo.delete(save=False)
+        user.profile_photo = None
+        user.updated_by = request.user
+        user.save(update_fields=['profile_photo', 'updated_by'])
+        messages.success(request, 'Profile photo removed.')
+    else:
+        messages.info(request, 'This user does not have a profile photo to remove.')
+    return redirect('accounts:user_detail', pk=pk)
+
+
 @login_required
 @permission_required('accounts.add_customuser', raise_exception=True)
 def user_create(request):
