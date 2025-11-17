@@ -304,7 +304,11 @@ def access_assignment_create(request):
             
             # Get new fields
             system_username = request.POST.get('system_username', '').strip()
-            access_username = request.POST.get('access_username', '').strip()
+            access_username_raw = request.POST.get('access_username')
+            if access_username_raw is not None:
+                access_username = access_username_raw.strip()
+            else:
+                access_username = None
             is_generic = request.POST.get('is_generic_account') == 'on'
             
             # If system_username is empty but access_username exists, use access_username
@@ -391,7 +395,6 @@ def access_assignment_create(request):
         'requested_access_duration_value': request.POST.get('requested_access_duration', ''),
         'access_start_date_value': request.POST.get('access_start_date', ''),
         'access_end_date_value': request.POST.get('access_end_date', ''),
-        'access_username_value': request.POST.get('access_username', ''),
         'access_url_value': request.POST.get('access_url', ''),
         'granted_access_level_value': request.POST.get('granted_access_level', ''),
         'technical_requirements_value': request.POST.get('technical_requirements', ''),
@@ -422,7 +425,7 @@ def access_assignment_update(request, pk):
         access_start_date = request.POST.get('access_start_date')
         access_end_date = request.POST.get('access_end_date')
         status = request.POST.get('status') or access_assignment.status
-        access_username = request.POST.get('access_username', '').strip()
+        access_username_raw = request.POST.get('access_username')
         system_username = request.POST.get('system_username', '').strip()
         access_url = request.POST.get('access_url')
         granted_access_level = request.POST.get('granted_access_level')
@@ -441,12 +444,15 @@ def access_assignment_update(request, pk):
         
         # If system_username is empty but access_username exists, use access_username
         # This helps migrate legacy data
-        if not system_username and access_username:
-            system_username = access_username
+        if not system_username and access_username_raw:
+            system_username = access_username_raw.strip()
         
         # Convert empty string to None for database consistency
         system_username = system_username if system_username else None
-        access_username = access_username if access_username else None
+        if access_username_raw is None:
+            access_username = access_assignment.access_username
+        else:
+            access_username = access_username_raw.strip() or None
         
         try:
             # Update fields
@@ -534,7 +540,6 @@ def access_assignment_update(request, pk):
             'access_end_date',
             timezone.localtime(access_assignment.access_end_date).strftime('%Y-%m-%dT%H:%M') if access_assignment.access_end_date else ''
         ),
-        'access_username_value': request.POST.get('access_username', access_assignment.access_username or ''),
         # Pre-populate system_username from effective_username if system_username is empty (for legacy data migration)
         'system_username_value': request.POST.get('system_username', access_assignment.effective_username or ''),
         'access_url_value': request.POST.get('access_url', access_assignment.access_url or ''),
