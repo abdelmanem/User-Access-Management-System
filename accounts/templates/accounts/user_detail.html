@@ -39,6 +39,26 @@
                                         <i class="fas fa-user fa-5x text-muted"></i>
                                     </div>
                                 {% endif %}
+                                {% if perms.accounts.change_customuser %}
+                                <div class="mt-3 text-start">
+                                    <form action="{% url 'accounts:user_photo_update' user.id %}" method="post" enctype="multipart/form-data" class="mb-2">
+                                        {% csrf_token %}
+                                        <div class="input-group input-group-sm">
+                                            <input type="file" name="profile_photo" class="form-control form-control-sm" accept="image/png,image/jpeg" required>
+                                            <button type="submit" class="btn btn-primary btn-sm">
+                                                <i class="fas fa-upload"></i> Upload
+                                            </button>
+                                        </div>
+                                        <small class="text-muted d-block mt-1">Allowed formats: JPG/PNG (max 2MB).</small>
+                                    </form>
+                                    <form action="{% url 'accounts:user_photo_delete' user.id %}" method="post">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-outline-danger btn-sm w-100" {% if not user.profile_photo %}disabled{% endif %}>
+                                            <i class="fas fa-trash"></i> Remove Photo
+                                        </button>
+                                    </form>
+                                </div>
+                                {% endif %}
                                 <div class="mt-3">
                                     {% if user.is_active %}
                                         <span class="badge bg-success fs-6 px-3 py-2">
