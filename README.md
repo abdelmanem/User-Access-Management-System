@@ -136,6 +136,10 @@ A comprehensive Django-based web application for managing user access to various
 3. Filter by user, system, or date range
 4. Export history data for analysis
 
+### Policy Drift Monitoring & Notifications
+- Navigate to **Access → Policy Drift Monitor** to review missing usernames, stale reviews, and overlapping accounts. Apply the new filters (system, department, issue type, review window) and download evidence as CSV, Excel, or PDF.
+- Automate quarterly attestations by scheduling `python manage.py send_policy_drift_notifications` (examples in `doc/POLICY_DRIFT_SCHEDULING.md`). Set recipients via `POLICY_DRIFT_NOTIFICATION_RECIPIENTS` or pass `--recipient` flags.
+
 ## Data Import/Export Format
 
 ### Users CSV Format

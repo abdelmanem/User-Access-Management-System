@@ -288,6 +288,55 @@ def export_policy_drift_rows_to_pdf(rows, summary, stale_threshold_days):
     return response
 
 
+def export_policy_drift_rows_to_excel(rows):
+    workbook = Workbook()
+    worksheet = workbook.active
+    worksheet.title = "Policy Drift Snapshot"
+
+    headers = [
+        "Issue Type",
+        "User",
+        "User Login",
+        "Department",
+        "System",
+        "System Code",
+        "External Username",
+        "Status",
+        "Last Review",
+        "Next Review",
+        "Detail",
+        "Assignment ID",
+    ]
+    worksheet.append(headers)
+
+    for row in rows:
+        worksheet.append([
+            row["issue_type"],
+            row["user_name"],
+            row["user_username"],
+            row["department"],
+            row["system_name"],
+            row["system_code"],
+            row["external_username"],
+            row["status"],
+            row["last_review"],
+            row["next_review"],
+            row["detail"],
+            row["assignment_id"],
+        ])
+
+    stream = BytesIO()
+    workbook.save(stream)
+    stream.seek(0)
+
+    response = HttpResponse(
+        stream.getvalue(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="policy_drift_snapshot.xlsx"'
+    return response
+
+
 @login_required
 def access_assignment_list(request):
     """List all access assignments with filtering and search"""
@@ -1243,25 +1292,54 @@ def policy_drift_monitoring(request):
         stale_threshold_days=stale_threshold_days,
     )
 
+    def _get_bool(name, default=True):
+        values = request.GET.getlist(name)
+        if not values:
+            return default
+        return any(value.lower() == 'true' for value in values)
+
+    show_missing = _get_bool('show_missing', True)
+    show_stale = _get_bool('show_stale', True)
+    show_overlapping = _get_bool('show_overlapping', True)
+
     export_format = request.GET.get('export')
+    rows = list(generate_policy_drift_rows(snapshot))
+
+    def filter_rows(row_list):
+        issue_type = row_list.get('issue_type') if isinstance(row_list, dict) else None
+        if issue_type == 'Missing Username' and not show_missing:
+            return False
+        if issue_type == 'Stale Review' and not show_stale:
+            return False
+        if issue_type == 'Overlapping Username' and not show_overlapping:
+            return False
+        return True
+
+    filtered_rows = [row for row in rows if filter_rows(row)]
+
     if export_format in {'csv', 'pdf'}:
-        rows = list(generate_policy_drift_rows(snapshot))
         if export_format == 'csv':
-            return export_policy_drift_rows_to_csv(rows)
-        return export_policy_drift_rows_to_pdf(rows, snapshot['issue_summary'], stale_threshold_days)
+            return export_policy_drift_rows_to_csv(filtered_rows)
+        return export_policy_drift_rows_to_pdf(filtered_rows, snapshot['issue_summary'], stale_threshold_days)
+    if export_format == 'xlsx':
+        return export_policy_drift_rows_to_excel(filtered_rows)
 
     query_params = request.GET.copy()
     query_params.pop('page', None)
     query_params.pop('export', None)
     base_query = query_params.urlencode()
-    csv_link = f"?{base_query}&export=csv" if base_query else "?export=csv"
-    pdf_link = f"?{base_query}&export=pdf" if base_query else "?export=pdf"
+    def _build_export_link(fmt):
+        return f"?{base_query}&export={fmt}" if base_query else f"?export={fmt}"
+
+    csv_link = _build_export_link('csv')
+    pdf_link = _build_export_link('pdf')
+    xlsx_link = _build_export_link('xlsx')
 
     context = {
         'issue_summary': snapshot['issue_summary'],
-        'missing_usernames': snapshot['missing_usernames_qs'].select_related('user', 'system')[:50],
-        'stale_reviews': snapshot['stale_reviews_qs'].select_related('user', 'system')[:50],
-        'overlapping_groups': snapshot['overlapping_groups'].values(),
+        'missing_usernames': snapshot['missing_usernames_qs'].select_related('user', 'system')[:50] if show_missing else [],
+        'stale_reviews': snapshot['stale_reviews_qs'].select_related('user', 'system')[:50] if show_stale else [],
+        'overlapping_groups': snapshot['overlapping_groups'].values() if show_overlapping else [],
         'system_issue_counts': snapshot['system_issue_counts'],
         'systems': System.objects.filter(is_active=True).order_by('name'),
         'departments': Department.objects.filter(is_active=True).order_by('name'),
@@ -1270,6 +1348,9 @@ def policy_drift_monitoring(request):
             'department': department_id_param or '',
             'status_scope': status_scope,
             'stale_threshold': stale_threshold_days,
+            'show_missing': show_missing,
+            'show_stale': show_stale,
+            'show_overlapping': show_overlapping,
         },
         'threshold_options': [30, 60, 90, 120, 180],
         'now': snapshot['now'],
@@ -1277,6 +1358,7 @@ def policy_drift_monitoring(request):
         'export_links': {
             'csv': csv_link,
             'pdf': pdf_link,
+            'xlsx': xlsx_link,
         },
     }
 

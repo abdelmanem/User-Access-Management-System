@@ -29,6 +29,9 @@
                     <a href="{{ export_links.csv }}" class="btn btn-primary">
                         <i class="fa-solid fa-file-csv me-1"></i> Export CSV
                     </a>
+                    <a href="{{ export_links.xlsx }}" class="btn btn-outline-primary">
+                        <i class="fa-solid fa-file-excel me-1"></i> Export Excel
+                    </a>
                     <a href="{{ export_links.pdf }}" class="btn btn-outline-primary">
                         <i class="fa-solid fa-file-pdf me-1"></i> Export PDF
                     </a>
@@ -131,6 +134,37 @@
                         <option value="{{ option }}" {% if option == filters.stale_threshold %}selected{% endif %}>{{ option }} days</option>
                         {% endfor %}
                     </select>
+                </div>
+                <div class="col-12">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                <input type="hidden" name="show_missing" value="false">
+                                <input class="form-check-input" type="checkbox" id="show_missing" name="show_missing" value="true" {% if filters.show_missing %}checked{% endif %}>
+                                <label class="form-check-label" for="show_missing">
+                                    Include Missing Username findings
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                <input type="hidden" name="show_stale" value="false">
+                                <input class="form-check-input" type="checkbox" id="show_stale" name="show_stale" value="true" {% if filters.show_stale %}checked{% endif %}>
+                                <label class="form-check-label" for="show_stale">
+                                    Include Stale Review findings
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                <input type="hidden" name="show_overlapping" value="false">
+                                <input class="form-check-input" type="checkbox" id="show_overlapping" name="show_overlapping" value="true" {% if filters.show_overlapping %}checked{% endif %}>
+                                <label class="form-check-label" for="show_overlapping">
+                                    Include Overlapping Username findings
+                                </label>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="col-12 d-flex gap-2">
                     <button type="submit" class="btn btn-primary">
