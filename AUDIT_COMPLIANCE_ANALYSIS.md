@@ -1,8 +1,8 @@
 # Audit Compliance Analysis
 ## User Access Management System - PCI & RHG Access Control Policy Compliance
 
-**Document Version:** 2.0  
-**Date:** 2025-01-27  
+**Document Version:** 2.1  
+**Date:** 2025-11-17  
 **System:** User-Access-Management-System
 
 ---
@@ -29,12 +29,19 @@ This document analyzes the current User Access Management System's ability to **
 | Audit Question | Coverage Status | Priority |
 |---------------|----------------|----------|
 | 4.1 - User Accounts | ⚠️ **Partial** | **HIGH** |
-| 4.2 - Service/Privileged Accounts | ❌ **Not Covered** | **HIGH** |
+| 4.2 - Service/Privileged Accounts | ⚠️ **Partial** | **HIGH** |
 | 4.3 - Administrator Access Rights | ⚠️ **Partial** | **HIGH** |
 | 4.4 - Change Management Process | ⚠️ **Partial** | **HIGH** |
 | 4.5 - Permission Change Verification | ⚠️ **Partial** | **MEDIUM** |
 | 4.6 - Approved Access Verification | ⚠️ **Partial** | **MEDIUM** |
 | 4.7 - Default Account Management | ❌ **Not Covered** | **HIGH** |
+
+### Progress Since v2.0 (Q1 → Q4 2025)
+- Added system-specific username capture, generic account flagging, and remediation workflow in `UserSystemAccess`
+- Delivered dedicated **Generic Accounts Report** plus remediation UI covering RHG 4.1 evidence
+- Delivered cross-system account mapping matrix (users × systems × usernames) with filtering/export options
+- Shipped **Service Account Management** module (registry, password compliance fields, history tracking, dashboards/exports)
+- Introduced service account compliance analytics and Excel/PDF exports for auditors
 
 **Legend:**
 - ✅ **Fully Covered** - Feature exists and meets requirements
@@ -53,98 +60,27 @@ This document analyzes the current User Access Management System's ability to **
 - Track that password settings in external systems align with RHG Access Control Policy
 - Document compliance across all systems: Active Directory, PMS, POS, Hotel Kit, Keylock system, payment portals, OTA websites, ReviewPro, etc.
 
-#### Current System Coverage
+#### Current System Coverage (November 2025)
 
-✅ **What is Covered:**
-- User account tracking with unique `employee_id` (YYYY-##### format)
-- System access tracking across multiple systems (via `UserSystemAccess` model)
-- User deactivation/archiving functionality
-- Access history and audit trails
-- System management (can define all systems: AD, PMS, POS, etc.)
+✅ **What is Covered Right Now**
+- User account tracking with system-generated unique `employee_id` plus detailed employment metadata.
+- `UserSystemAccess` persists the actual username used in each external system as well as `is_generic_account`, `generic_account_remediated`, `remediation_date`, `remediation_notes`, and `remediated_by`, ensuring every assignment can document remediation evidence.
+- Access request forms warn about generic usernames in real time, using the shared `GENERIC_USERNAME_PATTERNS` list, and every submission stores whether an account is generic or has been remediated.
+- Dedicated **Generic Accounts Report** (`/access-management/generic-accounts/`) provides filtering, remediation workflow, counts by system, and direct links to mark remediation completion—covering the RHG requirement to evidence that generic accounts are identified and retired.
+- The **Cross-System Account Mapping** matrix delivers an employee × system view of usernames (with generic flags and deep links) plus export tooling, satisfying the "single view per employee" audit ask.
+- Access assignments, approvals, and historical actions remain fully logged (AccessHistory), and deactivation/archival flows continue to document removals.
 
-⚠️ **What is Missing for Compliance Tracking:**
-1. **System-Specific Username Tracking:**
-   - Currently tracks that a user has access to a system, but doesn't track:
-     - The actual username used in each external system (e.g., "john.doe" in AD vs "jdoe" in Opera Cloud)
-     - Whether the username in the external system is unique
-     - Whether the username in the external system is generic (needs flag/validation)
+⚠️ **Gaps Remaining for Full 4.1 Evidence**
+1. **Password Policy Evidence per Account:** `UserSystemAccess` still lacks `password_last_changed`, `password_expires_on`, and policy verification fields for employee accounts. Auditors still need proof that passwords in each external system align with RHG policy.
+2. **Uniqueness/Ownership Attestation:** While usernames are captured, there is no place to record who verified uniqueness, when it was last checked, or attach external evidence (screenshots, ticket IDs).
+3. **Policy Drift Monitoring:** There is no alerting/reporting to highlight usernames that have not been reviewed recently, overlap between users, or records missing external usernames (blank entries are still possible).
 
-2. **Generic Account Detection and Documentation:**
-   - No field to flag if an account in an external system is generic
-   - No validation/reporting to identify generic accounts across external systems
-   - No documentation of generic account remediation in external systems
+#### Recommendations (Remaining High-Priority Work)
+1. **Extend `UserSystemAccess` with Password Compliance Metadata:** Add the password tracking fields originally proposed (`password_last_changed`, `password_expires_on`, `password_complies_with_policy`, `password_policy_verified_date/by`) plus UI to capture verification evidence.
+2. **Add Uniqueness Verification Workflow:** Introduce fields such as `username_verified_by`, `username_verified_date`, `verification_artifact` (attachment/URL) and surface them inside the cross-system matrix/export so auditors can see who confirmed uniqueness and when.
+3. **Introduce Review/Exception Reporting:** Add dashboards/reports that list records missing `system_username`, lacking recent verification, or still flagged as generic without remediation, and tie those reports into reminders or quarterly reviews (ties into sections 4.5 and 4.6).
 
-3. **Password Policy Compliance Tracking:**
-   - No tracking of password policy compliance in external systems
-   - No field to document that external system passwords meet RHG policy
-   - No tracking of password last changed dates in external systems
-   - No evidence that external systems enforce password policies
-
-4. **Cross-System Account Mapping:**
-   - No clear mapping showing: Employee → AD Username → Opera Cloud Username → PMS Username, etc.
-   - No single view showing all usernames for one employee across all systems
-
-#### Recommendations
-
-**Priority: HIGH**
-
-1. **Add System-Specific Username Tracking:**
-   ```python
-   # Extend UserSystemAccess model to track actual usernames in external systems
-   class UserSystemAccess(models.Model):
-       # ... existing fields ...
-       system_username = CharField(
-           help_text="Actual username in the external system (e.g., 'john.doe' in AD, 'jdoe' in Opera Cloud)"
-       )
-       is_generic_account = BooleanField(
-           default=False,
-           help_text="Flag if this account in the external system is generic (admin, guest, etc.)"
-       )
-       generic_account_remediated = BooleanField(
-           default=False,
-           help_text="Whether generic account has been replaced with unique account"
-       )
-       remediation_date = DateTimeField(null=True)
-       remediation_notes = TextField(null=True)
-   ```
-
-2. **Add Password Policy Compliance Tracking:**
-   ```python
-   # Extend UserSystemAccess model
-   class UserSystemAccess(models.Model):
-       # ... existing fields ...
-       password_last_changed = DateTimeField(
-           null=True,
-           help_text="Last password change date in the external system"
-       )
-       password_complies_with_policy = BooleanField(
-           default=False,
-           help_text="Documented compliance with RHG password policy in external system"
-       )
-       password_policy_verified_date = DateTimeField(null=True)
-       password_policy_verified_by = ForeignKey(CustomUser, null=True)
-       password_expires_on = DateTimeField(null=True)
-   ```
-
-3. **Create Generic Account Detection and Reporting:**
-   ```python
-   # Utility function to detect generic accounts
-   GENERIC_USERNAME_PATTERNS = [
-       'admin', 'administrator', 'root', 'user', 'test', 'guest',
-       'demo', 'temp', 'service', 'system', 'default'
-   ]
-   
-   def detect_generic_accounts():
-       """Report all generic accounts across external systems"""
-       return UserSystemAccess.objects.filter(
-           system_username__in=GENERIC_USERNAME_PATTERNS
-       )
-   ```
-
-4. **Create Cross-System Account Mapping View:**
-   - Report showing: Employee → All System Usernames
-   - Matrix view: Employee (rows) × Systems (columns) with usernames
-   - Exportable for audit evidence
+These steps keep the new username tracking foundation but close the remaining evidence gaps for RHG 4.1.
 
 ---
 
@@ -158,83 +94,24 @@ This document analyzes the current User Access Management System's ability to **
   - Last password change date (in the external system)
 - Track privileged accounts across all external systems
 
-#### Current System Coverage
+#### Current System Coverage (November 2025)
 
-❌ **What is Missing for Compliance Tracking:**
-1. **Service Account Tracking:**
-   - No model to track service accounts that exist in external systems (AD, Opera Cloud, etc.)
-   - Cannot document service accounts in external systems
-   - No distinction between user accounts and service accounts in external systems
+✅ **What is Covered:**
+- Dedicated `service_accounts` Django app with full CRUD views, forms, navigation entry, and permissions.
+- `ServiceAccount` model tracks account name, external system, account type (Service/Interface/Backup/Privileged), purpose, owner, password last changed/expiry, policy verification, compliance flags, notes, and metadata.
+- `ServiceAccountPasswordHistory` captures each password rotation with verifier, expiration, and compliance flag; the latest entry automatically updates the parent record.
+- List page provides robust filtering (system, account type, compliance, activity), search, ordering, pagination, summary cards, and CSV/Excel export.
+- Compliance report aggregates by system and account type, highlighting non-compliant, expired, and expiring-soon accounts and supporting audit exports.
 
-2. **Service Account Registry:**
-   - No centralized list/documentation of service accounts across external systems
-   - No tracking of service account purposes
-   - No password change tracking for service accounts in external systems
+⚠️ **What is Still Missing:**
+1. **Privileged Account Governance:** Although `account_type` includes "Privileged," there is no attestation workflow, owner approval, or linkage back to administrator accounts (4.3) to prove privileged accounts are limited to IT.
+2. **Rotation Enforcement & Alerts:** No automated reminders/escalations exist for upcoming expirations or overdue password changes; compliance relies on manual review of the report.
+3. **Change/Incident Traceability:** Service accounts are not tied to change tickets, SOP references, or password storage locations (safe/vault references), leaving gaps around accountability and break-glass procedures.
 
-3. **Privileged Account Documentation:**
-   - No separate tracking for privileged accounts in external systems
-   - No flag to identify service vs. user accounts in external systems
-   - No documentation of privileged account password compliance
-
-#### Recommendations
-
-**Priority: HIGH**
-
-1. **Create Service Account Tracking Model:**
-   ```python
-   # New model: accounts/models.py or new app: service_accounts/
-   class ServiceAccount(models.Model):
-       account_name = CharField(
-           help_text="Account name in the external system (e.g., 'svc_backup' in AD)"
-       )
-       system = ForeignKey(System)  # Which external system (AD, Opera Cloud, etc.)
-       account_type = ChoiceField([
-           ('Service', 'Service/Application Account'),
-           ('Interface', 'Interface Account'),
-           ('Backup', 'Backup Account'),
-           ('Privileged', 'Privileged/Admin Account'),
-       ])
-       purpose = TextField(
-           help_text="What it's for - documented purpose of the service account"
-       )
-       owner = ForeignKey(CustomUser, null=True)  # Account owner/manager
-       password_last_changed = DateTimeField(
-           null=True,
-           help_text="Last password change date in the external system"
-       )
-       password_expires_on = DateTimeField(null=True)
-       password_complies_with_policy = BooleanField(
-           default=False,
-           help_text="Documented compliance with RHG password policy"
-       )
-       password_policy_verified_date = DateTimeField(null=True)
-       password_policy_verified_by = ForeignKey(CustomUser, null=True)
-       is_active = BooleanField(default=True)
-       notes = TextField()
-       created_at = DateTimeField(auto_now_add=True)
-       updated_at = DateTimeField(auto_now=True)
-   ```
-
-2. **Create Service Account Registry Interface:**
-   - List view documenting all service accounts across external systems
-   - Filters: by system, type, compliance status
-   - Password change tracking and compliance dashboard
-   - Export functionality for audit reports
-   - Report showing: Account → System → Purpose → Last Password Change → Compliance Status
-
-3. **Add Password Change History Tracking:**
-   ```python
-   class ServiceAccountPasswordHistory(models.Model):
-       service_account = ForeignKey(ServiceAccount)
-       password_changed_date = DateTimeField(
-           help_text="Date password was changed in the external system"
-       )
-       changed_by = ForeignKey(CustomUser, null=True)  # Who documented the change
-       documented_at = DateTimeField(auto_now_add=True)  # When it was documented in this system
-       expires_on = DateTimeField(null=True)
-       complies_with_policy = BooleanField()
-       notes = TextField(null=True)
-   ```
+#### Recommendations (Still High Priority)
+1. **Add Ownership & Review Workflow:** Require owners to attest quarterly to each service/privileged account (status, necessity, storage location) and capture approval timestamps + evidence.
+2. **Implement Rotation Notifications:** Add scheduled jobs/emails/dashboards to surface accounts whose `password_last_changed` or `password_expires_on` values breach policy thresholds.
+3. **Link to Change/SOP Artifacts:** Extend the model with fields for `change_request_id`, `sop_reference`, and `password_storage_location`, and expose them in reports to close the documentation loop.
 
 ---
 
@@ -373,6 +250,7 @@ This document analyzes the current User Access Management System's ability to **
 - System access documentation (`UserSystemAccess` model)
 - Access type tracking (permissions level)
 - System model to define all systems (AD, PMS, POS, etc.)
+- **NEW:** Cross-System Account Mapping matrix/report with filters and export button (employee × system usernames, generic flags, links to assignments)
 
 ⚠️ **What is Missing for Compliance Documentation:**
 1. **Change Management Process Documentation:**
@@ -385,13 +263,11 @@ This document analyzes the current User Access Management System's ability to **
    - No link between user creation and System Owner approval
    - No System Owner signature/approval tracking
 
-3. **User Matrix/Report:**
-   - No dedicated "User Matrix" view showing:
-     - All users
-     - All systems they have access to (with system-specific usernames)
-     - Permissions in each system
-     - Approval status
-   - No exportable user matrix report for auditors
+3. **User Matrix/Report (Enhancements Needed):**
+   - Cross-System mapping view exists but still lacks:
+     - System Owner/business-need approval indicators in the matrix
+     - Embedded evidence for each assignment (attachments, verification timestamps)
+     - Export artifacts tied to reviewer signatures or attestations
 
 4. **Change Request Documentation:**
    - No change request model to document account creation/deletion/modification in external systems
@@ -461,15 +337,10 @@ This document analyzes the current User Access Management System's ability to **
        )
    ```
 
-3. **Create User Matrix View/Report:**
-   - Matrix table: Users (rows) × Systems (columns)
-   - Show in each cell:
-     - System-specific username
-     - Access type/permissions
-     - Approval status
-     - System Owner approval status
-   - Filterable and exportable (CSV, Excel, PDF)
-   - Include all systems: AD, PMS, POS, Opera Cloud, etc.
+3. **Enhance Cross-System Matrix / Export:**
+   - Extend the existing matrix to show approval metadata, business justification, owner sign-off, and last verification timestamp within each cell.
+   - Capture auditor-friendly exports (CSV/Excel/PDF) that embed signature blocks or reviewer declarations.
+   - Provide filters for “missing approval”, “missing username”, “generic but unremediated” to support exception management.
 
 4. **Add SOP Documentation Module:**
    ```python
@@ -880,58 +751,58 @@ This document analyzes the current User Access Management System's ability to **
 
 ## Summary of Required Enhancements
 
-### High Priority (Must Have)
+### Delivered Since v2.0
 
-1. **System-Specific Username Tracking**
-   - Track actual usernames used in each external system (AD, Opera Cloud, PMS, etc.)
-   - Cross-system account mapping (Employee → All System Usernames)
-   - Generic account detection and documentation
+- **System-Specific Username Tracking & Cross-System Mapping** – every access record captures the external username, generic status, remediation data, and now feeds the cross-system matrix and generic-account reports.
+- **Generic Account Prevention Workflow** – real-time validation, reporting, and remediation documentation satisfy the RHG requirement to flag & retire shared IDs.
+- **Service Account Management Module** – registry, password history, compliance dashboards, and exports give auditors visibility into non-human accounts.
 
-2. **Password Policy Compliance Tracking**
+### High Priority (Still Required)
+
+1. **Password Policy Compliance Tracking**
    - Document password policy compliance in external systems
    - Track password last changed dates in external systems
    - Document password expiration in external systems
+   - Capture verifier identity/evidence for each review
 
-3. **Service Account Management Module**
-   - Service account tracking model and registry
-   - Document service accounts in external systems
-   - Password change tracking in external systems
-   - Compliance reporting
-
-4. **Administrator Account Management Module**
+2. **Administrator Account Management Module**
    - Separate admin account tracking in external systems
    - IT Administrator role identification
    - Password storage location documentation
    - Domain admin access tracking
 
-5. **Default Account Management Module**
+3. **Default Account Management Module**
    - Default account tracking across external systems
    - Default account reset/removal documentation
    - System installation integration
 
-6. **Change Management Process Module**
+4. **Change Management Process Module**
    - Change request documentation model
    - System Owner authorization tracking
-   - User matrix report (Users × Systems × Permissions)
+   - Enhanced user matrix export with approvals/attestations
    - SOP documentation system
+
+5. **Service/Privileged Account Governance Enhancements**
+   - Owner attestations, change ticket references, storage location tracking
+   - Notifications for upcoming/overdue rotations
 
 ### Medium Priority (Should Have)
 
-7. **Quarterly Review Module**
+1. **Quarterly Review Module**
    - Quarterly access review process
    - Review logging and tracking
    - System owner confirmation workflow
 
-8. **Monthly Obsolete Account Review**
+2. **Monthly Obsolete Account Review**
    - Obsolete account identification
    - Monthly review process
    - Review logging
 
-9. **Access Approval Verification**
+3. **Access Approval Verification**
    - Automated unapproved access detection
    - Access compliance reporting
 
-10. **Automated Access Removal**
+4. **Automated Access Removal**
     - Integration with employment status changes
     - Automated access expiration
 
@@ -947,16 +818,15 @@ This document analyzes the current User Access Management System's ability to **
    - Add password expiration tracking
    - Create password policy configuration interface
 
-2. **Generic Account Prevention** (Week 1)
-   - Add username validation
-   - Create generic account detection
-   - Add warnings/alerts
+2. **Generic Account Prevention** (Week 1) – ✅ *Delivered (Nov 2025)*
+   - Username validation + warnings (live in access assignment form)
+   - Generic account detection utilities + scheduled reports
+   - Remediation workflow and audit trail
 
-3. **Service Account Module** (Week 2-3)
-   - Create `ServiceAccount` model
-   - Create service account management interface
-   - Add password change tracking
-   - Create compliance reports
+3. **Service Account Module** (Week 2-3) – ✅ *Delivered (Nov 2025)*
+   - `ServiceAccount` model, CRUD UI, and compliance reporting
+   - Password change tracking + history records
+   - Excel/PDF exports and dashboard widgets
 
 4. **Default Account Module** (Week 3-4)
    - Create `DefaultAccount` model
@@ -1041,13 +911,12 @@ This document analyzes the current User Access Management System's ability to **
 
 The current User Access Management System provides a solid foundation for **tracking and documenting** user access across external systems. However, to provide complete **audit evidence** for PCI requirements and RHG Access Control Policy compliance, significant enhancements are required to track and document:
 
-1. **System-Specific Account Tracking** - Track actual usernames in each external system (Critical for 4.1)
-2. **Password Policy Compliance Documentation** - Document that external systems comply with RHG password policies (Critical for 4.1 and 4.2)
-3. **Service Account Management** - Track and document service accounts in external systems (Critical for 4.2)
-4. **Administrator Account Management** - Track admin accounts and password storage in external systems (Critical for 4.3)
-5. **Default Account Management** - Track default account remediation in external systems (Critical for 4.7)
-6. **Change Management Process Documentation** - Document change management process and approvals (Critical for 4.4)
-7. **Review Process Documentation** - Document quarterly and monthly reviews (Important for 4.5 and 4.6)
+1. **System-Specific Account Evidence** – leverage the new username/generic tracking to capture verification timestamps, attachments, and password compliance metadata for each assignment (Critical for 4.1).
+2. **Service & Privileged Account Governance** – build attestation, notification, and linkage to change tickets for the service account module so auditors can see ownership and rotation evidence (Critical for 4.2).
+3. **Administrator Account Management** – introduce dedicated admin-account records, IT-admin role identification, and password storage documentation (Critical for 4.3).
+4. **Default Account Management** – inventory default IDs per system type and document reset/removal actions (Critical for 4.7).
+5. **Change Management Process Documentation** – add formal change request tracking, SOP repository, and enhanced matrix exports to evidence approvals (Critical for 4.4).
+6. **Review Process Documentation** – implement quarterly/ monthly review logs, discrepancy reporting, and automated reminders (Important for 4.5 and 4.6).
 
 The recommended implementation plan spans 12 weeks and prioritizes critical compliance tracking features first, followed by documentation enhancements and review process tracking.
 
