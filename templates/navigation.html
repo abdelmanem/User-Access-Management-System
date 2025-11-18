@@ -238,6 +238,10 @@
     </div>
 
     <div class="sidebar-footer mt-3">
+        <button type="button" id="sidebarCollapseToggle" class="btn btn-outline-light btn-sm sidebar-collapse-toggle" aria-expanded="true">
+            <i class="fa-solid fa-angles-left me-2"></i>
+            <span>Collapse</span>
+        </button>
         <button type="button" id="theme-toggle-btn" class="btn btn-sm theme-toggle-btn" title="Switch Theme" onclick="if(typeof window.toggleTheme === 'function') { window.toggleTheme(); } else { console.error('toggleTheme not available'); } return false;">
             <i class="fa-solid fa-moon me-2"></i>
             <span class="theme-text">Dark Mode</span>
