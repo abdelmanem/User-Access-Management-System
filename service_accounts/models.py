@@ -34,6 +34,20 @@ class ServiceAccount(models.Model):
         default='Service',
         help_text="Type of service account"
     )
+
+    is_privileged = models.BooleanField(
+        default=False,
+        help_text="Marks if this service account should be governed as privileged/admin"
+    )
+
+    admin_user = models.ForeignKey(
+        'accounts.CustomUser',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='linked_service_accounts',
+        help_text="Administrator (4.3) this privileged account maps back to"
+    )
     
     purpose = models.TextField(
         help_text="What it's for - documented purpose of the service account"
@@ -89,6 +103,56 @@ class ServiceAccount(models.Model):
         blank=True,
         null=True,
         help_text="Additional notes about the service account"
+    )
+
+    change_request_id = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Reference to change ticket that established/rotated this account"
+    )
+
+    sop_reference = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Referenced SOP covering this account's use/rotation"
+    )
+
+    password_storage_location = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Location of the password (vault/safe/manager)"
+    )
+
+    last_attested_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Timestamp of latest owner attestation"
+    )
+
+    last_attested_by = models.ForeignKey(
+        'accounts.CustomUser',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='service_account_attestations_made',
+        help_text="Owner/approver who completed the latest attestation"
+    )
+
+    last_attestation_status = models.CharField(
+        max_length=20,
+        choices=[
+            ('Confirmed', 'Confirmed in Use'),
+            ('Pending Removal', 'Pending Removal'),
+            ('Unknown', 'Unknown / Needs Review'),
+        ],
+        default='Unknown',
+        help_text="Outcome of the latest attestation"
+    )
+
+    last_attestation_notes = models.TextField(
+        null=True,
+        blank=True,
+        help_text="Notes collected during last attestation (purpose, storage evidence, etc.)"
     )
     
     # Metadata
@@ -191,6 +255,25 @@ class ServiceAccount(models.Model):
     def get_latest_password_history(self):
         """Get the most recent password change record"""
         return self.password_history.order_by('-password_changed_date').first()
+
+    @property
+    def is_attestation_overdue(self):
+        """Determine if attestation is overdue (>90 days or never attested)."""
+        if not self.is_active:
+            return False
+        if not self.last_attested_at:
+            return True
+        return (timezone.now() - self.last_attested_at).days > 90
+
+    @property
+    def attestation_status_display(self):
+        """Friendly attestation status text."""
+        if not self.last_attested_at:
+            return "Never Attested"
+        suffix = f" ({self.last_attested_at.strftime('%Y-%m-%d')})"
+        if self.is_attestation_overdue:
+            return f"Overdue{suffix}"
+        return f"{self.last_attestation_status}{suffix}"
     
     def clean(self):
         """Validate the model instance"""
@@ -275,3 +358,62 @@ class ServiceAccountPasswordHistory(models.Model):
             return None
         days = (self.expires_on - timezone.now()).days
         return max(0, days) if days >= 0 else None
+
+
+class ServiceAccountAttestation(models.Model):
+    """
+    Tracks quarterly attestations/owner confirmations for service accounts.
+    """
+
+    STATUS_CHOICES = [
+        ('Confirmed', 'Confirmed in Use'),
+        ('Pending Removal', 'Pending Removal'),
+        ('Unknown', 'Unknown / Needs Review'),
+    ]
+
+    service_account = models.ForeignKey(
+        ServiceAccount,
+        on_delete=models.CASCADE,
+        related_name='attestations',
+        help_text="Service account being attested"
+    )
+
+    attested_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text="When the attestation was captured"
+    )
+
+    attested_by = models.ForeignKey(
+        'accounts.CustomUser',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text="Who attested/approved"
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='Confirmed',
+        help_text="Attestation result"
+    )
+
+    storage_location = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Password storage location confirmed during attestation"
+    )
+
+    notes = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Additional evidence or commentary"
+    )
+
+    class Meta:
+        verbose_name = 'Service Account Attestation'
+        verbose_name_plural = 'Service Account Attestations'
+        ordering = ['-attested_at']
+
+    def __str__(self):
+        return f"{self.service_account.account_name} attested {self.attested_at:%Y-%m-%d}"

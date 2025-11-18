@@ -10,6 +10,7 @@ urlpatterns = [
     path('<int:pk>/', views.service_account_detail, name='service_account_detail'),
     path('<int:pk>/update/', views.service_account_update, name='service_account_update'),
     path('<int:pk>/delete/', views.service_account_delete, name='service_account_delete'),
+    path('<int:pk>/attest/', views.service_account_attest, name='service_account_attest'),
     
     # Password History
     path('<int:pk>/password-history/add/', views.service_account_password_history_add, name='service_account_password_history_add'),

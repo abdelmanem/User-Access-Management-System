@@ -1,6 +1,10 @@
 from django import forms
 from django.utils import timezone
-from .models import ServiceAccount, ServiceAccountPasswordHistory
+from .models import (
+    ServiceAccount,
+    ServiceAccountPasswordHistory,
+    ServiceAccountAttestation,
+)
 from systems.models import System
 from accounts.models import CustomUser
 
@@ -14,6 +18,8 @@ class ServiceAccountForm(forms.ModelForm):
             'account_name',
             'system',
             'account_type',
+            'is_privileged',
+            'admin_user',
             'purpose',
             'owner',
             'password_last_changed',
@@ -21,6 +27,9 @@ class ServiceAccountForm(forms.ModelForm):
             'password_complies_with_policy',
             'password_policy_verified_date',
             'password_policy_verified_by',
+            'change_request_id',
+            'sop_reference',
+            'password_storage_location',
             'is_active',
             'notes',
         ]
@@ -31,6 +40,8 @@ class ServiceAccountForm(forms.ModelForm):
             }),
             'system': forms.Select(attrs={'class': 'form-select'}),
             'account_type': forms.Select(attrs={'class': 'form-select'}),
+            'is_privileged': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'admin_user': forms.Select(attrs={'class': 'form-select'}),
             'purpose': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 4,
@@ -53,6 +64,18 @@ class ServiceAccountForm(forms.ModelForm):
                 'class': 'form-control'
             }),
             'password_policy_verified_by': forms.Select(attrs={'class': 'form-select'}),
+            'change_request_id': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'CHG-12345'
+            }),
+            'sop_reference': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'SOP-ACCESS-001'
+            }),
+            'password_storage_location': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Vault path / safe location'
+            }),
             'is_active': forms.CheckboxInput(attrs={
                 'class': 'form-check-input'
             }),
@@ -67,12 +90,15 @@ class ServiceAccountForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # Filter to active systems only
         self.fields['system'].queryset = System.objects.filter(is_active=True).order_by('name')
-        self.fields['owner'].queryset = CustomUser.objects.filter(is_active=True).order_by('first_name', 'last_name')
-        self.fields['password_policy_verified_by'].queryset = CustomUser.objects.filter(is_active=True).order_by('first_name', 'last_name')
+        active_users = CustomUser.objects.filter(is_active=True).order_by('first_name', 'last_name')
+        self.fields['owner'].queryset = active_users
+        self.fields['password_policy_verified_by'].queryset = active_users
+        self.fields['admin_user'].queryset = active_users
         
         # Make owner and verified_by optional
         self.fields['owner'].required = False
         self.fields['password_policy_verified_by'].required = False
+        self.fields['admin_user'].required = False
         self.fields['password_last_changed'].required = False
         self.fields['password_expires_on'].required = False
         self.fields['password_policy_verified_date'].required = False
@@ -125,4 +151,29 @@ class ServiceAccountPasswordHistoryForm(forms.ModelForm):
         if commit:
             instance.save()
         return instance
+
+
+class ServiceAccountAttestationForm(forms.ModelForm):
+    """Form for capturing owner attestations."""
+
+    class Meta:
+        model = ServiceAccountAttestation
+        fields = ['status', 'storage_location', 'notes']
+        widgets = {
+            'status': forms.Select(attrs={'class': 'form-select'}),
+            'storage_location': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Vault path / safe / password manager reference'
+            }),
+            'notes': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Attestation notes, evidence, change ticket, etc.'
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['storage_location'].required = False
+        self.fields['notes'].required = False
 

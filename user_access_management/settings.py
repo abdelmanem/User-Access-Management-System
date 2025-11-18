@@ -210,8 +210,15 @@ LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'dashboard_home'
 LOGOUT_REDIRECT_URL = 'accounts:login'
 
-# Email Backend for development
+# Email settings
+# For production, configure real SMTP in environment variables.
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='no-reply@user-access-management.local')
+ADMINS = config(
+    'ADMINS',
+    default='IT Security <it.security@example.com>',
+    cast=lambda v: [tuple(part.strip().rsplit(' ', 1)) for part in [v] if v],
+)
 
 # Security hardening when not in DEBUG
 if not DEBUG:

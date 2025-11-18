@@ -10,8 +10,16 @@ from io import BytesIO
 from openpyxl import Workbook
 
 from django import forms
-from .models import ServiceAccount, ServiceAccountPasswordHistory
-from .forms import ServiceAccountForm, ServiceAccountPasswordHistoryForm
+from .models import (
+    ServiceAccount,
+    ServiceAccountPasswordHistory,
+    ServiceAccountAttestation,
+)
+from .forms import (
+    ServiceAccountForm,
+    ServiceAccountPasswordHistoryForm,
+    ServiceAccountAttestationForm,
+)
 from systems.models import System
 from accounts.models import CustomUser
 
@@ -19,7 +27,13 @@ from accounts.models import CustomUser
 @login_required
 def service_account_list(request):
     """List all service accounts with filtering and search"""
-    service_accounts = ServiceAccount.objects.select_related('system', 'owner', 'password_policy_verified_by').all()
+    service_accounts = ServiceAccount.objects.select_related(
+        'system',
+        'owner',
+        'password_policy_verified_by',
+        'admin_user',
+        'last_attested_by',
+    ).all()
     
     # Search functionality
     search_query = request.GET.get('search', '')
@@ -64,6 +78,23 @@ def service_account_list(request):
             password_expires_on__gt=timezone.now()
         )
     
+    # Governance filter (attestation/privileged)
+    governance_filter = request.GET.get('governance', '')
+    if governance_filter == 'privileged':
+        service_accounts = service_accounts.filter(is_privileged=True)
+    elif governance_filter == 'attestation_overdue':
+        ninety_days_ago = timezone.now() - timedelta(days=90)
+        service_accounts = service_accounts.filter(
+            Q(last_attested_at__lt=ninety_days_ago) | Q(last_attested_at__isnull=True),
+            is_active=True,
+        )
+    elif governance_filter == 'missing_change_refs':
+        service_accounts = service_accounts.filter(
+            Q(change_request_id__exact='') |
+            Q(sop_reference__exact='') |
+            Q(password_storage_location__exact='')
+        )
+
     # Filter by active status
     active_filter = request.GET.get('active', '')
     if active_filter == 'true':
@@ -81,14 +112,19 @@ def service_account_list(request):
     page_obj = paginator.get_page(page_number)
     
     # Statistics
-    total_count = ServiceAccount.objects.count()
-    active_count = ServiceAccount.objects.filter(is_active=True).count()
-    compliant_count = ServiceAccount.objects.filter(
+    total_qs = ServiceAccount.objects.all()
+    total_count = total_qs.count()
+    active_count = total_qs.filter(is_active=True).count()
+    compliant_count = total_qs.filter(
         password_complies_with_policy=True,
         password_policy_verified_date__isnull=False
     ).count()
-    expired_count = ServiceAccount.objects.filter(
-        password_expires_on__lt=timezone.now()
+    expired_count = total_qs.filter(password_expires_on__lt=timezone.now()).count()
+    privileged_count = total_qs.filter(is_privileged=True, is_active=True).count()
+    attestation_overdue_count = total_qs.filter(
+        Q(last_attested_at__isnull=True) |
+        Q(last_attested_at__lt=timezone.now() - timedelta(days=90)),
+        is_active=True,
     ).count()
     
     # Get all systems for filter dropdown
@@ -107,7 +143,10 @@ def service_account_list(request):
         'account_type_filter': account_type_filter,
         'compliance_filter': compliance_filter,
         'active_filter': active_filter,
+        'governance_filter': governance_filter,
         'ordering': ordering,
+        'privileged_count': privileged_count,
+        'attestation_overdue_count': attestation_overdue_count,
     }
     return render(request, 'service_accounts/service_account_list.html', context)
 
@@ -116,16 +155,28 @@ def service_account_list(request):
 def service_account_detail(request, pk):
     """View service account details"""
     service_account = get_object_or_404(
-        ServiceAccount.objects.select_related('system', 'owner', 'password_policy_verified_by', 'created_by', 'updated_by'),
+        ServiceAccount.objects.select_related(
+            'system',
+            'owner',
+            'password_policy_verified_by',
+            'created_by',
+            'updated_by',
+            'admin_user',
+            'last_attested_by',
+        ),
         pk=pk
     )
     
     # Get password history
     password_history = service_account.password_history.select_related('changed_by').order_by('-password_changed_date')[:10]
     
+    attestations = service_account.attestations.select_related('attested_by').order_by('-attested_at')[:10]
+
     context = {
         'service_account': service_account,
         'password_history': password_history,
+        'attestations': attestations,
+        'attestation_form': ServiceAccountAttestationForm(),
     }
     return render(request, 'service_accounts/service_account_detail.html', context)
 
@@ -236,9 +287,52 @@ def service_account_password_history_add(request, pk):
 
 
 @login_required
+def service_account_attest(request, pk):
+    """Capture an attestation for a service/privileged account."""
+    service_account = get_object_or_404(ServiceAccount, pk=pk)
+
+    if request.method == 'POST':
+        form = ServiceAccountAttestationForm(request.POST)
+        if form.is_valid():
+            attestation = form.save(commit=False)
+            attestation.service_account = service_account
+            attestation.attested_by = request.user
+            attestation.save()
+
+            service_account.last_attested_at = attestation.attested_at
+            service_account.last_attested_by = request.user
+            service_account.last_attestation_status = attestation.status
+            service_account.last_attestation_notes = attestation.notes
+            if attestation.storage_location:
+                service_account.password_storage_location = attestation.storage_location
+            service_account.updated_by = request.user
+            service_account.save()
+
+            messages.success(request, 'Attestation recorded successfully.')
+            return redirect('service_accounts:service_account_detail', pk=pk)
+        messages.error(request, 'Please correct the errors below.')
+    else:
+        form = ServiceAccountAttestationForm(initial={
+            'status': 'Confirmed',
+            'storage_location': service_account.password_storage_location,
+        })
+
+    return render(request, 'service_accounts/service_account_attest.html', {
+        'form': form,
+        'service_account': service_account,
+    })
+
+
+@login_required
 def service_account_compliance_report(request):
     """Generate compliance report for service accounts"""
-    service_accounts = ServiceAccount.objects.select_related('system', 'owner', 'password_policy_verified_by').all()
+    service_accounts = ServiceAccount.objects.select_related(
+        'system',
+        'owner',
+        'password_policy_verified_by',
+        'admin_user',
+        'last_attested_by',
+    ).all()
     
     # Statistics
     total = service_accounts.count()
@@ -295,6 +389,8 @@ def export_service_accounts_to_excel(request):
         "Account Name",
         "System",
         "Account Type",
+        "Privileged",
+        "Admin User",
         "Purpose",
         "Owner",
         "Password Last Changed",
@@ -302,6 +398,11 @@ def export_service_accounts_to_excel(request):
         "Password Complies with Policy",
         "Policy Verified Date",
         "Policy Verified By",
+        "Change Request ID",
+        "SOP Reference",
+        "Password Storage Location",
+        "Last Attested",
+        "Last Attestation Status",
         "Is Active",
         "Compliance Status",
         "Created At",
@@ -314,6 +415,8 @@ def export_service_accounts_to_excel(request):
             account.account_name,
             account.system.name if account.system else '',
             account.get_account_type_display(),
+            'Yes' if account.is_privileged else 'No',
+            account.admin_user.full_name if account.admin_user else '',
             account.purpose,
             account.owner.full_name if account.owner else '',
             account.password_last_changed.strftime('%Y-%m-%d %H:%M') if account.password_last_changed else '',
@@ -321,6 +424,11 @@ def export_service_accounts_to_excel(request):
             'Yes' if account.password_complies_with_policy else 'No',
             account.password_policy_verified_date.strftime('%Y-%m-%d %H:%M') if account.password_policy_verified_date else '',
             account.password_policy_verified_by.full_name if account.password_policy_verified_by else '',
+            account.change_request_id,
+            account.sop_reference,
+            account.password_storage_location,
+            account.last_attested_at.strftime('%Y-%m-%d %H:%M') if account.last_attested_at else '',
+            account.last_attestation_status,
             'Yes' if account.is_active else 'No',
             account.compliance_status,
             account.created_at.strftime('%Y-%m-%d %H:%M'),
