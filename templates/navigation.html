@@ -91,6 +91,29 @@
                 </a>
             </div>
 
+            {% nav_active_class 'default_accounts:default_account_*' 'default_accounts:default_account_dashboard' 'default_accounts:default_account_detail' 'default_accounts:default_account_update' 'default_accounts:default_account_templates' 'default_accounts:default_account_create' as default_accounts_active %}
+            <button class="sidebar-link{{ default_accounts_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarDefaultAccounts" aria-expanded="false" aria-controls="sidebarDefaultAccounts">
+                <span><i class="fa-solid fa-user-lock"></i> Default Accounts (4.7)</span>
+                <i class="fa-solid fa-angle-down collapse-arrow"></i>
+            </button>
+            <div class="collapse sidebar-submenu" id="sidebarDefaultAccounts" data-bs-parent="#sidebarNav">
+                {% nav_active_class 'default_accounts:default_account_dashboard' 'default_accounts:default_account_detail' 'default_accounts:default_account_update' as default_accounts_list_active %}
+                <a class="sidebar-sublink{{ default_accounts_list_active }}" href="{% url 'default_accounts:default_account_dashboard' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-list"></i> Registry & Dashboard
+                </a>
+                {% nav_active_class 'default_accounts:default_account_create' as default_accounts_create_active %}
+                <a class="sidebar-sublink{{ default_accounts_create_active }}" href="{% url 'default_accounts:default_account_create' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-plus"></i> Add Default Account
+                </a>
+                {% nav_active_class 'default_accounts:default_account_templates' as default_accounts_templates_active %}
+                <a class="sidebar-sublink{{ default_accounts_templates_active }}" href="{% url 'default_accounts:default_account_templates' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-layer-group"></i> Template Registry
+                </a>
+                <a class="sidebar-sublink" href="{% url 'default_accounts:default_account_export' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-file-export"></i> Export Evidence
+                </a>
+            </div>
+
             {% nav_active_class 'service_accounts:service_account_*' 'service_accounts:service_account_list' 'service_accounts:service_account_detail' 'service_accounts:service_account_update' 'service_accounts:service_account_delete' 'service_accounts:service_account_create' 'service_accounts:service_account_compliance_report' as svc_active %}
             <button class="sidebar-link{{ svc_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarServiceAccounts" aria-expanded="false" aria-controls="sidebarServiceAccounts">
                 <span><i class="fa-solid fa-user-shield"></i> Service Accounts</span>

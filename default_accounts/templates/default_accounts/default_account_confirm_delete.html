@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Default Account{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        <h1 class="h4">Delete Default Account</h1>
+        <p>Are you sure you want to remove <strong>{{ account.account_name }}</strong> from the registry for system <strong>{{ account.system.name }}</strong>?</p>
+        <p class="text-muted small mb-4">This action removes evidence tracking for this account. Only use when added by mistake.</p>
+        <form method="post">
+            {% csrf_token %}
+            <div class="d-flex gap-2">
+                <a href="{% url 'default_accounts:default_account_detail' account.pk %}" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-danger"><i class="fa-solid fa-trash me-2"></i>Delete</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

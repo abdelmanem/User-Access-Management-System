@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Default Account Registry · RHG 4.7{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Default Account Registry (RHG 4.7)</h1>
+        <p class="mb-0 text-muted">
+            Track removal or password resets for factory / default credentials across every external system.
+        </p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'default_accounts:default_account_create' %}" class="btn btn-primary">
+            <i class="fa-solid fa-plus me-2"></i>New Default Account
+        </a>
+        <a href="{% url 'default_accounts:default_account_export' %}" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-file-excel me-2"></i>Export Evidence
+        </a>
+        <a href="{% url 'default_accounts:default_account_templates' %}" class="btn btn-outline-info">
+            <i class="fa-solid fa-layer-group me-2"></i>Template Registry ({{ template_count }})
+        </a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-2 col-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <p class="text-muted small mb-1">Total Accounts</p>
+                <h4 class="mb-0">{{ stats.total }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 col-6">
+        <div class="card shadow-sm border-0 h-100 border-warning">
+            <div class="card-body">
+                <p class="text-muted small mb-1">Pending Reset/Removal</p>
+                <h4 class="mb-0 text-warning">{{ stats.pending }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 col-6">
+        <div class="card shadow-sm border-0 h-100 border-info">
+            <div class="card-body">
+                <p class="text-muted small mb-1">Password Changed</p>
+                <h4 class="mb-0 text-info">{{ stats.password_changed }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 col-6">
+        <div class="card shadow-sm border-0 h-100 border-success">
+            <div class="card-body">
+                <p class="text-muted small mb-1">Removed</p>
+                <h4 class="mb-0 text-success">{{ stats.removed }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 col-6">
+        <div class="card shadow-sm border-0 h-100 border-secondary">
+            <div class="card-body">
+                <p class="text-muted small mb-1">Documented N/A</p>
+                <h4 class="mb-0 text-secondary">{{ stats.not_applicable }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 col-6">
+        <div class="card shadow-sm border-0 h-100 border-danger">
+            <div class="card-body">
+                <p class="text-muted small mb-1">Needs Attention</p>
+                <h4 class="mb-0 text-danger">{{ stats.needs_attention }}</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <form class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Search</label>
+                <input type="text" class="form-control" name="search" value="{{ search_query }}" placeholder="Account name, system, ticket #">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">System</label>
+                <select name="system" class="form-select">
+                    <option value="">All Systems</option>
+                    {% for system in systems %}
+                        <option value="{{ system.id }}" {% if system_filter|default:'' == system.id|stringformat:'s' %}selected{% endif %}>
+                            {{ system.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All</option>
+                    {% for key, label in status_choices %}
+                        <option value="{{ key }}" {% if status_filter == key %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Account Type</label>
+                <select name="account_type" class="form-select">
+                    <option value="">All</option>
+                    {% for key, label in account_type_choices %}
+                        <option value="{{ key }}" {% if account_type_filter == key %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Quick Filter</label>
+                <select name="attention" class="form-select">
+                    <option value="">--</option>
+                    <option value="needs_action" {% if attention_filter == 'needs_action' %}selected{% endif %}>Needs Action</option>
+                    <option value="rhg_special" {% if attention_filter == 'rhg_special' %}selected{% endif %}>RHG Accounts</option>
+                    <option value="hosted_na" {% if attention_filter == 'hosted_na' %}selected{% endif %}>Hosted / N/A</option>
+                </select>
+            </div>
+            <div class="col-md-12 d-flex gap-2">
+                <button class="btn btn-primary" type="submit"><i class="fa-solid fa-filter me-2"></i>Filter</button>
+                <a href="{% url 'default_accounts:default_account_dashboard' %}" class="btn btn-outline-secondary">Reset</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0 table-responsive">
+        <table class="table table-striped mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>System</th>
+                    <th>Account</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Removal Required</th>
+                    <th>Password Changed</th>
+                    <th>Removal</th>
+                    <th>Last Verified</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if accounts %}
+                    {% for account in accounts %}
+                        <tr class="{% if account.requires_follow_up %}table-warning{% endif %}">
+                            <td>
+                                <strong>{{ account.system.name }}</strong><br>
+                                <small class="text-muted">{{ account.system.system_type }}</small>
+                            </td>
+                            <td>
+                                <div class="fw-semibold">{{ account.account_name }}</div>
+                                {% if account.is_rhg_special_account %}
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle mt-1">RHG Legacy</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ account.get_account_type_display }}</td>
+                            <td>
+                                <span class="badge bg-{{ account.compliance_label }}">
+                                    {{ account.get_status_display }}
+                                </span>
+                                {% if account.hosted_not_applicable_reason %}
+                                    <br><small class="text-muted">{{ account.hosted_not_applicable_reason }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if account.removal_required %}
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Required</span>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Optional</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if account.password_changed_in_external_system %}
+                                    <span class="badge bg-success">Changed</span><br>
+                                    <small class="text-muted">{{ account.password_changed_date|date:"Y-m-d" }}</small>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if account.removed_from_external_system %}
+                                    <span class="badge bg-success">Removed</span><br>
+                                    <small class="text-muted">{{ account.removal_date|date:"Y-m-d" }}</small>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">Outstanding</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if account.last_verified_date %}
+                                    {{ account.last_verified_date|date:"Y-m-d" }}<br>
+                                    <small class="text-muted">{{ account.last_verified_by }}</small>
+                                {% else %}
+                                    <span class="text-muted">Not logged</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group">
+                                    <a href="{% url 'default_accounts:default_account_detail' account.pk %}" class="btn btn-sm btn-outline-primary">
+                                        Details
+                                    </a>
+                                    <a href="{% url 'default_accounts:default_account_log_action' account.pk %}" class="btn btn-sm btn-outline-secondary">
+                                        Log Action
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="9" class="text-center py-4">
+                            <p class="mb-1">No default accounts match this filter.</p>
+                            <p class="text-muted small mb-0">Add accounts manually or run the seed action from the Systems menu.</p>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card-body">
+        {% if accounts.has_other_pages %}
+            <nav aria-label="Pagination">
+                <ul class="pagination mb-0">
+                    {% if accounts.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ accounts.previous_page_number }}{% if query_string %}&{{ query_string }}{% endif %}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+                    {% endif %}
+                    {% for page_num in accounts.paginator.page_range %}
+                        {% if page_num == accounts.number %}
+                            <li class="page-item active"><span class="page-link">{{ page_num }}</span></li>
+                        {% else %}
+                            <li class="page-item"><a class="page-link" href="?page={{ page_num }}{% if query_string %}&{{ query_string }}{% endif %}">{{ page_num }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                    {% if accounts.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ accounts.next_page_number }}{% if query_string %}&{{ query_string }}{% endif %}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    </div>
+</div>
+
+<div class="alert alert-info border-0 shadow-sm mt-4">
+    <div class="d-flex gap-3">
+        <i class="fa-solid fa-circle-info fa-2x"></i>
+        <div>
+            <h5 class="mb-1">Evidence Expectations (PCI/RHG 4.7)</h5>
+            <ul class="mb-0">
+                <li>Document password changes or removals for factory/default accounts in every external system.</li>
+                <li>Capture remediation notes, ticket numbers, and verifier details for each action.</li>
+                <li>Use the <strong>Template Registry</strong> to define default accounts that should be auto-tracked whenever a new system is added.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

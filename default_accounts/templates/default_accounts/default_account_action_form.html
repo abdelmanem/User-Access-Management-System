@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Log Action · {{ account.account_name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+    <div>
+        <a href="{% url 'default_accounts:default_account_detail' account.pk %}" class="text-decoration-none text-muted">
+            <i class="fa-solid fa-arrow-left me-1"></i> Back to {{ account.account_name }}
+        </a>
+        <h1 class="h4 mb-0">Log Action</h1>
+        <p class="mb-0 text-muted">Capture password reset, removal, or documentation events for this default account.</p>
+    </div>
+</div>
+
+<form method="post" class="card shadow-sm border-0">
+    {% csrf_token %}
+    <div class="card-body">
+        {% if form.errors %}
+            <div class="alert alert-danger">
+                Please correct the highlighted fields.
+            </div>
+        {% endif %}
+        <div class="row g-3">
+            {% for field in form %}
+                <div class="col-md-6">
+                    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                    {% endif %}
+                    {% if field.errors %}
+                        <div class="invalid-feedback d-block">{{ field.errors|striptags }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="card-footer d-flex justify-content-between">
+        <a href="{% url 'default_accounts:default_account_detail' account.pk %}" class="btn btn-link text-decoration-none">Cancel</a>
+        <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-check me-2"></i>Log Action
+        </button>
+    </div>
+</form>
+{% endblock %}
+

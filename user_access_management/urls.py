@@ -34,6 +34,7 @@ urlpatterns = [
     path('change-management/', include('change_management.urls')),
     path('hardware/', include('hardware.urls')),
     path('service-accounts/', include('service_accounts.urls')),
+    path('default-accounts/', include('default_accounts.urls')),
     path('search/', include('search.urls')),
     path('data-import-export/', include('data_import_export.urls')),
     path('healthz/', lambda request: JsonResponse({

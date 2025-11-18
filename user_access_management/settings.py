@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'data_import_export',
     'hardware',
     'service_accounts',
+    'default_accounts',
     'change_management',
     'documentation',
 ]

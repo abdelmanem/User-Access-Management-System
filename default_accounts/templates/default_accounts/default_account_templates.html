@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Default Account Templates{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <a href="{% url 'default_accounts:default_account_dashboard' %}" class="text-decoration-none text-muted">
+            <i class="fa-solid fa-arrow-left me-1"></i> Back to Registry
+        </a>
+        <h1 class="h3 mb-0">Template Registry</h1>
+        <p class="mb-0 text-muted">Baseline list of default accounts automatically tracked whenever a new system is added.</p>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <p class="text-muted small mb-1">Templates</p>
+                <h4 class="mb-0">{{ template_stats.total|default:0 }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <p class="text-muted small mb-1">Global Templates</p>
+                <h4 class="mb-0">{{ template_stats.global_templates|default:0 }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <p class="text-muted small mb-1">RHG Special Accounts</p>
+                <h4 class="mb-0 text-danger">{{ template_stats.rhg|default:0 }}</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-0 table-responsive">
+                <table class="table table-striped mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>System Type</th>
+                            <th>Account</th>
+                            <th>Account Type</th>
+                            <th>Removal Required</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for template in templates %}
+                            <tr>
+                                <td>
+                                    <strong>{{ template.system_type }}</strong><br>
+                                    {% if template.applies_to_all %}
+                                        <span class="badge bg-info-subtle text-info border border-info-subtle mt-1">Applies to all systems</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {{ template.account_name }}
+                                    {% if template.rhg_special_account %}
+                                        <span class="badge bg-danger ms-1">RHG Legacy</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ template.get_account_type_display }}</td>
+                                <td>
+                                    {% if template.removal_required %}
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Yes</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Optional</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ template.get_default_status_display }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">No templates defined.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card shadow-sm border-0">
+            <div class="card-header">
+                <h5 class="mb-0">Add / Update Template</h5>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="card-body">
+                    {% if form.errors %}
+                        <div class="alert alert-danger">Please correct the errors below.</div>
+                    {% endif %}
+                    {% for field in form %}
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}
+                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                            {% endif %}
+                            {% if field.errors %}
+                                <div class="invalid-feedback d-block">{{ field.errors|striptags }}</div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="card-footer text-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-save me-2"></i>Save Template
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

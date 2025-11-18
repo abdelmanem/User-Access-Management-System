@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}{{ account.account_name }} · Default Account{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+        <a href="{% url 'default_accounts:default_account_dashboard' %}" class="text-decoration-none text-muted">
+            <i class="fa-solid fa-arrow-left me-1"></i> Back to Registry
+        </a>
+        <h1 class="h3 mb-0">{{ account.account_name }} <small class="text-muted">({{ account.system.name }})</small></h1>
+        <p class="mb-0 text-muted">System Type: {{ account.system.system_type }}</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'default_accounts:default_account_update' account.pk %}" class="btn btn-outline-primary">
+            <i class="fa-solid fa-pen me-2"></i>Edit
+        </a>
+        <a href="{% url 'default_accounts:default_account_log_action' account.pk %}" class="btn btn-primary">
+            <i class="fa-solid fa-wrench me-2"></i>Log Action
+        </a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <p class="text-muted small mb-1">Status</p>
+                <span class="badge bg-{{ account.compliance_label }}">{{ account.get_status_display }}</span>
+                {% if account.requires_follow_up %}
+                    <p class="mt-2 mb-0 text-warning"><i class="fa-solid fa-circle-exclamation me-1"></i>Follow-up required</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <p class="text-muted small mb-1">Password Change Evidence</p>
+                {% if account.password_changed_in_external_system %}
+                    <strong>{{ account.password_changed_date|date:"Y-m-d" }}</strong><br>
+                    <small class="text-muted">By {{ account.password_changed_by|default:"Unknown" }}</small>
+                {% else %}
+                    <span class="text-warning">Not documented</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <p class="text-muted small mb-1">Removal Evidence</p>
+                {% if account.removed_from_external_system %}
+                    <strong>{{ account.removal_date|date:"Y-m-d" }}</strong><br>
+                    <small class="text-muted">By {{ account.removal_confirmed_by|default:"Unknown" }}</small>
+                {% else %}
+                    <span class="text-warning">Not documented</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <p class="text-muted small mb-1">Last Verification</p>
+                {% if account.last_verified_date %}
+                    <strong>{{ account.last_verified_date|date:"Y-m-d" }}</strong><br>
+                    <small class="text-muted">By {{ account.last_verified_by|default:"Unknown" }}</small>
+                {% else %}
+                    <span class="text-muted">No verification logged</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <h5>Remediation Details</h5>
+        <dl class="row mb-0">
+            <dt class="col-md-3">Account Type</dt>
+            <dd class="col-md-9">{{ account.get_account_type_display }}</dd>
+
+            <dt class="col-md-3">Removal Required</dt>
+            <dd class="col-md-9">
+                {% if account.removal_required %}
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Yes</span>
+                {% else %}
+                    <span class="badge bg-secondary">Optional / Document</span>
+                {% endif %}
+            </dd>
+
+            {% if account.hosted_not_applicable_reason %}
+                <dt class="col-md-3">Hosted / N/A Reason</dt>
+                <dd class="col-md-9">{{ account.hosted_not_applicable_reason }}</dd>
+            {% endif %}
+
+            {% if account.password_change_reference %}
+                <dt class="col-md-3">Password Change Reference</dt>
+                <dd class="col-md-9"><code>{{ account.password_change_reference }}</code></dd>
+            {% endif %}
+
+            {% if account.removal_reference %}
+                <dt class="col-md-3">Removal Reference</dt>
+                <dd class="col-md-9"><code>{{ account.removal_reference }}</code></dd>
+            {% endif %}
+
+            {% if account.installation_checklist_completed %}
+                <dt class="col-md-3">Installation Checklist</dt>
+                <dd class="col-md-9">
+                    Completed {{ account.installation_checklist_completed_date|date:"Y-m-d" }}
+                    by {{ account.installation_documented_by|default:"Unknown" }}
+                </dd>
+            {% endif %}
+
+            {% if account.remediation_notes %}
+                <dt class="col-md-3">Remediation Notes</dt>
+                <dd class="col-md-9">
+                    <div class="bg-light border rounded p-2 small">{{ account.remediation_notes|linebreaksbr }}</div>
+                </dd>
+            {% endif %}
+        </dl>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Action Log</h5>
+        <a href="{% url 'default_accounts:default_account_log_action' account.pk %}" class="btn btn-sm btn-outline-secondary">
+            <i class="fa-solid fa-plus me-1"></i>Log Action
+        </a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Action</th>
+                        <th>Performed By</th>
+                        <th>Evidence</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if actions %}
+                        {% for action in actions %}
+                            <tr>
+                                <td>{{ action.action_date|date:"Y-m-d H:i" }}</td>
+                                <td>{{ action.get_action_type_display }}</td>
+                                <td>{{ action.performed_by|default:"-" }}</td>
+                                <td>{{ action.evidence_reference|default:"-" }}</td>
+                                <td>{{ action.notes|default:"-" }}</td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted">No actions logged yet.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
