@@ -170,6 +170,35 @@ class UserSystemAccess(models.Model):
         null=True,
         help_text="Actual username in the external system (e.g., 'john.doe' in AD, 'jdoe' in Opera Cloud)"
     )
+
+    # Username uniqueness verification metadata
+    username_verified_by = models.ForeignKey(
+        'accounts.CustomUser',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='username_verifications_performed',
+        help_text="User who verified that this external username is unique to the employee"
+    )
+
+    username_verified_date = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text="Date when the username uniqueness was last verified"
+    )
+
+    username_verification_artifact = models.FileField(
+        upload_to='username_verification_artifacts/',
+        blank=True,
+        null=True,
+        help_text="Attachment (screenshot, export, etc.) showing proof of username uniqueness"
+    )
+
+    username_verification_artifact_url = models.URLField(
+        blank=True,
+        null=True,
+        help_text="Link to external evidence (ticket, document, etc.) for username uniqueness verification"
+    )
     
     # Generic account detection and documentation
     is_generic_account = models.BooleanField(
@@ -499,6 +528,25 @@ class UserSystemAccess(models.Model):
     def effective_username(self):
         """Get the effective username (system_username if available, else access_username)"""
         return self.system_username or self.access_username or ''
+
+    @property
+    def has_username_verification(self):
+        """Return True if any username verification evidence exists"""
+        return any([
+            self.username_verified_by,
+            self.username_verified_date,
+            self.username_verification_artifact,
+            self.username_verification_artifact_url
+        ])
+
+    def get_username_verification_artifact_url(self):
+        """Return the best available URL for verification evidence"""
+        if self.username_verification_artifact:
+            try:
+                return self.username_verification_artifact.url
+            except ValueError:
+                return ''
+        return self.username_verification_artifact_url or ''
     
     def check_if_generic_account(self):
         """Check if the system_username is a generic account"""

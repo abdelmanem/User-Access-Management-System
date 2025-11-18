@@ -104,6 +104,7 @@
                                             <th>Access Type</th>
                                             <th>Status</th>
                                             <th>Generic Account</th>
+                                            <th>Verification</th>
                                             <th>Access Start</th>
                                             <th>Access End</th>
                                             <th>Actions</th>
@@ -147,6 +148,33 @@
                                                     {% endif %}
                                                 {% else %}
                                                 <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if account.has_verification %}
+                                                    <span class="badge bg-success">
+                                                        <i class="fas fa-user-check"></i> Verified
+                                                    </span>
+                                                    {% if account.verified_by %}
+                                                    <br><small class="text-muted">by {{ account.verified_by }}</small>
+                                                    {% endif %}
+                                                    {% if account.verified_date %}
+                                                    <br><small class="text-muted">{{ account.verified_date|date:"Y-m-d" }}</small>
+                                                    {% endif %}
+                                                    {% if account.artifact_file_url %}
+                                                    <br><a href="{{ account.artifact_file_url }}" target="_blank">
+                                                        <i class="fas fa-paperclip"></i> Attachment
+                                                    </a>
+                                                    {% endif %}
+                                                    {% if account.artifact_external_url %}
+                                                    <br><a href="{{ account.artifact_external_url }}" target="_blank">
+                                                        <i class="fas fa-external-link-alt"></i> Evidence
+                                                    </a>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="badge bg-warning text-dark">
+                                                        <i class="fas fa-user-clock"></i> Missing
+                                                    </span>
                                                 {% endif %}
                                             </td>
                                             <td>
@@ -232,6 +260,7 @@
                                             <th>Access Type</th>
                                             <th>Status</th>
                                             <th>Generic Account</th>
+                                            <th>Verification</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -256,10 +285,20 @@
                                                 <span class="text-muted">-</span>
                                                 {% endif %}
                                             </td>
+                                            <td>
+                                                {% if account.has_verification %}
+                                                    <span class="badge bg-success">Verified</span>
+                                                    {% if account.verified_date %}
+                                                    <br><small>{{ account.verified_date|date:"Y-m-d" }}</small>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="badge bg-warning text-dark">Missing</span>
+                                                {% endif %}
+                                            </td>
                                         </tr>
                                         {% empty %}
                                         <tr>
-                                            <td colspan="5" class="text-center text-muted py-4">
+                                            <td colspan="6" class="text-center text-muted py-4">
                                                 No system access found for this user.
                                             </td>
                                         </tr>

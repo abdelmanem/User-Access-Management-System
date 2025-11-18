@@ -354,6 +354,81 @@
                         </div>
                     </div>
 
+                    <!-- Username Verification -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card mb-4">
+                                <div class="card-header bg-success text-white">
+                                    <h5 class="mb-0"><i class="fas fa-user-check"></i> Username Uniqueness Verification</h5>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <th width="25%">Verification Status:</th>
+                                            <td>
+                                                {% if access_assignment.has_username_verification %}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check-circle"></i> Verified
+                                                </span>
+                                                {% else %}
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="fas fa-user-clock"></i> Not Verified
+                                                </span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Verified By:</th>
+                                            <td>
+                                                {% if access_assignment.username_verified_by %}
+                                                    <strong>{{ access_assignment.username_verified_by.full_name }}</strong>
+                                                    <br><small class="text-muted">{{ access_assignment.username_verified_by.username }}</small>
+                                                {% else %}
+                                                    <span class="text-muted">Not recorded</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Verified Date:</th>
+                                            <td>
+                                                {% if access_assignment.username_verified_date %}
+                                                    {{ access_assignment.username_verified_date|date:"Y-m-d H:i" }}
+                                                {% else %}
+                                                    <span class="text-muted">Not recorded</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Evidence:</th>
+                                            <td>
+                                                {% if access_assignment.username_verification_artifact or access_assignment.username_verification_artifact_url %}
+                                                    {% if access_assignment.username_verification_artifact %}
+                                                    <div>
+                                                        <i class="fas fa-paperclip"></i>
+                                                        <a href="{{ access_assignment.username_verification_artifact.url }}" target="_blank">
+                                                            Download Attachment
+                                                        </a>
+                                                    </div>
+                                                    {% endif %}
+                                                    {% if access_assignment.username_verification_artifact_url %}
+                                                    <div>
+                                                        <i class="fas fa-external-link-alt"></i>
+                                                        <a href="{{ access_assignment.username_verification_artifact_url }}" target="_blank">
+                                                            View External Evidence
+                                                        </a>
+                                                    </div>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="text-muted">No evidence attached</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Business Justification -->
                     <div class="row">
                         <div class="col-12">

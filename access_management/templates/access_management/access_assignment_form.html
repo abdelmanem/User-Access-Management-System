@@ -23,7 +23,7 @@
                 </div>
                 <div class="card-body">
 
-                    <form method="post" class="needs-validation" novalidate>
+                    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
                         {% csrf_token %}
                         
                         <!-- Basic Information -->
@@ -199,6 +199,102 @@
                                 </div>
                             </div>
                         </div>
+
+                    <!-- Username Uniqueness Verification -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0"><i class="fas fa-user-check"></i> Username Uniqueness Verification</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted">
+                                Document who confirmed that the external username belongs only to this employee and capture evidence for auditors.
+                            </p>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="username_verified_by" class="form-label">
+                                            Verified By
+                                        </label>
+                                        <select class="form-select" id="username_verified_by" name="username_verified_by">
+                                            <option value="">Select verifier</option>
+                                            {% for verifier in verifiers %}
+                                            <option value="{{ verifier.pk }}"
+                                                {% if username_verified_by_value == verifier.pk|stringformat:"s" %}selected{% endif %}>
+                                                {{ verifier.get_full_name }} ({{ verifier.username }})
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                        <small class="form-text text-muted">
+                                            Defaults to you when a verification date is provided.
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="username_verified_date" class="form-label">
+                                            Verification Date
+                                        </label>
+                                        <input type="datetime-local" class="form-control"
+                                               id="username_verified_date"
+                                               name="username_verified_date"
+                                               value="{{ username_verified_date_value }}">
+                                        <small class="form-text text-muted">
+                                            Date/time when uniqueness was last confirmed.
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="username_verification_artifact" class="form-label">
+                                            Evidence Attachment
+                                        </label>
+                                        <input type="file" class="form-control"
+                                               id="username_verification_artifact"
+                                               name="username_verification_artifact"
+                                               accept=".pdf,.png,.jpg,.jpeg,.xls,.xlsx,.csv">
+                                        <small class="form-text text-muted">
+                                            Upload screenshots or exports that prove the username is unique.
+                                        </small>
+                                    </div>
+                                    {% if access_assignment and access_assignment.username_verification_artifact %}
+                                    <div class="alert alert-light border d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="fas fa-paperclip"></i>
+                                            <a href="{{ access_assignment.username_verification_artifact.url }}" target="_blank">
+                                                {{ access_assignment.username_verification_artifact.name }}
+                                            </a>
+                                        </div>
+                                        <div class="form-check mb-0">
+                                            <input class="form-check-input" type="checkbox"
+                                                   id="clear_username_verification_artifact"
+                                                   name="clear_username_verification_artifact">
+                                            <label class="form-check-label" for="clear_username_verification_artifact">
+                                                Remove file on save
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="username_verification_artifact_url" class="form-label">
+                                            Evidence URL
+                                        </label>
+                                        <input type="url" class="form-control"
+                                               id="username_verification_artifact_url"
+                                               name="username_verification_artifact_url"
+                                               value="{{ username_verification_artifact_url_value }}"
+                                               placeholder="https://ticketing-system/records/123">
+                                        <small class="form-text text-muted">
+                                            Link to a ticket, SOP, or document that stores the verification.
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                         <!-- Generic Account Detection (Compliance Tracking) -->
                         {% if access_assignment and access_assignment.is_generic_account or system_username_value %}

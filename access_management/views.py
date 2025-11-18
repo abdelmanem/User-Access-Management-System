@@ -36,6 +36,25 @@ def _format_datetime(value):
         return value.strftime('%Y-%m-%d %H:%M') if hasattr(value, 'strftime') else ''
 
 
+def _format_datetime_for_input(value):
+    if not value:
+        return ''
+    try:
+        return timezone.localtime(value).strftime('%Y-%m-%dT%H:%M')
+    except (ValueError, TypeError):
+        return value.strftime('%Y-%m-%dT%H:%M') if hasattr(value, 'strftime') else ''
+
+
+def _parse_datetime_input(value):
+    if not value:
+        return None
+    try:
+        parsed = timezone.datetime.fromisoformat(value)
+    except (ValueError, TypeError):
+        return None
+    return parsed
+
+
 def export_access_assignments_to_excel(queryset):
     workbook = Workbook()
     worksheet = workbook.active
@@ -337,6 +356,141 @@ def export_policy_drift_rows_to_excel(rows):
     return response
 
 
+def build_cross_system_mapping_rows(assignments, request=None):
+    rows = []
+    for assignment in assignments:
+        user = assignment.user
+        system = assignment.system
+
+        artifact_file_url = ''
+        if assignment.username_verification_artifact:
+            try:
+                artifact_file_url = assignment.username_verification_artifact.url
+                if request and artifact_file_url:
+                    artifact_file_url = request.build_absolute_uri(artifact_file_url)
+            except ValueError:
+                artifact_file_url = ''
+
+        artifact_external_url = assignment.username_verification_artifact_url or ''
+        if request and artifact_external_url and artifact_external_url.startswith('/'):
+            artifact_external_url = request.build_absolute_uri(artifact_external_url)
+
+        rows.append({
+            "user_name": user.full_name if user else '',
+            "user_username": user.username if user else '',
+            "employee_id": user.employee_id if user else '',
+            "department": user.department.name if user and user.department else '',
+            "system_name": system.name if system else '',
+            "system_code": system.code if system else '',
+            "system_username": assignment.effective_username,
+            "access_type": assignment.access_type,
+            "status": assignment.status,
+            "is_generic": 'Yes' if assignment.is_generic_account else 'No',
+            "verified_by": assignment.username_verified_by.full_name if assignment.username_verified_by else '',
+            "verified_date": _format_datetime(assignment.username_verified_date),
+            "verification_artifact_file": artifact_file_url,
+            "verification_artifact_url": artifact_external_url,
+        })
+    return rows
+
+
+def export_cross_system_mapping_to_csv(rows):
+    headers = [
+        "User",
+        "Username",
+        "Employee ID",
+        "Department",
+        "System",
+        "System Code",
+        "System Username",
+        "Access Type",
+        "Status",
+        "Generic Account",
+        "Verified By",
+        "Verified Date",
+        "Verification Artifact (File)",
+        "Verification Artifact (URL)",
+    ]
+    output = StringIO()
+    writer = csv.writer(output)
+    writer.writerow(headers)
+
+    for row in rows:
+        writer.writerow([
+            row["user_name"],
+            row["user_username"],
+            row["employee_id"],
+            row["department"],
+            row["system_name"],
+            row["system_code"],
+            row["system_username"],
+            row["access_type"],
+            row["status"],
+            row["is_generic"],
+            row["verified_by"],
+            row["verified_date"],
+            row["verification_artifact_file"],
+            row["verification_artifact_url"],
+        ])
+
+    response = HttpResponse(output.getvalue(), content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="cross_system_account_mapping.csv"'
+    return response
+
+
+def export_cross_system_mapping_to_excel(rows):
+    workbook = Workbook()
+    worksheet = workbook.active
+    worksheet.title = "Cross-System Mapping"
+
+    headers = [
+        "User",
+        "Username",
+        "Employee ID",
+        "Department",
+        "System",
+        "System Code",
+        "System Username",
+        "Access Type",
+        "Status",
+        "Generic Account",
+        "Verified By",
+        "Verified Date",
+        "Verification Artifact (File)",
+        "Verification Artifact (URL)",
+    ]
+    worksheet.append(headers)
+
+    for row in rows:
+        worksheet.append([
+            row["user_name"],
+            row["user_username"],
+            row["employee_id"],
+            row["department"],
+            row["system_name"],
+            row["system_code"],
+            row["system_username"],
+            row["access_type"],
+            row["status"],
+            row["is_generic"],
+            row["verified_by"],
+            row["verified_date"],
+            row["verification_artifact_file"],
+            row["verification_artifact_url"],
+        ])
+
+    stream = BytesIO()
+    workbook.save(stream)
+    stream.seek(0)
+
+    response = HttpResponse(
+        stream.getvalue(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="cross_system_account_mapping.xlsx"'
+    return response
+
+
 @login_required
 def access_assignment_list(request):
     """List all access assignments with filtering and search"""
@@ -464,6 +618,10 @@ def access_assignment_create(request):
         technical_requirements = request.POST.get('technical_requirements')
         access_start_date = request.POST.get('access_start_date')
         access_end_date = request.POST.get('access_end_date')
+        username_verified_by_id = request.POST.get('username_verified_by')
+        username_verified_date_raw = request.POST.get('username_verified_date')
+        username_verification_artifact_url = request.POST.get('username_verification_artifact_url', '').strip()
+        verification_artifact_file = request.FILES.get('username_verification_artifact')
         
         try:
             user = CustomUser.objects.get(id=user_id)
@@ -491,6 +649,15 @@ def access_assignment_create(request):
             # Convert empty string to None for database consistency
             system_username = system_username if system_username else None
             access_username = access_username if access_username else None
+            username_verification_artifact_url = username_verification_artifact_url or None
+
+            username_verified_by = None
+            if username_verified_by_id:
+                username_verified_by = CustomUser.objects.filter(id=username_verified_by_id).first()
+            if not username_verified_by and username_verified_date_raw:
+                username_verified_by = request.user
+
+            username_verified_date = _parse_datetime_input(username_verified_date_raw)
             
             # Create new access assignment
             access_assignment = UserSystemAccess.objects.create(
@@ -507,6 +674,10 @@ def access_assignment_create(request):
                 system_username=system_username,
                 access_username=access_username,
                 is_generic_account=is_generic,
+                username_verified_by=username_verified_by,
+                username_verified_date=username_verified_date,
+                username_verification_artifact=verification_artifact_file,
+                username_verification_artifact_url=username_verification_artifact_url,
                 requested_by=request.user,
                 created_by=request.user,
                 updated_by=request.user
@@ -546,6 +717,10 @@ def access_assignment_create(request):
     # Get data for form
     systems = System.objects.all().order_by('name')
     users = CustomUser.objects.all().order_by('first_name', 'last_name')
+    verifiers = users
+    default_verifier_id = ''
+    if request.user and getattr(request.user, 'pk', None):
+        default_verifier_id = str(request.user.pk)
     selected_user_id = (request.POST.get('user') if request.method == 'POST' else None) or ''
     selected_system_id = (request.POST.get('system') if request.method == 'POST' else None) or (request.GET.get('system') or '')
     selected_access_type = (request.POST.get('access_type') if request.method == 'POST' else '') or ''
@@ -555,6 +730,7 @@ def access_assignment_create(request):
     context = {
         'systems': systems,
         'users': users,
+        'verifiers': verifiers,
         'access_type_choices': UserSystemAccess.ACCESS_TYPE_CHOICES,
         'request_type_choices': UserSystemAccess.REQUEST_TYPE_CHOICES,
         'priority_choices': UserSystemAccess.PRIORITY_CHOICES,
@@ -577,6 +753,9 @@ def access_assignment_create(request):
         'special_instructions_value': request.POST.get('special_instructions', ''),
         'compliance_requirements_value': request.POST.get('compliance_requirements', ''),
         'system_username_value': request.POST.get('system_username', ''),
+        'username_verified_by_value': request.POST.get('username_verified_by', default_verifier_id),
+        'username_verified_date_value': request.POST.get('username_verified_date', ''),
+        'username_verification_artifact_url_value': request.POST.get('username_verification_artifact_url', ''),
     }
     
     return render(request, 'access_management/access_assignment_form.html', context)
@@ -607,6 +786,11 @@ def access_assignment_update(request, pk):
         review_frequency_days = request.POST.get('review_frequency_days')
         special_instructions = request.POST.get('special_instructions')
         compliance_requirements = request.POST.get('compliance_requirements')
+        username_verified_by_id = request.POST.get('username_verified_by')
+        username_verified_date_raw = request.POST.get('username_verified_date')
+        username_verification_artifact_url = request.POST.get('username_verification_artifact_url', '').strip()
+        verification_artifact_file = request.FILES.get('username_verification_artifact')
+        clear_verification_artifact = request.POST.get('clear_username_verification_artifact') == 'on'
         
         # Generic account fields
         is_generic = request.POST.get('is_generic_account') == 'on'
@@ -657,6 +841,25 @@ def access_assignment_update(request, pk):
             access_assignment.remediation_notes = remediation_notes
             if generic_remediated and not access_assignment.remediated_by:
                 access_assignment.remediated_by = request.user
+
+            # Username verification metadata
+            username_verified_by = None
+            if username_verified_by_id:
+                username_verified_by = CustomUser.objects.filter(id=username_verified_by_id).first()
+            if not username_verified_by and username_verified_date_raw:
+                username_verified_by = request.user
+
+            access_assignment.username_verified_by = username_verified_by
+            access_assignment.username_verified_date = _parse_datetime_input(username_verified_date_raw)
+            access_assignment.username_verification_artifact_url = username_verification_artifact_url or None
+
+            if verification_artifact_file:
+                if access_assignment.username_verification_artifact:
+                    access_assignment.username_verification_artifact.delete(save=False)
+                access_assignment.username_verification_artifact = verification_artifact_file
+            elif clear_verification_artifact and access_assignment.username_verification_artifact:
+                access_assignment.username_verification_artifact.delete(save=False)
+                access_assignment.username_verification_artifact = None
             
             # Auto-detect generic accounts
             if system_username:
@@ -686,6 +889,9 @@ def access_assignment_update(request, pk):
         except Exception as e:
             messages.error(request, f'Error updating access assignment: {str(e)}')
     
+    users_queryset = CustomUser.objects.all().order_by('first_name', 'last_name')
+    systems_queryset = System.objects.all().order_by('name')
+
     context = {
         'access_assignment': access_assignment,
         # dropdown choices
@@ -700,8 +906,9 @@ def access_assignment_update(request, pk):
         'selected_request_type': access_assignment.request_type,
         'selected_priority': access_assignment.priority,
         # lists
-        'users': CustomUser.objects.all().order_by('first_name', 'last_name'),
-        'systems': System.objects.all().order_by('name'),
+        'users': users_queryset,
+        'verifiers': users_queryset,
+        'systems': systems_queryset,
         'business_justification_value': request.POST.get('business_justification', access_assignment.business_justification or ''),
         'requested_access_duration_value': request.POST.get('requested_access_duration', access_assignment.requested_access_duration or ''),
         'access_start_date_value': request.POST.get(
@@ -723,6 +930,18 @@ def access_assignment_update(request, pk):
         'review_frequency_days_value': request.POST.get('review_frequency_days', access_assignment.review_frequency_days or ''),
         'special_instructions_value': request.POST.get('special_instructions', access_assignment.special_instructions or ''),
         'compliance_requirements_value': request.POST.get('compliance_requirements', access_assignment.compliance_requirements or ''),
+        'username_verified_by_value': request.POST.get(
+            'username_verified_by',
+            str(access_assignment.username_verified_by_id) if access_assignment.username_verified_by_id else ''
+        ),
+        'username_verified_date_value': request.POST.get(
+            'username_verified_date',
+            _format_datetime_for_input(access_assignment.username_verified_date)
+        ),
+        'username_verification_artifact_url_value': request.POST.get(
+            'username_verification_artifact_url',
+            access_assignment.username_verification_artifact_url or ''
+        ),
     }
     
     return render(request, 'access_management/access_assignment_form.html', context)
@@ -1446,18 +1665,34 @@ def cross_system_account_mapping(request):
     # Get all access assignments with system usernames
     access_assignments = UserSystemAccess.objects.filter(
         status__in=['Active', 'Approved']
-    ).select_related('user', 'system')
+    ).select_related('user', 'user__department', 'system', 'username_verified_by')
     
     if system_id:
         access_assignments = access_assignments.filter(system_id=system_id)
     
-    # Build mapping: user_id -> {system_id: system_username}
+    export_format = request.GET.get('export')
+    if export_format in {'csv', 'xlsx'}:
+        ordered_assignments = access_assignments.order_by(
+            'user__first_name', 'user__last_name', 'system__name'
+        )
+        rows = build_cross_system_mapping_rows(ordered_assignments, request)
+        if export_format == 'xlsx':
+            return export_cross_system_mapping_to_excel(rows)
+        return export_cross_system_mapping_to_csv(rows)
+
+    # Build mapping: user_id -> {system_id: details}
     user_system_mapping = {}
     for access in access_assignments:
         user_id = access.user_id
         system_id = access.system_id
         # Use effective_username property which handles system_username and access_username fallback
         username = access.effective_username
+        artifact_file_url = ''
+        if access.username_verification_artifact:
+            try:
+                artifact_file_url = access.username_verification_artifact.url
+            except ValueError:
+                artifact_file_url = ''
         
         if user_id not in user_system_mapping:
             user_system_mapping[user_id] = {}
@@ -1467,11 +1702,16 @@ def cross_system_account_mapping(request):
             'status': access.status,
             'is_generic': access.is_generic_account,
             'access_id': access.id,
+            'verified_by': access.username_verified_by.full_name if access.username_verified_by else '',
+            'verified_date': access.username_verified_date,
+            'artifact_file_url': artifact_file_url,
+            'artifact_external_url': access.username_verification_artifact_url or '',
+            'has_verification': access.has_username_verification,
         }
     
     # Filter users if show_only_with_access
     if show_only_with_access:
-        users = users.filter(id__in=user_system_mapping.keys())
+        users = users.filter(id__in=list(user_system_mapping.keys()))
     
     # Order users
     users = users.order_by('first_name', 'last_name')
@@ -1518,6 +1758,13 @@ def user_cross_system_accounts(request, user_id):
     # Build mapping: system -> access details
     system_accounts = []
     for access in access_assignments:
+        artifact_file_url = ''
+        if access.username_verification_artifact:
+            try:
+                artifact_file_url = access.username_verification_artifact.url
+            except ValueError:
+                artifact_file_url = ''
+
         system_accounts.append({
             'system': access.system,
             'system_username': access.effective_username or 'N/A',
@@ -1528,6 +1775,11 @@ def user_cross_system_accounts(request, user_id):
             'access_start_date': access.access_start_date,
             'access_end_date': access.access_end_date,
             'access_id': access.id,
+            'verified_by': access.username_verified_by.full_name if access.username_verified_by else '',
+            'verified_date': access.username_verified_date,
+            'artifact_file_url': artifact_file_url,
+            'artifact_external_url': access.username_verification_artifact_url or '',
+            'has_verification': access.has_username_verification,
         })
     
     # Get all systems to show which ones user doesn't have access to

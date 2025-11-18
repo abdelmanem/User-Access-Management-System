@@ -18,8 +18,11 @@
                             <a href="{% url 'access_management:access_assignment_list' %}" class="btn btn-outline-secondary">
                                 <i class="fas fa-arrow-left"></i> Back to Assignments
                             </a>
-                            <button type="button" class="btn btn-outline-primary" onclick="exportMapping()">
-                                <i class="fas fa-download"></i> Export
+                            <button type="button" class="btn btn-outline-primary" onclick="exportMapping('csv')">
+                                <i class="fas fa-file-csv"></i> Export CSV
+                            </button>
+                            <button type="button" class="btn btn-outline-success" onclick="exportMapping('xlsx')">
+                                <i class="fas fa-file-excel"></i> Export Excel
                             </button>
                         </div>
                     </div>
@@ -172,7 +175,7 @@
                                                     {% if user_dict %}
                                                         {% with account=user_dict|get_item:system.id %}
                                                             {% if account %}
-                                                            <div class="d-flex flex-column align-items-center">
+                                                            <div class="d-flex flex-column align-items-center text-break">
                                                                 <code class="mb-1">{{ account.username }}</code>
                                                                 <small class="badge bg-secondary">
                                                                     {{ account.access_type }}
@@ -181,6 +184,29 @@
                                                                 <small class="badge bg-danger mt-1">
                                                                     <i class="fas fa-exclamation-triangle"></i> Generic
                                                                 </small>
+                                                                {% endif %}
+                                                                {% if account.has_verification %}
+                                                                <small class="text-success mt-1 text-center">
+                                                                    <i class="fas fa-user-check"></i>
+                                                                    {% if account.verified_by %}{{ account.verified_by }}{% endif %}
+                                                                    {% if account.verified_date %}
+                                                                    <br><span class="text-muted">{{ account.verified_date|date:"Y-m-d" }}</span>
+                                                                    {% endif %}
+                                                                </small>
+                                                                {% else %}
+                                                                <small class="text-muted mt-1">
+                                                                    <i class="fas fa-user-clock"></i> Not verified
+                                                                </small>
+                                                                {% endif %}
+                                                                {% if account.artifact_file_url %}
+                                                                <a href="{{ account.artifact_file_url }}" target="_blank" class="small mt-1">
+                                                                    <i class="fas fa-paperclip"></i> Attachment
+                                                                </a>
+                                                                {% endif %}
+                                                                {% if account.artifact_external_url %}
+                                                                <a href="{{ account.artifact_external_url }}" target="_blank" class="small">
+                                                                    <i class="fas fa-external-link-alt"></i> Evidence
+                                                                </a>
                                                                 {% endif %}
                                                                 <a href="{% url 'access_management:access_assignment_detail' account.access_id %}" 
                                                                    class="btn btn-sm btn-outline-primary mt-1" title="View Details">
@@ -256,10 +282,10 @@
 
 {% block extrajs %}
 <script>
-function exportMapping() {
+function exportMapping(format = 'csv') {
     // Get current filter parameters
     const params = new URLSearchParams(window.location.search);
-    params.set('export', 'csv');
+    params.set('export', format || 'csv');
     window.location.href = '?' + params.toString();
 }
 
