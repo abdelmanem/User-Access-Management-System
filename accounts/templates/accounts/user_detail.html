@@ -94,6 +94,22 @@
                                             <span class="ms-2">{{ user.position|default:"N/A" }}</span>
                                         </div>
                                         <div class="col-sm-6">
+                                            <strong><i class="fas fa-user-shield"></i> IT Administrator:</strong>
+                                            {% if user.is_it_administrator %}
+                                                <span class="badge bg-success ms-2">Yes</span>
+                                                {% if user.it_admin_certification_date %}
+                                                    <small class="text-muted ms-2">
+                                                        Certified on {{ user.it_admin_certification_date|date:"Y-m-d" }}
+                                                        {% if user.it_admin_certified_by %}
+                                                            by {{ user.it_admin_certified_by.get_full_name }}
+                                                        {% endif %}
+                                                    </small>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="badge bg-secondary ms-2">No</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-sm-6">
                                             <strong><i class="fas fa-calendar-alt"></i> Join Date:</strong>
                                             <span class="ms-2">{{ user.join_date|date:"Y-m-d"|default:"N/A" }}</span>
                                         </div>

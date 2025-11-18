@@ -348,6 +348,71 @@
                                                 {% endif %}
                                             </td>
                                         </tr>
+                                        <tr>
+                                            <th>Admin Access:</th>
+                                            <td>
+                                                {% if access_assignment.is_admin_access or access_assignment.access_type == 'Admin' or access_assignment.access_type == 'Super Admin' %}
+                                                    <span class="badge bg-danger">
+                                                        <i class="fas fa-user-shield"></i> Administrator / Elevated
+                                                    </span>
+                                                {% else %}
+                                                    <span class="text-muted">Standard / non-admin</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Separate Admin Account:</th>
+                                            <td>
+                                                {% if access_assignment.has_separate_admin_account %}
+                                                    <span class="badge bg-success">Yes</span>
+                                                    {% if access_assignment.admin_account_username %}
+                                                        <br><code>{{ access_assignment.admin_account_username }}</code>
+                                                    {% endif %}
+                                                    {% if access_assignment.regular_account_username %}
+                                                        <br><small class="text-muted">
+                                                            Regular: {{ access_assignment.regular_account_username }}
+                                                        </small>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="badge bg-warning text-dark">No separate admin ID</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Workstation / Domain Admin:</th>
+                                            <td>
+                                                {% if access_assignment.is_workstation_login %}
+                                                    <span class="badge bg-info text-dark">Workstation Login</span>
+                                                    {% if access_assignment.has_domain_admin %}
+                                                        <br><span class="badge bg-danger mt-1">
+                                                            Domain Admin on Workstation (Non-Compliant)
+                                                        </span>
+                                                    {% else %}
+                                                        <br><small class="text-muted">No domain admin rights (expected)</small>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="text-muted">Not marked as workstation login</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Admin Password Storage:</th>
+                                            <td>
+                                                {% if access_assignment.admin_password_storage_location %}
+                                                    {{ access_assignment.admin_password_storage_location }}
+                                                    {% if access_assignment.admin_password_stored_date %}
+                                                        <br><small class="text-muted">
+                                                            Verified on {{ access_assignment.admin_password_stored_date|date:"Y-m-d H:i" }}
+                                                            {% if access_assignment.admin_password_stored_by %}
+                                                                by {{ access_assignment.admin_password_stored_by.full_name }}
+                                                            {% endif %}
+                                                        </small>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="text-muted">Not documented</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
                                     </table>
                                 </div>
                             </div>

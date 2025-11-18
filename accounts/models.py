@@ -160,6 +160,27 @@ class CustomUser(AbstractUser):
         default='Entry'
     )
     
+    # IT Administrator Governance (RHG 4.3)
+    is_it_administrator = models.BooleanField(
+        default=False,
+        help_text="User is authorized as IT Administrator (RHG 4.3 scope)",
+    )
+
+    it_admin_certification_date = models.DateField(
+        blank=True,
+        null=True,
+        help_text="Date the user was certified/authorized as IT Administrator",
+    )
+
+    it_admin_certified_by = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        related_name="it_admin_certifications",
+        blank=True,
+        null=True,
+        help_text="Who approved the user as IT Administrator",
+    )
+
     # Location & Contact
     office_location = models.CharField(
         max_length=200,
@@ -316,6 +337,14 @@ class CustomUser(AbstractUser):
     def is_active_employee(self):
         """Check if user is an active employee"""
         return self.employment_status == 'Active' and self.is_active
+
+    @property
+    def is_it_admin(self):
+        """
+        Convenience alias used in templates/reports.
+        Indicates whether the user is marked as an IT Administrator.
+        """
+        return bool(self.is_it_administrator)
     
     def get_department_name(self):
         """Return department name or None"""

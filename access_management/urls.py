@@ -33,7 +33,10 @@ urlpatterns = [
     
     # Policy Drift Monitoring
     path('policy-drift-monitoring/', views.policy_drift_monitoring, name='policy_drift_monitoring'),
-    
+
+    # Administrator Accounts Compliance (RHG 4.3)
+    path('admin-accounts/', views.admin_accounts_report, name='admin_accounts_report'),
+
     # Cross-System Account Mapping
     path('cross-system-mapping/', views.cross_system_account_mapping, name='cross_system_account_mapping'),
     path('users/<int:user_id>/cross-system-accounts/', views.user_cross_system_accounts, name='user_cross_system_accounts'),

@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Administrator Accounts Compliance{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12 d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <h1 class="h3 mb-1">
+                    <i class="fas fa-user-shield text-danger me-2"></i>
+                    Administrator Accounts Compliance (4.3)
+                </h1>
+                <p class="text-muted mb-0">
+                    Evidence view for RHG 4.3 – shows where admin rights exist, whether IT admin roles are in place,
+                    and highlights non-compliant patterns (no separate admin ID, workstation + domain admin, missing storage docs).
+                </p>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <div class="btn-group">
+                    <a href="{% url 'access_management:access_assignment_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-list me-1"></i> Access Assignments
+                    </a>
+                    <a href="{% url 'access_management:cross_system_account_mapping' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-network-wired me-1"></i> Cross-System Mapping
+                    </a>
+                </div>
+                <div class="btn-group">
+                    <a href="{{ export_links.xlsx }}" class="btn btn-primary">
+                        <i class="fas fa-file-excel me-1"></i> Export Excel
+                    </a>
+                    <a href="{{ export_links.csv }}" class="btn btn-outline-primary">
+                        <i class="fas fa-file-csv me-1"></i> Export CSV
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-danger h-100 shadow-sm">
+                <div class="card-body">
+                    <small class="text-uppercase text-muted fw-semibold">Admin Assignments</small>
+                    <h2 class="mb-0 text-danger">{{ metrics.total_admin }}</h2>
+                    <p class="text-muted small mb-0">
+                        Assignments marked as admin / elevated in external systems.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-warning h-100 shadow-sm">
+                <div class="card-body">
+                    <small class="text-uppercase text-muted fw-semibold">Non-IT Admins</small>
+                    <h2 class="mb-0 text-warning">{{ metrics.non_it_admins }}</h2>
+                    <p class="text-muted small mb-0">
+                        Admin access granted to users not flagged as IT Administrators.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-warning h-100 shadow-sm">
+                <div class="card-body">
+                    <small class="text-uppercase text-muted fw-semibold">No Separate Admin ID</small>
+                    <h2 class="mb-0 text-warning">{{ metrics.no_separate_admin }}</h2>
+                    <p class="text-muted small mb-0">
+                        Admin access where no dedicated admin account is recorded.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-danger h-100 shadow-sm">
+                <div class="card-body">
+                    <small class="text-uppercase text-muted fw-semibold">Workstation + Domain Admin</small>
+                    <h2 class="mb-0 text-danger">{{ metrics.workstation_domain_admin }}</h2>
+                    <p class="text-muted small mb-0">
+                        Workstation logins that also have domain admin rights (non-compliant).
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-filter me-2"></i> Filters</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="system" class="form-label">System</label>
+                    <select class="form-select" id="system" name="system">
+                        <option value="">All systems</option>
+                        {% for system in systems %}
+                        <option value="{{ system.pk }}" {% if filters.system == system.pk|stringformat:"s" %}selected{% endif %}>
+                            {{ system.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="department" class="form-label">Department</label>
+                    <select class="form-select" id="department" name="department">
+                        <option value="">All departments</option>
+                        {% for department in departments %}
+                        <option value="{{ department.pk }}" {% if filters.department == department.pk|stringformat:"s" %}selected{% endif %}>
+                            {{ department.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="issue" class="form-label">Focus</label>
+                    <select class="form-select" id="issue" name="issue">
+                        <option value="">All admin accounts</option>
+                        <option value="non_it" {% if filters.issue == 'non_it' %}selected{% endif %}>Admin access to non-IT admins</option>
+                        <option value="no_separate" {% if filters.issue == 'no_separate' %}selected{% endif %}>Admin without separate admin ID</option>
+                        <option value="workstation_domain" {% if filters.issue == 'workstation_domain' %}selected{% endif %}>Workstation + domain admin</option>
+                        <option value="no_storage" {% if filters.issue == 'no_storage' %}selected{% endif %}>Missing password storage documentation</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="search" class="form-label">Search</label>
+                    <input type="text" class="form-control" id="search" name="search"
+                           value="{{ filters.search }}" placeholder="User, username, or system">
+                </div>
+                <div class="col-12 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search me-1"></i> Apply Filters
+                    </button>
+                    <a href="{% url 'access_management:admin_accounts_report' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-rotate-left me-1"></i> Reset
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Accounts Table -->
+    <div class="card shadow-sm mb-5">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-list me-2"></i>
+                Administrator-Equivalent Assignments
+                <span class="badge bg-dark ms-2">{{ page_obj.paginator.count }}</span>
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if page_obj %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>IT Admin</th>
+                            <th>System</th>
+                            <th>Access Type</th>
+                            <th>Admin / Regular IDs</th>
+                            <th>Workstation / Domain</th>
+                            <th>Password Storage</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for assignment in page_obj %}
+                        <tr>
+                            <td>
+                                <strong>{{ assignment.user.full_name }}</strong>
+                                <br><small class="text-muted">{{ assignment.user.username }}</small>
+                                {% if assignment.user.department %}
+                                    <br><small class="text-muted">{{ assignment.user.department.name }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if assignment.user.is_it_administrator %}
+                                    <span class="badge bg-success">IT Administrator</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">Non-IT Admin</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ assignment.system.name }}
+                                <br><small class="text-muted">{{ assignment.system.code }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-primary">{{ assignment.access_type }}</span>
+                                {% if assignment.is_admin_access %}
+                                    <br><small class="text-danger">Admin / Elevated</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if assignment.admin_account_username %}
+                                    <code>{{ assignment.admin_account_username }}</code>
+                                    {% if assignment.regular_account_username %}
+                                        <br><small class="text-muted">Regular: {{ assignment.regular_account_username }}</small>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">No separate admin ID</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if assignment.is_workstation_login %}
+                                    <span class="badge bg-info text-dark">Workstation</span>
+                                    {% if assignment.has_domain_admin %}
+                                        <br><span class="badge bg-danger mt-1">Domain Admin (Non-Compliant)</span>
+                                    {% else %}
+                                        <br><small class="text-muted">No domain admin (expected)</small>
+                                    {% endif %}
+                                {% else %}
+                                    {% if assignment.has_domain_admin %}
+                                        <span class="badge bg-danger">Domain Admin</span>
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if assignment.admin_password_storage_location %}
+                                    {{ assignment.admin_password_storage_location }}
+                                    {% if assignment.admin_password_stored_date %}
+                                        <br><small class="text-muted">
+                                            {{ assignment.admin_password_stored_date|date:"Y-m-d" }}
+                                        </small>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">Storage not documented</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ assignment.get_status_color }}">
+                                    {{ assignment.status }}
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <a href="{% url 'access_management:access_assignment_detail' assignment.pk %}"
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-arrow-up-right-from-square"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center text-muted py-4">
+                                <i class="fas fa-circle-check fa-2x mb-2"></i>
+                                <p class="mb-0">No administrator-equivalent assignments found for the selected filters.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if page_obj.has_other_pages %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ pagination.first }}">First</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="{{ pagination.previous }}">Previous</a>
+                    </li>
+                    {% endif %}
+                    <li class="page-item active">
+                        <span class="page-link">
+                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                        </span>
+                    </li>
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ pagination.next }}">Next</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="{{ pagination.last }}">Last</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            {% else %}
+            <div class="alert alert-info mb-0">
+                <i class="fas fa-info-circle me-1"></i>
+                No records to display.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+

@@ -155,6 +155,63 @@ class UserSystemAccess(models.Model):
         null=True,
         help_text="Specific access level or role granted"
     )
+
+    # Administrator-equivalent access tracking (RHG 4.3)
+    is_admin_access = models.BooleanField(
+        default=False,
+        help_text="This access grants administrator or equivalent privileges in the external system",
+    )
+
+    has_separate_admin_account = models.BooleanField(
+        default=False,
+        help_text="User has separate admin account (e.g., John.Doe_Admin) in the external system",
+    )
+
+    admin_account_username = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text="Separate admin account username in the external system (e.g., 'John.Doe_Admin')",
+    )
+
+    regular_account_username = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text="Regular non-admin account username in the external system (e.g., 'John.Doe')",
+    )
+
+    is_workstation_login = models.BooleanField(
+        default=False,
+        help_text="Account used for workstation login (should NOT have domain admin in AD)",
+    )
+
+    has_domain_admin = models.BooleanField(
+        default=False,
+        help_text="Account has domain admin / equivalent rights (should be False for workstation logins)",
+    )
+
+    admin_password_storage_location = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Where administrator credentials are stored (e.g., 'Financial Controller safe', 'Password vault ref')",
+    )
+
+    admin_password_stored_date = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text="When administrator credentials were last placed/verified in the secure storage location",
+    )
+
+    admin_password_stored_by = models.ForeignKey(
+        'accounts.CustomUser',
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='admin_password_storage_actions',
+        help_text="Who documented storage of administrator credentials",
+    )
     
     access_username = models.CharField(
         max_length=100,

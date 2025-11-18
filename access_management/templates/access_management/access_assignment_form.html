@@ -200,6 +200,135 @@
                             </div>
                         </div>
 
+                        <!-- Administrator Access (RHG 4.3) -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-dark text-white">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-user-shield"></i> Administrator Access (4.3 Compliance)
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted">
+                                    Use this section to document administrator-equivalent access, separate admin IDs,
+                                    workstation/domain-admin combinations, and where administrator credentials are stored.
+                                </p>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="checkbox"
+                                                   id="is_admin_access"
+                                                   name="is_admin_access"
+                                                   {% if is_admin_access_value %}checked{% endif %}>
+                                            <label class="form-check-label" for="is_admin_access">
+                                                This assignment grants administrator / equivalent access
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="checkbox"
+                                                   id="has_separate_admin_account"
+                                                   name="has_separate_admin_account"
+                                                   {% if has_separate_admin_account_value %}checked{% endif %}>
+                                            <label class="form-check-label" for="has_separate_admin_account">
+                                                User has separate admin account (e.g., John.Doe_Admin)
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="checkbox"
+                                                   id="is_workstation_login"
+                                                   name="is_workstation_login"
+                                                   {% if is_workstation_login_value %}checked{% endif %}>
+                                            <label class="form-check-label" for="is_workstation_login">
+                                                Account is used for workstation login
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="admin_account_username" class="form-label">
+                                                Admin Account Username
+                                            </label>
+                                            <input type="text" class="form-control"
+                                                   id="admin_account_username"
+                                                   name="admin_account_username"
+                                                   value="{{ admin_account_username_value }}"
+                                                   placeholder="e.g., John.Doe_Admin">
+                                            <small class="form-text text-muted">
+                                                Separate administrator account in the external system.
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="regular_account_username" class="form-label">
+                                                Regular Account Username
+                                            </label>
+                                            <input type="text" class="form-control"
+                                                   id="regular_account_username"
+                                                   name="regular_account_username"
+                                                   value="{{ regular_account_username_value }}"
+                                                   placeholder="e.g., John.Doe">
+                                            <small class="form-text text-muted">
+                                                Non-admin account used for day-to-day work.
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="checkbox"
+                                                   id="has_domain_admin"
+                                                   name="has_domain_admin"
+                                                   {% if has_domain_admin_value %}checked{% endif %}>
+                                            <label class="form-check-label" for="has_domain_admin">
+                                                Account has domain admin / equivalent rights
+                                            </label>
+                                            <small class="form-text text-muted d-block">
+                                                Workstation login accounts should <strong>not</strong> have domain admin.
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="admin_password_storage_location" class="form-label">
+                                                Admin Password Storage Location
+                                            </label>
+                                            <input type="text" class="form-control"
+                                                   id="admin_password_storage_location"
+                                                   name="admin_password_storage_location"
+                                                   value="{{ admin_password_storage_location_value }}"
+                                                   placeholder="e.g., Controller safe, Password vault ID">
+                                            <small class="form-text text-muted">
+                                                Where the admin credential is stored (safe, vault, sealed envelope, etc.).
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="admin_password_stored_date" class="form-label">
+                                                Admin Password Stored / Verified Date
+                                            </label>
+                                            <input type="datetime-local" class="form-control"
+                                                   id="admin_password_stored_date"
+                                                   name="admin_password_stored_date"
+                                                   value="{{ admin_password_stored_date_value }}">
+                                            <small class="form-text text-muted">
+                                                When the storage location for this admin credential was last confirmed.
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     <!-- Username Uniqueness Verification -->
                     <div class="card mb-4">
                         <div class="card-header bg-success text-white">

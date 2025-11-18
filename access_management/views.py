@@ -491,6 +491,111 @@ def export_cross_system_mapping_to_excel(rows):
     return response
 
 
+def export_admin_accounts_to_excel(queryset):
+    workbook = Workbook()
+    worksheet = workbook.active
+    worksheet.title = "Admin Accounts"
+
+    headers = [
+        "User",
+        "Username",
+        "Department",
+        "IT Administrator",
+        "System",
+        "System Code",
+        "Access Type",
+        "Admin Access",
+        "Admin Account Username",
+        "Regular Account Username",
+        "Workstation Login",
+        "Has Domain Admin",
+        "Password Storage Location",
+        "Password Stored/Verified Date",
+        "Status",
+    ]
+    worksheet.append(headers)
+
+    for assignment in queryset.select_related("user", "system"):
+        user = assignment.user
+        system = assignment.system
+        worksheet.append([
+            user.full_name if user else "",
+            user.username if user else "",
+            user.department.name if user and user.department else "",
+            "Yes" if user and getattr(user, "is_it_administrator", False) else "No",
+            system.name if system else "",
+            system.code if system else "",
+            assignment.access_type,
+            "Yes" if assignment.is_admin_access else "",
+            assignment.admin_account_username or "",
+            assignment.regular_account_username or "",
+            "Yes" if assignment.is_workstation_login else "",
+            "Yes" if assignment.has_domain_admin else "",
+            assignment.admin_password_storage_location or "",
+            _format_datetime(assignment.admin_password_stored_date),
+            assignment.status,
+        ])
+
+    stream = BytesIO()
+    workbook.save(stream)
+    stream.seek(0)
+
+    response = HttpResponse(
+        stream.getvalue(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="admin_accounts_compliance.xlsx"'
+    return response
+
+
+def export_admin_accounts_to_csv(queryset):
+    headers = [
+        "User",
+        "Username",
+        "Department",
+        "IT Administrator",
+        "System",
+        "System Code",
+        "Access Type",
+        "Admin Access",
+        "Admin Account Username",
+        "Regular Account Username",
+        "Workstation Login",
+        "Has Domain Admin",
+        "Password Storage Location",
+        "Password Stored/Verified Date",
+        "Status",
+    ]
+    output = StringIO()
+    writer = csv.writer(output)
+    writer.writerow(headers)
+
+    for assignment in queryset.select_related("user", "system"):
+        user = assignment.user
+        system = assignment.system
+        writer.writerow([
+            user.full_name if user else "",
+            user.username if user else "",
+            user.department.name if user and user.department else "",
+            "Yes" if user and getattr(user, "is_it_administrator", False) else "No",
+            system.name if system else "",
+            system.code if system else "",
+            assignment.access_type,
+            "Yes" if assignment.is_admin_access else "",
+            assignment.admin_account_username or "",
+            assignment.regular_account_username or "",
+            "Yes" if assignment.is_workstation_login else "",
+            "Yes" if assignment.has_domain_admin else "",
+            assignment.admin_password_storage_location or "",
+            _format_datetime(assignment.admin_password_stored_date),
+            assignment.status,
+        ])
+
+    response = HttpResponse(output.getvalue(), content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="admin_accounts_compliance.csv"'
+    return response
+
+
 @login_required
 def access_assignment_list(request):
     """List all access assignments with filtering and search"""
@@ -640,6 +745,20 @@ def access_assignment_create(request):
             else:
                 access_username = None
             is_generic = request.POST.get('is_generic_account') == 'on'
+
+            # Administrator-equivalent access metadata (RHG 4.3)
+            # Default is_admin_access to True when access_type is Admin/Super Admin even if checkbox is not ticked.
+            is_admin_access = (
+                request.POST.get('is_admin_access') == 'on'
+                or access_type in ['Admin', 'Super Admin']
+            )
+            has_separate_admin_account = request.POST.get('has_separate_admin_account') == 'on'
+            admin_account_username = request.POST.get('admin_account_username', '').strip()
+            regular_account_username = request.POST.get('regular_account_username', '').strip()
+            is_workstation_login = request.POST.get('is_workstation_login') == 'on'
+            has_domain_admin = request.POST.get('has_domain_admin') == 'on'
+            admin_password_storage_location = request.POST.get('admin_password_storage_location', '').strip()
+            admin_password_stored_date_raw = request.POST.get('admin_password_stored_date')
             
             # If system_username is empty but access_username exists, use access_username
             # This helps migrate legacy data
@@ -658,6 +777,9 @@ def access_assignment_create(request):
                 username_verified_by = request.user
 
             username_verified_date = _parse_datetime_input(username_verified_date_raw)
+
+            # Parse admin password stored date
+            admin_password_stored_date = _parse_datetime_input(admin_password_stored_date_raw)
             
             # Create new access assignment
             access_assignment = UserSystemAccess.objects.create(
@@ -674,6 +796,16 @@ def access_assignment_create(request):
                 system_username=system_username,
                 access_username=access_username,
                 is_generic_account=is_generic,
+                # Administrator-equivalent access metadata
+                is_admin_access=is_admin_access,
+                has_separate_admin_account=has_separate_admin_account,
+                admin_account_username=admin_account_username or None,
+                regular_account_username=regular_account_username or None,
+                is_workstation_login=is_workstation_login,
+                has_domain_admin=has_domain_admin,
+                admin_password_storage_location=admin_password_storage_location or None,
+                admin_password_stored_date=admin_password_stored_date,
+                admin_password_stored_by=request.user if admin_password_stored_date else None,
                 username_verified_by=username_verified_by,
                 username_verified_date=username_verified_date,
                 username_verification_artifact=verification_artifact_file,
@@ -756,6 +888,15 @@ def access_assignment_create(request):
         'username_verified_by_value': request.POST.get('username_verified_by', default_verifier_id),
         'username_verified_date_value': request.POST.get('username_verified_date', ''),
         'username_verification_artifact_url_value': request.POST.get('username_verification_artifact_url', ''),
+        # Admin access governance defaults (creation form)
+        'is_admin_access_value': request.POST.get('is_admin_access', ''),
+        'has_separate_admin_account_value': request.POST.get('has_separate_admin_account', ''),
+        'admin_account_username_value': request.POST.get('admin_account_username', ''),
+        'regular_account_username_value': request.POST.get('regular_account_username', ''),
+        'is_workstation_login_value': request.POST.get('is_workstation_login', ''),
+        'has_domain_admin_value': request.POST.get('has_domain_admin', ''),
+        'admin_password_storage_location_value': request.POST.get('admin_password_storage_location', ''),
+        'admin_password_stored_date_value': request.POST.get('admin_password_stored_date', ''),
     }
     
     return render(request, 'access_management/access_assignment_form.html', context)
@@ -797,6 +938,19 @@ def access_assignment_update(request, pk):
         generic_remediated = request.POST.get('generic_account_remediated') == 'on'
         remediation_date = request.POST.get('remediation_date')
         remediation_notes = request.POST.get('remediation_notes', '')
+
+        # Administrator-equivalent access metadata (RHG 4.3)
+        is_admin_access = (
+            request.POST.get('is_admin_access') == 'on'
+            or access_type in ['Admin', 'Super Admin']
+        )
+        has_separate_admin_account = request.POST.get('has_separate_admin_account') == 'on'
+        admin_account_username = request.POST.get('admin_account_username', '').strip()
+        regular_account_username = request.POST.get('regular_account_username', '').strip()
+        is_workstation_login = request.POST.get('is_workstation_login') == 'on'
+        has_domain_admin = request.POST.get('has_domain_admin') == 'on'
+        admin_password_storage_location = request.POST.get('admin_password_storage_location', '').strip()
+        admin_password_stored_date_raw = request.POST.get('admin_password_stored_date')
         
         # If system_username is empty but access_username exists, use access_username
         # This helps migrate legacy data
@@ -832,6 +986,20 @@ def access_assignment_update(request, pk):
             access_assignment.review_frequency_days = int(review_frequency_days) if review_frequency_days else None
             access_assignment.special_instructions = special_instructions
             access_assignment.compliance_requirements = compliance_requirements
+
+            # Update admin access metadata
+            access_assignment.is_admin_access = is_admin_access
+            access_assignment.has_separate_admin_account = has_separate_admin_account
+            access_assignment.admin_account_username = admin_account_username or None
+            access_assignment.regular_account_username = regular_account_username or None
+            access_assignment.is_workstation_login = is_workstation_login
+            access_assignment.has_domain_admin = has_domain_admin
+            access_assignment.admin_password_storage_location = admin_password_storage_location or None
+
+            if admin_password_stored_date_raw:
+                access_assignment.admin_password_stored_date = _parse_datetime_input(admin_password_stored_date_raw)
+                if not access_assignment.admin_password_stored_by:
+                    access_assignment.admin_password_stored_by = request.user
             
             # Update generic account fields
             access_assignment.is_generic_account = is_generic
@@ -930,6 +1098,39 @@ def access_assignment_update(request, pk):
         'review_frequency_days_value': request.POST.get('review_frequency_days', access_assignment.review_frequency_days or ''),
         'special_instructions_value': request.POST.get('special_instructions', access_assignment.special_instructions or ''),
         'compliance_requirements_value': request.POST.get('compliance_requirements', access_assignment.compliance_requirements or ''),
+        # Admin access governance values
+        'is_admin_access_value': request.POST.get(
+            'is_admin_access',
+            'on' if access_assignment.is_admin_access or access_assignment.access_type in ['Admin', 'Super Admin'] else ''
+        ),
+        'has_separate_admin_account_value': request.POST.get(
+            'has_separate_admin_account',
+            'on' if access_assignment.has_separate_admin_account else ''
+        ),
+        'admin_account_username_value': request.POST.get(
+            'admin_account_username',
+            access_assignment.admin_account_username or ''
+        ),
+        'regular_account_username_value': request.POST.get(
+            'regular_account_username',
+            access_assignment.regular_account_username or ''
+        ),
+        'is_workstation_login_value': request.POST.get(
+            'is_workstation_login',
+            'on' if access_assignment.is_workstation_login else ''
+        ),
+        'has_domain_admin_value': request.POST.get(
+            'has_domain_admin',
+            'on' if access_assignment.has_domain_admin else ''
+        ),
+        'admin_password_storage_location_value': request.POST.get(
+            'admin_password_storage_location',
+            access_assignment.admin_password_storage_location or ''
+        ),
+        'admin_password_stored_date_value': request.POST.get(
+            'admin_password_stored_date',
+            _format_datetime_for_input(access_assignment.admin_password_stored_date)
+        ),
         'username_verified_by_value': request.POST.get(
             'username_verified_by',
             str(access_assignment.username_verified_by_id) if access_assignment.username_verified_by_id else ''
@@ -1582,6 +1783,139 @@ def policy_drift_monitoring(request):
     }
 
     return render(request, 'access_management/policy_drift_monitoring.html', context)
+
+
+@login_required
+def admin_accounts_report(request):
+    """
+    Administrator-equivalent access compliance report (RHG 4.3).
+    Highlights:
+    - Admin access limited to IT administrators
+    - Separate admin account usage
+    - Workstation/domain-admin combinations
+    - Admin password storage documentation
+    """
+    system_id = request.GET.get("system", "").strip()
+    department_id = request.GET.get("department", "").strip()
+    issue = request.GET.get("issue", "").strip()
+    search = request.GET.get("search", "").strip()
+
+    # Base queryset: where is_admin_access is flagged or access_type is Admin/Super Admin
+    queryset = UserSystemAccess.objects.select_related("user", "system").filter(
+        Q(is_admin_access=True)
+        | Q(access_type__in=["Admin", "Super Admin"])
+    )
+
+    if system_id:
+        queryset = queryset.filter(system_id=system_id)
+    if department_id:
+        queryset = queryset.filter(user__department_id=department_id)
+    if search:
+        queryset = queryset.filter(
+            Q(user__username__icontains=search)
+            | Q(user__first_name__icontains=search)
+            | Q(user__last_name__icontains=search)
+            | Q(system__name__icontains=search)
+            | Q(system_username__icontains=search)
+            | Q(admin_account_username__icontains=search)
+        )
+
+    # Issue-specific focus
+    if issue == "non_it":
+        queryset = queryset.filter(
+            Q(user__is_it_administrator=False) | Q(user__is_it_administrator__isnull=True)
+        )
+    elif issue == "no_separate":
+        queryset = queryset.filter(
+            Q(has_separate_admin_account=False)
+            | Q(admin_account_username__isnull=True)
+            | Q(admin_account_username__exact="")
+        )
+    elif issue == "workstation_domain":
+        queryset = queryset.filter(
+            is_workstation_login=True,
+            has_domain_admin=True,
+        )
+    elif issue == "no_storage":
+        queryset = queryset.filter(
+            Q(admin_password_storage_location__isnull=True)
+            | Q(admin_password_storage_location__exact="")
+        )
+
+    queryset = queryset.order_by("user__first_name", "user__last_name", "system__name")
+
+    # Metrics for summary cards (computed on unpaginated queryset within current filter scope)
+    base_metrics_qs = queryset
+    metrics = {
+        "total_admin": base_metrics_qs.count(),
+        "non_it_admins": base_metrics_qs.filter(
+            Q(user__is_it_administrator=False) | Q(user__is_it_administrator__isnull=True)
+        ).count(),
+        "no_separate_admin": base_metrics_qs.filter(
+            Q(has_separate_admin_account=False)
+            | Q(admin_account_username__isnull=True)
+            | Q(admin_account_username__exact="")
+        ).count(),
+        "workstation_domain_admin": base_metrics_qs.filter(
+            is_workstation_login=True,
+            has_domain_admin=True,
+        ).count(),
+    }
+
+    export_format = request.GET.get("export")
+    if export_format == "xlsx":
+        return export_admin_accounts_to_excel(queryset)
+    if export_format == "csv":
+        return export_admin_accounts_to_csv(queryset)
+
+    paginator = Paginator(queryset, 25)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    # Build pagination links preserving filters
+    query_params = request.GET.copy()
+    query_params.pop("page", None)
+    base_query = query_params.urlencode()
+
+    def _build_page_link(page_num):
+        if not base_query:
+            return f"?page={page_num}"
+        return f"?{base_query}&page={page_num}"
+
+    pagination = {
+        "first": _build_page_link(1),
+        "last": _build_page_link(paginator.num_pages) if paginator.num_pages else "",
+        "previous": _build_page_link(page_obj.previous_page_number()) if page_obj.has_previous() else "",
+        "next": _build_page_link(page_obj.next_page_number()) if page_obj.has_next() else "",
+    }
+
+    # Export links
+    def _build_export_link(fmt):
+        if base_query:
+            return f"?{base_query}&export={fmt}"
+        return f"?export={fmt}"
+
+    export_links = {
+        "xlsx": _build_export_link("xlsx"),
+        "csv": _build_export_link("csv"),
+    }
+
+    context = {
+        "page_obj": page_obj,
+        "pagination": pagination,
+        "systems": System.objects.filter(is_active=True).order_by("name"),
+        "departments": Department.objects.filter(is_active=True).order_by("name"),
+        "metrics": metrics,
+        "filters": {
+            "system": system_id,
+            "department": department_id,
+            "issue": issue,
+            "search": search,
+        },
+        "export_links": export_links,
+    }
+
+    return render(request, "access_management/admin_accounts_report.html", context)
 
 
 @login_required
