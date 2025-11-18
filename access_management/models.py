@@ -814,3 +814,192 @@ class AccessHistory(models.Model):
             'Access Denied': 'danger'
         }
         return colors.get(self.action, 'secondary')
+
+
+class QuarterlyAccessReview(models.Model):
+    """
+    Documents quarterly permission reviews per user/system pairing (RHG 4.5).
+    """
+
+    review_quarter = models.CharField(
+        max_length=10,
+        help_text="Quarter being reviewed (e.g., '2025-Q1')",
+    )
+
+    reviewed_user = models.ForeignKey(
+        'accounts.CustomUser',
+        on_delete=models.CASCADE,
+        related_name='quarterly_access_reviews',
+        help_text="Employee whose access was reviewed",
+    )
+
+    system = models.ForeignKey(
+        'systems.System',
+        on_delete=models.CASCADE,
+        related_name='quarterly_access_reviews',
+        help_text="External system that was reviewed",
+    )
+
+    user_system_access = models.ForeignKey(
+        'UserSystemAccess',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='quarterly_reviews',
+        help_text="Link to the access assignment that was reviewed (optional)",
+    )
+
+    reviewed_by = models.ForeignKey(
+        'accounts.CustomUser',
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='quarterly_reviews_conducted',
+        help_text="IT reviewer who conducted the quarterly review",
+    )
+
+    review_date = models.DateTimeField(
+        help_text="Date and time the quarterly review was conducted",
+    )
+
+    approved_permissions = models.TextField(
+        help_text="Approved permissions/roles on record in this system",
+    )
+
+    actual_permissions_in_external_system = models.TextField(
+        help_text="Permissions observed in the external system during the review",
+    )
+
+    matches_approved = models.BooleanField(
+        default=False,
+        help_text="Do the actual external-system permissions match the approved permissions?",
+    )
+
+    discrepancies = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Describe any mismatches or required remediation actions",
+    )
+
+    system_owner = models.ForeignKey(
+        'accounts.CustomUser',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='quarterly_reviews_confirmed',
+        help_text="System Owner who confirms the review results",
+    )
+
+    system_owner_confirmed = models.BooleanField(
+        default=False,
+        help_text="System Owner has confirmed the quarterly review outcome",
+    )
+
+    system_owner_confirmed_date = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text="Date/time the System Owner confirmed the review",
+    )
+
+    system_owner_notes = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Notes or confirmation evidence from the System Owner",
+    )
+
+    review_completed = models.BooleanField(
+        default=False,
+        help_text="Check when review tasks and follow-ups have been completed",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-review_date']
+        verbose_name = "Quarterly Access Review"
+        verbose_name_plural = "Quarterly Access Reviews"
+        indexes = [
+            models.Index(fields=['review_quarter']),
+            models.Index(fields=['system']),
+            models.Index(fields=['reviewed_user']),
+        ]
+
+    def __str__(self):
+        return f"{self.review_quarter} – {self.reviewed_user.full_name} @ {self.system.name}"
+
+    @property
+    def quarter_label(self):
+        return self.review_quarter
+
+
+class PermissionChangeDocumentation(models.Model):
+    """
+    Captures evidence that permission changes were reviewed and approved (RHG 4.5).
+    """
+
+    user_system_access = models.ForeignKey(
+        'UserSystemAccess',
+        on_delete=models.CASCADE,
+        related_name='permission_change_logs',
+        help_text="Access assignment that was modified in the external system",
+    )
+
+    old_permissions = models.TextField(
+        help_text="Documented permissions before the change",
+    )
+
+    new_permissions = models.TextField(
+        help_text="Actual permissions applied in the external system after the change",
+    )
+
+    changed_in_external_system_date = models.DateTimeField(
+        help_text="When the change occurred in the external system",
+    )
+
+    documented_in_this_system_date = models.DateTimeField(
+        auto_now_add=True,
+        help_text="When this change was logged for audit evidence",
+    )
+
+    has_approval = models.BooleanField(
+        default=False,
+        help_text="Was the change approved through change management?",
+    )
+
+    approval_reference = models.ForeignKey(
+        'change_management.AccountChangeRequest',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='permission_change_records',
+        help_text="Reference to the associated change request (if applicable)",
+    )
+
+    documented_by = models.ForeignKey(
+        'accounts.CustomUser',
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='permission_changes_documented',
+        help_text="Person who documented this permission change",
+    )
+
+    notes = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Additional context, evidence links, or remediation notes",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-changed_in_external_system_date', '-created_at']
+        verbose_name = "Permission Change Documentation"
+        verbose_name_plural = "Permission Change Documentation"
+        indexes = [
+            models.Index(fields=['changed_in_external_system_date']),
+        ]
+
+    def __str__(self):
+        access = self.user_system_access
+        user_label = access.user.full_name if access and access.user else "Unknown user"
+        system_label = access.system.name if access and access.system else "Unknown system"
+        return f"{user_label} – {system_label} permissions updated"

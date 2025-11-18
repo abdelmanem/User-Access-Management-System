@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Bulk Quarterly Reviews{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <div>
+            <h2 class="mb-0">
+                <i class="fas fa-bolt text-primary"></i> Bulk Quarterly Review Generator
+            </h2>
+            <p class="text-muted mb-0">Auto-generate review entries for multiple users and systems (RHG 4.5 evidence).</p>
+        </div>
+        <div class="btn-group">
+            <a class="btn btn-outline-secondary" href="{% url 'access_management:quarterly_access_review_dashboard' %}">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    {% if annual_progress %}
+    <div class="alert {% if annual_progress.complete %}alert-success{% elif annual_progress.on_track %}alert-info{% else %}alert-warning{% endif %} shadow-sm">
+        <div class="d-flex justify-content-between flex-wrap gap-2 align-items-center">
+            <div>
+                {{ annual_progress.reviewed_users }} of {{ annual_progress.total_users }} active users
+                ({{ annual_progress.percentage }}%) have been reviewed in {{ annual_progress.year }}.
+                {% if annual_progress.remaining_users > 0 %}
+                    <strong>{{ annual_progress.remaining_users }}</strong> remain to reach full-year coverage.
+                {% else %}
+                    <strong>Goal met!</strong> All active users have a documented review this year.
+                {% endif %}
+            </div>
+            <div class="text-muted small">
+                YTD target: {{ annual_progress.target_percentage }}%
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <div class="card shadow-sm h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-gears me-2"></i>Bulk Generation Parameters</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ form.review_quarter.id_for_label }}">Quarter</label>
+                            {{ form.review_quarter }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ form.system.id_for_label }}">System</label>
+                            {{ form.system }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ form.users_qty.id_for_label }}">Number of Users</label>
+                            {{ form.users_qty }}
+                            <div class="form-text">System will auto-select the next users due for review who do not already have a record this quarter.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ form.review_date.id_for_label }}">Review Date</label>
+                            {{ form.review_date }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ form.reviewed_by.id_for_label }}">Reviewed By</label>
+                            {{ form.reviewed_by }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ form.discrepancies.id_for_label }}">Default Discrepancy Notes</label>
+                            {{ form.discrepancies }}
+                        </div>
+                        <div class="form-check mb-2">
+                            {{ form.matches_approved }}
+                            <label class="form-check-label" for="{{ form.matches_approved.id_for_label }}">Mark as matching approved permissions</label>
+                        </div>
+                        <div class="form-check mb-3">
+                            {{ form.review_completed }}
+                            <label class="form-check-label" for="{{ form.review_completed.id_for_label }}">Flag generated reviews as completed</label>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-primary" name="preview" value="true" type="submit">
+                                <i class="fas fa-eye"></i> Preview Selection
+                            </button>
+                            <button class="btn btn-primary" name="generate" value="true" type="submit">
+                                <i class="fas fa-bolt"></i> Generate Reviews
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-7">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-0"><i class="fas fa-users-gear me-2"></i>Preview & Results</h5>
+                        <small class="text-muted">Eligible assignments for the selected quarter/system.</small>
+                    </div>
+                    {% if selection_summary.system %}
+                    <span class="badge bg-secondary">{{ selection_summary.generated }} / {{ selection_summary.requested }} selected</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if selection_summary.system %}
+                    <div class="mb-3">
+                        <strong>System:</strong> {{ selection_summary.system.name }}
+                        <span class="ms-3"><strong>Quarter:</strong> {{ selection_summary.review_quarter }}</span>
+                    </div>
+                    {% endif %}
+
+                    {% if preview_assignments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>User</th>
+                                    <th>System Username</th>
+                                    <th>Next Review</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for assignment in preview_assignments %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ assignment.user.full_name }}</strong><br>
+                                        <small class="text-muted">{{ assignment.user.username }}</small>
+                                    </td>
+                                    <td><code>{{ assignment.system_username|default:"N/A" }}</code></td>
+                                    <td>
+                                        {% if assignment.next_review_date %}
+                                            {{ assignment.next_review_date|date:"Y-m-d" }}
+                                        {% else %}
+                                            <span class="text-muted">Not scheduled</span>
+                                        {% endif %}
+                                    </td>
+                                    <td><span class="badge bg-info">{{ assignment.status }}</span></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-info-circle fa-2x mb-2"></i>
+                        <p class="mb-0">Select a system + quantity and click "Preview Selection" to see which assignments will be generated.</p>
+                    </div>
+                    {% endif %}
+                </div>
+                {% if created_reviews %}
+                <div class="card-footer bg-success bg-opacity-10">
+                    <strong>{{ created_reviews|length }}</strong> review record{{ created_reviews|length|pluralize }} added. You can refine filters and generate another batch at any time.
+                </div>
+                {% elif skipped_assignments %}
+                <div class="card-footer bg-warning bg-opacity-10">
+                    <p class="mb-1"><strong>{{ skipped_assignments|length }}</strong> assignment{{ skipped_assignments|length|pluralize }} skipped:</p>
+                    <ul class="mb-0 ps-4">
+                        {% for skipped in skipped_assignments %}
+                        <li>
+                            {{ skipped.label }} – {{ skipped.reason }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -31,6 +31,10 @@ urlpatterns = [
     path('generic-accounts/', views.generic_accounts_report, name='generic_accounts_report'),
     path('generic-accounts/<int:pk>/remediate/', views.mark_generic_account_remediated, name='mark_generic_account_remediated'),
     
+    # Quarterly reviews & permission change documentation (RHG 4.5)
+    path('quarterly-reviews/', views.quarterly_access_review_dashboard, name='quarterly_access_review_dashboard'),
+    path('quarterly-reviews/bulk/', views.quarterly_access_review_bulk, name='quarterly_access_review_bulk'),
+
     # Policy Drift Monitoring
     path('policy-drift-monitoring/', views.policy_drift_monitoring, name='policy_drift_monitoring'),
 

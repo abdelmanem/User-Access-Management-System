@@ -2,7 +2,13 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
 from django.utils.safestring import mark_safe
-from .models import UserSystemAccess, AccessHistory
+
+from .models import (
+    UserSystemAccess,
+    AccessHistory,
+    QuarterlyAccessReview,
+    PermissionChangeDocumentation,
+)
 
 
 @admin.register(UserSystemAccess)
@@ -292,3 +298,47 @@ class AccessHistoryAdmin(admin.ModelAdmin):
         """Display timestamp."""
         return obj.timestamp
     timestamp_display.short_description = 'Timestamp'
+
+
+@admin.register(QuarterlyAccessReview)
+class QuarterlyAccessReviewAdmin(admin.ModelAdmin):
+    list_display = [
+        'review_quarter',
+        'reviewed_user',
+        'system',
+        'matches_approved',
+        'system_owner_confirmed',
+        'review_completed',
+        'review_date',
+    ]
+    list_filter = ['review_quarter', 'system', 'matches_approved', 'system_owner_confirmed']
+    search_fields = [
+        'reviewed_user__username',
+        'reviewed_user__first_name',
+        'reviewed_user__last_name',
+        'system__name',
+        'approved_permissions',
+        'actual_permissions_in_external_system',
+    ]
+    readonly_fields = ['created_at']
+
+
+@admin.register(PermissionChangeDocumentation)
+class PermissionChangeDocumentationAdmin(admin.ModelAdmin):
+    list_display = [
+        'user_system_access',
+        'changed_in_external_system_date',
+        'has_approval',
+        'approval_reference',
+        'documented_by',
+    ]
+    list_filter = ['has_approval', 'changed_in_external_system_date']
+    search_fields = [
+        'user_system_access__user__username',
+        'user_system_access__user__first_name',
+        'user_system_access__user__last_name',
+        'user_system_access__system__name',
+        'old_permissions',
+        'new_permissions',
+    ]
+    readonly_fields = ['created_at', 'documented_in_this_system_date']

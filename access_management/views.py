@@ -1,4 +1,5 @@
 import csv
+from datetime import datetime, timedelta
 from io import BytesIO, StringIO
 
 from django.contrib import messages
@@ -14,7 +15,18 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter, landscape
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Spacer
 
-from .models import UserSystemAccess, AccessHistory
+from .models import (
+    UserSystemAccess,
+    AccessHistory,
+    QuarterlyAccessReview,
+    PermissionChangeDocumentation,
+)
+from .forms import (
+    QuarterlyAccessReviewForm,
+    PermissionChangeDocumentationForm,
+    BulkQuarterlyReviewForm,
+    get_current_quarter_label,
+)
 from .reporting import build_policy_drift_snapshot, generate_policy_drift_rows
 from .utils import (
     is_generic_username,
@@ -398,6 +410,171 @@ def build_cross_system_mapping_rows(assignments, request=None):
             "business_justification": (assignment.business_justification or '').strip(),
         })
     return rows
+
+
+def _build_quarter_options(count=8):
+    """Return a descending list of quarter labels (e.g., ['2025-Q4', ...])."""
+    reference = timezone.now().date()
+    current_quarter = ((reference.month - 1) // 3) + 1
+    current_year = reference.year
+    options = []
+    idx = 0
+    while len(options) < count:
+        quarter = current_quarter - idx
+        year = current_year
+        while quarter <= 0:
+            quarter += 4
+            year -= 1
+        options.append(f"{year}-Q{quarter}")
+        idx += 1
+    return options
+
+
+def _quarter_date_range(label):
+    """Return (start_datetime, end_datetime) for a given quarter label."""
+    if not label or label == 'all':
+        return None, None
+    try:
+        year_part, quarter_part = label.split('-Q')
+        year = int(year_part)
+        quarter = int(quarter_part)
+        month_lookup = {1: 1, 2: 4, 3: 7, 4: 10}
+        start_month = month_lookup[quarter]
+    except (ValueError, KeyError):
+        return None, None
+
+    start_date = timezone.make_aware(datetime(year, start_month, 1, 0, 0, 0))
+    end_month = start_month + 2
+    if end_month > 12:
+        end_year = year + 1
+        end_month = end_month - 12
+    else:
+        end_year = year
+    # Last day of quarter
+    if end_month in {1, 3, 5, 7, 8, 10, 12}:
+        end_day = 31
+    elif end_month == 2:
+        end_day = 29 if (end_year % 4 == 0 and (end_year % 100 != 0 or end_year % 400 == 0)) else 28
+    else:
+        end_day = 30
+    end_date = timezone.make_aware(datetime(end_year, end_month, end_day, 23, 59, 59))
+    return start_date, end_date
+
+
+def _annual_review_progress(year=None):
+    """Return progress metrics for annual user review coverage."""
+    now = timezone.now()
+    year = year or now.year
+    total_users = CustomUser.objects.filter(is_active=True).count()
+    reviewed_users = (
+        QuarterlyAccessReview.objects.filter(review_date__year=year)
+        .values_list('reviewed_user', flat=True)
+        .distinct()
+        .count()
+    )
+    remaining = max(total_users - reviewed_users, 0)
+    percentage = 100.0 if total_users == 0 else round((reviewed_users / total_users) * 100, 1)
+    current_quarter = ((now.month - 1) // 3) + 1
+    target_percentage = round(min(100.0, (current_quarter / 4) * 100), 1)
+    return {
+        'year': year,
+        'total_users': total_users,
+        'reviewed_users': reviewed_users,
+        'remaining_users': remaining,
+        'percentage': percentage,
+        'target_percentage': target_percentage,
+        'on_track': total_users == 0 or percentage >= target_percentage or remaining == 0,
+        'complete': remaining == 0,
+    }
+
+
+def _select_assignments_for_bulk(system, users_qty, review_quarter):
+    """Return a prioritized list of assignments eligible for the requested quarter."""
+    if not system or not users_qty or users_qty <= 0:
+        return []
+
+    queryset = (
+        UserSystemAccess.objects.select_related('user', 'system')
+        .filter(
+            system=system,
+            status__in=['Active', 'Approved'],
+            user__is_active=True,
+        )
+        .exclude(quarterly_reviews__review_quarter=review_quarter)
+    )
+
+    assignments = list(queryset)
+    far_future = timezone.now() + timedelta(days=365 * 5)
+    assignments.sort(
+        key=lambda a: (
+            a.next_review_date is None,
+            a.next_review_date or far_future,
+            (a.user.last_name or '').lower() if a.user else '',
+            (a.user.first_name or '').lower() if a.user else '',
+        )
+    )
+    return assignments[:users_qty]
+
+
+def _update_assignment_review_schedule(assignment, review_date):
+    """Update last/next review dates on the underlying assignment."""
+    default_frequency = assignment.review_frequency_days or 90
+    assignment.last_review_date = review_date
+    assignment.next_review_date = review_date + timedelta(days=default_frequency)
+    assignment.save(update_fields=['last_review_date', 'next_review_date'])
+
+
+def _default_permission_label(assignment):
+    """Best-effort label describing the approved/actual permission set."""
+    return (
+        assignment.granted_access_level
+        or assignment.access_type
+        or assignment.system_username
+        or assignment.status
+        or 'Not Provided'
+    )
+
+
+def export_quarterly_reviews_to_csv(queryset):
+    headers = [
+        "Quarter",
+        "User",
+        "System",
+        "Reviewed By",
+        "Review Date",
+        "Approved Permissions",
+        "Actual Permissions",
+        "Matches Approved",
+        "Discrepancies",
+        "System Owner",
+        "Owner Confirmed",
+        "Owner Confirmation Date",
+        "Review Completed",
+    ]
+    output = StringIO()
+    writer = csv.writer(output)
+    writer.writerow(headers)
+
+    for review in queryset:
+        writer.writerow([
+            review.review_quarter,
+            review.reviewed_user.get_full_name() if review.reviewed_user else '',
+            review.system.name if review.system else '',
+            review.reviewed_by.get_full_name() if review.reviewed_by else '',
+            _format_datetime(review.review_date),
+            (review.approved_permissions or '').strip(),
+            (review.actual_permissions_in_external_system or '').strip(),
+            'Yes' if review.matches_approved else 'No',
+            (review.discrepancies or '').strip(),
+            review.system_owner.get_full_name() if review.system_owner else '',
+            'Yes' if review.system_owner_confirmed else 'No',
+            _format_datetime(review.system_owner_confirmed_date),
+            'Yes' if review.review_completed else 'No',
+        ])
+
+    response = HttpResponse(output.getvalue(), content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="quarterly_access_reviews.csv"'
+    return response
 
 
 def export_cross_system_mapping_to_csv(rows):
@@ -1750,6 +1927,264 @@ def generic_accounts_report(request):
     }
     
     return render(request, 'access_management/generic_accounts_report.html', context)
+
+
+@login_required
+def quarterly_access_review_dashboard(request):
+    """
+    Dashboard for RHG 4.5 quarterly review documentation & permission change logging.
+    """
+    default_quarter = get_current_quarter_label()
+    selected_quarter = request.GET.get('quarter') or default_quarter
+    system_filter = request.GET.get('system', '').strip()
+    match_filter = request.GET.get('match', 'all')
+    owner_filter = request.GET.get('owner', 'all')
+    status_filter = request.GET.get('status', 'all')
+    export_format = request.GET.get('export')
+
+    reviews_qs = QuarterlyAccessReview.objects.select_related(
+        'reviewed_user',
+        'reviewed_by',
+        'system',
+        'system_owner',
+        'user_system_access',
+    )
+
+    include_all_quarters = selected_quarter == 'all'
+    if not include_all_quarters:
+        reviews_qs = reviews_qs.filter(review_quarter=selected_quarter)
+
+    if system_filter:
+        reviews_qs = reviews_qs.filter(system_id=system_filter)
+
+    if match_filter == 'match':
+        reviews_qs = reviews_qs.filter(matches_approved=True)
+    elif match_filter == 'mismatch':
+        reviews_qs = reviews_qs.filter(matches_approved=False)
+
+    if owner_filter == 'confirmed':
+        reviews_qs = reviews_qs.filter(system_owner_confirmed=True)
+    elif owner_filter == 'unconfirmed':
+        reviews_qs = reviews_qs.filter(system_owner_confirmed=False)
+
+    if status_filter == 'completed':
+        reviews_qs = reviews_qs.filter(review_completed=True)
+    elif status_filter == 'pending':
+        reviews_qs = reviews_qs.filter(review_completed=False)
+
+    if export_format == 'csv':
+        return export_quarterly_reviews_to_csv(reviews_qs)
+
+    metrics = {
+        'total_reviews': reviews_qs.count(),
+        'completed_reviews': reviews_qs.filter(review_completed=True).count(),
+        'owner_confirmed': reviews_qs.filter(system_owner_confirmed=True).count(),
+        'mismatches': reviews_qs.filter(matches_approved=False).count(),
+    }
+
+    annual_progress = _annual_review_progress()
+
+    paginator = Paginator(reviews_qs.order_by('-review_date'), 25)
+    reviews_page = paginator.get_page(request.GET.get('page'))
+
+    permission_changes_qs = PermissionChangeDocumentation.objects.select_related(
+        'user_system_access__user',
+        'user_system_access__system',
+        'approval_reference',
+        'documented_by',
+    )
+    if system_filter:
+        permission_changes_qs = permission_changes_qs.filter(user_system_access__system_id=system_filter)
+    date_range = _quarter_date_range(selected_quarter)
+    if date_range[0] and date_range[1]:
+        permission_changes_qs = permission_changes_qs.filter(
+            changed_in_external_system_date__range=date_range
+        )
+    recent_permission_changes = permission_changes_qs.order_by('-changed_in_external_system_date')[:10]
+
+    now = timezone.now()
+    upcoming_window = now + timedelta(days=30)
+    due_assignments = UserSystemAccess.objects.select_related('user', 'system').filter(
+        status__in=['Active', 'Approved'],
+        next_review_date__isnull=False,
+        next_review_date__lte=upcoming_window,
+    ).order_by('next_review_date')
+    overdue_assignment_count = due_assignments.filter(next_review_date__lt=now).count()
+    due_assignment_count = due_assignments.count()
+    pending_assignments = due_assignments[:10]
+
+    review_form_initial = {
+        'review_quarter': selected_quarter if selected_quarter != 'all' else default_quarter,
+        'reviewed_by': request.user.pk,
+        'review_date': timezone.now().strftime('%Y-%m-%dT%H:%M'),
+    }
+    review_form = QuarterlyAccessReviewForm(initial=review_form_initial)
+    permission_change_form = PermissionChangeDocumentationForm(initial={'documented_by': request.user.pk})
+
+    if request.method == 'POST':
+        form_type = request.POST.get('form_type')
+        if form_type == 'quarterly_review':
+            review_form = QuarterlyAccessReviewForm(request.POST)
+            if review_form.is_valid():
+                review_instance = review_form.save(commit=False)
+                if not review_instance.reviewed_by:
+                    review_instance.reviewed_by = request.user
+                if review_instance.system_owner_confirmed and not review_instance.system_owner_confirmed_date:
+                    review_instance.system_owner_confirmed_date = timezone.now()
+                review_instance.save()
+                messages.success(request, 'Quarterly access review logged successfully.')
+                return redirect(request.get_full_path())
+            messages.error(request, 'Please correct the errors in the quarterly review form.')
+        elif form_type == 'permission_change':
+            permission_change_form = PermissionChangeDocumentationForm(request.POST)
+            if permission_change_form.is_valid():
+                permission_change = permission_change_form.save(commit=False)
+                if not permission_change.documented_by:
+                    permission_change.documented_by = request.user
+                permission_change.save()
+                messages.success(request, 'Permission change documentation saved.')
+                return redirect(request.get_full_path())
+            messages.error(request, 'Please correct the errors in the permission change form.')
+
+    quarter_options = ['all'] + _build_quarter_options(8)
+    systems = System.objects.filter(is_active=True).order_by('name')
+
+    filters = {
+        'quarter': selected_quarter,
+        'system': system_filter,
+        'match': match_filter,
+        'owner': owner_filter,
+        'status': status_filter,
+    }
+
+    context = {
+        'reviews_page': reviews_page,
+        'metrics': metrics,
+        'quarter_options': quarter_options,
+        'systems': systems,
+        'filters': filters,
+        'review_form': review_form,
+        'permission_change_form': permission_change_form,
+        'recent_permission_changes': recent_permission_changes,
+        'pending_assignments': pending_assignments,
+        'overdue_assignment_count': overdue_assignment_count,
+        'due_assignment_count': due_assignment_count,
+        'annual_progress': annual_progress,
+    }
+    return render(request, 'access_management/quarterly_access_reviews.html', context)
+
+
+@login_required
+def quarterly_access_review_bulk(request):
+    """Bulk-generate quarterly review records for multiple users/systems."""
+    initial = {
+        'review_quarter': get_current_quarter_label(),
+        'reviewed_by': request.user.pk,
+        'review_date': timezone.now().strftime('%Y-%m-%dT%H:%M'),
+    }
+    form = BulkQuarterlyReviewForm(initial=initial)
+    preview_assignments = []
+    selection_summary = {}
+    created_reviews = []
+    skipped_assignments = []
+
+    if request.method == 'POST':
+        form = BulkQuarterlyReviewForm(request.POST)
+        if form.is_valid():
+            cleaned = form.cleaned_data
+            system = cleaned['system']
+            review_quarter = cleaned['review_quarter']
+            users_qty = cleaned['users_qty']
+            preview_assignments = _select_assignments_for_bulk(system, users_qty, review_quarter)
+            selection_summary = {
+                'system': system,
+                'requested': users_qty,
+                'generated': len(preview_assignments),
+                'review_quarter': review_quarter,
+            }
+
+            if not preview_assignments:
+                messages.warning(
+                    request,
+                    'No eligible assignments found for the selected quarter/system. '
+                    'Try increasing the number of users or choosing a different system.',
+                )
+            elif 'generate' in request.POST:
+                review_date = cleaned['review_date']
+                reviewed_by = cleaned['reviewed_by']
+                matches_approved = cleaned['matches_approved']
+                review_completed = cleaned['review_completed']
+                discrepancies = cleaned['discrepancies']
+                for assignment in preview_assignments:
+                    if not assignment.user or not assignment.system:
+                        skipped_assignments.append({
+                            'label': assignment.user.full_name if assignment.user else 'Unknown User',
+                            'reason': 'Missing user/system reference',
+                        })
+                        continue
+                    exists = QuarterlyAccessReview.objects.filter(
+                        review_quarter=review_quarter,
+                        reviewed_user=assignment.user,
+                        system=assignment.system,
+                    ).exists()
+                    if exists:
+                        skipped_assignments.append({
+                            'label': assignment.user.full_name if assignment.user else 'Unknown User',
+                            'reason': 'Already reviewed this quarter',
+                        })
+                        continue
+
+                    review = QuarterlyAccessReview(
+                        review_quarter=review_quarter,
+                        reviewed_user=assignment.user,
+                        system=assignment.system,
+                        user_system_access=assignment,
+                        reviewed_by=reviewed_by,
+                        review_date=review_date,
+                        approved_permissions=_default_permission_label(assignment),
+                        actual_permissions_in_external_system=_default_permission_label(assignment),
+                        matches_approved=matches_approved,
+                        discrepancies=discrepancies,
+                        system_owner=assignment.system.system_owner if assignment.system else None,
+                        system_owner_confirmed=False,
+                        review_completed=review_completed,
+                    )
+                    review.save()
+                    created_reviews.append(review)
+                    _update_assignment_review_schedule(assignment, review_date)
+
+                if created_reviews:
+                    messages.success(
+                        request,
+                        f"{len(created_reviews)} quarterly review record{'s' if len(created_reviews) != 1 else ''} "
+                        f"generated for {system.name}.",
+                    )
+                if skipped_assignments:
+                    messages.warning(
+                        request,
+                        f"{len(skipped_assignments)} assignment{'s' if len(skipped_assignments) != 1 else ''} "
+                        "skipped because a quarterly review already exists or data was incomplete.",
+                    )
+            else:
+                messages.info(
+                    request,
+                    f"Previewing {len(preview_assignments)} assignment{'s' if len(preview_assignments) != 1 else ''} "
+                    f"for {system.name}. Click 'Generate Reviews' to create records.",
+                )
+
+    annual_progress = _annual_review_progress()
+    available_systems = System.objects.filter(is_active=True).order_by('name')
+
+    context = {
+        'form': form,
+        'preview_assignments': preview_assignments,
+        'selection_summary': selection_summary,
+        'created_reviews': created_reviews,
+        'skipped_assignments': skipped_assignments,
+        'annual_progress': annual_progress,
+        'systems': available_systems,
+    }
+    return render(request, 'access_management/bulk_quarterly_reviews.html', context)
 
 
 @login_required
