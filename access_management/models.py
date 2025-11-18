@@ -1003,3 +1003,185 @@ class PermissionChangeDocumentation(models.Model):
         user_label = access.user.full_name if access and access.user else "Unknown user"
         system_label = access.system.name if access and access.system else "Unknown system"
         return f"{user_label} – {system_label} permissions updated"
+
+
+class QuarterlyActiveUserReview(models.Model):
+    """
+    Documents quarterly verification that external systems only contain approved users.
+    """
+
+    review_quarter = models.CharField(
+        max_length=10,
+        help_text="Quarter reviewed (e.g., '2025-Q1')",
+    )
+
+    system = models.ForeignKey(
+        'systems.System',
+        on_delete=models.CASCADE,
+        related_name='quarterly_active_user_reviews',
+    )
+
+    reviewed_by = models.ForeignKey(
+        'accounts.CustomUser',
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='active_user_reviews_conducted',
+    )
+
+    review_date = models.DateTimeField()
+
+    total_active_users_in_external_system = models.IntegerField(
+        help_text="Total active accounts discovered in the external system.",
+    )
+
+    approved_users_count = models.IntegerField(
+        help_text="Count of accounts that matched approved access records.",
+    )
+
+    unapproved_users_count = models.IntegerField(
+        help_text="Count of accounts found without an approved record.",
+    )
+
+    unapproved_users_list = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Details of unapproved accounts found (usernames, notes).",
+    )
+
+    discrepancies = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Document remediation steps or issues discovered.",
+    )
+
+    review_completed = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-review_date']
+        verbose_name = "Quarterly Active User Review"
+        verbose_name_plural = "Quarterly Active User Reviews"
+        indexes = [
+            models.Index(fields=['review_quarter']),
+            models.Index(fields=['system']),
+        ]
+
+    def __str__(self):
+        return f"{self.review_quarter} – {self.system.name} active user review"
+
+
+class MonthlyObsoleteAccountReview(models.Model):
+    """
+    Monthly documentation of obsolete account detection and remediation.
+    """
+
+    review_month = models.CharField(
+        max_length=10,
+        help_text="Month reviewed (e.g., '2025-01')",
+    )
+
+    reviewed_by = models.ForeignKey(
+        'accounts.CustomUser',
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='monthly_obsolete_reviews_conducted',
+    )
+
+    review_date = models.DateTimeField()
+
+    obsolete_accounts_identified = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List or dict describing obsolete accounts identified.",
+    )
+
+    accounts_deactivated_in_external_systems = models.IntegerField(default=0)
+
+    accounts_pending_deactivation = models.IntegerField(default=0)
+
+    review_completed = models.BooleanField(default=False)
+
+    notes = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Additional context, remediation steps, system owner confirmations.",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-review_date']
+        verbose_name = "Monthly Obsolete Account Review"
+        verbose_name_plural = "Monthly Obsolete Account Reviews"
+        indexes = [
+            models.Index(fields=['review_month']),
+        ]
+
+    def __str__(self):
+        return f"{self.review_month} – Obsolete account review"
+
+
+class AccessRemovalDocumentation(models.Model):
+    """
+    Evidence that access was removed from external systems when no longer needed.
+    """
+
+    user_system_access = models.ForeignKey(
+        'UserSystemAccess',
+        on_delete=models.CASCADE,
+        related_name='removal_documentation',
+    )
+
+    removed_from_external_system_date = models.DateTimeField(
+        help_text="When the external-system account was deactivated or removed.",
+    )
+
+    removed_by = models.ForeignKey(
+        'accounts.CustomUser',
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='access_removals_performed',
+    )
+
+    removal_reason = models.TextField(
+        help_text="Reason for removal (termination, role change, etc.)",
+    )
+
+    verified_removal = models.BooleanField(
+        default=False,
+        help_text="Indicates independent verification that removal is complete.",
+    )
+
+    verified_by = models.ForeignKey(
+        'accounts.CustomUser',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='access_removals_verified',
+    )
+
+    verified_date = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text="When verification occurred.",
+    )
+
+    notes = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Supporting evidence links, ticket numbers, screenshots, etc.",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-removed_from_external_system_date']
+        verbose_name = "Access Removal Documentation"
+        verbose_name_plural = "Access Removal Documentation"
+
+    def __str__(self):
+        access = self.user_system_access
+        user_label = access.user.full_name if access and access.user else "Unknown User"
+        system_label = access.system.name if access and access.system else "Unknown System"
+        return f"{user_label} – {system_label} removal"

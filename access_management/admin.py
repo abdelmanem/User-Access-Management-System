@@ -8,6 +8,9 @@ from .models import (
     AccessHistory,
     QuarterlyAccessReview,
     PermissionChangeDocumentation,
+    QuarterlyActiveUserReview,
+    MonthlyObsoleteAccountReview,
+    AccessRemovalDocumentation,
 )
 
 
@@ -342,3 +345,58 @@ class PermissionChangeDocumentationAdmin(admin.ModelAdmin):
         'new_permissions',
     ]
     readonly_fields = ['created_at', 'documented_in_this_system_date']
+
+
+@admin.register(QuarterlyActiveUserReview)
+class QuarterlyActiveUserReviewAdmin(admin.ModelAdmin):
+    list_display = [
+        'review_quarter',
+        'system',
+        'reviewed_by',
+        'review_date',
+        'total_active_users_in_external_system',
+        'unapproved_users_count',
+        'review_completed',
+    ]
+    list_filter = ['review_quarter', 'system', 'review_completed']
+    search_fields = [
+        'system__name',
+        'unapproved_users_list',
+        'discrepancies',
+    ]
+    readonly_fields = ['created_at']
+
+
+@admin.register(MonthlyObsoleteAccountReview)
+class MonthlyObsoleteAccountReviewAdmin(admin.ModelAdmin):
+    list_display = [
+        'review_month',
+        'reviewed_by',
+        'review_date',
+        'accounts_deactivated_in_external_systems',
+        'accounts_pending_deactivation',
+        'review_completed',
+    ]
+    list_filter = ['review_month', 'review_completed']
+    search_fields = ['notes']
+    readonly_fields = ['created_at']
+
+
+@admin.register(AccessRemovalDocumentation)
+class AccessRemovalDocumentationAdmin(admin.ModelAdmin):
+    list_display = [
+        'user_system_access',
+        'removed_from_external_system_date',
+        'removed_by',
+        'verified_removal',
+        'verified_by',
+    ]
+    list_filter = ['verified_removal', 'removed_from_external_system_date']
+    search_fields = [
+        'user_system_access__user__first_name',
+        'user_system_access__user__last_name',
+        'user_system_access__system__name',
+        'removal_reason',
+        'notes',
+    ]
+    readonly_fields = ['created_at']

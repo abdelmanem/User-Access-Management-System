@@ -35,6 +35,9 @@ urlpatterns = [
     path('quarterly-reviews/', views.quarterly_access_review_dashboard, name='quarterly_access_review_dashboard'),
     path('quarterly-reviews/bulk/', views.quarterly_access_review_bulk, name='quarterly_access_review_bulk'),
 
+    # Access approval compliance (RHG 4.6)
+    path('access-approval-compliance/', views.access_approval_compliance, name='access_approval_compliance'),
+
     # Policy Drift Monitoring
     path('policy-drift-monitoring/', views.policy_drift_monitoring, name='policy_drift_monitoring'),
 

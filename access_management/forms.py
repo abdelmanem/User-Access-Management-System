@@ -4,7 +4,13 @@ from django.utils import timezone
 from accounts.models import CustomUser
 from systems.models import System
 
-from .models import QuarterlyAccessReview, PermissionChangeDocumentation
+from .models import (
+    QuarterlyAccessReview,
+    PermissionChangeDocumentation,
+    QuarterlyActiveUserReview,
+    MonthlyObsoleteAccountReview,
+    AccessRemovalDocumentation,
+)
 
 
 def get_current_quarter_label(reference=None):
@@ -165,6 +171,138 @@ class BulkQuarterlyReviewForm(forms.Form):
 
     def _apply_bootstrap_classes(self):
         for name, field in self.fields.items():
+            widget = field.widget
+            if isinstance(widget, forms.CheckboxInput):
+                widget.attrs.setdefault("class", "form-check-input")
+            else:
+                classes = widget.attrs.get("class", "")
+                widget.attrs["class"] = (classes + " form-control").strip()
+
+
+class QuarterlyActiveUserReviewForm(forms.ModelForm):
+    review_date = forms.DateTimeField(
+        widget=forms.DateTimeInput(attrs={"type": "datetime-local"}),
+    )
+
+    class Meta:
+        model = QuarterlyActiveUserReview
+        fields = [
+            "review_quarter",
+            "system",
+            "reviewed_by",
+            "review_date",
+            "total_active_users_in_external_system",
+            "approved_users_count",
+            "unapproved_users_count",
+            "unapproved_users_list",
+            "discrepancies",
+            "review_completed",
+        ]
+        widgets = {
+            "review_quarter": forms.TextInput(attrs={"placeholder": "YYYY-Q#"}),
+            "unapproved_users_list": forms.Textarea(attrs={"rows": 3}),
+            "discrepancies": forms.Textarea(attrs={"rows": 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.initial.get("review_quarter"):
+            self.initial["review_quarter"] = get_current_quarter_label()
+        if not self.initial.get("review_date"):
+            self.initial["review_date"] = timezone.now().strftime("%Y-%m-%dT%H:%M")
+        self._apply_bootstrap()
+
+    def _apply_bootstrap(self):
+        for field in self.fields.values():
+            widget = field.widget
+            if isinstance(widget, forms.CheckboxInput):
+                widget.attrs.setdefault("class", "form-check-input")
+            else:
+                classes = widget.attrs.get("class", "")
+                widget.attrs["class"] = (classes + " form-control").strip()
+
+
+class MonthlyObsoleteAccountReviewForm(forms.ModelForm):
+    review_date = forms.DateTimeField(
+        widget=forms.DateTimeInput(attrs={"type": "datetime-local"}),
+    )
+    obsolete_accounts_identified = forms.JSONField(
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 4}),
+        help_text="Provide JSON (list or object) describing obsolete accounts located.",
+    )
+
+    class Meta:
+        model = MonthlyObsoleteAccountReview
+        fields = [
+            "review_month",
+            "reviewed_by",
+            "review_date",
+            "obsolete_accounts_identified",
+            "accounts_deactivated_in_external_systems",
+            "accounts_pending_deactivation",
+            "review_completed",
+            "notes",
+        ]
+        widgets = {
+            "review_month": forms.TextInput(attrs={"placeholder": "YYYY-MM"}),
+            "notes": forms.Textarea(attrs={"rows": 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        now = timezone.now()
+        default_month = now.strftime("%Y-%m")
+        if not self.initial.get("review_month"):
+            self.initial["review_month"] = default_month
+        if not self.initial.get("review_date"):
+            self.initial["review_date"] = now.strftime("%Y-%m-%dT%H:%M")
+        self._apply_bootstrap()
+
+    def _apply_bootstrap(self):
+        for field in self.fields.values():
+            widget = field.widget
+            if isinstance(widget, forms.CheckboxInput):
+                widget.attrs.setdefault("class", "form-check-input")
+            else:
+                classes = widget.attrs.get("class", "")
+                widget.attrs["class"] = (classes + " form-control").strip()
+
+
+class AccessRemovalDocumentationForm(forms.ModelForm):
+    removed_from_external_system_date = forms.DateTimeField(
+        widget=forms.DateTimeInput(attrs={"type": "datetime-local"}),
+    )
+    verified_date = forms.DateTimeField(
+        required=False,
+        widget=forms.DateTimeInput(attrs={"type": "datetime-local"}),
+    )
+
+    class Meta:
+        model = AccessRemovalDocumentation
+        fields = [
+            "user_system_access",
+            "removed_from_external_system_date",
+            "removed_by",
+            "removal_reason",
+            "verified_removal",
+            "verified_by",
+            "verified_date",
+            "notes",
+        ]
+        widgets = {
+            "removal_reason": forms.Textarea(attrs={"rows": 3}),
+            "notes": forms.Textarea(attrs={"rows": 2}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.initial.get("removed_from_external_system_date"):
+            self.initial["removed_from_external_system_date"] = timezone.now().strftime("%Y-%m-%dT%H:%M")
+        self._apply_bootstrap()
+
+    def _apply_bootstrap(self):
+        for field in self.fields.values():
             widget = field.widget
             if isinstance(widget, forms.CheckboxInput):
                 widget.attrs.setdefault("class", "form-check-input")

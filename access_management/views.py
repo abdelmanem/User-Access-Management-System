@@ -20,11 +20,17 @@ from .models import (
     AccessHistory,
     QuarterlyAccessReview,
     PermissionChangeDocumentation,
+    QuarterlyActiveUserReview,
+    MonthlyObsoleteAccountReview,
+    AccessRemovalDocumentation,
 )
 from .forms import (
     QuarterlyAccessReviewForm,
     PermissionChangeDocumentationForm,
     BulkQuarterlyReviewForm,
+    QuarterlyActiveUserReviewForm,
+    MonthlyObsoleteAccountReviewForm,
+    AccessRemovalDocumentationForm,
     get_current_quarter_label,
 )
 from .reporting import build_policy_drift_snapshot, generate_policy_drift_rows
@@ -32,7 +38,9 @@ from .utils import (
     is_generic_username,
     detect_generic_accounts,
     get_generic_accounts_by_system,
-    get_unremediated_generic_accounts
+    get_unremediated_generic_accounts,
+    identify_obsolete_accounts,
+    get_unapproved_access_records,
 )
 from accounts.models import CustomUser
 from systems.models import System
@@ -2185,6 +2193,118 @@ def quarterly_access_review_bulk(request):
         'systems': available_systems,
     }
     return render(request, 'access_management/bulk_quarterly_reviews.html', context)
+
+
+@login_required
+def access_approval_compliance(request):
+    """
+    RHG 4.6 dashboard aggregating quarterly active-user reviews,
+    monthly obsolete-account reviews, and access removal documentation.
+    """
+    default_quarter = get_current_quarter_label()
+    now = timezone.now()
+    default_month = now.strftime("%Y-%m")
+
+    quarterly_form = QuarterlyActiveUserReviewForm(initial={
+        'review_quarter': default_quarter,
+        'review_date': now.strftime("%Y-%m-%dT%H:%M"),
+        'reviewed_by': request.user.pk,
+    })
+    monthly_form = MonthlyObsoleteAccountReviewForm(initial={
+        'review_month': default_month,
+        'review_date': now.strftime("%Y-%m-%dT%H:%M"),
+        'reviewed_by': request.user.pk,
+    })
+    removal_form = AccessRemovalDocumentationForm(initial={
+        'removed_by': request.user.pk,
+    })
+
+    if request.method == 'POST':
+        form_type = request.POST.get('form_type')
+        if form_type == 'quarterly_active':
+            quarterly_form = QuarterlyActiveUserReviewForm(request.POST)
+            if quarterly_form.is_valid():
+                quarterly_form.save()
+                messages.success(request, "Quarterly active-user review documented.")
+                return redirect(request.get_full_path())
+            messages.error(request, "Please fix validation errors in the quarterly review form.")
+        elif form_type == 'monthly_obsolete':
+            monthly_form = MonthlyObsoleteAccountReviewForm(request.POST)
+            if monthly_form.is_valid():
+                monthly_form.save()
+                messages.success(request, "Monthly obsolete account review saved.")
+                return redirect(request.get_full_path())
+            messages.error(request, "Please fix validation errors in the monthly review form.")
+        elif form_type == 'access_removal':
+            removal_form = AccessRemovalDocumentationForm(request.POST)
+            if removal_form.is_valid():
+                instance = removal_form.save(commit=False)
+                if instance.verified_removal and not instance.verified_date:
+                    instance.verified_date = timezone.now()
+                instance.save()
+                messages.success(request, "Access removal documentation recorded.")
+                return redirect(request.get_full_path())
+            messages.error(request, "Please fix validation errors in the removal documentation form.")
+
+    quarterly_reviews = QuarterlyActiveUserReview.objects.select_related('system', 'reviewed_by')[:20]
+    monthly_reviews = MonthlyObsoleteAccountReview.objects.select_related('reviewed_by')[:12]
+    removal_logs = AccessRemovalDocumentation.objects.select_related(
+        'user_system_access__user', 'user_system_access__system', 'removed_by', 'verified_by'
+    )[:20]
+
+    unapproved_access_qs = get_unapproved_access_records()
+    unapproved_access = unapproved_access_qs[:20]
+
+    obsolete_accounts = identify_obsolete_accounts()
+    obsolete_summary = {
+        'terminated_users': obsolete_accounts['terminated_users'].count(),
+        'inactive_users': obsolete_accounts['inactive_users'].count(),
+        'expired_assignments': obsolete_accounts['expired_assignments'].count(),
+        'stale_reviews': obsolete_accounts['stale_reviews'].count(),
+    }
+
+    total_active_assignments = UserSystemAccess.objects.filter(status__in=['Active', 'Approved']).count()
+    removal_pending = AccessRemovalDocumentation.objects.filter(verified_removal=False).count()
+
+    metrics = {
+        'total_active_assignments': total_active_assignments,
+        'unapproved_access': unapproved_access_qs.count(),
+        'quarterly_reviews': QuarterlyActiveUserReview.objects.count(),
+        'monthly_reviews': MonthlyObsoleteAccountReview.objects.count(),
+        'pending_removals': removal_pending,
+    }
+
+    systems = System.objects.filter(name__in=[
+        "Active Directory",
+        "EMMA CRS",
+        "PMS",
+        "POS",
+        "Doorlock systems",
+        "PeopleSearch",
+        "Hotelkit",
+        "PMI",
+        "VPN",
+        "OTA's",
+        "Credit card portal",
+        "Google My Business",
+        "Banking software",
+        "Accounting software",
+    ]).order_by('name')
+
+    context = {
+        'metrics': metrics,
+        'quarterly_form': quarterly_form,
+        'monthly_form': monthly_form,
+        'removal_form': removal_form,
+        'quarterly_reviews': quarterly_reviews,
+        'monthly_reviews': monthly_reviews,
+        'removal_logs': removal_logs,
+        'unapproved_access': unapproved_access,
+        'obsolete_accounts': obsolete_accounts,
+        'obsolete_summary': obsolete_summary,
+        'systems': systems,
+    }
+    return render(request, 'access_management/access_approval_compliance.html', context)
 
 
 @login_required
