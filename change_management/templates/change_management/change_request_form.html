@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if change_request %}Edit{% else %}Create{% endif %} Account Change Request{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-exchange-alt"></i>
+                        {% if change_request %}Edit{% else %}Create{% endif %} Account Change Request
+                    </h3>
+                    <div class="btn-group">
+                        <a href="{% url 'change_management:change_request_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to List
+                        </a>
+                        {% if change_request %}
+                        <a href="{% url 'change_management:change_request_detail' change_request.pk %}" class="btn btn-outline-primary">
+                            <i class="fas fa-eye"></i> View Details
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+
+                        <!-- Basic Info -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0"><i class="fas fa-info-circle"></i> Change Request Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="change_type" class="form-label">
+                                                Change Type <span class="text-danger">*</span>
+                                            </label>
+                                            <select class="form-select" id="change_type" name="change_type" required>
+                                                <option value="">Select change type</option>
+                                                {% for val,label in change_type_choices %}
+                                                <option value="{{ val }}" {% if selected_change_type == val %}selected{% endif %}>
+                                                    {{ label }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="user" class="form-label">
+                                                User (optional)
+                                            </label>
+                                            <select class="form-select" id="user" name="user">
+                                                <option value="">Select user</option>
+                                                {% for u in users %}
+                                                <option value="{{ u.pk }}" {% if selected_user_id == u.pk|stringformat:"s" %}selected{% endif %}>
+                                                    {{ u.get_full_name }} ({{ u.username }})
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                            <small class="form-text text-muted">
+                                                For delete/suspend of existing accounts, select the employee if known.
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="system" class="form-label">
+                                                System <span class="text-danger">*</span>
+                                            </label>
+                                            <select class="form-select" id="system" name="system" required>
+                                                <option value="">Select system</option>
+                                                {% for sys in systems %}
+                                                <option value="{{ sys.pk }}" {% if selected_system_id == sys.pk|stringformat:"s" %}selected{% endif %}>
+                                                    {{ sys.name }} ({{ sys.code }})
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="status" class="form-label">
+                                                Status
+                                            </label>
+                                            <select class="form-select" id="status" name="status">
+                                                {% for val,label in status_choices %}
+                                                <option value="{{ val }}" {% if selected_status == val %}selected{% endif %}>
+                                                    {{ label }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    {% if change_request %}
+                                    <div class="col-md-4">
+                                        <div class="form-check mt-4">
+                                            <input class="form-check-input" type="checkbox"
+                                                   id="completed_in_external_system"
+                                                   name="completed_in_external_system"
+                                                   {% if completed_in_external_system_value %}checked{% endif %}>
+                                            <label class="form-check-label" for="completed_in_external_system">
+                                                Change completed in external system
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="completed_date" class="form-label">
+                                                Completion Date (external system)
+                                            </label>
+                                            <input type="datetime-local" class="form-control"
+                                                   id="completed_date"
+                                                   name="completed_date"
+                                                   value="{{ completed_date_value }}">
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- System Owner Authorization (4.4) -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-secondary text-white">
+                                <h5 class="mb-0"><i class="fas fa-user-tie"></i> System Owner Authorization (4.4)</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted">
+                                    Document the System Owner who authorizes this change and capture their approval status,
+                                    as required by RHG 4.4.
+                                </p>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="system_owner" class="form-label">
+                                                System Owner
+                                            </label>
+                                            <select class="form-select" id="system_owner" name="system_owner">
+                                                <option value="">Select System Owner</option>
+                                                {% for u in users %}
+                                                <option value="{{ u.pk }}" {% if selected_system_owner_id == u.pk|stringformat:"s" %}selected{% endif %}>
+                                                    {{ u.get_full_name }} ({{ u.username }})
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check mb-3 mt-4">
+                                            <input class="form-check-input" type="checkbox"
+                                                   id="system_owner_approved"
+                                                   name="system_owner_approved"
+                                                   {% if system_owner_approved_value %}checked{% endif %}>
+                                            <label class="form-check-label" for="system_owner_approved">
+                                                System Owner Approved
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="system_owner_approval_date" class="form-label">
+                                                Approval Date
+                                            </label>
+                                            <input type="datetime-local" class="form-control"
+                                                   id="system_owner_approval_date"
+                                                   name="system_owner_approval_date"
+                                                   value="{{ system_owner_approval_date_value }}">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="system_owner_approval_notes" class="form-label">
+                                        System Owner Notes
+                                    </label>
+                                    <textarea class="form-control"
+                                              id="system_owner_approval_notes"
+                                              name="system_owner_approval_notes"
+                                              rows="3"
+                                    >{{ system_owner_approval_notes_value }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- IT Approval (optional) -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="mb-0"><i class="fas fa-laptop-code"></i> IT Approval (optional)</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="it_approval" class="form-label">
+                                                IT Approver
+                                            </label>
+                                            <select class="form-select" id="it_approval" name="it_approval">
+                                                <option value="">Select IT approver</option>
+                                                {% for u in users %}
+                                                <option value="{{ u.pk }}" {% if selected_it_approval_id == u.pk|stringformat:"s" %}selected{% endif %}>
+                                                    {{ u.get_full_name }} ({{ u.username }})
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="text-muted mb-0">
+                                    Use this when your process requires an IT manager to co-approve changes in addition to the System Owner.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Business Justification -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-warning text-dark">
+                                <h5 class="mb-0"><i class="fas fa-file-alt"></i> Business Justification (4.4)</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="business_justification" class="form-label">
+                                        Business Justification <span class="text-danger">*</span>
+                                    </label>
+                                    <textarea class="form-control"
+                                              id="business_justification"
+                                              name="business_justification"
+                                              rows="4"
+                                              required>{{ business_justification_value }}</textarea>
+                                    <small class="form-text text-muted">
+                                        Describe the legitimate business need for this account change in the external system.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'change_management:change_request_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i>
+                                {% if change_request %}Update{% else %}Create{% endif %} Change Request
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extrajs %}
+<script>
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        Array.prototype.forEach.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+</script>
+{% endblock %}
+
+

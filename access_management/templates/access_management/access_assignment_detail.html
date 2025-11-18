@@ -270,6 +270,32 @@
                                                 {% endif %}
                                             </td>
                                         </tr>
+                                        <tr>
+                                            <th>System Owner Approved:</th>
+                                            <td>
+                                                {% if access_assignment.system_owner_approved %}
+                                                    <span class="badge bg-success">
+                                                        <i class="fas fa-user-tie"></i> Owner Approved
+                                                    </span>
+                                                    {% if access_assignment.system_owner_approval_date %}
+                                                    <br>
+                                                    <small class="text-muted">
+                                                        On {{ access_assignment.system_owner_approval_date|date:"Y-m-d H:i" }}
+                                                    </small>
+                                                    {% endif %}
+                                                    {% if access_assignment.system_owner_approver %}
+                                                    <br>
+                                                    <small class="text-muted">
+                                                        By {{ access_assignment.system_owner_approver.full_name }}
+                                                    </small>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="badge bg-warning text-dark">
+                                                        <i class="fas fa-exclamation-triangle"></i> Missing System Owner approval
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
                                     </table>
                                 </div>
                             </div>
@@ -499,10 +525,16 @@
                         <div class="col-12">
                             <div class="card mb-4">
                                 <div class="card-header bg-secondary text-white">
-                                    <h5 class="mb-0"><i class="fas fa-file-alt"></i> Business Justification</h5>
+                                    <h5 class="mb-0"><i class="fas fa-file-alt"></i> Business Justification & Legitimate Need</h5>
                                 </div>
                                 <div class="card-body">
+                                    <h6>Business Justification</h6>
                                     <p>{{ access_assignment.business_justification }}</p>
+                                    {% if access_assignment.legitimate_business_need %}
+                                    <hr>
+                                    <h6>Legitimate Business Need (4.4)</h6>
+                                    <p>{{ access_assignment.legitimate_business_need }}</p>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>

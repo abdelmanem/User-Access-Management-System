@@ -61,6 +61,8 @@ INSTALLED_APPS = [
     'data_import_export',
     'hardware',
     'service_accounts',
+    'change_management',
+    'documentation',
 ]
 
 MIDDLEWARE = [

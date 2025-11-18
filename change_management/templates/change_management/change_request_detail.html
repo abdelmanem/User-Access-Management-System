@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Change Request #{{ change_request.pk }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-exchange-alt"></i> Change Request #{{ change_request.pk }}
+                    </h3>
+                    <div class="btn-group">
+                        <a href="{% url 'change_management:change_request_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to List
+                        </a>
+                        <a href="{% url 'change_management:change_request_update' change_request.pk %}" class="btn btn-outline-primary">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Basic Info -->
+                        <div class="col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Request Information</h5>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <th width="30%">Change Type:</th>
+                                            <td><span class="badge bg-secondary">{{ change_request.get_change_type_display }}</span></td>
+                                        </tr>
+                                        <tr>
+                                            <th>User:</th>
+                                            <td>
+                                                {% if change_request.user %}
+                                                    <strong>{{ change_request.user.full_name }}</strong><br>
+                                                    <small class="text-muted">{{ change_request.user.username }}</small>
+                                                {% else %}
+                                                    <span class="text-muted">Not specified</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>System:</th>
+                                            <td>
+                                                <strong>{{ change_request.system.name }}</strong><br>
+                                                <small class="text-muted">{{ change_request.system.code }}</small>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Status:</th>
+                                            <td>
+                                                {% if change_request.status == 'Approved' %}
+                                                    <span class="badge bg-success">{{ change_request.get_status_display }}</span>
+                                                {% elif change_request.status == 'Rejected' %}
+                                                    <span class="badge bg-danger">{{ change_request.get_status_display }}</span>
+                                                {% elif change_request.status == 'Completed' %}
+                                                    <span class="badge bg-primary">{{ change_request.get_status_display }}</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning text-dark">{{ change_request.get_status_display }}</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Requested By:</th>
+                                            <td>
+                                                {% if change_request.requested_by %}
+                                                    <strong>{{ change_request.requested_by.full_name }}</strong><br>
+                                                    <small class="text-muted">{{ change_request.requested_by.username }}</small>
+                                                {% else %}
+                                                    <span class="text-muted">Unknown</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Requested At:</th>
+                                            <td>{{ change_request.created_at|date:"Y-m-d H:i" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Completed in External System:</th>
+                                            <td>
+                                                {% if change_request.completed_in_external_system %}
+                                                    <span class="badge bg-success">Yes</span>
+                                                    {% if change_request.completed_date %}
+                                                    <br><small class="text-muted">
+                                                        Completed on {{ change_request.completed_date|date:"Y-m-d H:i" }}
+                                                    </small>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="badge bg-warning text-dark">No / Not recorded</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- System Owner & IT Approval -->
+                        <div class="col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-header bg-secondary text-white">
+                                    <h5 class="mb-0"><i class="fas fa-user-tie"></i> System Owner & IT Approval</h5>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <th width="35%">System Owner:</th>
+                                            <td>
+                                                {% if change_request.system_owner %}
+                                                    <strong>{{ change_request.system_owner.full_name }}</strong><br>
+                                                    <small class="text-muted">{{ change_request.system_owner.username }}</small>
+                                                {% else %}
+                                                    <span class="text-muted">Not specified</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Owner Approval:</th>
+                                            <td>
+                                                {% if change_request.system_owner_approved %}
+                                                    <span class="badge bg-success">
+                                                        <i class="fas fa-check-circle"></i> Approved
+                                                    </span>
+                                                    {% if change_request.system_owner_approval_date %}
+                                                    <br><small class="text-muted">
+                                                        On {{ change_request.system_owner_approval_date|date:"Y-m-d H:i" }}
+                                                    </small>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="badge bg-warning text-dark">
+                                                        <i class="fas fa-user-clock"></i> Pending / Not Recorded
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% if change_request.system_owner_approval_notes %}
+                                        <tr>
+                                            <th>Owner Notes:</th>
+                                            <td>{{ change_request.system_owner_approval_notes|linebreaks }}</td>
+                                        </tr>
+                                        {% endif %}
+                                        <tr>
+                                            <th>IT Approver:</th>
+                                            <td>
+                                                {% if change_request.it_approval %}
+                                                    <strong>{{ change_request.it_approval.full_name }}</strong><br>
+                                                    <small class="text-muted">{{ change_request.it_approval.username }}</small>
+                                                {% else %}
+                                                    <span class="text-muted">Not specified</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Business Justification -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card mb-4">
+                                <div class="card-header bg-warning text-dark">
+                                    <h5 class="mb-0"><i class="fas fa-file-alt"></i> Business Justification (4.4)</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p>{{ change_request.business_justification|linebreaks }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+

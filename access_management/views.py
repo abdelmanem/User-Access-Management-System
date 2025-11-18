@@ -390,6 +390,12 @@ def build_cross_system_mapping_rows(assignments, request=None):
             "verified_date": _format_datetime(assignment.username_verified_date),
             "verification_artifact_file": artifact_file_url,
             "verification_artifact_url": artifact_external_url,
+            # System Owner / 4.4 metadata
+            "system_owner_approved": 'Yes' if assignment.system_owner_approved else 'No',
+            "system_owner_name": assignment.system.system_owner.full_name if assignment.system and assignment.system.system_owner else '',
+            "system_owner_approval_date": _format_datetime(assignment.system_owner_approval_date),
+            "legitimate_business_need": (assignment.legitimate_business_need or '').strip(),
+            "business_justification": (assignment.business_justification or '').strip(),
         })
     return rows
 
@@ -410,6 +416,11 @@ def export_cross_system_mapping_to_csv(rows):
         "Verified Date",
         "Verification Artifact (File)",
         "Verification Artifact (URL)",
+        "System Owner",
+        "System Owner Approved",
+        "System Owner Approval Date",
+        "Business Justification",
+        "Legitimate Business Need",
     ]
     output = StringIO()
     writer = csv.writer(output)
@@ -431,6 +442,11 @@ def export_cross_system_mapping_to_csv(rows):
             row["verified_date"],
             row["verification_artifact_file"],
             row["verification_artifact_url"],
+            row["system_owner_name"],
+            row["system_owner_approved"],
+            row["system_owner_approval_date"],
+            row["business_justification"],
+            row["legitimate_business_need"],
         ])
 
     response = HttpResponse(output.getvalue(), content_type='text/csv')
@@ -458,6 +474,11 @@ def export_cross_system_mapping_to_excel(rows):
         "Verified Date",
         "Verification Artifact (File)",
         "Verification Artifact (URL)",
+        "System Owner",
+        "System Owner Approved",
+        "System Owner Approval Date",
+        "Business Justification",
+        "Legitimate Business Need",
     ]
     worksheet.append(headers)
 
@@ -477,6 +498,11 @@ def export_cross_system_mapping_to_excel(rows):
             row["verified_date"],
             row["verification_artifact_file"],
             row["verification_artifact_url"],
+            row["system_owner_name"],
+            row["system_owner_approved"],
+            row["system_owner_approval_date"],
+            row["business_justification"],
+            row["legitimate_business_need"],
         ])
 
     stream = BytesIO()
@@ -719,6 +745,7 @@ def access_assignment_create(request):
         request_type = request.POST.get('request_type')
         priority = request.POST.get('priority')
         business_justification = request.POST.get('business_justification')
+        legitimate_business_need = request.POST.get('legitimate_business_need', '').strip()
         requested_access_duration = request.POST.get('requested_access_duration')
         technical_requirements = request.POST.get('technical_requirements')
         access_start_date = request.POST.get('access_start_date')
@@ -727,6 +754,11 @@ def access_assignment_create(request):
         username_verified_date_raw = request.POST.get('username_verified_date')
         username_verification_artifact_url = request.POST.get('username_verification_artifact_url', '').strip()
         verification_artifact_file = request.FILES.get('username_verification_artifact')
+
+        # System Owner authorization fields (RHG 4.4)
+        system_owner_approved = request.POST.get('system_owner_approved') == 'on'
+        system_owner_approval_date_raw = request.POST.get('system_owner_approval_date')
+        system_owner_approver_id = request.POST.get('system_owner_approver')
         
         try:
             user = CustomUser.objects.get(id=user_id)
@@ -780,6 +812,13 @@ def access_assignment_create(request):
 
             # Parse admin password stored date
             admin_password_stored_date = _parse_datetime_input(admin_password_stored_date_raw)
+
+            # Parse system owner approval date
+            system_owner_approval_date = _parse_datetime_input(system_owner_approval_date_raw)
+
+            system_owner_approver = None
+            if system_owner_approver_id:
+                system_owner_approver = CustomUser.objects.filter(id=system_owner_approver_id).first()
             
             # Create new access assignment
             access_assignment = UserSystemAccess.objects.create(
@@ -789,6 +828,7 @@ def access_assignment_create(request):
                 request_type=request_type or 'New Access',
                 priority=priority,
                 business_justification=business_justification,
+                legitimate_business_need=legitimate_business_need or None,
                 requested_access_duration=int(requested_access_duration) if requested_access_duration else None,
                 technical_requirements=technical_requirements,
                 access_start_date=timezone.datetime.fromisoformat(access_start_date) if access_start_date else None,
@@ -806,6 +846,9 @@ def access_assignment_create(request):
                 admin_password_storage_location=admin_password_storage_location or None,
                 admin_password_stored_date=admin_password_stored_date,
                 admin_password_stored_by=request.user if admin_password_stored_date else None,
+                system_owner_approved=system_owner_approved,
+                system_owner_approval_date=system_owner_approval_date,
+                system_owner_approver=system_owner_approver,
                 username_verified_by=username_verified_by,
                 username_verified_date=username_verified_date,
                 username_verification_artifact=verification_artifact_file,
@@ -884,6 +927,11 @@ def access_assignment_create(request):
         'review_frequency_days_value': request.POST.get('review_frequency_days', ''),
         'special_instructions_value': request.POST.get('special_instructions', ''),
         'compliance_requirements_value': request.POST.get('compliance_requirements', ''),
+        # System Owner authorization (4.4)
+        'system_owner_approved_value': request.POST.get('system_owner_approved', ''),
+        'system_owner_approval_date_value': request.POST.get('system_owner_approval_date', ''),
+        'system_owner_approver_value': request.POST.get('system_owner_approver', ''),
+        'legitimate_business_need_value': request.POST.get('legitimate_business_need', ''),
         'system_username_value': request.POST.get('system_username', ''),
         'username_verified_by_value': request.POST.get('username_verified_by', default_verifier_id),
         'username_verified_date_value': request.POST.get('username_verified_date', ''),
@@ -912,6 +960,7 @@ def access_assignment_update(request, pk):
         request_type = request.POST.get('request_type')
         priority = request.POST.get('priority')
         business_justification = request.POST.get('business_justification')
+        legitimate_business_need = request.POST.get('legitimate_business_need', '').strip()
         technical_requirements = request.POST.get('technical_requirements')
         requested_access_duration = request.POST.get('requested_access_duration')
         access_start_date = request.POST.get('access_start_date')
@@ -932,6 +981,11 @@ def access_assignment_update(request, pk):
         username_verification_artifact_url = request.POST.get('username_verification_artifact_url', '').strip()
         verification_artifact_file = request.FILES.get('username_verification_artifact')
         clear_verification_artifact = request.POST.get('clear_username_verification_artifact') == 'on'
+
+        # System Owner authorization fields (RHG 4.4)
+        system_owner_approved = request.POST.get('system_owner_approved') == 'on'
+        system_owner_approval_date_raw = request.POST.get('system_owner_approval_date')
+        system_owner_approver_id = request.POST.get('system_owner_approver')
         
         # Generic account fields
         is_generic = request.POST.get('is_generic_account') == 'on'
@@ -970,6 +1024,7 @@ def access_assignment_update(request, pk):
             access_assignment.request_type = request_type or access_assignment.request_type
             access_assignment.priority = priority
             access_assignment.business_justification = business_justification
+            access_assignment.legitimate_business_need = legitimate_business_need or None
             access_assignment.technical_requirements = technical_requirements
             access_assignment.requested_access_duration = int(requested_access_duration) if requested_access_duration else None
             access_assignment.access_start_date = timezone.datetime.fromisoformat(access_start_date) if access_start_date else None
@@ -986,6 +1041,14 @@ def access_assignment_update(request, pk):
             access_assignment.review_frequency_days = int(review_frequency_days) if review_frequency_days else None
             access_assignment.special_instructions = special_instructions
             access_assignment.compliance_requirements = compliance_requirements
+
+            # System Owner authorization metadata
+            access_assignment.system_owner_approved = system_owner_approved
+            access_assignment.system_owner_approval_date = _parse_datetime_input(system_owner_approval_date_raw)
+            system_owner_approver = None
+            if system_owner_approver_id:
+                system_owner_approver = CustomUser.objects.filter(id=system_owner_approver_id).first()
+            access_assignment.system_owner_approver = system_owner_approver
 
             # Update admin access metadata
             access_assignment.is_admin_access = is_admin_access
@@ -1098,6 +1161,23 @@ def access_assignment_update(request, pk):
         'review_frequency_days_value': request.POST.get('review_frequency_days', access_assignment.review_frequency_days or ''),
         'special_instructions_value': request.POST.get('special_instructions', access_assignment.special_instructions or ''),
         'compliance_requirements_value': request.POST.get('compliance_requirements', access_assignment.compliance_requirements or ''),
+        # System Owner authorization (4.4)
+        'system_owner_approved_value': request.POST.get(
+            'system_owner_approved',
+            'on' if access_assignment.system_owner_approved else '',
+        ),
+        'system_owner_approval_date_value': request.POST.get(
+            'system_owner_approval_date',
+            _format_datetime_for_input(access_assignment.system_owner_approval_date),
+        ),
+        'system_owner_approver_value': request.POST.get(
+            'system_owner_approver',
+            str(access_assignment.system_owner_approver_id) if access_assignment.system_owner_approver_id else '',
+        ),
+        'legitimate_business_need_value': request.POST.get(
+            'legitimate_business_need',
+            access_assignment.legitimate_business_need or '',
+        ),
         # Admin access governance values
         'is_admin_access_value': request.POST.get(
             'is_admin_access',
@@ -2041,6 +2121,11 @@ def cross_system_account_mapping(request):
             'artifact_file_url': artifact_file_url,
             'artifact_external_url': access.username_verification_artifact_url or '',
             'has_verification': access.has_username_verification,
+            'system_owner_approved': access.system_owner_approved,
+            'system_owner_approval_date': access.system_owner_approval_date,
+            'system_owner_name': access.system.system_owner.full_name if access.system and access.system.system_owner else '',
+            'legitimate_business_need': access.legitimate_business_need or '',
+            'business_justification': access.business_justification or '',
         }
     
     # Filter users if show_only_with_access

@@ -163,6 +163,22 @@
                 </a>
             </div>
 
+            {% nav_active_class 'change_management:change_request_*' 'change_management:change_request_list' 'change_management:change_request_create' 'change_management:change_request_detail' 'change_management:change_request_update' as change_mgmt_active %}
+            <button class="sidebar-link{{ change_mgmt_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarChangeManagement" aria-expanded="false" aria-controls="sidebarChangeManagement">
+                <span><i class="fa-solid fa-exchange-alt"></i> Change Management (4.4)</span>
+                <i class="fa-solid fa-angle-down collapse-arrow"></i>
+            </button>
+            <div class="collapse sidebar-submenu" id="sidebarChangeManagement" data-bs-parent="#sidebarNav">
+                {% nav_active_class 'change_management:change_request_list' 'change_management:change_request_detail' 'change_management:change_request_update' as change_list_active %}
+                <a class="sidebar-sublink{{ change_list_active }}" href="{% url 'change_management:change_request_list' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-list"></i> Change Requests
+                </a>
+                {% nav_active_class 'change_management:change_request_create' as change_create_active %}
+                <a class="sidebar-sublink{{ change_create_active }}" href="{% url 'change_management:change_request_create' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-plus"></i> New Change Request
+                </a>
+            </div>
+
             {% nav_active_class 'data_import_export:home' 'data_import_export:export_*' 'data_import_export:import_*' 'data_import_export:custom_export' as import_active %}
             <button class="sidebar-link{{ import_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarImportExport" aria-expanded="false" aria-controls="sidebarImportExport">
                 <span><i class="fa-solid fa-file-import"></i> Import/Export</span>

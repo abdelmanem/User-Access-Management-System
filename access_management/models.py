@@ -147,6 +147,27 @@ class UserSystemAccess(models.Model):
         null=True,
         help_text="Reason for rejection (if rejected)"
     )
+
+    # System Owner authorization (RHG 4.4)
+    system_owner_approved = models.BooleanField(
+        default=False,
+        help_text="System Owner has authorized this access in the external system",
+    )
+
+    system_owner_approval_date = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text="When the System Owner approved this access",
+    )
+
+    system_owner_approver = models.ForeignKey(
+        'accounts.CustomUser',
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='system_owner_access_approvals',
+        help_text="System Owner who authorized this access",
+    )
     
     # Access details
     granted_access_level = models.CharField(
@@ -154,6 +175,12 @@ class UserSystemAccess(models.Model):
         blank=True,
         null=True,
         help_text="Specific access level or role granted"
+    )
+
+    legitimate_business_need = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Legitimate business need for this access (as agreed with the System Owner)",
     )
 
     # Administrator-equivalent access tracking (RHG 4.3)

@@ -185,6 +185,15 @@
                                                                     <i class="fas fa-exclamation-triangle"></i> Generic
                                                                 </small>
                                                                 {% endif %}
+                                                                {% if account.system_owner_approved %}
+                                                                <small class="badge bg-success mt-1">
+                                                                    <i class="fas fa-user-tie"></i> Owner Approved
+                                                                </small>
+                                                                {% else %}
+                                                                <small class="badge bg-warning text-dark mt-1">
+                                                                    <i class="fas fa-user-clock"></i> Owner Approval Missing
+                                                                </small>
+                                                                {% endif %}
                                                                 {% if account.has_verification %}
                                                                 <small class="text-success mt-1 text-center">
                                                                     <i class="fas fa-user-check"></i>
@@ -207,6 +216,12 @@
                                                                 <a href="{{ account.artifact_external_url }}" target="_blank" class="small">
                                                                     <i class="fas fa-external-link-alt"></i> Evidence
                                                                 </a>
+                                                                {% endif %}
+                                                                {% if account.legitimate_business_need %}
+                                                                <small class="text-muted mt-1 text-center">
+                                                                    <i class="fas fa-file-alt"></i>
+                                                                    {{ account.legitimate_business_need|truncatechars:60 }}
+                                                                </small>
                                                                 {% endif %}
                                                                 <a href="{% url 'access_management:access_assignment_detail' account.access_id %}" 
                                                                    class="btn btn-sm btn-outline-primary mt-1" title="View Details">

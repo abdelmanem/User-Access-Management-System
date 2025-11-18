@@ -31,6 +31,7 @@ urlpatterns = [
     path('departments/', include('departments.urls')),
     path('systems/', include('systems.urls')),
     path('access-management/', include('access_management.urls')),
+    path('change-management/', include('change_management.urls')),
     path('hardware/', include('hardware.urls')),
     path('service-accounts/', include('service_accounts.urls')),
     path('search/', include('search.urls')),
