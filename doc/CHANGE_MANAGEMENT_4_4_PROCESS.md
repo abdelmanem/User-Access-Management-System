@@ -60,19 +60,19 @@ Implemented in `change_management.AccountChangeRequest`:
 - `created_at: DateTimeField(auto_now_add=True)`  
   - Timestamp when the request was logged.
 
-### 2.2 Administration & Evidence
+### 2.2 Front-End Change Request Console
 
-- Exposed via Django admin (`change_management.admin.AccountChangeRequestAdmin`):
-  - Filterable by **change type**, **status**, **system**, **approval flags**.  
-  - Searchable by user, system name/code, and business justification.  
-- Each row in admin forms a **ticket-like record** showing:
-  - Who requested the change.  
-  - Which system and user are affected.  
-  - Why the change is needed.  
-  - System Owner / IT approvals and timestamps.  
-  - Completion status in the external system.
+- Fully integrated HTML module under **“Change Management (4.4)”** in the sidebar:
+  - **List view** (`/change-management/requests/`): filter by status, change type, system, user, search; shows owner approval badges and quick actions.
+  - **Create view** (`/change-management/requests/create/`): Bootstrap form that captures change type, system, optional user, business justification, System Owner approval metadata, optional IT approver, and completion status.
+  - **Detail view** (`/change-management/requests/<id>/`): auditor-friendly summary with request metadata, approval history, and justification text.
+  - **Update view** (`/change-management/requests/<id>/update/`): edit existing requests, mark completion in the external system, adjust approvals, etc.
+- All pages require authentication (`@login_required`) and reuse the application layout, giving non-admin users full change-management capability without relying on Django admin.
 
-This provides a complete audit trail for change requests without altering external systems directly.
+### 2.3 Administration & Evidence
+
+- Django admin (`change_management.admin.AccountChangeRequestAdmin`) still provides back-office filtering/search and read-only auditing (now without autocomplete dependencies).  
+- Combined with the front-end console, every change request has a traceable record showing requester, approvals, timestamps, and completion state without modifying external systems directly.
 
 ---
 
@@ -199,10 +199,7 @@ Implemented in `documentation.StandardOperatingProcedure`:
   - Marks which SOPs are currently in force.  
 - `created_at: DateTimeField(auto_now_add=True)`.
 
-### 5.2 Administration & Usage
-
-- Exposed via Django admin (`documentation.admin.StandardOperatingProcedureAdmin`):
-  - List, filter, and search SOPs by title, version, and approval status.  
+- Exposed via Django admin (`documentation.admin.StandardOperatingProcedureAdmin`) with filtering/search (no autocomplete dependency).  
 - Supports storing and versioning:
   - **User account creation/deletion/change procedures**.  
   - **System Owner approval process descriptions**.  
@@ -249,9 +246,13 @@ These records serve as **written SOP documentation** that can be exported or pri
 - **Access Assignment List & Detail:**  
   - `/access-management/assignments/`  
   - `/access-management/assignments/<id>/`  
-- **Change Requests (via admin):**  
+- **Change Management Console:**  
+  - `/change-management/requests/` (list)  
+  - `/change-management/requests/create/` (new request)  
+  - `/change-management/requests/<id>/` (detail)  
+- **Change Requests (admin / optional):**  
   - `/admin/change_management/accountchangerequest/`  
-- **SOP Documentation (via admin):**  
+- **SOP Documentation (admin):**  
   - `/admin/documentation/standardoperatingprocedure/`
 
 These views, combined with the CSV/Excel exports, `AccountChangeRequest` records, and SOP entries, provide a complete, traceable evidence set for RHG 4.4 that can be handed directly to auditors.
