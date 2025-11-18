@@ -34,7 +34,7 @@ This document analyzes the current User Access Management System's ability to **
 | 4.4 - Change Management Process | ⚠️ **Partial** | **HIGH** |
 | 4.5 - Permission Change Verification | ⚠️ **Partial** | **MEDIUM** |
 | 4.6 - Approved Access Verification | ⚠️ **Partial** | **MEDIUM** |
-| 4.7 - Default Account Management | ❌ **Not Covered** | **HIGH** |
+| 4.7 - Default Account Management | ✅ **Fully Covered** | **LOW** |
 
 ### Progress Since v2.0 (Q1 → Q4 2025)
 - Added system-specific username capture, generic account flagging, and remediation workflow in `UserSystemAccess`
@@ -42,6 +42,7 @@ This document analyzes the current User Access Management System's ability to **
 - Delivered cross-system account mapping matrix (users × systems × usernames) with filtering/export options
 - Shipped **Service Account Management** module (registry, password compliance fields, history tracking, dashboards/exports)
 - Introduced service account compliance analytics and Excel/PDF exports for auditors
+- Deployed **Default Account Management** module (`default_accounts` app) with registry, templates, action logging, dashboard, and Excel export for PCI 4.7 evidence
 
 **Legend:**
 - ✅ **Fully Covered** - Feature exists and meets requirements
@@ -639,113 +640,25 @@ These steps keep the new username tracking foundation but close the remaining ev
   - Switches, Printers
 - Note: EMMA is hosted, hotels have no access to database passwords (document as N/A)
 
-#### Current System Coverage
+#### Current System Coverage (November 2025)
 
-❌ **What is Missing for Compliance Tracking:**
-1. **Default Account Tracking:**
-   - No model to track default accounts that exist in external systems
-   - No identification/documentation of default vs. regular accounts
-   - No registry of known default accounts by system type
+✅ **What is Covered (Default Account Management module)**
 
-2. **Default Account Management Documentation:**
-   - No procedure/workflow documentation for default account reset/removal
-   - No tracking of default account password changes in external systems
-   - No documentation of default account remediation
+- Dedicated `default_accounts` Django app introduces three models:
+  - `DefaultAccount` stores system linkage, status, password-reset/removal evidence, installation checklist fields, verification metadata, RHG special flags, and hosted/N/A reasons.
+  - `DefaultAccountAction` provides append-only logging for password resets, removals, verification events, installation checklists, and documentation updates. Signals update parent evidence fields automatically, ensuring the audit trail stays synchronized.
+  - `DefaultAccountTemplate` maintains reusable templates per `System.system_type`, including RHG special accounts and hosted EMMA exceptions, so new systems inherit a checklist automatically.
+- Dashboard at `/default-accounts/` (linked in `templates/navigation.html`) renders compliance summary cards, filter controls (system, status, account type, RHG, hosted N/A, “Needs Action”), ordering, pagination, and Excel export (`default_accounts.views.default_account_export`).
+- Detail page and action form allow compliance teams to log remediation with timestamps, evidence references, and performers; `DefaultAccountAction.apply_to_account()` updates password/removal timestamps and status fields.
+- Template registry (`/default-accounts/templates/`) exposes seeded catalog (populated via `default_accounts.services.ensure_default_account_templates_seeded`) so new vendor defaults can be added without touching code.
+- System onboarding integration (`default_accounts.services.create_default_accounts_for_system`, used by `seed_defaults_for_system` view and called when systems are added) ensures every new system immediately receives the relevant default-account records.
 
-3. **System Installation Documentation:**
-   - No process to document default accounts when new systems are installed
-   - No checklist for default account management during system setup
-   - No tracking of default account handling during installation
+⚠️ **Opportunities to Strengthen Evidence (Low Priority)**
+1. **Automated reminders / SLA tracking:** Add scheduled jobs or notifications for records stuck in `Pending`/`In Review` to make the control proactive.
+2. **Native artifact uploads:** Evidence references currently rely on ticket IDs or external file paths; optional attachment upload (when storage allows) would centralize proof.
+3. **Change-management linkage:** Once the broader change-management module (section 4.4) exists, default-account actions should capture the related change request for end-to-end traceability.
 
-4. **Default Account Registry:**
-   - No centralized list/documentation of all default accounts across external systems
-   - No reporting on default account compliance status
-
-#### Recommendations
-
-**Priority: HIGH**
-
-1. **Create Default Account Tracking Model:**
-   ```python
-   # New model: accounts/models.py or systems/models.py
-   class DefaultAccount(models.Model):
-       account_name = CharField(
-           help_text="Default account name in the external system (e.g., 'admin', 'supervisor')"
-       )
-       system = ForeignKey(System)  # Which external system
-       account_type = ChoiceField([
-           ('Database', 'Database Default Account'),
-           ('Workstation', 'Workstation Default Account'),
-           ('Server', 'Server Default Account'),
-           ('Application', 'Application Default Account'),
-           ('Network Device', 'Network Device Default Account'),
-           ('Printer', 'Printer Default Account'),
-       ])
-       status = ChoiceField([
-           ('Active - Password Changed', 'Active - Password Changed in External System'),
-           ('Removed', 'Removed from External System'),
-           ('Pending', 'Pending Reset/Removal'),
-           ('Not Applicable', 'Not Applicable (Hosted System - No Access)'),
-       ])
-       password_changed_in_external_system = BooleanField(
-           default=False,
-           help_text="Password was changed in external system per RHG policy"
-       )
-       password_changed_date = DateTimeField(
-           null=True,
-           help_text="Date password was changed in external system"
-       )
-       password_changed_by = ForeignKey(CustomUser, null=True)
-       removal_required = BooleanField(
-           default=True,
-           help_text="Whether this default account should be removed"
-       )
-       removed_from_external_system = BooleanField(default=False)
-       removal_date = DateTimeField(null=True)
-       removal_confirmed_by = ForeignKey(CustomUser, null=True)
-       remediation_notes = TextField(
-           null=True,
-           help_text="Notes on how default account was handled"
-       )
-       created_at = DateTimeField(auto_now_add=True)
-       updated_at = DateTimeField(auto_now=True)
-   ```
-
-2. **Create Default Account Registry:**
-   - Pre-populated list of common default accounts by system type
-   - System-specific default account templates (e.g., Opera DB accounts, PMS supervisor)
-   - Custom default accounts for hotel-specific systems
-   - Special tracking for RHG-specific accounts (michael.brandt, roger.bergh)
-
-3. **Add Default Account Management Documentation:**
-   - Checklist when new system is installed
-   - Default account identification process documentation
-   - Password reset/removal workflow documentation
-   - Compliance reporting (default accounts not reset/removed in external systems)
-
-4. **Add System Installation Documentation:**
-   ```python
-   # When new system is created, create default account tracking records
-   def create_default_accounts_for_system(system):
-       """
-       When a new system is added, create default account tracking records
-       based on system type
-       """
-       default_accounts = get_default_accounts_for_system_type(system.system_type)
-       for account_name, account_type in default_accounts:
-           DefaultAccount.objects.create(
-               account_name=account_name,
-               system=system,
-               account_type=account_type,
-               status='Pending'
-           )
-   ```
-
-5. **Create Default Account Dashboard:**
-   - List of all default accounts across external systems
-   - Filter by status (Active, Pending, Removed, N/A)
-   - Compliance reporting (default accounts not reset/removed)
-   - Exportable reports for audit evidence
+With the live module, RHG PCI 4.7 evidence is fully addressed; remaining tasks are enhancements rather than gaps.
 
 ---
 
@@ -756,6 +669,7 @@ These steps keep the new username tracking foundation but close the remaining ev
 - **System-Specific Username Tracking & Cross-System Mapping** – every access record captures the external username, generic status, remediation data, and now feeds the cross-system matrix and generic-account reports.
 - **Generic Account Prevention Workflow** – real-time validation, reporting, and remediation documentation satisfy the RHG requirement to flag & retire shared IDs.
 - **Service Account Management Module** – registry, password history, compliance dashboards, and exports give auditors visibility into non-human accounts.
+- **Default Account Management Module** – dedicated `default_accounts` app (registry, templates, dashboard, action logging, Excel export) covers PCI/RHG 4.7 evidence. See also `doc/DEFAULT_ACCOUNT_MANAGEMENT_4_7.md`.
 
 ### High Priority (Still Required)
 
@@ -771,18 +685,13 @@ These steps keep the new username tracking foundation but close the remaining ev
    - Password storage location documentation
    - Domain admin access tracking
 
-3. **Default Account Management Module**
-   - Default account tracking across external systems
-   - Default account reset/removal documentation
-   - System installation integration
-
-4. **Change Management Process Module**
+3. **Change Management Process Module**
    - Change request documentation model
    - System Owner authorization tracking
    - Enhanced user matrix export with approvals/attestations
    - SOP documentation system
 
-5. **Service/Privileged Account Governance Enhancements**
+4. **Service/Privileged Account Governance Enhancements**
    - Owner attestations, change ticket references, storage location tracking
    - Notifications for upcoming/overdue rotations
 
@@ -828,11 +737,8 @@ These steps keep the new username tracking foundation but close the remaining ev
    - Password change tracking + history records
    - Excel/PDF exports and dashboard widgets
 
-4. **Default Account Module** (Week 3-4)
-   - Create `DefaultAccount` model
-   - Create default account registry
-   - Add system installation integration
-   - Create default account dashboard
+4. **Default Account Module** (Week 3-4) – ✅ *Delivered (Nov 2025)*
+   - `default_accounts` models, registry dashboard, template seeding, action logging, and Excel export are live (see section 4.7 + `doc/DEFAULT_ACCOUNT_MANAGEMENT_4_7.md`).
 
 ### Phase 2: Access Control Enhancement (Weeks 5-8)
 
@@ -914,9 +820,8 @@ The current User Access Management System provides a solid foundation for **trac
 1. **System-Specific Account Evidence** – leverage the new username/generic tracking to capture verification timestamps, attachments, and password compliance metadata for each assignment (Critical for 4.1).
 2. **Service & Privileged Account Governance** – build attestation, notification, and linkage to change tickets for the service account module so auditors can see ownership and rotation evidence (Critical for 4.2).
 3. **Administrator Account Management** – introduce dedicated admin-account records, IT-admin role identification, and password storage documentation (Critical for 4.3).
-4. **Default Account Management** – inventory default IDs per system type and document reset/removal actions (Critical for 4.7).
-5. **Change Management Process Documentation** – add formal change request tracking, SOP repository, and enhanced matrix exports to evidence approvals (Critical for 4.4).
-6. **Review Process Documentation** – implement quarterly/ monthly review logs, discrepancy reporting, and automated reminders (Important for 4.5 and 4.6).
+4. **Change Management Process Documentation** – add formal change request tracking, SOP repository, and enhanced matrix exports to evidence approvals (Critical for 4.4).
+5. **Review Process Documentation** – implement quarterly/monthly review logs, discrepancy reporting, and automated reminders (Important for 4.5 and 4.6).
 
 The recommended implementation plan spans 12 weeks and prioritizes critical compliance tracking features first, followed by documentation enhancements and review process tracking.
 
