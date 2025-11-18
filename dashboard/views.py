@@ -355,6 +355,13 @@ def reports_view(request):
             'url': reverse('hardware_inventory_report'),
             'export_url': f"{reverse('hardware_inventory_report')}?export=csv",
         },
+        {
+            'name': 'Interactive Documentation Portal',
+            'description': 'Live, navigable guide to governance workflows, modules, and compliance artifacts.',
+            'icon': 'book-open-reader',
+            'url': reverse('documentation_portal'),
+            'export_url': None,
+        },
     ]
     
     now = timezone.now()
@@ -457,6 +464,175 @@ def reports_view(request):
     }
     
     return render(request, 'admin/reports.html', context)
+
+
+@login_required
+def documentation_portal(request):
+    """Interactive documentation experience embedded in the reports area."""
+
+    launch_phases = [
+        {
+            'title': 'Operational Readiness',
+            'description': 'Establish departments, systems, and baseline hardware, then enable SSO or local accounts.',
+            'status': 'Complete',
+            'variant': 'success',
+            'tasks': [
+                'Load departments & systems (CSV import available)',
+                'Configure approval workflows and reviewers',
+                'Validate notification channels',
+            ],
+        },
+        {
+            'title': 'Control Implementation',
+            'description': 'Roll out default account governance, quarterly access reviews, and service account health.',
+            'status': 'In Progress',
+            'variant': 'primary',
+            'tasks': [
+                'Link access assignments to change requests',
+                'Track review cadence per system',
+                'Surface remediation evidence per control',
+            ],
+        },
+        {
+            'title': 'Continuous Assurance',
+            'description': 'Leverage analytics, exports, and scheduled audits for proactive compliance.',
+            'status': 'Planned',
+            'variant': 'warning',
+            'tasks': [
+                'Automate drift snapshots via Celery or cron',
+                'Publish custom evidence packs for auditors',
+                'Feed insights into SIEM and GRC suites',
+            ],
+        },
+    ]
+
+    module_guides = [
+        {
+            'name': 'Access Management',
+            'category': 'governance',
+            'description': 'Centralized view of assignments, approval routing, and policy drift monitoring.',
+            'cta': reverse('access_management:policy_drift_monitoring'),
+            'badge': 'Control 4.6',
+            'highlights': ['Assignment lifecycle tracking', 'Quarterly review workflows', 'Evidence-ready exports'],
+        },
+        {
+            'name': 'Service Accounts',
+            'category': 'automation',
+            'description': 'Registry for service identities with ownership, rotation cadence, and compliance evidence.',
+            'cta': reverse('service_accounts:service_account_list'),
+            'badge': 'Control 4.3',
+            'highlights': ['Owner attribution', 'Rotation reminders', 'Exception handling'],
+        },
+        {
+            'name': 'Default Accounts',
+            'category': 'governance',
+            'description': 'Template-driven governance for vendor-supplied accounts and remediation plans.',
+            'cta': reverse('default_accounts:default_account_dashboard'),
+            'badge': 'Control 4.7',
+            'highlights': ['Template registry', 'Remediation playbooks', 'Evidence exports'],
+        },
+        {
+            'name': 'Change Management',
+            'category': 'operations',
+            'description': 'Document access-impacting requests with CAB sign-off, artifacts, and implementation notes.',
+            'cta': reverse('change_management:change_request_list'),
+            'badge': 'Control 4.4',
+            'highlights': ['CAB roster tracking', 'Implementation evidence', 'Access linkage'],
+        },
+        {
+            'name': 'Hardware Inventory',
+            'category': 'operations',
+            'description': 'Trace devices, warranty status, and associated users or systems for audit defense.',
+            'cta': reverse('hardware:hardware_list'),
+            'badge': 'Asset Ops',
+            'highlights': ['Lifecycle status', 'Patch exceptions', 'System linkage'],
+        },
+        {
+            'name': 'Analytics & Reports',
+            'category': 'insights',
+            'description': 'Pre-built dashboards plus CSV exports for auditors, leadership, and operations.',
+            'cta': reverse('reports'),
+            'badge': 'Insights',
+            'highlights': ['Drift KPIs', 'Alerting hooks', 'Evidence packs'],
+        },
+    ]
+
+    compliance_matrix = [
+        {
+            'control': 'PCI 4.3 Administrator Access',
+            'objective': 'Demonstrate least privilege and monitoring of privileged accounts.',
+            'navigation': 'Access → Admin Accounts (4.3)',
+            'evidence': ['Admin roster', 'Remediation log', 'Review cadence'],
+        },
+        {
+            'control': 'PCI 4.5 Quarterly Access Review',
+            'objective': 'Quarterly certification of user-system relationships and remediation workflow.',
+            'navigation': 'Access → Quarterly Reviews (4.5)',
+            'evidence': ['Certification exports', 'Reviewer notes', 'Bulk attestation history'],
+        },
+        {
+            'control': 'PCI 4.6 Access Approval',
+            'objective': 'Traceable approvals for every assignment and associated change request.',
+            'navigation': 'Access → Access Compliance (4.6)',
+            'evidence': ['Approval chain', 'Ticket linkage', 'Assignment audit log'],
+        },
+        {
+            'control': 'PCI 4.7 Default Account Governance',
+            'objective': 'Inventory and lock down default credentials across systems.',
+            'navigation': 'Default Accounts → Registry & Dashboard',
+            'evidence': ['Vendor template', 'Compensating controls', 'Remediation status'],
+        },
+    ]
+
+    faqs = [
+        {
+            'question': 'How do I onboard a new business unit quickly?',
+            'answer': 'Use the department import, associate systems, then bulk assign reviewers via the Access module. Finish by validating reporting filters.',
+        },
+        {
+            'question': 'Where can I export evidence for auditors?',
+            'answer': 'Every major module offers CSV exports. The Reports hub consolidates them, and the documentation portal lists recommended artifacts per control.',
+        },
+        {
+            'question': 'Can this documentation be shared externally?',
+            'answer': 'Yes—print the page or share the Reports → Interactive Documentation link. It contains no sensitive data and summarizes governance flow.',
+        },
+    ]
+
+    resource_links = [
+        {
+            'label': 'User Guide (Markdown)',
+            'icon': 'book',
+            'url': 'https://github.com/iai/User-Access-Management-System/blob/main/doc/USER_GUIDE.md',
+        },
+        {
+            'label': 'Administrator Checklist',
+            'icon': 'list-check',
+            'url': 'https://github.com/iai/User-Access-Management-System/blob/main/doc/ADMINISTRATOR_ACCESS_4_3_GOVERNANCE.md',
+        },
+        {
+            'label': 'Developer Guide',
+            'icon': 'code',
+            'url': 'https://github.com/iai/User-Access-Management-System/blob/main/doc/DEV_GUIDE.md',
+        },
+        {
+            'label': 'Policy Drift Playbook',
+            'icon': 'radar',
+            'url': 'https://github.com/iai/User-Access-Management-System/blob/main/doc/POLICY_DRIFT_SCHEDULING.md',
+        },
+    ]
+
+    context = {
+        'title': 'Interactive Documentation',
+        'launch_phases': launch_phases,
+        'module_guides': module_guides,
+        'compliance_matrix': compliance_matrix,
+        'faqs': faqs,
+        'resource_links': resource_links,
+        'last_updated': timezone.now(),
+    }
+
+    return render(request, 'admin/reports/documentation_portal.html', context)
 
 @login_required
 def generate_user_access_report(request):

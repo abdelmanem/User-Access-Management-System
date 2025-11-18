@@ -5,6 +5,7 @@ urlpatterns = [
     path('', views.dashboard_home, name='dashboard_home'),
     path('analytics/', views.analytics_view, name='analytics'),
     path('reports/', views.reports_view, name='reports'),
+    path('reports/interactive-documentation/', views.documentation_portal, name='documentation_portal'),
     path('reports/user-access/', views.generate_user_access_report, name='user_access_report'),
     path('reports/system-usage/', views.generate_system_usage_report, name='system_usage_report'),
     path('reports/security-audit/', views.generate_security_audit_report, name='security_audit_report'),

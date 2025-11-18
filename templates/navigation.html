@@ -168,3 +168,247 @@
     </div>
 </nav>
 
+<<<<<<< Updated upstream
+=======
+    <div class="flex-grow-1 overflow-auto">
+        <nav class="nav flex-column gap-1" id="sidebarNav">
+            {% nav_active_class 'dashboard_home' 'analytics' as dashboard_active %}
+            <a class="sidebar-link{{ dashboard_active }}" href="{% url 'dashboard_home' %}" data-sidebar-close="true">
+                <span><i class="fa-solid fa-chart-line"></i> Dashboard</span>
+            </a>
+
+            {% nav_active_class 'accounts:user_list' 'accounts:user_create' 'accounts:user_detail' 'accounts:user_update' 'accounts:user_delete' as users_active %}
+            <button class="sidebar-link{{ users_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarUsers" aria-expanded="false" aria-controls="sidebarUsers">
+                <span><i class="fa-solid fa-users"></i> Users</span>
+                <i class="fa-solid fa-angle-down collapse-arrow"></i>
+            </button>
+            <div class="collapse sidebar-submenu" id="sidebarUsers" data-bs-parent="#sidebarNav">
+                {% nav_active_class 'accounts:user_list' 'accounts:user_detail' 'accounts:user_update' 'accounts:user_delete' as user_list_active %}
+                <a class="sidebar-sublink{{ user_list_active }}" href="{% url 'accounts:user_list' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-list"></i> User List
+                </a>
+                {% nav_active_class 'accounts:user_create' as user_create_active %}
+                <a class="sidebar-sublink{{ user_create_active }}" href="{% url 'accounts:user_create' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-plus"></i> Add New User
+                </a>
+            </div>
+
+            {% nav_active_class 'departments:department_*' 'departments:department_list' 'departments:department_detail' 'departments:department_update' 'departments:department_delete' 'departments:department_create' as dept_active %}
+            <button class="sidebar-link{{ dept_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarDepartments" aria-expanded="false" aria-controls="sidebarDepartments">
+                <span><i class="fa-solid fa-sitemap"></i> Departments</span>
+                <i class="fa-solid fa-angle-down collapse-arrow"></i>
+            </button>
+            <div class="collapse sidebar-submenu" id="sidebarDepartments" data-bs-parent="#sidebarNav">
+                {% nav_active_class 'departments:department_list' 'departments:department_detail' 'departments:department_update' 'departments:department_delete' as dept_list_active %}
+                <a class="sidebar-sublink{{ dept_list_active }}" href="{% url 'departments:department_list' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-list"></i> Department List
+                </a>
+                {% nav_active_class 'departments:department_create' as dept_create_active %}
+                <a class="sidebar-sublink{{ dept_create_active }}" href="{% url 'departments:department_create' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-plus"></i> Add New Department
+                </a>
+            </div>
+
+            {% nav_active_class 'systems:system_*' 'systems:system_list' 'systems:system_detail' 'systems:system_update' 'systems:system_delete' 'systems:system_create' as systems_active %}
+            <button class="sidebar-link{{ systems_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarSystems" aria-expanded="false" aria-controls="sidebarSystems">
+                <span><i class="fa-solid fa-server"></i> Systems</span>
+                <i class="fa-solid fa-angle-down collapse-arrow"></i>
+            </button>
+            <div class="collapse sidebar-submenu" id="sidebarSystems" data-bs-parent="#sidebarNav">
+                {% nav_active_class 'systems:system_list' 'systems:system_detail' 'systems:system_update' 'systems:system_delete' as system_list_active %}
+                <a class="sidebar-sublink{{ system_list_active }}" href="{% url 'systems:system_list' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-list"></i> System List
+                </a>
+                {% nav_active_class 'systems:system_create' as system_create_active %}
+                <a class="sidebar-sublink{{ system_create_active }}" href="{% url 'systems:system_create' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-plus"></i> Add New System
+                </a>
+            </div>
+
+            {% nav_active_class 'hardware:hardware_*' 'hardware:hardware_list' 'hardware:hardware_detail' 'hardware:hardware_update' 'hardware:hardware_delete' 'hardware:hardware_create' as hardware_active %}
+            <button class="sidebar-link{{ hardware_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarHardware" aria-expanded="false" aria-controls="sidebarHardware">
+                <span><i class="fa-solid fa-desktop"></i> Hardware</span>
+                <i class="fa-solid fa-angle-down collapse-arrow"></i>
+            </button>
+            <div class="collapse sidebar-submenu" id="sidebarHardware" data-bs-parent="#sidebarNav">
+                {% nav_active_class 'hardware:hardware_list' 'hardware:hardware_detail' 'hardware:hardware_update' 'hardware:hardware_delete' as hardware_list_active %}
+                <a class="sidebar-sublink{{ hardware_list_active }}" href="{% url 'hardware:hardware_list' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-list"></i> Hardware List
+                </a>
+                {% nav_active_class 'hardware:hardware_create' as hardware_create_active %}
+                <a class="sidebar-sublink{{ hardware_create_active }}" href="{% url 'hardware:hardware_create' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-plus"></i> Add New Hardware
+                </a>
+            </div>
+
+            {% nav_active_class 'default_accounts:default_account_*' 'default_accounts:default_account_dashboard' 'default_accounts:default_account_detail' 'default_accounts:default_account_update' 'default_accounts:default_account_templates' 'default_accounts:default_account_create' as default_accounts_active %}
+            <button class="sidebar-link{{ default_accounts_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarDefaultAccounts" aria-expanded="false" aria-controls="sidebarDefaultAccounts">
+                <span><i class="fa-solid fa-user-lock"></i> Default Accounts (4.7)</span>
+                <i class="fa-solid fa-angle-down collapse-arrow"></i>
+            </button>
+            <div class="collapse sidebar-submenu" id="sidebarDefaultAccounts" data-bs-parent="#sidebarNav">
+                {% nav_active_class 'default_accounts:default_account_dashboard' 'default_accounts:default_account_detail' 'default_accounts:default_account_update' as default_accounts_list_active %}
+                <a class="sidebar-sublink{{ default_accounts_list_active }}" href="{% url 'default_accounts:default_account_dashboard' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-list"></i> Registry & Dashboard
+                </a>
+                {% nav_active_class 'default_accounts:default_account_create' as default_accounts_create_active %}
+                <a class="sidebar-sublink{{ default_accounts_create_active }}" href="{% url 'default_accounts:default_account_create' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-plus"></i> Add Default Account
+                </a>
+                {% nav_active_class 'default_accounts:default_account_templates' as default_accounts_templates_active %}
+                <a class="sidebar-sublink{{ default_accounts_templates_active }}" href="{% url 'default_accounts:default_account_templates' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-layer-group"></i> Template Registry
+                </a>
+                <a class="sidebar-sublink" href="{% url 'default_accounts:default_account_export' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-file-export"></i> Export Evidence
+                </a>
+            </div>
+
+            {% nav_active_class 'service_accounts:service_account_*' 'service_accounts:service_account_list' 'service_accounts:service_account_detail' 'service_accounts:service_account_update' 'service_accounts:service_account_delete' 'service_accounts:service_account_create' 'service_accounts:service_account_compliance_report' as svc_active %}
+            <button class="sidebar-link{{ svc_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarServiceAccounts" aria-expanded="false" aria-controls="sidebarServiceAccounts">
+                <span><i class="fa-solid fa-user-shield"></i> Service Accounts</span>
+                <i class="fa-solid fa-angle-down collapse-arrow"></i>
+            </button>
+            <div class="collapse sidebar-submenu" id="sidebarServiceAccounts" data-bs-parent="#sidebarNav">
+                {% nav_active_class 'service_accounts:service_account_list' 'service_accounts:service_account_detail' 'service_accounts:service_account_update' 'service_accounts:service_account_delete' as svc_list_active %}
+                <a class="sidebar-sublink{{ svc_list_active }}" href="{% url 'service_accounts:service_account_list' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-list"></i> Service Account List
+                </a>
+                {% nav_active_class 'service_accounts:service_account_create' as svc_create_active %}
+                <a class="sidebar-sublink{{ svc_create_active }}" href="{% url 'service_accounts:service_account_create' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-plus"></i> Add New Service Account
+                </a>
+                {% nav_active_class 'service_accounts:service_account_compliance_report' as svc_report_active %}
+                <a class="sidebar-sublink{{ svc_report_active }}" href="{% url 'service_accounts:service_account_compliance_report' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-chart-bar"></i> Compliance Report
+                </a>
+            </div>
+
+            {% nav_active_class 'accounts:user_deactivation_audit_*' 'accounts:user_archive_*' 'accounts:user_deactivation_audit_list' 'accounts:user_deactivation_audit_detail' 'accounts:user_archive_list' 'accounts:user_archive_detail' as audit_active %}
+            <button class="sidebar-link{{ audit_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarAudit" aria-expanded="false" aria-controls="sidebarAudit">
+                <span><i class="fa-solid fa-clipboard-list"></i> Audit</span>
+                <i class="fa-solid fa-angle-down collapse-arrow"></i>
+            </button>
+            <div class="collapse sidebar-submenu" id="sidebarAudit" data-bs-parent="#sidebarNav">
+                {% nav_active_class 'accounts:user_deactivation_audit_list' 'accounts:user_deactivation_audit_detail' as audit_deactivate_active %}
+                <a class="sidebar-sublink{{ audit_deactivate_active }}" href="{% url 'accounts:user_deactivation_audit_list' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-ban"></i> Deactivation Audit
+                </a>
+                {% nav_active_class 'accounts:user_archive_list' 'accounts:user_archive_detail' as audit_archive_active %}
+                <a class="sidebar-sublink{{ audit_archive_active }}" href="{% url 'accounts:user_archive_list' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-box-archive"></i> Archived Users
+                </a>
+            </div>
+
+{% nav_active_class 'access_management:access_assignment_*' 'access_management:user_access_*' 'access_management:system_access_*' 'access_management:access_history_*' 'access_management:approve_access_assignment' 'access_management:reject_access_assignment' 'access_management:cross_system_account_mapping' 'access_management:generic_accounts_report' 'access_management:user_cross_system_accounts' 'access_management:mark_generic_account_remediated' 'access_management:policy_drift_monitoring' 'access_management:admin_accounts_report' 'access_management:quarterly_access_review_dashboard' 'access_management:quarterly_access_review_bulk' 'access_management:access_approval_compliance' as access_active %}
+            <button class="sidebar-link{{ access_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarAccess" aria-expanded="false" aria-controls="sidebarAccess">
+                <span><i class="fa-solid fa-key"></i> Access</span>
+                <i class="fa-solid fa-angle-down collapse-arrow"></i>
+            </button>
+            <div class="collapse sidebar-submenu" id="sidebarAccess" data-bs-parent="#sidebarNav">
+                {% nav_active_class 'access_management:access_assignment_list' 'access_management:access_assignment_detail' 'access_management:access_assignment_update' 'access_management:access_assignment_delete' 'access_management:user_access_assignments' 'access_management:system_access_assignments' 'access_management:approve_access_assignment' 'access_management:reject_access_assignment' as access_assignments_active %}
+                <a class="sidebar-sublink{{ access_assignments_active }}" href="{% url 'access_management:access_assignment_list' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-list"></i> Access Assignments
+                </a>
+                {% nav_active_class 'access_management:access_assignment_create' as access_create_active %}
+                <a class="sidebar-sublink{{ access_create_active }}" href="{% url 'access_management:access_assignment_create' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-plus"></i> New Assignment
+                </a>
+                {% nav_active_class 'access_management:cross_system_account_mapping' 'access_management:user_cross_system_accounts' as access_mapping_active %}
+                <a class="sidebar-sublink{{ access_mapping_active }}" href="{% url 'access_management:cross_system_account_mapping' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-network-wired"></i> Cross-System Mapping
+                </a>
+                {% nav_active_class 'access_management:generic_accounts_report' 'access_management:mark_generic_account_remediated' as access_generic_active %}
+                <a class="sidebar-sublink{{ access_generic_active }}" href="{% url 'access_management:generic_accounts_report' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Generic Accounts
+                </a>
+                {% nav_active_class 'access_management:policy_drift_monitoring' as policy_drift_active %}
+                <a class="sidebar-sublink{{ policy_drift_active }}" href="{% url 'access_management:policy_drift_monitoring' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-radar"></i> Policy Drift Monitor
+                </a>
+                {% nav_active_class 'access_management:quarterly_access_review_dashboard' as quarterly_reviews_active %}
+                <a class="sidebar-sublink{{ quarterly_reviews_active }}" href="{% url 'access_management:quarterly_access_review_dashboard' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-clipboard-check"></i> Quarterly Reviews (4.5)
+                </a>
+                {% nav_active_class 'access_management:quarterly_access_review_bulk' as quarterly_reviews_bulk_active %}
+                <a class="sidebar-sublink{{ quarterly_reviews_bulk_active }}" href="{% url 'access_management:quarterly_access_review_bulk' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-bolt"></i> Bulk Reviews
+                </a>
+                {% nav_active_class 'access_management:access_approval_compliance' as access_compliance_active %}
+                <a class="sidebar-sublink{{ access_compliance_active }}" href="{% url 'access_management:access_approval_compliance' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-shield-alt"></i> Access Compliance (4.6)
+                </a>
+                {% nav_active_class 'access_management:admin_accounts_report' as admin_accounts_active %}
+                <a class="sidebar-sublink{{ admin_accounts_active }}" href="{% url 'access_management:admin_accounts_report' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-user-shield"></i> Admin Accounts (4.3)
+                </a>
+                {% nav_active_class 'access_management:access_history_list' 'access_management:user_access_history' 'access_management:system_access_history' 'access_management:assignment_access_history' as access_history_active %}
+                <a class="sidebar-sublink{{ access_history_active }}" href="{% url 'access_management:access_history_list' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-history"></i> Access History
+                </a>
+            </div>
+
+            {% nav_active_class 'change_management:change_request_*' 'change_management:change_request_list' 'change_management:change_request_create' 'change_management:change_request_detail' 'change_management:change_request_update' as change_mgmt_active %}
+            <button class="sidebar-link{{ change_mgmt_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarChangeManagement" aria-expanded="false" aria-controls="sidebarChangeManagement">
+                <span><i class="fa-solid fa-exchange-alt"></i> Change Management (4.4)</span>
+                <i class="fa-solid fa-angle-down collapse-arrow"></i>
+            </button>
+            <div class="collapse sidebar-submenu" id="sidebarChangeManagement" data-bs-parent="#sidebarNav">
+                {% nav_active_class 'change_management:change_request_list' 'change_management:change_request_detail' 'change_management:change_request_update' as change_list_active %}
+                <a class="sidebar-sublink{{ change_list_active }}" href="{% url 'change_management:change_request_list' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-list"></i> Change Requests
+                </a>
+                {% nav_active_class 'change_management:change_request_create' as change_create_active %}
+                <a class="sidebar-sublink{{ change_create_active }}" href="{% url 'change_management:change_request_create' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-plus"></i> New Change Request
+                </a>
+            </div>
+
+            {% nav_active_class 'data_import_export:home' 'data_import_export:export_*' 'data_import_export:import_*' 'data_import_export:custom_export' as import_active %}
+            <button class="sidebar-link{{ import_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarImportExport" aria-expanded="false" aria-controls="sidebarImportExport">
+                <span><i class="fa-solid fa-file-import"></i> Import/Export</span>
+                <i class="fa-solid fa-angle-down collapse-arrow"></i>
+            </button>
+            <div class="collapse sidebar-submenu" id="sidebarImportExport" data-bs-parent="#sidebarNav">
+                {% nav_active_class 'data_import_export:home' as import_home_active %}
+                <a class="sidebar-sublink{{ import_home_active }}" href="{% url 'data_import_export:home' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-home"></i> Overview
+                </a>
+                {% nav_active_class 'data_import_export:custom_export' as import_custom_active %}
+                <a class="sidebar-sublink{{ import_custom_active }}" href="{% url 'data_import_export:custom_export' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-sliders"></i> Custom Export
+                </a>
+            </div>
+
+            {% nav_active_class 'reports' 'documentation_portal' 'user_access_report' 'system_usage_report' 'security_audit_report' 'department_access_report' as reports_active %}
+            <button class="sidebar-link{{ reports_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarReports" aria-expanded="false" aria-controls="sidebarReports">
+                <span><i class="fa-solid fa-chart-pie"></i> Reports</span>
+                <i class="fa-solid fa-angle-down collapse-arrow"></i>
+            </button>
+            <div class="collapse sidebar-submenu" id="sidebarReports" data-bs-parent="#sidebarNav">
+                {% nav_active_class 'reports' as reports_home_active %}
+                <a class="sidebar-sublink{{ reports_home_active }}" href="{% url 'reports' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-chart-pie"></i> Reports Hub
+                </a>
+                {% nav_active_class 'documentation_portal' as documentation_active %}
+                <a class="sidebar-sublink{{ documentation_active }}" href="{% url 'documentation_portal' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-book-open-reader"></i> Documentation Portal
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <div class="sidebar-footer mt-3">
+        <button type="button" id="theme-toggle-btn" class="btn btn-sm theme-toggle-btn" title="Switch Theme" onclick="if(typeof window.toggleTheme === 'function') { window.toggleTheme(); } else { console.error('toggleTheme not available'); } return false;">
+            <i class="fa-solid fa-moon me-2"></i>
+            <span class="theme-text">Dark Mode</span>
+        </button>
+        <form method="post" action="{% url 'accounts:logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-light btn-sm">
+                <i class="fa-solid fa-right-from-bracket me-2"></i> Logout
+            </button>
+        </form>
+    </div>
+</aside>
+>>>>>>> Stashed changes
