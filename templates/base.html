@@ -665,9 +665,11 @@
         </div>
         <footer class="footer py-4 mt-auto">
           <div class="container-fluid small">
-            <div class="d-flex justify-content-between">
+            <div class="d-flex justify-content-between align-items-center">
               <span>© {{ now|date:"Y" }} User Access Management System</span>
-              <!-- <span>Security-first • Audit-ready • AD-ready</span> -->
+              <a href="/site/USER_GUIDE/" target="_blank" class="text-decoration-none text-muted" title="Documentation">
+                <i class="fa-solid fa-book-open me-1"></i>Documentation
+              </a>
             </div>
           </div>
         </footer>
@@ -676,9 +678,14 @@
     {% else %}
     <footer class="footer py-4">
       <div class="container-fluid small">
-        <div class="d-flex justify-content-between">
+        <div class="d-flex justify-content-between align-items-center">
           <span>© {{ now|date:"Y" }} User Access Management System</span>
-          <span>Security-first • Audit-ready • AD-ready</span>
+          <div class="d-flex align-items-center gap-3">
+            <span>Security-first • Audit-ready • AD-ready</span>
+            <a href="/site/USER_GUIDE/" target="_blank" class="text-decoration-none text-muted" title="Documentation">
+              <i class="fa-solid fa-book-open me-1"></i>Documentation
+            </a>
+          </div>
         </div>
       </div>
     </footer>

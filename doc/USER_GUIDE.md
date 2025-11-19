@@ -11,10 +11,10 @@
 4. [Department Management](#department-management)
 5. [System Management](#system-management)
 6. [Access Management](#access-management)
-7. [Dashboard & Reports](#dashboard--reports)
+7. [Dashboard & Reports](#dashboard-reports)
 8. [Search Functionality](#search-functionality)
 9. [Data Import/Export](#data-importexport)
-10. [User Roles & Permissions](#user-roles--permissions)
+10. [User Roles & Permissions](#user-roles-permissions)
 11. [Troubleshooting](#troubleshooting)
 12. [FAQs](#faqs)
 

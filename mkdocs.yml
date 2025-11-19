@@ -1,0 +1,30 @@
+site_name: User Access Management System
+site_description: >
+  Comprehensive governance, provisioning, and compliance documentation
+  for the User Access Management System (UAMS).
+repo_url: https://github.com/abdelmanem/User-Access-Management-System
+docs_dir: doc
+theme:
+  name: mkdocs
+nav:
+  - Overview:
+      - Quick Start Guide: USER_GUIDE.md
+      - HTML User Guide: user_guide.html
+      - Developer Guide: DEV_GUIDE.md
+  - Compliance Playbooks:
+      - Administrator Access (4.3): ADMINISTRATOR_ACCESS_4_3_GOVERNANCE.md
+      - Access Approval (4.6): ACCESS_APPROVAL_COMPLIANCE_4_6.md
+      - Quarterly Access Review (4.5): QUARTERLY_ACCESS_REVIEW_4_5.md
+      - Default Account Management (4.7): DEFAULT_ACCOUNT_MANAGEMENT_4_7.md
+      - Service Account Governance: SERVICE_ACCOUNT_GOVERNANCE.md
+  - Operations:
+      - Change Management (4.4): CHANGE_MANAGEMENT_4_4_PROCESS.md
+      - Policy Drift Scheduling: POLICY_DRIFT_SCHEDULING.md
+markdown_extensions:
+  - admonition
+  - codehilite
+  - footnotes
+  - tables
+  - toc:
+      permalink: true
+
