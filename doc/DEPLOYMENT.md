@@ -86,18 +86,45 @@ def serve_docs(request, path):
     return serve(request, relative_path, document_root=str(site_dir))
 ```
 
-### Option 2: Serve via Nginx (Recommended for Production)
+### Option 2: Serve via Nginx with HTTPS (Recommended for Production)
 
-Nginx is more efficient for serving static files.
+Nginx is more efficient for serving static files and provides better security with HTTPS.
 
-#### Nginx Configuration
+#### Nginx Configuration with HTTPS
 
-Add to your Nginx configuration:
+Complete Nginx configuration with SSL/TLS:
 
 ```nginx
+# HTTP to HTTPS redirect
 server {
     listen 80;
-    server_name yourdomain.com;
+    server_name yourdomain.com www.yourdomain.com;
+    return 301 https://$server_name$request_uri;
+}
+
+# HTTPS server
+server {
+    listen 443 ssl http2;
+    server_name yourdomain.com www.yourdomain.com;
+
+    # SSL certificates (Let's Encrypt)
+    ssl_certificate /etc/letsencrypt/live/yourdomain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/yourdomain.com/privkey.pem;
+    
+    # SSL configuration
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384';
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+    ssl_session_tickets off;
+
+    # Security headers
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "same-origin" always;
 
     # Documentation
     location /docs/ {
@@ -116,8 +143,53 @@ server {
     location / {
         include proxy_params;
         proxy_pass http://unix:/run/uams/uams.sock;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port $server_port;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     }
+
+    # Static files
+    location /static/ {
+        alias /path/to/User-Access-Management-System/staticfiles/;
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # Media files
+    location /media/ {
+        alias /path/to/User-Access-Management-System/media/;
+    }
+
+    client_max_body_size 20M;
 }
+```
+
+#### Obtain SSL Certificate
+
+Using Let's Encrypt (free SSL certificates):
+
+```bash
+# Install Certbot
+sudo apt-get update
+sudo apt-get install certbot python3-certbot-nginx
+
+# Obtain certificate
+sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
+
+# Auto-renewal is configured automatically
+# Test renewal: sudo certbot renew --dry-run
+```
+
+#### Reload Nginx
+
+```bash
+# Test configuration
+sudo nginx -t
+
+# Reload Nginx
+sudo systemctl reload nginx
 ```
 
 #### Build Script
@@ -251,6 +323,48 @@ echo "Deploying to production..."
 echo "Documentation deployed successfully"
 ```
 
+## HTTPS/SSL Configuration
+
+### Django Settings for HTTPS
+
+Ensure your `.env` file has HTTPS settings:
+
+```env
+# Security settings for HTTPS
+SECURE_SSL_REDIRECT=True
+SESSION_COOKIE_SECURE=True
+CSRF_COOKIE_SECURE=True
+SECURE_HSTS_SECONDS=31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS=True
+SECURE_HSTS_PRELOAD=True
+
+# Reverse proxy configuration
+USE_X_FORWARDED_HOST=True
+PROXY_SSL_HEADER=HTTP_X_FORWARDED_PROTO,https
+
+# CSRF trusted origins
+CSRF_TRUSTED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
+```
+
+### Verify HTTPS is Working
+
+1. **Check SSL Certificate:**
+   ```bash
+   openssl s_client -connect yourdomain.com:443 -servername yourdomain.com
+   ```
+
+2. **Test HTTPS Redirect:**
+   ```bash
+   curl -I http://yourdomain.com/docs/
+   # Should return 301 redirect to https://
+   ```
+
+3. **Verify Security Headers:**
+   ```bash
+   curl -I https://yourdomain.com/docs/
+   # Check for Strict-Transport-Security header
+   ```
+
 ## Production Checklist
 
 ### Before Deployment
@@ -261,6 +375,9 @@ echo "Documentation deployed successfully"
 - [ ] Check all links work
 - [ ] Verify images load correctly
 - [ ] Test search functionality
+- [ ] SSL certificate obtained and configured
+- [ ] HTTPS redirect working
+- [ ] Security headers configured
 
 ### Deployment Steps
 

@@ -40,6 +40,7 @@ nav:
   - Configuration:
       - Configuration: configuration.md
       - Customization: customization.md
+      - HTTPS/SSL Setup: HTTPS_SETUP.md
   - Administration:
       - Administration: administration.md
       - Best Practices: best_practices.md
@@ -71,6 +72,9 @@ nav:
   - Product Information:
       - Product Feature Lifecycle: product_feature_lifecycle.md
       - Release Notes: release_notes.md
+  - Deployment:
+      - Deployment Guide: DEPLOYMENT.md
+      - HTTPS/SSL Setup: HTTPS_SETUP.md
 extra_css:
   - extra.css
 markdown_extensions:

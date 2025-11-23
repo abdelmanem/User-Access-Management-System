@@ -42,9 +42,11 @@ Visit: http://127.0.0.1:8000
 The documentation is automatically served by Django at `/docs/` after building.
 
 **Access documentation at:**
-- `http://yourdomain.com/docs/` - Redirects to home
-- `http://yourdomain.com/docs/home/` - Home page
-- `http://yourdomain.com/docs/introduction/` - Introduction page
+- `https://yourdomain.com/docs/` - Redirects to home (HTTPS)
+- `https://yourdomain.com/docs/home/` - Home page
+- `https://yourdomain.com/docs/introduction/` - Introduction page
+
+**Note:** In production with HTTPS enabled, all HTTP requests are automatically redirected to HTTPS.
 
 ## Production Deployment
 
@@ -67,31 +69,96 @@ The documentation is already configured to be served by Django:
    gunicorn user_access_management.wsgi:application
    ```
 
-3. **Access at:** `http://yourdomain.com/docs/`
+3. **Access at:** `https://yourdomain.com/docs/` (HTTPS)
 
-### Option 2: Nginx (Recommended for High Traffic)
+### Option 2: Nginx with HTTPS (Recommended for High Traffic)
 
-For better performance, serve static files directly with Nginx:
+For better performance and security, serve static files directly with Nginx over HTTPS:
 
 1. **Build documentation:**
    ```bash
    mkdocs build --clean
    ```
 
-2. **Update Nginx configuration:**
+2. **Update Nginx configuration with HTTPS:**
    ```nginx
-   location /docs/ {
-       alias /path/to/User-Access-Management-System/site/;
-       try_files $uri $uri/ /docs/home/index.html;
-       index index.html;
+   # HTTP to HTTPS redirect
+   server {
+       listen 80;
+       server_name yourdomain.com www.yourdomain.com;
+       return 301 https://$server_name$request_uri;
+   }
+
+   # HTTPS server
+   server {
+       listen 443 ssl http2;
+       server_name yourdomain.com www.yourdomain.com;
+
+       # SSL certificates (Let's Encrypt)
+       ssl_certificate /etc/letsencrypt/live/yourdomain.com/fullchain.pem;
+       ssl_certificate_key /etc/letsencrypt/live/yourdomain.com/privkey.pem;
+       
+       # SSL configuration
+       ssl_protocols TLSv1.2 TLSv1.3;
+       ssl_ciphers HIGH:!aNULL:!MD5;
+       ssl_prefer_server_ciphers on;
+       ssl_session_cache shared:SSL:10m;
+       ssl_session_timeout 10m;
+
+       # Security headers
+       add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+       add_header X-Frame-Options "DENY" always;
+       add_header X-Content-Type-Options "nosniff" always;
+       add_header X-XSS-Protection "1; mode=block" always;
+
+       # Documentation
+       location /docs/ {
+           alias /path/to/User-Access-Management-System/site/;
+           try_files $uri $uri/ /docs/home/index.html;
+           index index.html;
+           
+           # Cache static assets
+           location ~* \.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+               expires 1y;
+               add_header Cache-Control "public, immutable";
+           }
+       }
+
+       # Django application
+       location / {
+           include proxy_params;
+           proxy_pass http://unix:/run/uams/uams.sock;
+           proxy_set_header X-Forwarded-Proto $scheme;
+           proxy_set_header X-Forwarded-Host $host;
+           proxy_set_header X-Forwarded-Port $server_port;
+       }
+
+       # Static files
+       location /static/ {
+           alias /path/to/User-Access-Management-System/staticfiles/;
+           expires 1y;
+           add_header Cache-Control "public, immutable";
+       }
+
+       # Media files
+       location /media/ {
+           alias /path/to/User-Access-Management-System/media/;
+       }
    }
    ```
 
-3. **Reload Nginx:**
+3. **Obtain SSL Certificate (Let's Encrypt):**
+   ```bash
+   sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
+   ```
+
+4. **Reload Nginx:**
    ```bash
    sudo nginx -t
    sudo systemctl reload nginx
    ```
+
+5. **Access at:** `https://yourdomain.com/docs/`
 
 ## Updating Documentation
 
