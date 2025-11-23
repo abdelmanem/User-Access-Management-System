@@ -42,6 +42,20 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=lambda v: [s.strip() for s in v.split(',')])
 CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='', cast=lambda v: [s.strip() for s in v.split(',') if s.strip()]) or []
 
+# Reverse proxy configuration
+# Enable this when behind a reverse proxy (nginx, Apache, etc.)
+USE_X_FORWARDED_HOST = config('USE_X_FORWARDED_HOST', default=False, cast=bool)
+USE_X_FORWARDED_PORT = config('USE_X_FORWARDED_PORT', default=False, cast=bool)
+
+# Configure SECURE_PROXY_SSL_HEADER when behind a reverse proxy that terminates SSL
+# Example for nginx: ('HTTP_X_FORWARDED_PROTO', 'https')
+# Set PROXY_SSL_HEADER in env as: 'HTTP_X_FORWARDED_PROTO,https'
+PROXY_SSL_HEADER = config('PROXY_SSL_HEADER', default='', cast=lambda v: tuple(s.strip() for s in v.split(',')) if v and ',' in v else None)
+if PROXY_SSL_HEADER and len(PROXY_SSL_HEADER) == 2:
+    SECURE_PROXY_SSL_HEADER = PROXY_SSL_HEADER
+else:
+    SECURE_PROXY_SSL_HEADER = None
+
 
 # Application definition
 
@@ -68,6 +82,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # Fix malformed HTTP_HOST headers from reverse proxy
+    # Must be before CommonMiddleware which validates the host
+    'user_access_management.middleware.FixMalformedHostHeaderMiddleware',
     # Optional WhiteNoise for serving static files in production
     # Enable via USE_WHITENOISE=true
     *(

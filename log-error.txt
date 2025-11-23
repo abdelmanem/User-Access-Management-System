@@ -1,0 +1,751 @@
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: Content-Type: text/plain; charset="utf-8"
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: MIME-Version: 1.0
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: Content-Transfer-Encoding: quoted-printable
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: Subject: [Django] ERROR (EXTERNAL IP): Invalid HTTP_HOST header:
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:  'caizh-ubuntu.caizh.radissonhotels.com,caizh-ubuntu.caizh.radissonhotels.com'.
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:  The domain name provided is not valid according to RFC 1034/1035.
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: From: root@localhost
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: To: <it.security@example.com>
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: Date: Sun, 23 Nov 2025 13:04:51 -0000
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: Message-ID: <176390309103.14520.20611930277620427@caizh-ubuntu>
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: Invalid HTTP_HOST header: 'caizh-ubuntu.caizh.radissonhotels.com,caizh-ubun=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: tu.caizh.radissonhotels.com'. The domain name provided is not valid accordi=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: ng to RFC 1034/1035.
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: DisallowedHost at /
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: Invalid HTTP_HOST header: 'caizh-ubuntu.caizh.radissonhotels.com,caizh-ubun=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: tu.caizh.radissonhotels.com'. The domain name provided is not valid accordi=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: ng to RFC 1034/1035.
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: Request Method: GET
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: Request URL: https://caizh-ubuntu.caizh.radissonhotels.com,caizh-ubuntu.cai=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: zh.radissonhotels.com/
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: Django Version: 5.2.8
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: Python Executable: /srv/uams/app/venv/bin/python3.12
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: Python Version: 3.12.3
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: Python Path: ['/srv/uams/app', '/srv/uams/app/venv/bin', '/usr/lib/python31=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: 2.zip', '/usr/lib/python3.12', '/usr/lib/python3.12/lib-dynload', '/srv/uam=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: s/app/venv/lib/python3.12/site-packages']
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: Server time: Sun, 23 Nov 2025 13:04:51 +0000
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: Installed Applications:
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: ['django.contrib.admin',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:  'django.contrib.auth',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:  'django.contrib.contenttypes',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:  'django.contrib.sessions',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:  'django.contrib.messages',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:  'django.contrib.staticfiles',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:  'django_extensions',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:  'accounts',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:  'departments',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:  'systems',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:  'access_management',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:  'dashboard',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:  'data_import_export',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:  'hardware',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:  'service_accounts',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:  'default_accounts',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:  'change_management',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:  'documentation']
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: Installed Middleware:
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: ['django.middleware.security.SecurityMiddleware',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:  'whitenoise.middleware.WhiteNoiseMiddleware',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:  'django.contrib.sessions.middleware.SessionMiddleware',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:  'django.middleware.common.CommonMiddleware',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:  'django.middleware.csrf.CsrfViewMiddleware',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:  'django.contrib.auth.middleware.AuthenticationMiddleware',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:  'django.contrib.messages.middleware.MessageMiddleware',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:  'django.middleware.clickjacking.XFrameOptionsMiddleware']
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: Traceback (most recent call last):
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:   File "/srv/uams/app/venv/lib/python3.12/site-packages/django/core/handler=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: s/exception.py", line 55, in inner
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:     response =3D get_response(request)
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:                ^^^^^^^^^^^^^^^^^^^^^
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:   File "/srv/uams/app/venv/lib/python3.12/site-packages/django/utils/deprec=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: ation.py", line 119, in __call__
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:     response =3D self.process_request(request)
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:   File "/srv/uams/app/venv/lib/python3.12/site-packages/django/middleware/c=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: ommon.py", line 48, in process_request
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:     host =3D request.get_host()
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:            ^^^^^^^^^^^^^^^^^^
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:   File "/srv/uams/app/venv/lib/python3.12/site-packages/django/http/request=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: .py", line 202, in get_host
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:     raise DisallowedHost(msg)
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:     ^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: Exception Type: DisallowedHost at /
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: Exception Value: Invalid HTTP_HOST header: 'caizh-ubuntu.caizh.radissonhote=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: ls.com,caizh-ubuntu.caizh.radissonhotels.com'. The domain name provided is =
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: not valid according to RFC 1034/1035.
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: Raised during: django.contrib.auth.views.LoginView
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: Request information:
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: USER: [unable to retrieve the current user]
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: GET: No GET data
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: POST: No POST data
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: FILES: No FILES data
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: COOKIES:
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: rhg-device-info =3D 'city=3DCAIRO&country=3DEG&is_mobile=3Dfalse&is_tablet=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: =3Dfalse&is_wireless_device=3Dfalse'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: _abck =3D 'A637B433787B8322AD5C03E047E52656~-1~YAAQnoYUAuGQ936aAQAAwtvRnA4Y=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: RW8pGjbaOvLDEmzar6ZUzQYAZ/LSJModJVoU03+Mt15R7DKtnehNC0UW3fsKZTsixdyYrsiRS7C=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: sHAjltLCc+jybHH3DZ4v601RXU6XRWNAoxxw0rlmi4MpWbQlyKSkrLn+GS8b3/WIZryLk1Ah9Ev=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: xGG2R4gKD55fuIBqr9y5WV810qKAyn6nUSvuCnK1xxjAHM9lTdDXOHK1c9UZXk5r8YKqhy4QO2g=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: RXalHtemIBPr20gBMbLfaaDbWMbt0pVeCls47J4oeh6vXjBEJ38L1JmqZ4XuaQbhzskE6BDtUHt=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: aKt4NO41A4GWOhr1aRr7ComlVgvWgo7AmfmAV5MWpFpW6BJcfcBSQzvMWdWRPotOC7bckZxbFWh=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: RcaOVhwU/SGfSFO7FhrVgjyVAXxcUkEuM06ixMw4lEHUG9dmQC22m2lEc26xmIg=3D=3D~-1~-1=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: ~-1~-1~-1'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: bm_s =3D 'YAAQnoYUAieT936aAQAASvHRnATIq2kj6r974bw7xv/V+eYcQkvJQAt1dec+tiprK=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SmZ5+wyz9WTxJEaN7Eq13pFx7Hd1AgipxU2J691x2OLRLEEECOi/jtuhENwGObE/0e5VajW2y5H=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: V2qg+EgKHgx4T/qELNF7L5yR99T1R21yBTMB1OPSLY3o/wSRUpE50iXKrlhsS1yr9onFBTFRQmz=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: 8L6flKRXT4/xhLPgP1APLHlKQuj4SR9MQAXNICBwdixUm9W4I2uiG4I7y1Pw2nMe3pgg6TYXaZh=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: nXsKTGA06nydmNfsyRTRfXe5ayOjxIxm2jLsEHyV9922iCtkp7AApIPS7UD6krMgR2xtnP8+5TO=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: ORsHIVVCi66CCSVbTcUgwqrl+wYOIXzzj3kWJCSDWc9b9OazgHeKg1NUzsA+lTCYUGGENQGSS1I=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: 7mpYLchJwSw1F6lAYd+i7kcJrrtdjC1NqjBrVylfF6Jn07cV3krLdCY35HqIQ3v+o30GIdVLVcR=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: iDNIl9ATtlbxkIjrggldAAqCLQWeu2tL21tnmS4MNN1Un96Ummj2FrWIu4i+TyzB9lTEJ8rM=3D'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: META:
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: HTTP_ACCEPT =3D 'text/html,application/xhtml+xml,application/xml;q=3D0.9,*/=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: *;q=3D0.8'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: HTTP_ACCEPT_ENCODING =3D 'gzip, deflate, br, zstd'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: HTTP_ACCEPT_LANGUAGE =3D 'en-US,en;q=3D0.5'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: HTTP_CONNECTION =3D 'close'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: HTTP_COOKIE =3D '********************'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: HTTP_HOST =3D 'caizh-ubuntu.caizh.radissonhotels.com,caizh-ubuntu.caizh.rad=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: issonhotels.com'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: HTTP_PRIORITY =3D 'u=3D0, i'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: HTTP_SEC_FETCH_DEST =3D 'document'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: HTTP_SEC_FETCH_MODE =3D 'navigate'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: HTTP_SEC_FETCH_SITE =3D 'none'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: HTTP_SEC_FETCH_USER =3D '?1'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: HTTP_UPGRADE_INSECURE_REQUESTS =3D '1'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: HTTP_USER_AGENT =3D 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:145.0) Ge=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: cko/20100101 Firefox/145.0'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: HTTP_X_FORWARDED_FOR =3D '192.168.137.136,192.168.137.136'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: HTTP_X_FORWARDED_PROTO =3D 'https,https'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: HTTP_X_REAL_IP =3D '192.168.137.136,192.168.137.136'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: PATH_INFO =3D '/'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: QUERY_STRING =3D ''
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: RAW_URI =3D '/'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: REMOTE_ADDR =3D ''
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: REQUEST_METHOD =3D 'GET'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SCRIPT_NAME =3D ''
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SERVER_NAME =3D 'caizh-ubuntu.caizh.radissonhotels.com'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SERVER_PORT =3D '443'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SERVER_PROTOCOL =3D 'HTTP/1.0'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SERVER_SOFTWARE =3D 'gunicorn/23.0.0'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: gunicorn.socket =3D <socket.socket fd=3D9, family=3D1, type=3D1, proto=3D0,=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:  laddr=3D/run/uams/uams.sock>
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: wsgi.errors =3D <gunicorn.http.wsgi.WSGIErrorsWrapper object at 0x7d18d2906=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: 680>
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: wsgi.file_wrapper =3D <class 'gunicorn.http.wsgi.FileWrapper'>
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: wsgi.input =3D <gunicorn.http.body.Body object at 0x7d18d2d82000>
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: wsgi.input_terminated =3D True
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: wsgi.multiprocess =3D True
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: wsgi.multithread =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: wsgi.run_once =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: wsgi.url_scheme =3D 'https'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: wsgi.version =3D '(1, 0)'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: Settings:
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: Using settings module user_access_management.settings
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: ABSOLUTE_URL_OVERRIDES =3D {}
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: ADMINS =3D [('IT Security', '<it.security@example.com>')]
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: ADMIN_INDEX_TITLE =3D 'Welcome to User Access Management System'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: ADMIN_SITE_HEADER =3D 'User Access Management System'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: ADMIN_SITE_TITLE =3D 'UAMS Admin'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: ALLOWED_HOSTS =3D ['*']
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: APPEND_SLASH =3D True
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: AUTHENTICATION_BACKENDS =3D '********************'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: AUTH_PASSWORD_VALIDATORS =3D '********************'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: AUTH_USER_MODEL =3D '********************'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: BASE_DIR =3D PosixPath('/srv/uams/app')
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: CACHES =3D {'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMe=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: mCache'}}
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: CACHE_MIDDLEWARE_ALIAS =3D 'default'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: CACHE_MIDDLEWARE_KEY_PREFIX =3D '********************'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: CACHE_MIDDLEWARE_SECONDS =3D 600
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: CSRF_COOKIE_AGE =3D 31449600
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: CSRF_COOKIE_DOMAIN =3D None
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: CSRF_COOKIE_HTTPONLY =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: CSRF_COOKIE_NAME =3D 'csrftoken'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: CSRF_COOKIE_PATH =3D '/'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: CSRF_COOKIE_SAMESITE =3D 'Lax'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: CSRF_COOKIE_SECURE =3D True
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: CSRF_FAILURE_VIEW =3D 'django.views.csrf.csrf_failure'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: CSRF_HEADER_NAME =3D 'HTTP_X_CSRFTOKEN'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: CSRF_TRUSTED_ORIGINS =3D ['http://192.168.138.10']
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: CSRF_USE_SESSIONS =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: DATABASES =3D {'default': {'NAME': 'uams_prod', 'USER': 'uams_user', 'PASSW=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: ORD': '********************', 'HOST': 'localhost', 'PORT': 5432, 'CONN_MAX_=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: AGE': 600, 'CONN_HEALTH_CHECKS': False, 'DISABLE_SERVER_SIDE_CURSORS': Fals=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: e, 'ENGINE': 'django.db.backends.postgresql', 'ATOMIC_REQUESTS': False, 'AU=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: TOCOMMIT': True, 'OPTIONS': {}, 'TIME_ZONE': None, 'TEST': {'CHARSET': None=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: , 'COLLATION': None, 'MIGRATE': True, 'MIRROR': None, 'NAME': None}}}
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: DATABASE_ROUTERS =3D []
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: DATABASE_URL =3D ''
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: DATA_UPLOAD_MAX_MEMORY_SIZE =3D 2621440
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: DATA_UPLOAD_MAX_NUMBER_FIELDS =3D 1000
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: DATA_UPLOAD_MAX_NUMBER_FILES =3D 100
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: DATETIME_FORMAT =3D 'N j, Y, P'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: DATETIME_INPUT_FORMATS =3D ['%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M:%S.%f', '%=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: Y-%m-%d %H:%M', '%m/%d/%Y %H:%M:%S', '%m/%d/%Y %H:%M:%S.%f', '%m/%d/%Y %H:%=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: M', '%m/%d/%y %H:%M:%S', '%m/%d/%y %H:%M:%S.%f', '%m/%d/%y %H:%M']
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: DATE_FORMAT =3D 'N j, Y'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: DATE_INPUT_FORMATS =3D ['%Y-%m-%d', '%m/%d/%Y', '%m/%d/%y', '%b %d %Y', '%b=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:  %d, %Y', '%d %b %Y', '%d %b, %Y', '%B %d %Y', '%B %d, %Y', '%d %B %Y', '%d=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:  %B, %Y']
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: DEBUG =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: DEBUG_PROPAGATE_EXCEPTIONS =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: DECIMAL_SEPARATOR =3D '.'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: DEFAULT_AUTO_FIELD =3D 'django.db.models.BigAutoField'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: DEFAULT_CHARSET =3D 'utf-8'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: DEFAULT_EXCEPTION_REPORTER =3D 'django.views.debug.ExceptionReporter'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: DEFAULT_EXCEPTION_REPORTER_FILTER =3D 'django.views.debug.SafeExceptionRepo=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: rterFilter'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: DEFAULT_FROM_EMAIL =3D 'no-reply@user-access-management.local'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: DEFAULT_INDEX_TABLESPACE =3D ''
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: DEFAULT_TABLESPACE =3D ''
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: DISALLOWED_USER_AGENTS =3D []
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: DJANGO_DB =3D 'postgres'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: EMAIL_BACKEND =3D 'django.core.mail.backends.console.EmailBackend'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: EMAIL_HOST =3D 'localhost'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: EMAIL_HOST_PASSWORD =3D '********************'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: EMAIL_HOST_USER =3D ''
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: EMAIL_PORT =3D 25
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: EMAIL_SSL_CERTFILE =3D None
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: EMAIL_SSL_KEYFILE =3D '********************'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: EMAIL_SUBJECT_PREFIX =3D '[Django] '
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: EMAIL_TIMEOUT =3D None
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: EMAIL_USE_LOCALTIME =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: EMAIL_USE_SSL =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: EMAIL_USE_TLS =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: FILE_UPLOAD_DIRECTORY_PERMISSIONS =3D None
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: FILE_UPLOAD_HANDLERS =3D ['django.core.files.uploadhandler.MemoryFileUpload=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: Handler', 'django.core.files.uploadhandler.TemporaryFileUploadHandler']
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: FILE_UPLOAD_MAX_MEMORY_SIZE =3D 2621440
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: FILE_UPLOAD_PERMISSIONS =3D 420
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: FILE_UPLOAD_TEMP_DIR =3D None
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: FIRST_DAY_OF_WEEK =3D 0
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: FIXTURE_DIRS =3D []
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: FORCE_SCRIPT_NAME =3D None
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: FORMAT_MODULE_PATH =3D None
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: FORMS_URLFIELD_ASSUME_HTTPS =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: FORM_RENDERER =3D 'django.forms.renderers.DjangoTemplates'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: IGNORABLE_404_URLS =3D []
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: INSTALLED_APPS =3D ['django.contrib.admin', 'django.contrib.auth', 'django.=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: contrib.contenttypes', 'django.contrib.sessions', 'django.contrib.messages'=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: , 'django.contrib.staticfiles', 'django_extensions', 'accounts', 'departmen=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: ts', 'systems', 'access_management', 'dashboard', 'data_import_export', 'ha=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: rdware', 'service_accounts', 'default_accounts', 'change_management', 'docu=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: mentation']
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: INTERNAL_IPS =3D []
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: LANGUAGES =3D [('af', 'Afrikaans'), ('ar', 'Arabic'), ('ar-dz', 'Algerian A=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: rabic'), ('ast', 'Asturian'), ('az', 'Azerbaijani'), ('bg', 'Bulgarian'), (=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: 'be', 'Belarusian'), ('bn', 'Bengali'), ('br', 'Breton'), ('bs', 'Bosnian')=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: , ('ca', 'Catalan'), ('ckb', 'Central Kurdish (Sorani)'), ('cs', 'Czech'), =
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: ('cy', 'Welsh'), ('da', 'Danish'), ('de', 'German'), ('dsb', 'Lower Sorbian=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: '), ('el', 'Greek'), ('en', 'English'), ('en-au', 'Australian English'), ('=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: en-gb', 'British English'), ('eo', 'Esperanto'), ('es', 'Spanish'), ('es-ar=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: ', 'Argentinian Spanish'), ('es-co', 'Colombian Spanish'), ('es-mx', 'Mexic=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: an Spanish'), ('es-ni', 'Nicaraguan Spanish'), ('es-ve', 'Venezuelan Spanis=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: h'), ('et', 'Estonian'), ('eu', 'Basque'), ('fa', 'Persian'), ('fi', 'Finni=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: sh'), ('fr', 'French'), ('fy', 'Frisian'), ('ga', 'Irish'), ('gd', 'Scottis=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: h Gaelic'), ('gl', 'Galician'), ('he', 'Hebrew'), ('hi', 'Hindi'), ('hr', '=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: Croatian'), ('hsb', 'Upper Sorbian'), ('hu', 'Hungarian'), ('hy', 'Armenian=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: '), ('ia', 'Interlingua'), ('id', 'Indonesian'), ('ig', 'Igbo'), ('io', 'Id=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: o'), ('is', 'Icelandic'), ('it', 'Italian'), ('ja', 'Japanese'), ('ka', 'Ge=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: orgian'), ('kab', 'Kabyle'), ('kk', 'Kazakh'), ('km', 'Khmer'), ('kn', 'Kan=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: nada'), ('ko', 'Korean'), ('ky', 'Kyrgyz'), ('lb', 'Luxembourgish'), ('lt',=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:  'Lithuanian'), ('lv', 'Latvian'), ('mk', 'Macedonian'), ('ml', 'Malayalam'=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: ), ('mn', 'Mongolian'), ('mr', 'Marathi'), ('ms', 'Malay'), ('my', 'Burmese=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: '), ('nb', 'Norwegian Bokm=C3=A5l'), ('ne', 'Nepali'), ('nl', 'Dutch'), ('n=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: n', 'Norwegian Nynorsk'), ('os', 'Ossetic'), ('pa', 'Punjabi'), ('pl', 'Pol=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: ish'), ('pt', 'Portuguese'), ('pt-br', 'Brazilian Portuguese'), ('ro', 'Rom=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: anian'), ('ru', 'Russian'), ('sk', 'Slovak'), ('sl', 'Slovenian'), ('sq', '=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: Albanian'), ('sr', 'Serbian'), ('sr-latn', 'Serbian Latin'), ('sv', 'Swedis=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: h'), ('sw', 'Swahili'), ('ta', 'Tamil'), ('te', 'Telugu'), ('tg', 'Tajik'),=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:  ('th', 'Thai'), ('tk', 'Turkmen'), ('tr', 'Turkish'), ('tt', 'Tatar'), ('u=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: dm', 'Udmurt'), ('ug', 'Uyghur'), ('uk', 'Ukrainian'), ('ur', 'Urdu'), ('uz=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: ', 'Uzbek'), ('vi', 'Vietnamese'), ('zh-hans', 'Simplified Chinese'), ('zh-=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: hant', 'Traditional Chinese')]
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: LANGUAGES_BIDI =3D ['he', 'ar', 'ar-dz', 'ckb', 'fa', 'ug', 'ur']
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: LANGUAGE_CODE =3D 'en-us'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: LANGUAGE_COOKIE_AGE =3D None
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: LANGUAGE_COOKIE_DOMAIN =3D None
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: LANGUAGE_COOKIE_HTTPONLY =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: LANGUAGE_COOKIE_NAME =3D 'django_language'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: LANGUAGE_COOKIE_PATH =3D '/'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: LANGUAGE_COOKIE_SAMESITE =3D None
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: LANGUAGE_COOKIE_SECURE =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: LOCALE_PATHS =3D []
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: LOGGING =3D {'version': 1, 'disable_existing_loggers': False, 'formatters':=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:  {'standard': {'format': '[%(asctime)s] %(levelname)s %(name)s: %(message)s=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: '}}, 'handlers': {'console': {'class': 'logging.StreamHandler', 'formatter'=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: : 'standard'}}, 'root': {'handlers': ['console'], 'level': 'INFO'}}
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: LOGGING_CONFIG =3D 'logging.config.dictConfig'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: LOGIN_REDIRECT_URL =3D 'dashboard_home'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: LOGIN_URL =3D 'accounts:login'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: LOGOUT_REDIRECT_URL =3D 'accounts:login'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: LOG_LEVEL =3D 'INFO'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: MANAGERS =3D []
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: MEDIA_ROOT =3D PosixPath('/srv/uams/app/media')
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: MEDIA_URL =3D '/media/'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: MESSAGE_STORAGE =3D 'django.contrib.messages.storage.fallback.FallbackStora=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: ge'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: MIDDLEWARE =3D ['django.middleware.security.SecurityMiddleware', 'whitenois=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: e.middleware.WhiteNoiseMiddleware', 'django.contrib.sessions.middleware.Ses=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: sionMiddleware', 'django.middleware.common.CommonMiddleware', 'django.middl=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: eware.csrf.CsrfViewMiddleware', 'django.contrib.auth.middleware.Authenticat=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: ionMiddleware', 'django.contrib.messages.middleware.MessageMiddleware', 'dj=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: ango.middleware.clickjacking.XFrameOptionsMiddleware']
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: MIGRATION_MODULES =3D {}
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: MONTH_DAY_FORMAT =3D 'F j'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: NUMBER_GROUPING =3D 0
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: PASSWORD_HASHERS =3D '********************'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: PASSWORD_RESET_TIMEOUT =3D '********************'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: PREPEND_WWW =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: ROOT_URLCONF =3D 'user_access_management.urls'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SECRET_KEY =3D '********************'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SECRET_KEY_FALLBACKS =3D '********************'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SECURE_CONTENT_TYPE_NOSNIFF =3D True
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SECURE_CROSS_ORIGIN_OPENER_POLICY =3D 'same-origin'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SECURE_HSTS_INCLUDE_SUBDOMAINS =3D True
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SECURE_HSTS_PRELOAD =3D True
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SECURE_HSTS_SECONDS =3D 31536000
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SECURE_PROXY_SSL_HEADER =3D None
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SECURE_REDIRECT_EXEMPT =3D []
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SECURE_REFERRER_POLICY =3D 'same-origin'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SECURE_SSL_HOST =3D None
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SECURE_SSL_REDIRECT =3D True
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SENTRY_DSN =3D ''
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SERVER_EMAIL =3D 'root@localhost'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SESSION_CACHE_ALIAS =3D 'default'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SESSION_COOKIE_AGE =3D 1209600
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SESSION_COOKIE_DOMAIN =3D None
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SESSION_COOKIE_HTTPONLY =3D True
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SESSION_COOKIE_NAME =3D 'sessionid'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SESSION_COOKIE_PATH =3D '/'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SESSION_COOKIE_SAMESITE =3D 'Lax'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SESSION_COOKIE_SECURE =3D True
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SESSION_ENGINE =3D 'django.contrib.sessions.backends.db'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SESSION_EXPIRE_AT_BROWSER_CLOSE =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SESSION_FILE_PATH =3D None
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SESSION_SAVE_EVERY_REQUEST =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SESSION_SERIALIZER =3D 'django.contrib.sessions.serializers.JSONSerializer'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SETTINGS_MODULE =3D 'user_access_management.settings'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SHORT_DATETIME_FORMAT =3D 'm/d/Y P'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SHORT_DATE_FORMAT =3D 'm/d/Y'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SIGNING_BACKEND =3D 'django.core.signing.TimestampSigner'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: SILENCED_SYSTEM_CHECKS =3D []
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: STATICFILES_DIRS =3D [PosixPath('/srv/uams/app/static')]
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: STATICFILES_FINDERS =3D ['django.contrib.staticfiles.finders.FileSystemFind=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: er', 'django.contrib.staticfiles.finders.AppDirectoriesFinder']
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: STATIC_ROOT =3D PosixPath('/srv/uams/app/staticfiles')
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: STATIC_URL =3D '/static/'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: STORAGES =3D {'default': {'BACKEND': 'django.core.files.storage.FileSystemS=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: torage'}, 'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedManifest=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: StaticFilesStorage'}}
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: TEMPLATES =3D [{'BACKEND': 'django.template.backends.django.DjangoTemplates=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: ', 'DIRS': [PosixPath('/srv/uams/app/templates')], 'APP_DIRS': True, 'OPTIO=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: NS': {'context_processors': ['django.template.context_processors.request', =
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: 'django.contrib.auth.context_processors.auth', 'django.contrib.messages.con=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: text_processors.messages']}}]
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: TEST_NON_SERIALIZED_APPS =3D []
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: TEST_RUNNER =3D 'django.test.runner.DiscoverRunner'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: THOUSAND_SEPARATOR =3D ','
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: TIME_FORMAT =3D 'P'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: TIME_INPUT_FORMATS =3D ['%H:%M:%S', '%H:%M:%S.%f', '%H:%M']
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: TIME_ZONE =3D 'UTC'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: USE_I18N =3D True
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: USE_THOUSAND_SEPARATOR =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: USE_TZ =3D True
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: USE_X_FORWARDED_HOST =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: USE_X_FORWARDED_PORT =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: WSGI_APPLICATION =3D 'user_access_management.wsgi.application'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: X_FRAME_OPTIONS =3D 'DENY'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: YEAR_MONTH_FORMAT =3D 'F Y'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: -------------------------------------------------------------------------------
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: [2025-11-23 13:04:51,016] ERROR django.security.DisallowedHost: Invalid HTTP_HOST header: 'caizh-ubuntu.caizh.radissonhotels.com,caizh-ubuntu.caizh.radissonhotels.com'. The domain name provided is not valid according to RFC 1034/1035.
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: Traceback (most recent call last):
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:   File "/srv/uams/app/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:     response = get_response(request)
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:                ^^^^^^^^^^^^^^^^^^^^^
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:   File "/srv/uams/app/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 119, in __call__
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:     response = self.process_request(request)
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:   File "/srv/uams/app/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:     host = request.get_host()
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:            ^^^^^^^^^^^^^^^^^^
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:   File "/srv/uams/app/venv/lib/python3.12/site-packages/django/http/request.py", line 202, in get_host
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]:     raise DisallowedHost(msg)
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14520]: django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'caizh-ubuntu.caizh.radissonhotels.com,caizh-ubuntu.caizh.radissonhotels.com'. The domain name provided is not valid according to RFC 1034/1035.
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: Content-Type: text/plain; charset="utf-8"
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: MIME-Version: 1.0
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: Content-Transfer-Encoding: quoted-printable
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: Subject: [Django] ERROR (EXTERNAL IP): Invalid HTTP_HOST header:
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:  'caizh-ubuntu.caizh.radissonhotels.com,caizh-ubuntu.caizh.radissonhotels.com'.
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:  The domain name provided is not valid according to RFC 1034/1035.
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: From: root@localhost
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: To: <it.security@example.com>
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: Date: Sun, 23 Nov 2025 13:04:51 -0000
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: Message-ID: <176390309126.14521.10306733056544013964@caizh-ubuntu>
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: Invalid HTTP_HOST header: 'caizh-ubuntu.caizh.radissonhotels.com,caizh-ubun=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: tu.caizh.radissonhotels.com'. The domain name provided is not valid accordi=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: ng to RFC 1034/1035.
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: DisallowedHost at /favicon.ico
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: Invalid HTTP_HOST header: 'caizh-ubuntu.caizh.radissonhotels.com,caizh-ubun=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: tu.caizh.radissonhotels.com'. The domain name provided is not valid accordi=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: ng to RFC 1034/1035.
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: Request Method: GET
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: Request URL: https://caizh-ubuntu.caizh.radissonhotels.com,caizh-ubuntu.cai=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: zh.radissonhotels.com/favicon.ico
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: Django Version: 5.2.8
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: Python Executable: /srv/uams/app/venv/bin/python3.12
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: Python Version: 3.12.3
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: Python Path: ['/srv/uams/app', '/srv/uams/app/venv/bin', '/usr/lib/python31=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: 2.zip', '/usr/lib/python3.12', '/usr/lib/python3.12/lib-dynload', '/srv/uam=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: s/app/venv/lib/python3.12/site-packages']
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: Server time: Sun, 23 Nov 2025 13:04:51 +0000
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: Installed Applications:
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: ['django.contrib.admin',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:  'django.contrib.auth',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:  'django.contrib.contenttypes',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:  'django.contrib.sessions',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:  'django.contrib.messages',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:  'django.contrib.staticfiles',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:  'django_extensions',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:  'accounts',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:  'departments',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:  'systems',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:  'access_management',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:  'dashboard',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:  'data_import_export',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:  'hardware',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:  'service_accounts',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:  'default_accounts',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:  'change_management',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:  'documentation']
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: Installed Middleware:
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: ['django.middleware.security.SecurityMiddleware',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:  'whitenoise.middleware.WhiteNoiseMiddleware',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:  'django.contrib.sessions.middleware.SessionMiddleware',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:  'django.middleware.common.CommonMiddleware',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:  'django.middleware.csrf.CsrfViewMiddleware',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:  'django.contrib.auth.middleware.AuthenticationMiddleware',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:  'django.contrib.messages.middleware.MessageMiddleware',
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:  'django.middleware.clickjacking.XFrameOptionsMiddleware']
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: Traceback (most recent call last):
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:   File "/srv/uams/app/venv/lib/python3.12/site-packages/django/core/handler=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: s/exception.py", line 55, in inner
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:     response =3D get_response(request)
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:                ^^^^^^^^^^^^^^^^^^^^^
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:   File "/srv/uams/app/venv/lib/python3.12/site-packages/django/utils/deprec=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: ation.py", line 119, in __call__
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:     response =3D self.process_request(request)
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:   File "/srv/uams/app/venv/lib/python3.12/site-packages/django/middleware/c=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: ommon.py", line 48, in process_request
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:     host =3D request.get_host()
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:            ^^^^^^^^^^^^^^^^^^
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:   File "/srv/uams/app/venv/lib/python3.12/site-packages/django/http/request=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: .py", line 202, in get_host
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:     raise DisallowedHost(msg)
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:     ^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: Exception Type: DisallowedHost at /favicon.ico
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: Exception Value: Invalid HTTP_HOST header: 'caizh-ubuntu.caizh.radissonhote=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: ls.com,caizh-ubuntu.caizh.radissonhotels.com'. The domain name provided is =
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: not valid according to RFC 1034/1035.
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: Request information:
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: USER: [unable to retrieve the current user]
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: GET: No GET data
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: POST: No POST data
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: FILES: No FILES data
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: COOKIES:
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: rhg-device-info =3D 'city=3DCAIRO&country=3DEG&is_mobile=3Dfalse&is_tablet=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: =3Dfalse&is_wireless_device=3Dfalse'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: _abck =3D 'A637B433787B8322AD5C03E047E52656~-1~YAAQnoYUAuGQ936aAQAAwtvRnA4Y=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: RW8pGjbaOvLDEmzar6ZUzQYAZ/LSJModJVoU03+Mt15R7DKtnehNC0UW3fsKZTsixdyYrsiRS7C=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: sHAjltLCc+jybHH3DZ4v601RXU6XRWNAoxxw0rlmi4MpWbQlyKSkrLn+GS8b3/WIZryLk1Ah9Ev=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: xGG2R4gKD55fuIBqr9y5WV810qKAyn6nUSvuCnK1xxjAHM9lTdDXOHK1c9UZXk5r8YKqhy4QO2g=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: RXalHtemIBPr20gBMbLfaaDbWMbt0pVeCls47J4oeh6vXjBEJ38L1JmqZ4XuaQbhzskE6BDtUHt=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: aKt4NO41A4GWOhr1aRr7ComlVgvWgo7AmfmAV5MWpFpW6BJcfcBSQzvMWdWRPotOC7bckZxbFWh=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: RcaOVhwU/SGfSFO7FhrVgjyVAXxcUkEuM06ixMw4lEHUG9dmQC22m2lEc26xmIg=3D=3D~-1~-1=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: ~-1~-1~-1'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: bm_s =3D 'YAAQnoYUAieT936aAQAASvHRnATIq2kj6r974bw7xv/V+eYcQkvJQAt1dec+tiprK=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SmZ5+wyz9WTxJEaN7Eq13pFx7Hd1AgipxU2J691x2OLRLEEECOi/jtuhENwGObE/0e5VajW2y5H=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: V2qg+EgKHgx4T/qELNF7L5yR99T1R21yBTMB1OPSLY3o/wSRUpE50iXKrlhsS1yr9onFBTFRQmz=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: 8L6flKRXT4/xhLPgP1APLHlKQuj4SR9MQAXNICBwdixUm9W4I2uiG4I7y1Pw2nMe3pgg6TYXaZh=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: nXsKTGA06nydmNfsyRTRfXe5ayOjxIxm2jLsEHyV9922iCtkp7AApIPS7UD6krMgR2xtnP8+5TO=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: ORsHIVVCi66CCSVbTcUgwqrl+wYOIXzzj3kWJCSDWc9b9OazgHeKg1NUzsA+lTCYUGGENQGSS1I=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: 7mpYLchJwSw1F6lAYd+i7kcJrrtdjC1NqjBrVylfF6Jn07cV3krLdCY35HqIQ3v+o30GIdVLVcR=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: iDNIl9ATtlbxkIjrggldAAqCLQWeu2tL21tnmS4MNN1Un96Ummj2FrWIu4i+TyzB9lTEJ8rM=3D'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: META:
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: HTTP_ACCEPT =3D 'image/avif,image/webp,image/png,image/svg+xml,image/*;q=3D=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: 0.8,*/*;q=3D0.5'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: HTTP_ACCEPT_ENCODING =3D 'gzip, deflate, br, zstd'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: HTTP_ACCEPT_LANGUAGE =3D 'en-US,en;q=3D0.5'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: HTTP_CONNECTION =3D 'close'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: HTTP_COOKIE =3D '********************'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: HTTP_HOST =3D 'caizh-ubuntu.caizh.radissonhotels.com,caizh-ubuntu.caizh.rad=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: issonhotels.com'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: HTTP_PRIORITY =3D 'u=3D6'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: HTTP_REFERER =3D 'https://caizh-ubuntu.caizh.radissonhotels.com/'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: HTTP_SEC_FETCH_DEST =3D 'image'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: HTTP_SEC_FETCH_MODE =3D 'no-cors'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: HTTP_SEC_FETCH_SITE =3D 'same-origin'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: HTTP_USER_AGENT =3D 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:145.0) Ge=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: cko/20100101 Firefox/145.0'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: HTTP_X_FORWARDED_FOR =3D '192.168.137.136,192.168.137.136'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: HTTP_X_FORWARDED_PROTO =3D 'https,https'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: HTTP_X_REAL_IP =3D '192.168.137.136,192.168.137.136'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: PATH_INFO =3D '/favicon.ico'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: QUERY_STRING =3D ''
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: RAW_URI =3D '/favicon.ico'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: REMOTE_ADDR =3D ''
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: REQUEST_METHOD =3D 'GET'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SCRIPT_NAME =3D ''
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SERVER_NAME =3D 'caizh-ubuntu.caizh.radissonhotels.com'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SERVER_PORT =3D '443'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SERVER_PROTOCOL =3D 'HTTP/1.0'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SERVER_SOFTWARE =3D 'gunicorn/23.0.0'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: gunicorn.socket =3D <socket.socket fd=3D9, family=3D1, type=3D1, proto=3D0,=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:  laddr=3D/run/uams/uams.sock>
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: wsgi.errors =3D <gunicorn.http.wsgi.WSGIErrorsWrapper object at 0x7d18d2da5=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: 4b0>
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: wsgi.file_wrapper =3D <class 'gunicorn.http.wsgi.FileWrapper'>
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: wsgi.input =3D <gunicorn.http.body.Body object at 0x7d18d2d82090>
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: wsgi.input_terminated =3D True
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: wsgi.multiprocess =3D True
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: wsgi.multithread =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: wsgi.run_once =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: wsgi.url_scheme =3D 'https'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: wsgi.version =3D '(1, 0)'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: Settings:
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: Using settings module user_access_management.settings
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: ABSOLUTE_URL_OVERRIDES =3D {}
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: ADMINS =3D [('IT Security', '<it.security@example.com>')]
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: ADMIN_INDEX_TITLE =3D 'Welcome to User Access Management System'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: ADMIN_SITE_HEADER =3D 'User Access Management System'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: ADMIN_SITE_TITLE =3D 'UAMS Admin'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: ALLOWED_HOSTS =3D ['*']
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: APPEND_SLASH =3D True
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: AUTHENTICATION_BACKENDS =3D '********************'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: AUTH_PASSWORD_VALIDATORS =3D '********************'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: AUTH_USER_MODEL =3D '********************'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: BASE_DIR =3D PosixPath('/srv/uams/app')
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: CACHES =3D {'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMe=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: mCache'}}
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: CACHE_MIDDLEWARE_ALIAS =3D 'default'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: CACHE_MIDDLEWARE_KEY_PREFIX =3D '********************'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: CACHE_MIDDLEWARE_SECONDS =3D 600
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: CSRF_COOKIE_AGE =3D 31449600
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: CSRF_COOKIE_DOMAIN =3D None
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: CSRF_COOKIE_HTTPONLY =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: CSRF_COOKIE_NAME =3D 'csrftoken'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: CSRF_COOKIE_PATH =3D '/'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: CSRF_COOKIE_SAMESITE =3D 'Lax'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: CSRF_COOKIE_SECURE =3D True
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: CSRF_FAILURE_VIEW =3D 'django.views.csrf.csrf_failure'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: CSRF_HEADER_NAME =3D 'HTTP_X_CSRFTOKEN'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: CSRF_TRUSTED_ORIGINS =3D ['http://192.168.138.10']
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: CSRF_USE_SESSIONS =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: DATABASES =3D {'default': {'NAME': 'uams_prod', 'USER': 'uams_user', 'PASSW=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: ORD': '********************', 'HOST': 'localhost', 'PORT': 5432, 'CONN_MAX_=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: AGE': 600, 'CONN_HEALTH_CHECKS': False, 'DISABLE_SERVER_SIDE_CURSORS': Fals=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: e, 'ENGINE': 'django.db.backends.postgresql', 'ATOMIC_REQUESTS': False, 'AU=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: TOCOMMIT': True, 'OPTIONS': {}, 'TIME_ZONE': None, 'TEST': {'CHARSET': None=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: , 'COLLATION': None, 'MIGRATE': True, 'MIRROR': None, 'NAME': None}}}
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: DATABASE_ROUTERS =3D []
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: DATABASE_URL =3D ''
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: DATA_UPLOAD_MAX_MEMORY_SIZE =3D 2621440
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: DATA_UPLOAD_MAX_NUMBER_FIELDS =3D 1000
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: DATA_UPLOAD_MAX_NUMBER_FILES =3D 100
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: DATETIME_FORMAT =3D 'N j, Y, P'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: DATETIME_INPUT_FORMATS =3D ['%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M:%S.%f', '%=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: Y-%m-%d %H:%M', '%m/%d/%Y %H:%M:%S', '%m/%d/%Y %H:%M:%S.%f', '%m/%d/%Y %H:%=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: M', '%m/%d/%y %H:%M:%S', '%m/%d/%y %H:%M:%S.%f', '%m/%d/%y %H:%M']
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: DATE_FORMAT =3D 'N j, Y'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: DATE_INPUT_FORMATS =3D ['%Y-%m-%d', '%m/%d/%Y', '%m/%d/%y', '%b %d %Y', '%b=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:  %d, %Y', '%d %b %Y', '%d %b, %Y', '%B %d %Y', '%B %d, %Y', '%d %B %Y', '%d=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:  %B, %Y']
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: DEBUG =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: DEBUG_PROPAGATE_EXCEPTIONS =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: DECIMAL_SEPARATOR =3D '.'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: DEFAULT_AUTO_FIELD =3D 'django.db.models.BigAutoField'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: DEFAULT_CHARSET =3D 'utf-8'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: DEFAULT_EXCEPTION_REPORTER =3D 'django.views.debug.ExceptionReporter'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: DEFAULT_EXCEPTION_REPORTER_FILTER =3D 'django.views.debug.SafeExceptionRepo=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: rterFilter'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: DEFAULT_FROM_EMAIL =3D 'no-reply@user-access-management.local'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: DEFAULT_INDEX_TABLESPACE =3D ''
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: DEFAULT_TABLESPACE =3D ''
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: DISALLOWED_USER_AGENTS =3D []
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: DJANGO_DB =3D 'postgres'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: EMAIL_BACKEND =3D 'django.core.mail.backends.console.EmailBackend'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: EMAIL_HOST =3D 'localhost'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: EMAIL_HOST_PASSWORD =3D '********************'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: EMAIL_HOST_USER =3D ''
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: EMAIL_PORT =3D 25
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: EMAIL_SSL_CERTFILE =3D None
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: EMAIL_SSL_KEYFILE =3D '********************'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: EMAIL_SUBJECT_PREFIX =3D '[Django] '
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: EMAIL_TIMEOUT =3D None
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: EMAIL_USE_LOCALTIME =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: EMAIL_USE_SSL =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: EMAIL_USE_TLS =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: FILE_UPLOAD_DIRECTORY_PERMISSIONS =3D None
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: FILE_UPLOAD_HANDLERS =3D ['django.core.files.uploadhandler.MemoryFileUpload=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: Handler', 'django.core.files.uploadhandler.TemporaryFileUploadHandler']
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: FILE_UPLOAD_MAX_MEMORY_SIZE =3D 2621440
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: FILE_UPLOAD_PERMISSIONS =3D 420
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: FILE_UPLOAD_TEMP_DIR =3D None
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: FIRST_DAY_OF_WEEK =3D 0
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: FIXTURE_DIRS =3D []
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: FORCE_SCRIPT_NAME =3D None
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: FORMAT_MODULE_PATH =3D None
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: FORMS_URLFIELD_ASSUME_HTTPS =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: FORM_RENDERER =3D 'django.forms.renderers.DjangoTemplates'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: IGNORABLE_404_URLS =3D []
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: INSTALLED_APPS =3D ['django.contrib.admin', 'django.contrib.auth', 'django.=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: contrib.contenttypes', 'django.contrib.sessions', 'django.contrib.messages'=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: , 'django.contrib.staticfiles', 'django_extensions', 'accounts', 'departmen=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: ts', 'systems', 'access_management', 'dashboard', 'data_import_export', 'ha=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: rdware', 'service_accounts', 'default_accounts', 'change_management', 'docu=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: mentation']
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: INTERNAL_IPS =3D []
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: LANGUAGES =3D [('af', 'Afrikaans'), ('ar', 'Arabic'), ('ar-dz', 'Algerian A=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: rabic'), ('ast', 'Asturian'), ('az', 'Azerbaijani'), ('bg', 'Bulgarian'), (=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: 'be', 'Belarusian'), ('bn', 'Bengali'), ('br', 'Breton'), ('bs', 'Bosnian')=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: , ('ca', 'Catalan'), ('ckb', 'Central Kurdish (Sorani)'), ('cs', 'Czech'), =
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: ('cy', 'Welsh'), ('da', 'Danish'), ('de', 'German'), ('dsb', 'Lower Sorbian=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: '), ('el', 'Greek'), ('en', 'English'), ('en-au', 'Australian English'), ('=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: en-gb', 'British English'), ('eo', 'Esperanto'), ('es', 'Spanish'), ('es-ar=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: ', 'Argentinian Spanish'), ('es-co', 'Colombian Spanish'), ('es-mx', 'Mexic=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: an Spanish'), ('es-ni', 'Nicaraguan Spanish'), ('es-ve', 'Venezuelan Spanis=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: h'), ('et', 'Estonian'), ('eu', 'Basque'), ('fa', 'Persian'), ('fi', 'Finni=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: sh'), ('fr', 'French'), ('fy', 'Frisian'), ('ga', 'Irish'), ('gd', 'Scottis=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: h Gaelic'), ('gl', 'Galician'), ('he', 'Hebrew'), ('hi', 'Hindi'), ('hr', '=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: Croatian'), ('hsb', 'Upper Sorbian'), ('hu', 'Hungarian'), ('hy', 'Armenian=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: '), ('ia', 'Interlingua'), ('id', 'Indonesian'), ('ig', 'Igbo'), ('io', 'Id=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: o'), ('is', 'Icelandic'), ('it', 'Italian'), ('ja', 'Japanese'), ('ka', 'Ge=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: orgian'), ('kab', 'Kabyle'), ('kk', 'Kazakh'), ('km', 'Khmer'), ('kn', 'Kan=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: nada'), ('ko', 'Korean'), ('ky', 'Kyrgyz'), ('lb', 'Luxembourgish'), ('lt',=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:  'Lithuanian'), ('lv', 'Latvian'), ('mk', 'Macedonian'), ('ml', 'Malayalam'=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: ), ('mn', 'Mongolian'), ('mr', 'Marathi'), ('ms', 'Malay'), ('my', 'Burmese=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: '), ('nb', 'Norwegian Bokm=C3=A5l'), ('ne', 'Nepali'), ('nl', 'Dutch'), ('n=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: n', 'Norwegian Nynorsk'), ('os', 'Ossetic'), ('pa', 'Punjabi'), ('pl', 'Pol=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: ish'), ('pt', 'Portuguese'), ('pt-br', 'Brazilian Portuguese'), ('ro', 'Rom=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: anian'), ('ru', 'Russian'), ('sk', 'Slovak'), ('sl', 'Slovenian'), ('sq', '=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: Albanian'), ('sr', 'Serbian'), ('sr-latn', 'Serbian Latin'), ('sv', 'Swedis=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: h'), ('sw', 'Swahili'), ('ta', 'Tamil'), ('te', 'Telugu'), ('tg', 'Tajik'),=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:  ('th', 'Thai'), ('tk', 'Turkmen'), ('tr', 'Turkish'), ('tt', 'Tatar'), ('u=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: dm', 'Udmurt'), ('ug', 'Uyghur'), ('uk', 'Ukrainian'), ('ur', 'Urdu'), ('uz=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: ', 'Uzbek'), ('vi', 'Vietnamese'), ('zh-hans', 'Simplified Chinese'), ('zh-=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: hant', 'Traditional Chinese')]
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: LANGUAGES_BIDI =3D ['he', 'ar', 'ar-dz', 'ckb', 'fa', 'ug', 'ur']
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: LANGUAGE_CODE =3D 'en-us'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: LANGUAGE_COOKIE_AGE =3D None
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: LANGUAGE_COOKIE_DOMAIN =3D None
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: LANGUAGE_COOKIE_HTTPONLY =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: LANGUAGE_COOKIE_NAME =3D 'django_language'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: LANGUAGE_COOKIE_PATH =3D '/'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: LANGUAGE_COOKIE_SAMESITE =3D None
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: LANGUAGE_COOKIE_SECURE =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: LOCALE_PATHS =3D []
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: LOGGING =3D {'version': 1, 'disable_existing_loggers': False, 'formatters':=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:  {'standard': {'format': '[%(asctime)s] %(levelname)s %(name)s: %(message)s=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: '}}, 'handlers': {'console': {'class': 'logging.StreamHandler', 'formatter'=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: : 'standard'}}, 'root': {'handlers': ['console'], 'level': 'INFO'}}
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: LOGGING_CONFIG =3D 'logging.config.dictConfig'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: LOGIN_REDIRECT_URL =3D 'dashboard_home'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: LOGIN_URL =3D 'accounts:login'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: LOGOUT_REDIRECT_URL =3D 'accounts:login'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: LOG_LEVEL =3D 'INFO'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: MANAGERS =3D []
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: MEDIA_ROOT =3D PosixPath('/srv/uams/app/media')
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: MEDIA_URL =3D '/media/'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: MESSAGE_STORAGE =3D 'django.contrib.messages.storage.fallback.FallbackStora=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: ge'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: MIDDLEWARE =3D ['django.middleware.security.SecurityMiddleware', 'whitenois=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: e.middleware.WhiteNoiseMiddleware', 'django.contrib.sessions.middleware.Ses=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: sionMiddleware', 'django.middleware.common.CommonMiddleware', 'django.middl=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: eware.csrf.CsrfViewMiddleware', 'django.contrib.auth.middleware.Authenticat=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: ionMiddleware', 'django.contrib.messages.middleware.MessageMiddleware', 'dj=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: ango.middleware.clickjacking.XFrameOptionsMiddleware']
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: MIGRATION_MODULES =3D {}
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: MONTH_DAY_FORMAT =3D 'F j'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: NUMBER_GROUPING =3D 0
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: PASSWORD_HASHERS =3D '********************'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: PASSWORD_RESET_TIMEOUT =3D '********************'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: PREPEND_WWW =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: ROOT_URLCONF =3D 'user_access_management.urls'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SECRET_KEY =3D '********************'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SECRET_KEY_FALLBACKS =3D '********************'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SECURE_CONTENT_TYPE_NOSNIFF =3D True
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SECURE_CROSS_ORIGIN_OPENER_POLICY =3D 'same-origin'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SECURE_HSTS_INCLUDE_SUBDOMAINS =3D True
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SECURE_HSTS_PRELOAD =3D True
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SECURE_HSTS_SECONDS =3D 31536000
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SECURE_PROXY_SSL_HEADER =3D None
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SECURE_REDIRECT_EXEMPT =3D []
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SECURE_REFERRER_POLICY =3D 'same-origin'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SECURE_SSL_HOST =3D None
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SECURE_SSL_REDIRECT =3D True
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SENTRY_DSN =3D ''
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SERVER_EMAIL =3D 'root@localhost'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SESSION_CACHE_ALIAS =3D 'default'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SESSION_COOKIE_AGE =3D 1209600
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SESSION_COOKIE_DOMAIN =3D None
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SESSION_COOKIE_HTTPONLY =3D True
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SESSION_COOKIE_NAME =3D 'sessionid'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SESSION_COOKIE_PATH =3D '/'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SESSION_COOKIE_SAMESITE =3D 'Lax'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SESSION_COOKIE_SECURE =3D True
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SESSION_ENGINE =3D 'django.contrib.sessions.backends.db'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SESSION_EXPIRE_AT_BROWSER_CLOSE =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SESSION_FILE_PATH =3D None
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SESSION_SAVE_EVERY_REQUEST =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SESSION_SERIALIZER =3D 'django.contrib.sessions.serializers.JSONSerializer'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SETTINGS_MODULE =3D 'user_access_management.settings'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SHORT_DATETIME_FORMAT =3D 'm/d/Y P'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SHORT_DATE_FORMAT =3D 'm/d/Y'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SIGNING_BACKEND =3D 'django.core.signing.TimestampSigner'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: SILENCED_SYSTEM_CHECKS =3D []
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: STATICFILES_DIRS =3D [PosixPath('/srv/uams/app/static')]
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: STATICFILES_FINDERS =3D ['django.contrib.staticfiles.finders.FileSystemFind=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: er', 'django.contrib.staticfiles.finders.AppDirectoriesFinder']
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: STATIC_ROOT =3D PosixPath('/srv/uams/app/staticfiles')
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: STATIC_URL =3D '/static/'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: STORAGES =3D {'default': {'BACKEND': 'django.core.files.storage.FileSystemS=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: torage'}, 'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedManifest=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: StaticFilesStorage'}}
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: TEMPLATES =3D [{'BACKEND': 'django.template.backends.django.DjangoTemplates=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: ', 'DIRS': [PosixPath('/srv/uams/app/templates')], 'APP_DIRS': True, 'OPTIO=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: NS': {'context_processors': ['django.template.context_processors.request', =
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: 'django.contrib.auth.context_processors.auth', 'django.contrib.messages.con=
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: text_processors.messages']}}]
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: TEST_NON_SERIALIZED_APPS =3D []
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: TEST_RUNNER =3D 'django.test.runner.DiscoverRunner'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: THOUSAND_SEPARATOR =3D ','
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: TIME_FORMAT =3D 'P'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: TIME_INPUT_FORMATS =3D ['%H:%M:%S', '%H:%M:%S.%f', '%H:%M']
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: TIME_ZONE =3D 'UTC'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: USE_I18N =3D True
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: USE_THOUSAND_SEPARATOR =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: USE_TZ =3D True
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: USE_X_FORWARDED_HOST =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: USE_X_FORWARDED_PORT =3D False
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: WSGI_APPLICATION =3D 'user_access_management.wsgi.application'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: X_FRAME_OPTIONS =3D 'DENY'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: YEAR_MONTH_FORMAT =3D 'F Y'
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: -------------------------------------------------------------------------------
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: [2025-11-23 13:04:51,256] ERROR django.security.DisallowedHost: Invalid HTTP_HOST header: 'caizh-ubuntu.caizh.radissonhotels.com,caizh-ubuntu.caizh.radissonhotels.com'. The domain name provided is not valid according to RFC 1034/1035.
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: Traceback (most recent call last):
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:   File "/srv/uams/app/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:     response = get_response(request)
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:                ^^^^^^^^^^^^^^^^^^^^^
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:   File "/srv/uams/app/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 119, in __call__
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:     response = self.process_request(request)
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:   File "/srv/uams/app/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:     host = request.get_host()
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:            ^^^^^^^^^^^^^^^^^^
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:   File "/srv/uams/app/venv/lib/python3.12/site-packages/django/http/request.py", line 202, in get_host
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]:     raise DisallowedHost(msg)
+Nov 23 13:04:51 caizh-ubuntu gunicorn[14521]: django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'caizh-ubuntu.caizh.radissonhotels.com,caizh-ubuntu.caizh.radissonhotels.com'. The domain name provided is not valid according to RFC 1034/1035.
+
