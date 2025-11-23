@@ -7,10 +7,38 @@ docs_dir: doc
 theme:
   name: mkdocs
 nav:
-  - Overview:
+  - Home: home.md
+  - Getting Started:
+      - Introduction: introduction.md
+      - Getting Started: getting_started.md
+      - Installation & Upgrade: installation_upgrade.md
       - Quick Start Guide: USER_GUIDE.md
       - HTML User Guide: user_guide.html
+  - Features & Capabilities:
+      - Features: features.md
+      - Data Model: data_model.md
+  - Configuration:
+      - Configuration: configuration.md
+      - Customization: customization.md
+  - Administration:
+      - Administration: administration.md
+      - Best Practices: best_practices.md
+  - Development:
       - Developer Guide: DEV_GUIDE.md
+      - Development: development.md
+      - Reference: reference.md
+      - Plugins: plugins.md
+  - Integrations:
+      - Integrations Overview: integrations.md
+      - Additional Integrations:
+          - Integrations Overview: additional_integrations/integrations.md
+          - Diode Integration: additional_integrations/diode.md
+          - Copilot Integration: additional_integrations/copilot.md
+          - MCP Server: additional_integrations/mcp_server.md
+          - Extensions: additional_integrations/extensions.md
+  - Enterprise & Cloud:
+      - Enterprise Features: enterprise.md
+      - Cloud Deployment: cloud.md
   - Compliance Playbooks:
       - Administrator Access (4.3): ADMINISTRATOR_ACCESS_4_3_GOVERNANCE.md
       - Access Approval (4.6): ACCESS_APPROVAL_COMPLIANCE_4_6.md
@@ -20,6 +48,9 @@ nav:
   - Operations:
       - Change Management (4.4): CHANGE_MANAGEMENT_4_4_PROCESS.md
       - Policy Drift Scheduling: POLICY_DRIFT_SCHEDULING.md
+  - Product Information:
+      - Product Feature Lifecycle: product_feature_lifecycle.md
+      - Release Notes: release_notes.md
 markdown_extensions:
   - admonition
   - codehilite
