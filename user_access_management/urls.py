@@ -81,12 +81,13 @@ urlpatterns = [
 # Serve media files in development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    # Serve documentation site
-    site_dir = settings.BASE_DIR / 'site'
-    if site_dir.exists():
-        # Redirect /site and /site/ to the first documentation page (USER_GUIDE)
-        urlpatterns += [
-            path('site', lambda request: HttpResponseRedirect('/site/USER_GUIDE/')),
-            path('site/', lambda request: HttpResponseRedirect('/site/USER_GUIDE/')),
-            re_path(r'^site/(?P<path>.*)$', serve_docs),
-        ]
+
+# Serve documentation site (both development and production)
+site_dir = settings.BASE_DIR / 'site'
+if site_dir.exists():
+    # Documentation routes - serve at /docs/
+    urlpatterns += [
+        path('docs', lambda request: HttpResponseRedirect('/docs/home/')),
+        path('docs/', lambda request: HttpResponseRedirect('/docs/home/')),
+        re_path(r'^docs/(?P<path>.*)$', serve_docs),
+    ]
