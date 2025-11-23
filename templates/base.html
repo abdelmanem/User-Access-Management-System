@@ -118,6 +118,13 @@
         transition: width 0.25s ease, padding 0.25s ease;
       }
 
+      /* Hide sidebar when user is not authenticated */
+      body:not(.has-sidebar) .sidebar,
+      body:not(.has-sidebar) .app-shell,
+      body:not(.has-sidebar) .sidebar-backdrop {
+        display: none !important;
+      }
+
       body.sidebar-collapsed .sidebar {
         width: var(--sidebar-width-collapsed);
       }
