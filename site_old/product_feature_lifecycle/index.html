@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Product Feature Lifecycle - User Access Management System</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../css/brands.min.css" rel="stylesheet">
+        <link href="../css/solid.min.css" rel="stylesheet">
+        <link href="../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="..">User Access Management System</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href="../home/" class="nav-link">Home</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Getting Started</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../introduction/" class="dropdown-item">Introduction</a>
+</li>
+                                    
+<li>
+    <a href="../getting_started/" class="dropdown-item">Getting Started</a>
+</li>
+                                    
+<li>
+    <a href="../installation_upgrade/" class="dropdown-item">Installation & Upgrade</a>
+</li>
+                                    
+<li>
+    <a href="../USER_GUIDE/" class="dropdown-item">Quick Start Guide</a>
+</li>
+                                    
+<li>
+    <a href="../user_guide.html" class="dropdown-item">HTML User Guide</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Features & Capabilities</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../features/" class="dropdown-item">Features</a>
+</li>
+                                    
+<li>
+    <a href="../data_model/" class="dropdown-item">Data Model</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Configuration</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../configuration/" class="dropdown-item">Configuration</a>
+</li>
+                                    
+<li>
+    <a href="../customization/" class="dropdown-item">Customization</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Administration</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../administration/" class="dropdown-item">Administration</a>
+</li>
+                                    
+<li>
+    <a href="../best_practices/" class="dropdown-item">Best Practices</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Development</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../DEV_GUIDE/" class="dropdown-item">Developer Guide</a>
+</li>
+                                    
+<li>
+    <a href="../development/" class="dropdown-item">Development</a>
+</li>
+                                    
+<li>
+    <a href="../reference/" class="dropdown-item">Reference</a>
+</li>
+                                    
+<li>
+    <a href="../plugins/" class="dropdown-item">Plugins</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Integrations</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../integrations/" class="dropdown-item">Integrations Overview</a>
+</li>
+                                    
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Additional Integrations</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../additional_integrations/integrations/" class="dropdown-item">Integrations Overview</a>
+</li>
+            
+<li>
+    <a href="../additional_integrations/diode/" class="dropdown-item">Diode Integration</a>
+</li>
+            
+<li>
+    <a href="../additional_integrations/copilot/" class="dropdown-item">Copilot Integration</a>
+</li>
+            
+<li>
+    <a href="../additional_integrations/mcp_server/" class="dropdown-item">MCP Server</a>
+</li>
+            
+<li>
+    <a href="../additional_integrations/extensions/" class="dropdown-item">Extensions</a>
+</li>
+    </ul>
+  </li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Enterprise & Cloud</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../enterprise/" class="dropdown-item">Enterprise Features</a>
+</li>
+                                    
+<li>
+    <a href="../cloud/" class="dropdown-item">Cloud Deployment</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Compliance Playbooks</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../ADMINISTRATOR_ACCESS_4_3_GOVERNANCE/" class="dropdown-item">Administrator Access (4.3)</a>
+</li>
+                                    
+<li>
+    <a href="../ACCESS_APPROVAL_COMPLIANCE_4_6/" class="dropdown-item">Access Approval (4.6)</a>
+</li>
+                                    
+<li>
+    <a href="../QUARTERLY_ACCESS_REVIEW_4_5/" class="dropdown-item">Quarterly Access Review (4.5)</a>
+</li>
+                                    
+<li>
+    <a href="../DEFAULT_ACCOUNT_MANAGEMENT_4_7/" class="dropdown-item">Default Account Management (4.7)</a>
+</li>
+                                    
+<li>
+    <a href="../SERVICE_ACCOUNT_GOVERNANCE/" class="dropdown-item">Service Account Governance</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Operations</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../CHANGE_MANAGEMENT_4_4_PROCESS/" class="dropdown-item">Change Management (4.4)</a>
+</li>
+                                    
+<li>
+    <a href="../POLICY_DRIFT_SCHEDULING/" class="dropdown-item">Policy Drift Scheduling</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Product Information</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="./" class="dropdown-item active" aria-current="page">Product Feature Lifecycle</a>
+</li>
+                                    
+<li>
+    <a href="../release_notes/" class="dropdown-item">Release Notes</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../POLICY_DRIFT_SCHEDULING/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../release_notes/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="https://github.com/abdelmanem/User-Access-Management-System/edit/master/docs/product_feature_lifecycle.md" class="nav-link"><i class="fa-brands fa-github"></i> Edit on GitHub</a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#product-feature-lifecycle" class="nav-link">Product Feature Lifecycle</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#feature-lifecycle-overview" class="nav-link">Feature Lifecycle Overview</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#stage-1-proposal" class="nav-link">Stage 1: Proposal</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#stage-2-planning" class="nav-link">Stage 2: Planning</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#stage-3-development" class="nav-link">Stage 3: Development</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#stage-4-testing" class="nav-link">Stage 4: Testing</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#stage-5-release" class="nav-link">Stage 5: Release</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#stage-6-maintenance" class="nav-link">Stage 6: Maintenance</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#stage-7-deprecation" class="nav-link">Stage 7: Deprecation</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#feature-categories" class="nav-link">Feature Categories</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#feature-metrics" class="nav-link">Feature Metrics</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#feature-documentation" class="nav-link">Feature Documentation</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#best-practices" class="nav-link">Best Practices</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#next-steps" class="nav-link">Next Steps</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="product-feature-lifecycle">Product Feature Lifecycle<a class="headerlink" href="#product-feature-lifecycle" title="Permanent link">&para;</a></h1>
+<p>This document describes the lifecycle process for features in UAMS, from conception to deprecation.</p>
+<p><img alt="Feature Lifecycle" src="../images/feature-lifecycle.png" /></p>
+<h2 id="feature-lifecycle-overview">Feature Lifecycle Overview<a class="headerlink" href="#feature-lifecycle-overview" title="Permanent link">&para;</a></h2>
+<p>Features in UAMS go through several stages:</p>
+<ol>
+<li><strong>Proposal</strong>: Feature idea and proposal</li>
+<li><strong>Planning</strong>: Design and planning</li>
+<li><strong>Development</strong>: Implementation</li>
+<li><strong>Testing</strong>: Quality assurance</li>
+<li><strong>Release</strong>: Production release</li>
+<li><strong>Maintenance</strong>: Ongoing support</li>
+<li><strong>Deprecation</strong>: End of life (if applicable)</li>
+</ol>
+<h2 id="stage-1-proposal">Stage 1: Proposal<a class="headerlink" href="#stage-1-proposal" title="Permanent link">&para;</a></h2>
+<h3 id="feature-proposal">Feature Proposal<a class="headerlink" href="#feature-proposal" title="Permanent link">&para;</a></h3>
+<p>A feature proposal includes:</p>
+<ul>
+<li><strong>Problem Statement</strong>: What problem does this solve?</li>
+<li><strong>Use Cases</strong>: Who will use this and how?</li>
+<li><strong>Requirements</strong>: What are the requirements?</li>
+<li><strong>Success Criteria</strong>: How do we measure success?</li>
+<li><strong>Dependencies</strong>: What dependencies exist?</li>
+</ul>
+<h3 id="proposal-template">Proposal Template<a class="headerlink" href="#proposal-template" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="gh"># Feature Proposal: [Feature Name]</span>
+
+<span class="gu">## Problem Statement</span>
+[Describe the problem this feature solves]
+
+<span class="gu">## Use Cases</span>
+<span class="k">-</span><span class="w"> </span>[Use case 1]
+<span class="k">-</span><span class="w"> </span>[Use case 2]
+
+<span class="gu">## Requirements</span>
+<span class="k">-</span><span class="w"> </span>[Requirement 1]
+<span class="k">-</span><span class="w"> </span>[Requirement 2]
+
+<span class="gu">## Success Criteria</span>
+<span class="k">-</span><span class="w"> </span>[Criterion 1]
+<span class="k">-</span><span class="w"> </span>[Criterion 2]
+
+<span class="gu">## Dependencies</span>
+<span class="k">-</span><span class="w"> </span>[Dependency 1]
+<span class="k">-</span><span class="w"> </span>[Dependency 2]
+</code></pre></div>
+
+<h3 id="proposal-review">Proposal Review<a class="headerlink" href="#proposal-review" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Product team review</li>
+<li>Technical feasibility assessment</li>
+<li>Resource estimation</li>
+<li>Priority assignment</li>
+</ul>
+<h2 id="stage-2-planning">Stage 2: Planning<a class="headerlink" href="#stage-2-planning" title="Permanent link">&para;</a></h2>
+<h3 id="design-phase">Design Phase<a class="headerlink" href="#design-phase" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Architecture Design</strong>: System architecture</li>
+<li><strong>UI/UX Design</strong>: User interface design</li>
+<li><strong>API Design</strong>: API specifications</li>
+<li><strong>Database Design</strong>: Data model changes</li>
+</ul>
+<h3 id="planning-documents">Planning Documents<a class="headerlink" href="#planning-documents" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Technical specification</li>
+<li>UI/UX mockups</li>
+<li>API documentation</li>
+<li>Database schema</li>
+<li>Test plan</li>
+</ul>
+<h3 id="resource-planning">Resource Planning<a class="headerlink" href="#resource-planning" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Development effort estimation</li>
+<li>Resource allocation</li>
+<li>Timeline planning</li>
+<li>Risk assessment</li>
+</ul>
+<h2 id="stage-3-development">Stage 3: Development<a class="headerlink" href="#stage-3-development" title="Permanent link">&para;</a></h2>
+<h3 id="development-process">Development Process<a class="headerlink" href="#development-process" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Setup</strong>: Development environment setup</li>
+<li><strong>Implementation</strong>: Code implementation</li>
+<li><strong>Code Review</strong>: Peer code review</li>
+<li><strong>Documentation</strong>: Code and API documentation</li>
+</ol>
+<h3 id="development-guidelines">Development Guidelines<a class="headerlink" href="#development-guidelines" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Follow coding standards</li>
+<li>Write unit tests</li>
+<li>Update documentation</li>
+<li>Regular progress updates</li>
+</ul>
+<h3 id="version-control">Version Control<a class="headerlink" href="#version-control" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Feature branches</li>
+<li>Regular commits</li>
+<li>Pull requests</li>
+<li>Code review process</li>
+</ul>
+<h2 id="stage-4-testing">Stage 4: Testing<a class="headerlink" href="#stage-4-testing" title="Permanent link">&para;</a></h2>
+<h3 id="testing-phases">Testing Phases<a class="headerlink" href="#testing-phases" title="Permanent link">&para;</a></h3>
+<h4 id="unit-testing">Unit Testing<a class="headerlink" href="#unit-testing" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="c1"># tests/test_feature.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.test</span><span class="w"> </span><span class="kn">import</span> <span class="n">TestCase</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">FeatureTestCase</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_feature_functionality</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Test implementation</span>
+        <span class="k">pass</span>
+</code></pre></div>
+
+<h4 id="integration-testing">Integration Testing<a class="headerlink" href="#integration-testing" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Test feature integration</li>
+<li>Test API endpoints</li>
+<li>Test database interactions</li>
+</ul>
+<h4 id="user-acceptance-testing">User Acceptance Testing<a class="headerlink" href="#user-acceptance-testing" title="Permanent link">&para;</a></h4>
+<ul>
+<li>User testing</li>
+<li>Feedback collection</li>
+<li>Issue tracking</li>
+</ul>
+<h3 id="test-coverage">Test Coverage<a class="headerlink" href="#test-coverage" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Aim for high test coverage</li>
+<li>Test edge cases</li>
+<li>Test error handling</li>
+<li>Performance testing</li>
+</ul>
+<h2 id="stage-5-release">Stage 5: Release<a class="headerlink" href="#stage-5-release" title="Permanent link">&para;</a></h2>
+<h3 id="pre-release-checklist">Pre-Release Checklist<a class="headerlink" href="#pre-release-checklist" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[ ] All tests passing</li>
+<li>[ ] Documentation complete</li>
+<li>[ ] Code review approved</li>
+<li>[ ] Security review completed</li>
+<li>[ ] Performance validated</li>
+<li>[ ] Migration scripts ready</li>
+<li>[ ] Release notes prepared</li>
+</ul>
+<h3 id="release-process">Release Process<a class="headerlink" href="#release-process" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Staging Deployment</strong>: Deploy to staging</li>
+<li><strong>Final Testing</strong>: Final testing in staging</li>
+<li><strong>Production Deployment</strong>: Deploy to production</li>
+<li><strong>Monitoring</strong>: Monitor post-deployment</li>
+<li><strong>Documentation</strong>: Update user documentation</li>
+</ol>
+<h3 id="release-types">Release Types<a class="headerlink" href="#release-types" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Major Release</strong>: Breaking changes, new major features</li>
+<li><strong>Minor Release</strong>: New features, backward compatible</li>
+<li><strong>Patch Release</strong>: Bug fixes, backward compatible</li>
+<li><strong>Hotfix</strong>: Critical bug fixes</li>
+</ul>
+<h2 id="stage-6-maintenance">Stage 6: Maintenance<a class="headerlink" href="#stage-6-maintenance" title="Permanent link">&para;</a></h2>
+<h3 id="ongoing-support">Ongoing Support<a class="headerlink" href="#ongoing-support" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Bug fixes</li>
+<li>Performance optimization</li>
+<li>Security updates</li>
+<li>User support</li>
+</ul>
+<h3 id="monitoring">Monitoring<a class="headerlink" href="#monitoring" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Feature usage metrics</li>
+<li>Performance metrics</li>
+<li>Error tracking</li>
+<li>User feedback</li>
+</ul>
+<h3 id="updates">Updates<a class="headerlink" href="#updates" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Regular updates</li>
+<li>Security patches</li>
+<li>Performance improvements</li>
+<li>Feature enhancements</li>
+</ul>
+<h2 id="stage-7-deprecation">Stage 7: Deprecation<a class="headerlink" href="#stage-7-deprecation" title="Permanent link">&para;</a></h2>
+<h3 id="deprecation-process">Deprecation Process<a class="headerlink" href="#deprecation-process" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Deprecation Notice</strong>: Announce deprecation</li>
+<li><strong>Migration Path</strong>: Provide migration guide</li>
+<li><strong>Support Period</strong>: Maintain support during transition</li>
+<li><strong>Removal</strong>: Remove deprecated feature</li>
+</ol>
+<h3 id="deprecation-timeline">Deprecation Timeline<a class="headerlink" href="#deprecation-timeline" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Announcement</strong>: 6 months before removal</li>
+<li><strong>Support</strong>: Continue support during transition</li>
+<li><strong>Removal</strong>: Remove in next major version</li>
+</ul>
+<h3 id="deprecation-notice-template">Deprecation Notice Template<a class="headerlink" href="#deprecation-notice-template" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="gh"># Deprecation Notice: [Feature Name]</span>
+
+<span class="gu">## Deprecation Date</span>
+[Date feature is deprecated]
+
+<span class="gu">## Removal Date</span>
+[Date feature will be removed]
+
+<span class="gu">## Reason</span>
+[Reason for deprecation]
+
+<span class="gu">## Migration Path</span>
+[How to migrate from deprecated feature]
+
+<span class="gu">## Replacement</span>
+[Replacement feature or alternative]
+</code></pre></div>
+
+<h2 id="feature-categories">Feature Categories<a class="headerlink" href="#feature-categories" title="Permanent link">&para;</a></h2>
+<h3 id="core-features">Core Features<a class="headerlink" href="#core-features" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Essential functionality</li>
+<li>Long-term support</li>
+<li>High priority maintenance</li>
+</ul>
+<h3 id="standard-features">Standard Features<a class="headerlink" href="#standard-features" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Common functionality</li>
+<li>Regular updates</li>
+<li>Standard support</li>
+</ul>
+<h3 id="experimental-features">Experimental Features<a class="headerlink" href="#experimental-features" title="Permanent link">&para;</a></h3>
+<ul>
+<li>New/experimental functionality</li>
+<li>Limited support</li>
+<li>May change or be removed</li>
+</ul>
+<h3 id="deprecated-features">Deprecated Features<a class="headerlink" href="#deprecated-features" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Marked for removal</li>
+<li>Limited support</li>
+<li>Migration recommended</li>
+</ul>
+<h2 id="feature-metrics">Feature Metrics<a class="headerlink" href="#feature-metrics" title="Permanent link">&para;</a></h2>
+<h3 id="success-metrics">Success Metrics<a class="headerlink" href="#success-metrics" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Adoption Rate</strong>: Percentage of users using feature</li>
+<li><strong>Usage Frequency</strong>: How often feature is used</li>
+<li><strong>User Satisfaction</strong>: User feedback and ratings</li>
+<li><strong>Performance</strong>: Feature performance metrics</li>
+<li><strong>Error Rate</strong>: Error and failure rates</li>
+</ul>
+<h3 id="monitoring_1">Monitoring<a class="headerlink" href="#monitoring_1" title="Permanent link">&para;</a></h3>
+<p>Track feature metrics:</p>
+<ul>
+<li>Usage analytics</li>
+<li>Performance monitoring</li>
+<li>Error tracking</li>
+<li>User feedback</li>
+</ul>
+<h2 id="feature-documentation">Feature Documentation<a class="headerlink" href="#feature-documentation" title="Permanent link">&para;</a></h2>
+<h3 id="documentation-requirements">Documentation Requirements<a class="headerlink" href="#documentation-requirements" title="Permanent link">&para;</a></h3>
+<ul>
+<li>User documentation</li>
+<li>API documentation</li>
+<li>Developer documentation</li>
+<li>Migration guides (if applicable)</li>
+</ul>
+<h3 id="documentation-updates">Documentation Updates<a class="headerlink" href="#documentation-updates" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Update with each release</li>
+<li>Keep documentation current</li>
+<li>Include examples</li>
+<li>Provide troubleshooting guides</li>
+</ul>
+<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
+<h3 id="feature-development">Feature Development<a class="headerlink" href="#feature-development" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>User-Centric</strong>: Focus on user needs</li>
+<li><strong>Iterative</strong>: Develop iteratively</li>
+<li><strong>Tested</strong>: Thoroughly test features</li>
+<li><strong>Documented</strong>: Complete documentation</li>
+<li><strong>Maintainable</strong>: Write maintainable code</li>
+</ol>
+<h3 id="feature-management">Feature Management<a class="headerlink" href="#feature-management" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Prioritization</strong>: Prioritize features appropriately</li>
+<li><strong>Communication</strong>: Communicate feature status</li>
+<li><strong>Feedback</strong>: Collect and act on feedback</li>
+<li><strong>Monitoring</strong>: Monitor feature health</li>
+<li><strong>Evolution</strong>: Evolve features based on usage</li>
+</ol>
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../development/">Development</a> - Development guidelines</li>
+<li><a href="../release_notes/">Release Notes</a> - Version history</li>
+<li><a href="../best_practices/">Best Practices</a> - Recommended practices</li>
+</ul>
+<hr />
+<p>For feature proposals or suggestions, contact the product team or submit via the project's issue tracker.</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js"></script>
+        <script src="../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

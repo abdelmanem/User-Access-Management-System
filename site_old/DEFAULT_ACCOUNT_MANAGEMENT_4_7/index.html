@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Default Account Management (4.7) - User Access Management System</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../css/brands.min.css" rel="stylesheet">
+        <link href="../css/solid.min.css" rel="stylesheet">
+        <link href="../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="..">User Access Management System</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href="../home/" class="nav-link">Home</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Getting Started</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../introduction/" class="dropdown-item">Introduction</a>
+</li>
+                                    
+<li>
+    <a href="../getting_started/" class="dropdown-item">Getting Started</a>
+</li>
+                                    
+<li>
+    <a href="../installation_upgrade/" class="dropdown-item">Installation & Upgrade</a>
+</li>
+                                    
+<li>
+    <a href="../USER_GUIDE/" class="dropdown-item">Quick Start Guide</a>
+</li>
+                                    
+<li>
+    <a href="../user_guide.html" class="dropdown-item">HTML User Guide</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Features & Capabilities</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../features/" class="dropdown-item">Features</a>
+</li>
+                                    
+<li>
+    <a href="../data_model/" class="dropdown-item">Data Model</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Configuration</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../configuration/" class="dropdown-item">Configuration</a>
+</li>
+                                    
+<li>
+    <a href="../customization/" class="dropdown-item">Customization</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Administration</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../administration/" class="dropdown-item">Administration</a>
+</li>
+                                    
+<li>
+    <a href="../best_practices/" class="dropdown-item">Best Practices</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Development</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../DEV_GUIDE/" class="dropdown-item">Developer Guide</a>
+</li>
+                                    
+<li>
+    <a href="../development/" class="dropdown-item">Development</a>
+</li>
+                                    
+<li>
+    <a href="../reference/" class="dropdown-item">Reference</a>
+</li>
+                                    
+<li>
+    <a href="../plugins/" class="dropdown-item">Plugins</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Integrations</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../integrations/" class="dropdown-item">Integrations Overview</a>
+</li>
+                                    
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Additional Integrations</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../additional_integrations/integrations/" class="dropdown-item">Integrations Overview</a>
+</li>
+            
+<li>
+    <a href="../additional_integrations/diode/" class="dropdown-item">Diode Integration</a>
+</li>
+            
+<li>
+    <a href="../additional_integrations/copilot/" class="dropdown-item">Copilot Integration</a>
+</li>
+            
+<li>
+    <a href="../additional_integrations/mcp_server/" class="dropdown-item">MCP Server</a>
+</li>
+            
+<li>
+    <a href="../additional_integrations/extensions/" class="dropdown-item">Extensions</a>
+</li>
+    </ul>
+  </li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Enterprise & Cloud</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../enterprise/" class="dropdown-item">Enterprise Features</a>
+</li>
+                                    
+<li>
+    <a href="../cloud/" class="dropdown-item">Cloud Deployment</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Compliance Playbooks</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../ADMINISTRATOR_ACCESS_4_3_GOVERNANCE/" class="dropdown-item">Administrator Access (4.3)</a>
+</li>
+                                    
+<li>
+    <a href="../ACCESS_APPROVAL_COMPLIANCE_4_6/" class="dropdown-item">Access Approval (4.6)</a>
+</li>
+                                    
+<li>
+    <a href="../QUARTERLY_ACCESS_REVIEW_4_5/" class="dropdown-item">Quarterly Access Review (4.5)</a>
+</li>
+                                    
+<li>
+    <a href="./" class="dropdown-item active" aria-current="page">Default Account Management (4.7)</a>
+</li>
+                                    
+<li>
+    <a href="../SERVICE_ACCOUNT_GOVERNANCE/" class="dropdown-item">Service Account Governance</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Operations</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../CHANGE_MANAGEMENT_4_4_PROCESS/" class="dropdown-item">Change Management (4.4)</a>
+</li>
+                                    
+<li>
+    <a href="../POLICY_DRIFT_SCHEDULING/" class="dropdown-item">Policy Drift Scheduling</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Product Information</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../product_feature_lifecycle/" class="dropdown-item">Product Feature Lifecycle</a>
+</li>
+                                    
+<li>
+    <a href="../release_notes/" class="dropdown-item">Release Notes</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../QUARTERLY_ACCESS_REVIEW_4_5/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../SERVICE_ACCOUNT_GOVERNANCE/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="https://github.com/abdelmanem/User-Access-Management-System/edit/master/docs/DEFAULT_ACCOUNT_MANAGEMENT_4_7.md" class="nav-link"><i class="fa-brands fa-github"></i> Edit on GitHub</a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#default-account-management-audit-47" class="nav-link">Default Account Management (Audit 4.7)</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#objectives" class="nav-link">Objectives</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#data-model" class="nav-link">Data Model</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#default-account-dashboard" class="nav-link">Default Account Dashboard</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#action-logging-workflow" class="nav-link">Action Logging Workflow</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#template-registry" class="nav-link">Template Registry</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#system-installation-integration" class="nav-link">System Installation Integration</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#evidence-checklist" class="nav-link">Evidence Checklist</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#reporting-exports" class="nav-link">Reporting &amp; Exports</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#operational-guidance" class="nav-link">Operational Guidance</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="default-account-management-audit-47">Default Account Management (Audit 4.7)<a class="headerlink" href="#default-account-management-audit-47" title="Permanent link">&para;</a></h1>
+<p><strong>Last Updated:</strong> 2025-11-18<br />
+<strong>Applies To:</strong> User Access Management System v2.1+</p>
+<blockquote>
+<p>Tracks and documents the reset/removal of factory default accounts in external systems to satisfy RHG Access Control Policy (section 4.7) and PCI DSS audit evidence expectations.</p>
+</blockquote>
+<h2 id="objectives">Objectives<a class="headerlink" href="#objectives" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Document</strong> every known default account (database, PMS, workstation images, network devices, printers, RHG legacy IDs).</li>
+<li><strong>Track remediation</strong> status (password reset, removal, N/A) with timestamped evidence and verifier identity.</li>
+<li><strong>Integrate with system onboarding</strong> so new systems inherit a checklist of default accounts that must be remediated immediately after installation.</li>
+<li><strong>Provide dashboards/exports</strong> proving compliance status to auditors.</li>
+</ol>
+<h2 id="data-model">Data Model<a class="headerlink" href="#data-model" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DefaultAccount</code></td>
+<td>Primary registry entry per system + account (status, evidence, installation checklist, verifier metadata).</td>
+</tr>
+<tr>
+<td><code>DefaultAccountAction</code></td>
+<td>Append-only log of remediation actions (password reset, removal, verification, checklists). Updates parent status automatically.</td>
+</tr>
+<tr>
+<td><code>DefaultAccountTemplate</code></td>
+<td>Template catalog of common default accounts per system type (database, PMS, workstation image, RHG special). New systems auto-seed from this list.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="key-fields-captured">Key Fields Captured<a class="headerlink" href="#key-fields-captured" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>status</code> (<code>Pending</code>, <code>Active - Password Changed</code>, <code>Removed</code>, <code>Not Applicable</code>, <code>In Review</code>)</li>
+<li><code>password_changed_in_external_system</code>, <code>password_changed_date</code>, <code>password_changed_by</code>, <code>password_change_reference</code></li>
+<li><code>removal_required</code>, <code>removed_from_external_system</code>, <code>removal_date</code>, <code>removal_confirmed_by</code>, <code>removal_reference</code></li>
+<li><code>installation_checklist_completed</code>, <code>installation_checklist_completed_date</code>, <code>installation_documented_by</code>, <code>installation_notes</code></li>
+<li><code>last_verified_date</code>, <code>last_verified_by</code>, <code>verification_artifact</code></li>
+<li><code>hosted_not_applicable_reason</code> (e.g., EMMA hosted databases)</li>
+<li><code>is_rhg_special_account</code> (legacy accounts specifically called out by RHG)</li>
+</ul>
+<h2 id="default-account-dashboard">Default Account Dashboard<a class="headerlink" href="#default-account-dashboard" title="Permanent link">&para;</a></h2>
+<p>Route: <code>/default-accounts/</code></p>
+<p>Features:</p>
+<ul>
+<li>Summary cards for total accounts, pending remediation, password-changed, removed, N/A, RHG special, and attention required.</li>
+<li>Filtering by system, status, account type, quick filters (needs action, RHG, hosted/N/A).</li>
+<li>Table showing per-system account status, removal requirement, password reset/ removal evidence, verifier, and quick access to detail/action logging.</li>
+<li>Export button (<code>Export Evidence</code>) produces Excel file containing all captured metadata for auditors.</li>
+</ul>
+<h2 id="action-logging-workflow">Action Logging Workflow<a class="headerlink" href="#action-logging-workflow" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Navigate to a specific default account (<code>/default-accounts/&lt;id&gt;/</code>).</li>
+<li>Use <strong>Log Action</strong> to capture:</li>
+<li>Action type (Password Reset, Removal, Not Applicable, Installation Checklist, Verification, Note)</li>
+<li>Action date/time (when work occurred in external system)</li>
+<li>Evidence reference (ticket #, screenshot path, vendor confirmation)</li>
+<li>Notes / checklist details</li>
+<li>System automatically updates parent <code>DefaultAccount</code> record (status, timestamps, responsible party) ensuring no double data entry.</li>
+</ol>
+<h2 id="template-registry">Template Registry<a class="headerlink" href="#template-registry" title="Permanent link">&para;</a></h2>
+<p>Route: <code>/default-accounts/templates/</code></p>
+<ul>
+<li>Maintains the canonical library of default accounts per system type.</li>
+<li>Includes pre-populated entries for:</li>
+<li>Oracle/Opera/VISION database accounts</li>
+<li>PMS <code>supervisor</code>/<code>Interface</code></li>
+<li>Workstation <code>LocalAdmin</code>/<code>Technician</code></li>
+<li>Server <code>Administrator</code>, ILO</li>
+<li>Network <code>admin</code>, <code>cisco</code></li>
+<li>Printers (<code>printer_admin</code>)</li>
+<li>RHG-specific <code>michael.brandt</code>, <code>roger.bergh</code></li>
+<li>Hosted EMMA database entry (N/A)</li>
+<li>Administrators can add/update templates without touching Django admin.</li>
+<li>Templates flagged with <strong>“applies to all systems”</strong> automatically instantiate for every new system.</li>
+</ul>
+<h2 id="system-installation-integration">System Installation Integration<a class="headerlink" href="#system-installation-integration" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Whenever a new <code>System</code> is created, the <code>default_accounts</code> app seeds <code>DefaultAccount</code> rows using templates:</li>
+<li>All matching <code>system_type</code> templates.</li>
+<li>Any template marked <code>applies_to_all</code>.</li>
+<li>Each seeded record starts in <code>Pending</code> status with <code>removal_required</code> set according to the template.</li>
+<li>Run <code>/default-accounts/seed/system/&lt;system_id&gt;/</code> to backfill older systems.</li>
+</ul>
+<h2 id="evidence-checklist">Evidence Checklist<a class="headerlink" href="#evidence-checklist" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Requirement</th>
+<th>Evidence in App</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Document password resets or removals for default accounts</td>
+<td><code>DefaultAccountAction</code> entries of type <code>password_reset</code> or <code>removal</code> with timestamps and references.</td>
+</tr>
+<tr>
+<td>Track procedure for new installs</td>
+<td><code>installation_checklist_completed*</code> fields + <code>installation</code> action type per default account.</td>
+</tr>
+<tr>
+<td>Maintain registry of default accounts</td>
+<td>Dashboard export + <code>DefaultAccount</code> list filtered by system/account type.</td>
+</tr>
+<tr>
+<td>RHG-specific account removal</td>
+<td><code>is_rhg_special_account</code> flag + quick filter to prove removal progress.</td>
+</tr>
+<tr>
+<td>Hosted exceptions (EMMA) documented as N/A</td>
+<td>Status = <code>Not Applicable</code> + <code>hosted_not_applicable_reason</code>.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="reporting-exports">Reporting &amp; Exports<a class="headerlink" href="#reporting-exports" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Excel Export</strong>: <code>/default-accounts/export/</code> provides a full evidence sheet (system, statuses, timestamps, references).</li>
+<li><strong>Dashboard filters</strong>: create on-screen reports for pending remediation, RHG legacy accounts, or hosted systems flagged N/A.</li>
+<li><strong>Template stats</strong>: Template page shows counts of total/global/RHG templates for governance reviews.</li>
+</ul>
+<h2 id="operational-guidance">Operational Guidance<a class="headerlink" href="#operational-guidance" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>During system onboarding:</strong> confirm auto-generated default accounts, complete installation checklist, and record password resets/removals before go-live.</li>
+<li><strong>During periodic reviews:</strong> run dashboard quick filter <code>Needs Action</code> to ensure no pending entries; log verification actions quarterly.</li>
+<li><strong>Prior to audits:</strong> export Excel evidence and attach to audit packages alongside SOP references.</li>
+<li><strong>Template maintenance:</strong> update templates when new vendor defaults are discovered to keep auto-seeding accurate.</li>
+</ol>
+<hr />
+<p>For questions or enhancements, contact the Security Engineering team or open an issue referencing <em>Default Account Management (4.7)</em>.</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js"></script>
+        <script src="../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

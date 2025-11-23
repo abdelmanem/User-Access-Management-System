@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Administration - User Access Management System</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../css/brands.min.css" rel="stylesheet">
+        <link href="../css/solid.min.css" rel="stylesheet">
+        <link href="../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="..">User Access Management System</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href="../home/" class="nav-link">Home</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Getting Started</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../introduction/" class="dropdown-item">Introduction</a>
+</li>
+                                    
+<li>
+    <a href="../getting_started/" class="dropdown-item">Getting Started</a>
+</li>
+                                    
+<li>
+    <a href="../installation_upgrade/" class="dropdown-item">Installation & Upgrade</a>
+</li>
+                                    
+<li>
+    <a href="../USER_GUIDE/" class="dropdown-item">Quick Start Guide</a>
+</li>
+                                    
+<li>
+    <a href="../user_guide.html" class="dropdown-item">HTML User Guide</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Features & Capabilities</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../features/" class="dropdown-item">Features</a>
+</li>
+                                    
+<li>
+    <a href="../data_model/" class="dropdown-item">Data Model</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Configuration</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../configuration/" class="dropdown-item">Configuration</a>
+</li>
+                                    
+<li>
+    <a href="../customization/" class="dropdown-item">Customization</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Administration</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="./" class="dropdown-item active" aria-current="page">Administration</a>
+</li>
+                                    
+<li>
+    <a href="../best_practices/" class="dropdown-item">Best Practices</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Development</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../DEV_GUIDE/" class="dropdown-item">Developer Guide</a>
+</li>
+                                    
+<li>
+    <a href="../development/" class="dropdown-item">Development</a>
+</li>
+                                    
+<li>
+    <a href="../reference/" class="dropdown-item">Reference</a>
+</li>
+                                    
+<li>
+    <a href="../plugins/" class="dropdown-item">Plugins</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Integrations</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../integrations/" class="dropdown-item">Integrations Overview</a>
+</li>
+                                    
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Additional Integrations</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../additional_integrations/integrations/" class="dropdown-item">Integrations Overview</a>
+</li>
+            
+<li>
+    <a href="../additional_integrations/diode/" class="dropdown-item">Diode Integration</a>
+</li>
+            
+<li>
+    <a href="../additional_integrations/copilot/" class="dropdown-item">Copilot Integration</a>
+</li>
+            
+<li>
+    <a href="../additional_integrations/mcp_server/" class="dropdown-item">MCP Server</a>
+</li>
+            
+<li>
+    <a href="../additional_integrations/extensions/" class="dropdown-item">Extensions</a>
+</li>
+    </ul>
+  </li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Enterprise & Cloud</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../enterprise/" class="dropdown-item">Enterprise Features</a>
+</li>
+                                    
+<li>
+    <a href="../cloud/" class="dropdown-item">Cloud Deployment</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Compliance Playbooks</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../ADMINISTRATOR_ACCESS_4_3_GOVERNANCE/" class="dropdown-item">Administrator Access (4.3)</a>
+</li>
+                                    
+<li>
+    <a href="../ACCESS_APPROVAL_COMPLIANCE_4_6/" class="dropdown-item">Access Approval (4.6)</a>
+</li>
+                                    
+<li>
+    <a href="../QUARTERLY_ACCESS_REVIEW_4_5/" class="dropdown-item">Quarterly Access Review (4.5)</a>
+</li>
+                                    
+<li>
+    <a href="../DEFAULT_ACCOUNT_MANAGEMENT_4_7/" class="dropdown-item">Default Account Management (4.7)</a>
+</li>
+                                    
+<li>
+    <a href="../SERVICE_ACCOUNT_GOVERNANCE/" class="dropdown-item">Service Account Governance</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Operations</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../CHANGE_MANAGEMENT_4_4_PROCESS/" class="dropdown-item">Change Management (4.4)</a>
+</li>
+                                    
+<li>
+    <a href="../POLICY_DRIFT_SCHEDULING/" class="dropdown-item">Policy Drift Scheduling</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Product Information</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../product_feature_lifecycle/" class="dropdown-item">Product Feature Lifecycle</a>
+</li>
+                                    
+<li>
+    <a href="../release_notes/" class="dropdown-item">Release Notes</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../customization/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../best_practices/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="https://github.com/abdelmanem/User-Access-Management-System/edit/master/docs/administration.md" class="nav-link"><i class="fa-brands fa-github"></i> Edit on GitHub</a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#administration" class="nav-link">Administration</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#administration-overview" class="nav-link">Administration Overview</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#user-administration" class="nav-link">User Administration</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#system-configuration" class="nav-link">System Configuration</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#data-management" class="nav-link">Data Management</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#security-administration" class="nav-link">Security Administration</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#monitoring" class="nav-link">Monitoring</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#maintenance-tasks" class="nav-link">Maintenance Tasks</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#troubleshooting" class="nav-link">Troubleshooting</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#backup-and-recovery" class="nav-link">Backup and Recovery</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#next-steps" class="nav-link">Next Steps</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="administration">Administration<a class="headerlink" href="#administration" title="Permanent link">&para;</a></h1>
+<p>This guide covers administrative tasks for managing and maintaining UAMS.</p>
+<p><img alt="Administration" src="../images/administration.png" /></p>
+<h2 id="administration-overview">Administration Overview<a class="headerlink" href="#administration-overview" title="Permanent link">&para;</a></h2>
+<p>UAMS administration involves:</p>
+<ul>
+<li><strong>User Management</strong>: Creating and managing user accounts</li>
+<li><strong>System Configuration</strong>: Configuring system settings</li>
+<li><strong>Data Management</strong>: Managing data and backups</li>
+<li><strong>Security</strong>: Security administration</li>
+<li><strong>Monitoring</strong>: System monitoring and maintenance</li>
+<li><strong>Troubleshooting</strong>: Resolving issues</li>
+</ul>
+<h2 id="user-administration">User Administration<a class="headerlink" href="#user-administration" title="Permanent link">&para;</a></h2>
+<h3 id="creating-users">Creating Users<a class="headerlink" href="#creating-users" title="Permanent link">&para;</a></h3>
+<h4 id="via-admin-interface">Via Admin Interface<a class="headerlink" href="#via-admin-interface" title="Permanent link">&para;</a></h4>
+<ol>
+<li>Navigate to Django Admin: <code>/admin/</code></li>
+<li>Go to <strong>Accounts</strong> → <strong>Users</strong></li>
+<li>Click <strong>Add User</strong></li>
+<li>Fill in user information:</li>
+<li>Username</li>
+<li>Password</li>
+<li>Email</li>
+<li>First Name</li>
+<li>Last Name</li>
+<li>Assign groups/permissions</li>
+<li>Click <strong>Save</strong></li>
+</ol>
+<h4 id="via-management-command">Via Management Command<a class="headerlink" href="#via-management-command" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code>python<span class="w"> </span>manage.py<span class="w"> </span>createsuperuser
+</code></pre></div>
+
+<h4 id="via-python-shell">Via Python Shell<a class="headerlink" href="#via-python-shell" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">accounts.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">User</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">departments.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Department</span>
+
+<span class="c1"># Create user</span>
+<span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span>
+    <span class="n">username</span><span class="o">=</span><span class="s1">&#39;jdoe&#39;</span><span class="p">,</span>
+    <span class="n">email</span><span class="o">=</span><span class="s1">&#39;jdoe@example.com&#39;</span><span class="p">,</span>
+    <span class="n">password</span><span class="o">=</span><span class="s1">&#39;secure_password&#39;</span><span class="p">,</span>
+    <span class="n">first_name</span><span class="o">=</span><span class="s1">&#39;John&#39;</span><span class="p">,</span>
+    <span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Doe&#39;</span><span class="p">,</span>
+    <span class="n">department</span><span class="o">=</span><span class="n">Department</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;IT Department&#39;</span><span class="p">)</span>
+<span class="p">)</span>
+</code></pre></div>
+
+<h3 id="managing-user-roles">Managing User Roles<a class="headerlink" href="#managing-user-roles" title="Permanent link">&para;</a></h3>
+<h4 id="assigning-roles">Assigning Roles<a class="headerlink" href="#assigning-roles" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Group</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">accounts.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">User</span>
+
+<span class="c1"># Get role groups</span>
+<span class="n">super_admin_group</span> <span class="o">=</span> <span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Super Admin&#39;</span><span class="p">)</span>
+<span class="n">hr_admin_group</span> <span class="o">=</span> <span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;HR Admin&#39;</span><span class="p">)</span>
+
+<span class="c1"># Assign role</span>
+<span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="s1">&#39;jdoe&#39;</span><span class="p">)</span>
+<span class="n">user</span><span class="o">.</span><span class="n">groups</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">hr_admin_group</span><span class="p">)</span>
+<span class="n">user</span><span class="o">.</span><span class="n">is_staff</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">user</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</code></pre></div>
+
+<h4 id="role-permissions">Role Permissions<a class="headerlink" href="#role-permissions" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Permission</span>
+
+<span class="c1"># Grant specific permission</span>
+<span class="n">permission</span> <span class="o">=</span> <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">&#39;add_user&#39;</span><span class="p">)</span>
+<span class="n">user</span><span class="o">.</span><span class="n">user_permissions</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">permission</span><span class="p">)</span>
+</code></pre></div>
+
+<h3 id="user-account-management">User Account Management<a class="headerlink" href="#user-account-management" title="Permanent link">&para;</a></h3>
+<h4 id="activatingdeactivating-users">Activating/Deactivating Users<a class="headerlink" href="#activatingdeactivating-users" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Deactivate user</span>
+<span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="s1">&#39;jdoe&#39;</span><span class="p">)</span>
+<span class="n">user</span><span class="o">.</span><span class="n">is_active</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">user</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+<span class="c1"># Activate user</span>
+<span class="n">user</span><span class="o">.</span><span class="n">is_active</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">user</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</code></pre></div>
+
+<h4 id="resetting-passwords">Resetting Passwords<a class="headerlink" href="#resetting-passwords" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Via management command</span>
+python<span class="w"> </span>manage.py<span class="w"> </span>changepassword<span class="w"> </span>username
+</code></pre></div>
+
+<div class="codehilite"><pre><span></span><code><span class="c1"># Via Python shell</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">accounts.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">User</span>
+
+<span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="s1">&#39;jdoe&#39;</span><span class="p">)</span>
+<span class="n">user</span><span class="o">.</span><span class="n">set_password</span><span class="p">(</span><span class="s1">&#39;new_password&#39;</span><span class="p">)</span>
+<span class="n">user</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</code></pre></div>
+
+<h2 id="system-configuration">System Configuration<a class="headerlink" href="#system-configuration" title="Permanent link">&para;</a></h2>
+<h3 id="django-settings">Django Settings<a class="headerlink" href="#django-settings" title="Permanent link">&para;</a></h3>
+<p>Edit <code>user_access_management/settings.py</code> for system-wide configuration:</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Database settings</span>
+<span class="n">DATABASES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;ENGINE&#39;</span><span class="p">:</span> <span class="s1">&#39;django.db.backends.postgresql&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;NAME&#39;</span><span class="p">:</span> <span class="s1">&#39;uams_db&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;USER&#39;</span><span class="p">:</span> <span class="s1">&#39;uams_user&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;PASSWORD&#39;</span><span class="p">:</span> <span class="s1">&#39;password&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;HOST&#39;</span><span class="p">:</span> <span class="s1">&#39;localhost&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;PORT&#39;</span><span class="p">:</span> <span class="s1">&#39;5432&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1"># Security settings</span>
+<span class="n">SECRET_KEY</span> <span class="o">=</span> <span class="s1">&#39;your-secret-key&#39;</span>
+<span class="n">DEBUG</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">ALLOWED_HOSTS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;yourdomain.com&#39;</span><span class="p">]</span>
+
+<span class="c1"># Email settings</span>
+<span class="n">EMAIL_BACKEND</span> <span class="o">=</span> <span class="s1">&#39;django.core.mail.backends.smtp.EmailBackend&#39;</span>
+<span class="n">EMAIL_HOST</span> <span class="o">=</span> <span class="s1">&#39;smtp.gmail.com&#39;</span>
+<span class="n">EMAIL_PORT</span> <span class="o">=</span> <span class="mi">587</span>
+<span class="n">EMAIL_USE_TLS</span> <span class="o">=</span> <span class="kc">True</span>
+</code></pre></div>
+
+<h3 id="environment-configuration">Environment Configuration<a class="headerlink" href="#environment-configuration" title="Permanent link">&para;</a></h3>
+<p>Manage configuration via <code>.env</code> file:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">SECRET_KEY</span><span class="o">=</span><span class="n">your</span><span class="o">-</span><span class="n">secret</span><span class="o">-</span><span class="k">key</span>
+<span class="n">DEBUG</span><span class="o">=</span><span class="k">False</span>
+<span class="n">ALLOWED_HOSTS</span><span class="o">=</span><span class="n">yourdomain</span><span class="p">.</span><span class="n">com</span><span class="p">,</span><span class="n">www</span><span class="p">.</span><span class="n">yourdomain</span><span class="p">.</span><span class="n">com</span>
+<span class="n">DATABASE_URL</span><span class="o">=</span><span class="nl">postgresql</span><span class="p">:</span><span class="o">//</span><span class="k">user</span><span class="err">:</span><span class="n">password</span><span class="nv">@localhost</span><span class="err">:</span><span class="mi">5432</span><span class="o">/</span><span class="n">uams_db</span>
+<span class="n">EMAIL_HOST</span><span class="o">=</span><span class="n">smtp</span><span class="p">.</span><span class="n">gmail</span><span class="p">.</span><span class="n">com</span>
+<span class="n">EMAIL_PORT</span><span class="o">=</span><span class="mi">587</span>
+</code></pre></div>
+
+<h2 id="data-management">Data Management<a class="headerlink" href="#data-management" title="Permanent link">&para;</a></h2>
+<h3 id="database-backups">Database Backups<a class="headerlink" href="#database-backups" title="Permanent link">&para;</a></h3>
+<h4 id="manual-backup">Manual Backup<a class="headerlink" href="#manual-backup" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="c1"># PostgreSQL</span>
+pg_dump<span class="w"> </span>-U<span class="w"> </span>uams_user<span class="w"> </span>uams_db<span class="w"> </span>&gt;<span class="w"> </span>backup_<span class="k">$(</span>date<span class="w"> </span>+%Y%m%d<span class="k">)</span>.sql
+
+<span class="c1"># SQLite</span>
+cp<span class="w"> </span>db.sqlite3<span class="w"> </span>backup_<span class="k">$(</span>date<span class="w"> </span>+%Y%m%d<span class="k">)</span>.sqlite3
+</code></pre></div>
+
+<h4 id="django-dumpdata">Django Dumpdata<a class="headerlink" href="#django-dumpdata" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Full backup</span>
+python<span class="w"> </span>manage.py<span class="w"> </span>dumpdata<span class="w"> </span>&gt;<span class="w"> </span>backup_<span class="k">$(</span>date<span class="w"> </span>+%Y%m%d<span class="k">)</span>.json
+
+<span class="c1"># Specific app</span>
+python<span class="w"> </span>manage.py<span class="w"> </span>dumpdata<span class="w"> </span>accounts<span class="w"> </span>&gt;<span class="w"> </span>accounts_backup.json
+
+<span class="c1"># Exclude certain models</span>
+python<span class="w"> </span>manage.py<span class="w"> </span>dumpdata<span class="w"> </span>--exclude<span class="w"> </span>auth.permission<span class="w"> </span>--exclude<span class="w"> </span>contenttypes<span class="w"> </span>&gt;<span class="w"> </span>backup.json
+</code></pre></div>
+
+<h4 id="automated-backups">Automated Backups<a class="headerlink" href="#automated-backups" title="Permanent link">&para;</a></h4>
+<p>Create backup script:</p>
+<div class="codehilite"><pre><span></span><code><span class="ch">#!/bin/bash</span>
+<span class="c1"># backup.sh</span>
+
+<span class="nv">DATE</span><span class="o">=</span><span class="k">$(</span>date<span class="w"> </span>+%Y%m%d_%H%M%S<span class="k">)</span>
+<span class="nv">BACKUP_DIR</span><span class="o">=</span><span class="s2">&quot;/backups/uams&quot;</span>
+<span class="nv">DB_NAME</span><span class="o">=</span><span class="s2">&quot;uams_db&quot;</span>
+<span class="nv">DB_USER</span><span class="o">=</span><span class="s2">&quot;uams_user&quot;</span>
+
+<span class="c1"># Create backup directory</span>
+mkdir<span class="w"> </span>-p<span class="w"> </span><span class="nv">$BACKUP_DIR</span>
+
+<span class="c1"># Database backup</span>
+pg_dump<span class="w"> </span>-U<span class="w"> </span><span class="nv">$DB_USER</span><span class="w"> </span><span class="nv">$DB_NAME</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>gzip<span class="w"> </span>&gt;<span class="w"> </span><span class="nv">$BACKUP_DIR</span>/db_<span class="nv">$DATE</span>.sql.gz
+
+<span class="c1"># Media files backup</span>
+tar<span class="w"> </span>-czf<span class="w"> </span><span class="nv">$BACKUP_DIR</span>/media_<span class="nv">$DATE</span>.tar.gz<span class="w"> </span>media/
+
+<span class="c1"># Remove old backups (older than 30 days)</span>
+find<span class="w"> </span><span class="nv">$BACKUP_DIR</span><span class="w"> </span>-name<span class="w"> </span><span class="s2">&quot;*.gz&quot;</span><span class="w"> </span>-mtime<span class="w"> </span>+30<span class="w"> </span>-delete
+</code></pre></div>
+
+<p>Schedule with cron:</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Add to crontab</span>
+<span class="m">0</span><span class="w"> </span><span class="m">2</span><span class="w"> </span>*<span class="w"> </span>*<span class="w"> </span>*<span class="w"> </span>/path/to/backup.sh
+</code></pre></div>
+
+<h3 id="database-restoration">Database Restoration<a class="headerlink" href="#database-restoration" title="Permanent link">&para;</a></h3>
+<h4 id="from-sql-dump">From SQL Dump<a class="headerlink" href="#from-sql-dump" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="c1"># PostgreSQL</span>
+psql<span class="w"> </span>-U<span class="w"> </span>uams_user<span class="w"> </span>uams_db<span class="w"> </span>&lt;<span class="w"> </span>backup_20240101.sql
+
+<span class="c1"># SQLite</span>
+cp<span class="w"> </span>backup_20240101.sqlite3<span class="w"> </span>db.sqlite3
+</code></pre></div>
+
+<h4 id="from-django-fixture">From Django Fixture<a class="headerlink" href="#from-django-fixture" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code>python<span class="w"> </span>manage.py<span class="w"> </span>loaddata<span class="w"> </span>backup_20240101.json
+</code></pre></div>
+
+<h3 id="data-importexport">Data Import/Export<a class="headerlink" href="#data-importexport" title="Permanent link">&para;</a></h3>
+<h4 id="exporting-data">Exporting Data<a class="headerlink" href="#exporting-data" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Export users</span>
+python<span class="w"> </span>manage.py<span class="w"> </span>dumpdata<span class="w"> </span>accounts.User<span class="w"> </span>&gt;<span class="w"> </span>users.json
+
+<span class="c1"># Export access records</span>
+python<span class="w"> </span>manage.py<span class="w"> </span>dumpdata<span class="w"> </span>access_management.AccessRecord<span class="w"> </span>&gt;<span class="w"> </span>access.json
+</code></pre></div>
+
+<h4 id="importing-data">Importing Data<a class="headerlink" href="#importing-data" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Import data</span>
+python<span class="w"> </span>manage.py<span class="w"> </span>loaddata<span class="w"> </span>users.json
+</code></pre></div>
+
+<h2 id="security-administration">Security Administration<a class="headerlink" href="#security-administration" title="Permanent link">&para;</a></h2>
+<h3 id="security-hardening">Security Hardening<a class="headerlink" href="#security-hardening" title="Permanent link">&para;</a></h3>
+<h4 id="password-policies">Password Policies<a class="headerlink" href="#password-policies" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="c1"># settings.py</span>
+<span class="n">AUTH_PASSWORD_VALIDATORS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s1">&#39;NAME&#39;</span><span class="p">:</span> <span class="s1">&#39;django.contrib.auth.password_validation.MinimumLengthValidator&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;OPTIONS&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;min_length&#39;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s1">&#39;NAME&#39;</span><span class="p">:</span> <span class="s1">&#39;django.contrib.auth.password_validation.CommonPasswordValidator&#39;</span><span class="p">,</span>
+    <span class="p">},</span>
+<span class="p">]</span>
+</code></pre></div>
+
+<h4 id="session-security">Session Security<a class="headerlink" href="#session-security" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="c1"># settings.py</span>
+<span class="n">SESSION_COOKIE_SECURE</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># HTTPS only</span>
+<span class="n">SESSION_COOKIE_HTTPONLY</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">SESSION_COOKIE_AGE</span> <span class="o">=</span> <span class="mi">3600</span>  <span class="c1"># 1 hour</span>
+<span class="n">SESSION_SAVE_EVERY_REQUEST</span> <span class="o">=</span> <span class="kc">True</span>
+</code></pre></div>
+
+<h4 id="csrf-protection">CSRF Protection<a class="headerlink" href="#csrf-protection" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="c1"># settings.py</span>
+<span class="n">CSRF_COOKIE_SECURE</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">CSRF_COOKIE_HTTPONLY</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">CSRF_TRUSTED_ORIGINS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;https://yourdomain.com&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+</code></pre></div>
+
+<h3 id="security-auditing">Security Auditing<a class="headerlink" href="#security-auditing" title="Permanent link">&para;</a></h3>
+<h4 id="review-user-access">Review User Access<a class="headerlink" href="#review-user-access" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">access_management.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">AccessRecord</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">timezone</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">timedelta</span>
+
+<span class="c1"># Find users with excessive access</span>
+<span class="n">users_with_many_access</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span>
+    <span class="n">access_count</span><span class="o">=</span><span class="n">Count</span><span class="p">(</span><span class="s1">&#39;accessrecord&#39;</span><span class="p">)</span>
+<span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">access_count__gt</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+<span class="c1"># Find stale access (not reviewed in 90 days)</span>
+<span class="n">stale_access</span> <span class="o">=</span> <span class="n">AccessRecord</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+    <span class="n">is_active</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">last_reviewed_date__lt</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">date</span><span class="p">()</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">90</span><span class="p">)</span>
+<span class="p">)</span>
+</code></pre></div>
+
+<h4 id="audit-log-review">Audit Log Review<a class="headerlink" href="#audit-log-review" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.admin.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogEntry</span>
+
+<span class="c1"># Recent admin actions</span>
+<span class="n">recent_actions</span> <span class="o">=</span> <span class="n">LogEntry</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+    <span class="n">action_time__gte</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+<span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s1">&#39;-action_time&#39;</span><span class="p">)</span>
+</code></pre></div>
+
+<h2 id="monitoring">Monitoring<a class="headerlink" href="#monitoring" title="Permanent link">&para;</a></h2>
+<h3 id="system-health-checks">System Health Checks<a class="headerlink" href="#system-health-checks" title="Permanent link">&para;</a></h3>
+<h4 id="database-connection">Database Connection<a class="headerlink" href="#database-connection" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">django.db</span><span class="w"> </span><span class="kn">import</span> <span class="n">connection</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">connection</span><span class="o">.</span><span class="n">ensure_connection</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Database connection OK&quot;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Database connection failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<h4 id="application-status">Application Status<a class="headerlink" href="#application-status" title="Permanent link">&para;</a></h4>
+<p>Create health check endpoint:</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># urls.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.http</span><span class="w"> </span><span class="kn">import</span> <span class="n">JsonResponse</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.db</span><span class="w"> </span><span class="kn">import</span> <span class="n">connection</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">health_check</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;healthy&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;database&#39;</span><span class="p">:</span> <span class="s1">&#39;connected&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;timestamp&#39;</span><span class="p">:</span> <span class="n">timezone</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
+    <span class="p">}</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">connection</span><span class="o">.</span><span class="n">ensure_connection</span><span class="p">()</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">status</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;unhealthy&#39;</span>
+        <span class="n">status</span><span class="p">[</span><span class="s1">&#39;database&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;disconnected&#39;</span>
+
+    <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
+</code></pre></div>
+
+<h3 id="log-monitoring">Log Monitoring<a class="headerlink" href="#log-monitoring" title="Permanent link">&para;</a></h3>
+<h4 id="view-logs">View Logs<a class="headerlink" href="#view-logs" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Application logs</span>
+tail<span class="w"> </span>-f<span class="w"> </span>logs/uams.log
+
+<span class="c1"># Error logs</span>
+tail<span class="w"> </span>-f<span class="w"> </span>logs/error.log
+
+<span class="c1"># Access logs (if using Nginx)</span>
+tail<span class="w"> </span>-f<span class="w"> </span>/var/log/nginx/access.log
+</code></pre></div>
+
+<h4 id="log-rotation">Log Rotation<a class="headerlink" href="#log-rotation" title="Permanent link">&para;</a></h4>
+<p>Configure log rotation in <code>/etc/logrotate.d/uams</code>:</p>
+<div class="codehilite"><pre><span></span><code>/path/to/uams/logs/*.log {
+    daily
+    rotate 30
+    compress
+    delaycompress
+    notifempty
+    create 0644 www-data www-data
+    sharedscripts
+}
+</code></pre></div>
+
+<h3 id="performance-monitoring">Performance Monitoring<a class="headerlink" href="#performance-monitoring" title="Permanent link">&para;</a></h3>
+<h4 id="database-query-analysis">Database Query Analysis<a class="headerlink" href="#database-query-analysis" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Enable query logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.db</span><span class="w"> </span><span class="kn">import</span> <span class="n">connection</span>
+
+<span class="n">connection</span><span class="o">.</span><span class="n">queries_log</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+<span class="c1"># ... perform operations ...</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">connection</span><span class="o">.</span><span class="n">queries</span><span class="p">)</span>
+</code></pre></div>
+
+<h4 id="application-metrics">Application Metrics<a class="headerlink" href="#application-metrics" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Monitor access grants</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">access_management.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">AccessRecord</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">timezone</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">timedelta</span>
+
+<span class="c1"># Access grants in last 24 hours</span>
+<span class="n">recent_grants</span> <span class="o">=</span> <span class="n">AccessRecord</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+    <span class="n">granted_date__gte</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+</code></pre></div>
+
+<h2 id="maintenance-tasks">Maintenance Tasks<a class="headerlink" href="#maintenance-tasks" title="Permanent link">&para;</a></h2>
+<h3 id="database-maintenance">Database Maintenance<a class="headerlink" href="#database-maintenance" title="Permanent link">&para;</a></h3>
+<h4 id="run-migrations">Run Migrations<a class="headerlink" href="#run-migrations" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Check migration status</span>
+python<span class="w"> </span>manage.py<span class="w"> </span>showmigrations
+
+<span class="c1"># Apply migrations</span>
+python<span class="w"> </span>manage.py<span class="w"> </span>migrate
+
+<span class="c1"># Create new migration</span>
+python<span class="w"> </span>manage.py<span class="w"> </span>makemigrations
+</code></pre></div>
+
+<h4 id="database-optimization">Database Optimization<a class="headerlink" href="#database-optimization" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="c1"># PostgreSQL</span>
+psql<span class="w"> </span>-U<span class="w"> </span>uams_user<span class="w"> </span>uams_db<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;VACUUM ANALYZE;&quot;</span>
+
+<span class="c1"># SQLite</span>
+sqlite3<span class="w"> </span>db.sqlite3<span class="w"> </span><span class="s2">&quot;VACUUM;&quot;</span>
+</code></pre></div>
+
+<h3 id="static-files">Static Files<a class="headerlink" href="#static-files" title="Permanent link">&para;</a></h3>
+<h4 id="collect-static-files">Collect Static Files<a class="headerlink" href="#collect-static-files" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code>python<span class="w"> </span>manage.py<span class="w"> </span>collectstatic<span class="w"> </span>--noinput
+</code></pre></div>
+
+<h4 id="clear-cache">Clear Cache<a class="headerlink" href="#clear-cache" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Clear Django cache</span>
+python<span class="w"> </span>manage.py<span class="w"> </span>clear_cache
+</code></pre></div>
+
+<h3 id="cleanup-tasks">Cleanup Tasks<a class="headerlink" href="#cleanup-tasks" title="Permanent link">&para;</a></h3>
+<h4 id="remove-old-data">Remove Old Data<a class="headerlink" href="#remove-old-data" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Remove old access history (older than 2 years)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">access_management.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">AccessRecord</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">timezone</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">timedelta</span>
+
+<span class="n">old_records</span> <span class="o">=</span> <span class="n">AccessRecord</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+    <span class="n">revoked_date__lt</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">730</span><span class="p">),</span>
+    <span class="n">is_active</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span>
+<span class="n">old_records</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+</code></pre></div>
+
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="common-issues">Common Issues<a class="headerlink" href="#common-issues" title="Permanent link">&para;</a></h3>
+<h4 id="database-connection-errors">Database Connection Errors<a class="headerlink" href="#database-connection-errors" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Check database is running</span>
+sudo<span class="w"> </span>systemctl<span class="w"> </span>status<span class="w"> </span>postgresql
+
+<span class="c1"># Test connection</span>
+python<span class="w"> </span>manage.py<span class="w"> </span>dbshell
+</code></pre></div>
+
+<h4 id="migration-errors">Migration Errors<a class="headerlink" href="#migration-errors" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Check migration status</span>
+python<span class="w"> </span>manage.py<span class="w"> </span>showmigrations
+
+<span class="c1"># Fake migration (use with caution)</span>
+python<span class="w"> </span>manage.py<span class="w"> </span>migrate<span class="w"> </span>--fake<span class="w"> </span>app_name<span class="w"> </span>migration_name
+</code></pre></div>
+
+<h4 id="static-files-not-loading">Static Files Not Loading<a class="headerlink" href="#static-files-not-loading" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Recollect static files</span>
+python<span class="w"> </span>manage.py<span class="w"> </span>collectstatic<span class="w"> </span>--noinput<span class="w"> </span>--clear
+
+<span class="c1"># Check permissions</span>
+chmod<span class="w"> </span>-R<span class="w"> </span><span class="m">755</span><span class="w"> </span>staticfiles/
+</code></pre></div>
+
+<h4 id="permission-errors">Permission Errors<a class="headerlink" href="#permission-errors" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Fix file permissions</span>
+chown<span class="w"> </span>-R<span class="w"> </span>www-data:www-data<span class="w"> </span>/path/to/uams
+chmod<span class="w"> </span>-R<span class="w"> </span><span class="m">755</span><span class="w"> </span>/path/to/uams
+</code></pre></div>
+
+<h3 id="debugging">Debugging<a class="headerlink" href="#debugging" title="Permanent link">&para;</a></h3>
+<h4 id="enable-debug-mode">Enable Debug Mode<a class="headerlink" href="#enable-debug-mode" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="c1"># settings.py (development only)</span>
+<span class="n">DEBUG</span> <span class="o">=</span> <span class="kc">True</span>
+</code></pre></div>
+
+<h4 id="view-error-details">View Error Details<a class="headerlink" href="#view-error-details" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="c1"># In views</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">my_view</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># ... code ...</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">raise</span>
+</code></pre></div>
+
+<h2 id="backup-and-recovery">Backup and Recovery<a class="headerlink" href="#backup-and-recovery" title="Permanent link">&para;</a></h2>
+<h3 id="backup-strategy">Backup Strategy<a class="headerlink" href="#backup-strategy" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Daily Backups</strong>: Database and media files</li>
+<li><strong>Weekly Backups</strong>: Full system backup</li>
+<li><strong>Before Upgrades</strong>: Pre-upgrade backup</li>
+<li><strong>Offsite Storage</strong>: Store backups offsite</li>
+</ol>
+<h3 id="recovery-procedures">Recovery Procedures<a class="headerlink" href="#recovery-procedures" title="Permanent link">&para;</a></h3>
+<h4 id="full-system-recovery">Full System Recovery<a class="headerlink" href="#full-system-recovery" title="Permanent link">&para;</a></h4>
+<ol>
+<li>Restore database</li>
+<li>Restore media files</li>
+<li>Restore configuration</li>
+<li>Verify application</li>
+<li>Test functionality</li>
+</ol>
+<h4 id="partial-recovery">Partial Recovery<a class="headerlink" href="#partial-recovery" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Restore specific app data</span>
+python<span class="w"> </span>manage.py<span class="w"> </span>loaddata<span class="w"> </span>accounts_backup.json
+</code></pre></div>
+
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../configuration/">Configuration</a> - System configuration</li>
+<li><a href="../best_practices/">Best Practices</a> - Recommended practices</li>
+<li><a href="../development/">Development</a> - Development guidelines</li>
+<li><a href="../reference/">Reference</a> - Technical reference</li>
+</ul>
+<hr />
+<p>For detailed configuration options, see <a href="../configuration/">Configuration</a>. For security best practices, see <a href="../best_practices/">Best Practices</a>.</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js"></script>
+        <script src="../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

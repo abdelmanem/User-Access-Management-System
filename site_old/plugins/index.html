@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Plugins - User Access Management System</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../css/brands.min.css" rel="stylesheet">
+        <link href="../css/solid.min.css" rel="stylesheet">
+        <link href="../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="..">User Access Management System</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href="../home/" class="nav-link">Home</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Getting Started</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../introduction/" class="dropdown-item">Introduction</a>
+</li>
+                                    
+<li>
+    <a href="../getting_started/" class="dropdown-item">Getting Started</a>
+</li>
+                                    
+<li>
+    <a href="../installation_upgrade/" class="dropdown-item">Installation & Upgrade</a>
+</li>
+                                    
+<li>
+    <a href="../USER_GUIDE/" class="dropdown-item">Quick Start Guide</a>
+</li>
+                                    
+<li>
+    <a href="../user_guide.html" class="dropdown-item">HTML User Guide</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Features & Capabilities</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../features/" class="dropdown-item">Features</a>
+</li>
+                                    
+<li>
+    <a href="../data_model/" class="dropdown-item">Data Model</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Configuration</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../configuration/" class="dropdown-item">Configuration</a>
+</li>
+                                    
+<li>
+    <a href="../customization/" class="dropdown-item">Customization</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Administration</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../administration/" class="dropdown-item">Administration</a>
+</li>
+                                    
+<li>
+    <a href="../best_practices/" class="dropdown-item">Best Practices</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Development</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../DEV_GUIDE/" class="dropdown-item">Developer Guide</a>
+</li>
+                                    
+<li>
+    <a href="../development/" class="dropdown-item">Development</a>
+</li>
+                                    
+<li>
+    <a href="../reference/" class="dropdown-item">Reference</a>
+</li>
+                                    
+<li>
+    <a href="./" class="dropdown-item active" aria-current="page">Plugins</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Integrations</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../integrations/" class="dropdown-item">Integrations Overview</a>
+</li>
+                                    
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Additional Integrations</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../additional_integrations/integrations/" class="dropdown-item">Integrations Overview</a>
+</li>
+            
+<li>
+    <a href="../additional_integrations/diode/" class="dropdown-item">Diode Integration</a>
+</li>
+            
+<li>
+    <a href="../additional_integrations/copilot/" class="dropdown-item">Copilot Integration</a>
+</li>
+            
+<li>
+    <a href="../additional_integrations/mcp_server/" class="dropdown-item">MCP Server</a>
+</li>
+            
+<li>
+    <a href="../additional_integrations/extensions/" class="dropdown-item">Extensions</a>
+</li>
+    </ul>
+  </li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Enterprise & Cloud</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../enterprise/" class="dropdown-item">Enterprise Features</a>
+</li>
+                                    
+<li>
+    <a href="../cloud/" class="dropdown-item">Cloud Deployment</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Compliance Playbooks</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../ADMINISTRATOR_ACCESS_4_3_GOVERNANCE/" class="dropdown-item">Administrator Access (4.3)</a>
+</li>
+                                    
+<li>
+    <a href="../ACCESS_APPROVAL_COMPLIANCE_4_6/" class="dropdown-item">Access Approval (4.6)</a>
+</li>
+                                    
+<li>
+    <a href="../QUARTERLY_ACCESS_REVIEW_4_5/" class="dropdown-item">Quarterly Access Review (4.5)</a>
+</li>
+                                    
+<li>
+    <a href="../DEFAULT_ACCOUNT_MANAGEMENT_4_7/" class="dropdown-item">Default Account Management (4.7)</a>
+</li>
+                                    
+<li>
+    <a href="../SERVICE_ACCOUNT_GOVERNANCE/" class="dropdown-item">Service Account Governance</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Operations</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../CHANGE_MANAGEMENT_4_4_PROCESS/" class="dropdown-item">Change Management (4.4)</a>
+</li>
+                                    
+<li>
+    <a href="../POLICY_DRIFT_SCHEDULING/" class="dropdown-item">Policy Drift Scheduling</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Product Information</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../product_feature_lifecycle/" class="dropdown-item">Product Feature Lifecycle</a>
+</li>
+                                    
+<li>
+    <a href="../release_notes/" class="dropdown-item">Release Notes</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../reference/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../integrations/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="https://github.com/abdelmanem/User-Access-Management-System/edit/master/docs/plugins.md" class="nav-link"><i class="fa-brands fa-github"></i> Edit on GitHub</a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#plugins" class="nav-link">Plugins</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#plugin-overview" class="nav-link">Plugin Overview</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#plugin-architecture" class="nav-link">Plugin Architecture</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#creating-a-plugin" class="nav-link">Creating a Plugin</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#plugin-hooks" class="nav-link">Plugin Hooks</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#plugin-views" class="nav-link">Plugin Views</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#plugin-templates" class="nav-link">Plugin Templates</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#plugin-models" class="nav-link">Plugin Models</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#plugin-management-commands" class="nav-link">Plugin Management Commands</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#plugin-api" class="nav-link">Plugin API</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#plugin-menu-integration" class="nav-link">Plugin Menu Integration</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#plugin-permissions" class="nav-link">Plugin Permissions</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#plugin-settings" class="nav-link">Plugin Settings</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#plugin-testing" class="nav-link">Plugin Testing</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#plugin-distribution" class="nav-link">Plugin Distribution</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#plugin-examples" class="nav-link">Plugin Examples</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#plugin-best-practices" class="nav-link">Plugin Best Practices</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#next-steps" class="nav-link">Next Steps</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="plugins">Plugins<a class="headerlink" href="#plugins" title="Permanent link">&para;</a></h1>
+<p>This guide covers developing and using plugins to extend UAMS functionality.</p>
+<p><img alt="Plugins" src="../images/plugins.png" /></p>
+<h2 id="plugin-overview">Plugin Overview<a class="headerlink" href="#plugin-overview" title="Permanent link">&para;</a></h2>
+<p>UAMS supports a plugin architecture that allows you to extend functionality without modifying core code. Plugins can add:</p>
+<ul>
+<li>Custom workflows</li>
+<li>Additional integrations</li>
+<li>Custom reports</li>
+<li>New features</li>
+<li>UI extensions</li>
+</ul>
+<h2 id="plugin-architecture">Plugin Architecture<a class="headerlink" href="#plugin-architecture" title="Permanent link">&para;</a></h2>
+<h3 id="plugin-structure">Plugin Structure<a class="headerlink" href="#plugin-structure" title="Permanent link">&para;</a></h3>
+<p>A UAMS plugin is a Django app that follows a specific structure:</p>
+<div class="codehilite"><pre><span></span><code>my_plugin/
+├── __init__.py
+├── apps.py
+├── models.py
+├── views.py
+├── urls.py
+├── templates/
+│   └── my_plugin/
+├── static/
+│   └── my_plugin/
+├── management/
+│   └── commands/
+└── plugin_config.py
+</code></pre></div>
+
+<h3 id="plugin-configuration">Plugin Configuration<a class="headerlink" href="#plugin-configuration" title="Permanent link">&para;</a></h3>
+<p>Each plugin must have a <code>plugin_config.py</code> file:</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># my_plugin/plugin_config.py</span>
+<span class="n">PLUGIN_CONFIG</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;My Plugin&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="s1">&#39;1.0.0&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Description of my plugin&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;author&#39;</span><span class="p">:</span> <span class="s1">&#39;Your Name&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;dependencies&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># List of required plugins</span>
+    <span class="s1">&#39;hooks&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;access_granted&#39;</span><span class="p">:</span> <span class="s1">&#39;my_plugin.hooks.on_access_granted&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;access_revoked&#39;</span><span class="p">:</span> <span class="s1">&#39;my_plugin.hooks.on_access_revoked&#39;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s1">&#39;menu_items&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;My Plugin&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;my_plugin:index&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;icon&#39;</span><span class="p">:</span> <span class="s1">&#39;fa-cog&#39;</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h2 id="creating-a-plugin">Creating a Plugin<a class="headerlink" href="#creating-a-plugin" title="Permanent link">&para;</a></h2>
+<h3 id="step-1-create-plugin-app">Step 1: Create Plugin App<a class="headerlink" href="#step-1-create-plugin-app" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code>python<span class="w"> </span>manage.py<span class="w"> </span>startapp<span class="w"> </span>my_plugin
+</code></pre></div>
+
+<h3 id="step-2-configure-plugin">Step 2: Configure Plugin<a class="headerlink" href="#step-2-configure-plugin" title="Permanent link">&para;</a></h3>
+<p>Create <code>plugin_config.py</code>:</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># my_plugin/plugin_config.py</span>
+<span class="n">PLUGIN_CONFIG</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Custom Workflow Plugin&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="s1">&#39;1.0.0&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Adds custom approval workflows&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;author&#39;</span><span class="p">:</span> <span class="s1">&#39;Your Organization&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;hooks&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;access_granted&#39;</span><span class="p">:</span> <span class="s1">&#39;my_plugin.hooks.on_access_granted&#39;</span><span class="p">,</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h3 id="step-3-register-plugin">Step 3: Register Plugin<a class="headerlink" href="#step-3-register-plugin" title="Permanent link">&para;</a></h3>
+<p>In <code>my_plugin/apps.py</code>:</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># my_plugin/apps.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.apps</span><span class="w"> </span><span class="kn">import</span> <span class="n">AppConfig</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyPluginConfig</span><span class="p">(</span><span class="n">AppConfig</span><span class="p">):</span>
+    <span class="n">default_auto_field</span> <span class="o">=</span> <span class="s1">&#39;django.db.models.BigAutoField&#39;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;my_plugin&#39;</span>
+    <span class="n">verbose_name</span> <span class="o">=</span> <span class="s1">&#39;My Plugin&#39;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">ready</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Register plugin</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">plugin_config</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">uams.plugins</span>
+        <span class="n">uams</span><span class="o">.</span><span class="n">plugins</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">plugin_config</span><span class="o">.</span><span class="n">PLUGIN_CONFIG</span><span class="p">)</span>
+</code></pre></div>
+
+<h3 id="step-4-install-plugin">Step 4: Install Plugin<a class="headerlink" href="#step-4-install-plugin" title="Permanent link">&para;</a></h3>
+<p>Add to <code>INSTALLED_APPS</code> in <code>settings.py</code>:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">INSTALLED_APPS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="c1"># ... existing apps ...</span>
+    <span class="s1">&#39;my_plugin&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+</code></pre></div>
+
+<h2 id="plugin-hooks">Plugin Hooks<a class="headerlink" href="#plugin-hooks" title="Permanent link">&para;</a></h2>
+<h3 id="available-hooks">Available Hooks<a class="headerlink" href="#available-hooks" title="Permanent link">&para;</a></h3>
+<p>Plugins can hook into various UAMS events:</p>
+<ul>
+<li><code>access_granted</code>: When access is granted</li>
+<li><code>access_revoked</code>: When access is revoked</li>
+<li><code>user_created</code>: When a user is created</li>
+<li><code>user_updated</code>: When a user is updated</li>
+<li><code>review_completed</code>: When an access review is completed</li>
+</ul>
+<h3 id="implementing-hooks">Implementing Hooks<a class="headerlink" href="#implementing-hooks" title="Permanent link">&para;</a></h3>
+<p>Create <code>my_plugin/hooks.py</code>:</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># my_plugin/hooks.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">timezone</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.core.mail</span><span class="w"> </span><span class="kn">import</span> <span class="n">send_mail</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">on_access_granted</span><span class="p">(</span><span class="n">access_record</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Hook called when access is granted</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Custom logic here</span>
+    <span class="n">send_notification</span><span class="p">(</span><span class="n">access_record</span><span class="p">)</span>
+    <span class="n">log_to_external_system</span><span class="p">(</span><span class="n">access_record</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">on_access_revoked</span><span class="p">(</span><span class="n">access_record</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Hook called when access is revoked</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Custom logic here</span>
+    <span class="n">cleanup_external_access</span><span class="p">(</span><span class="n">access_record</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">send_notification</span><span class="p">(</span><span class="n">access_record</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Send custom notification&quot;&quot;&quot;</span>
+    <span class="n">send_mail</span><span class="p">(</span>
+        <span class="n">subject</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Access Granted: </span><span class="si">{</span><span class="n">access_record</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">message</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Access has been granted to </span><span class="si">{</span><span class="n">access_record</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">from_email</span><span class="o">=</span><span class="s1">&#39;noreply@example.com&#39;</span><span class="p">,</span>
+        <span class="n">recipient_list</span><span class="o">=</span><span class="p">[</span><span class="n">access_record</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">],</span>
+    <span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">log_to_external_system</span><span class="p">(</span><span class="n">access_record</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Log to external system&quot;&quot;&quot;</span>
+    <span class="c1"># Integration logic here</span>
+    <span class="k">pass</span>
+</code></pre></div>
+
+<h2 id="plugin-views">Plugin Views<a class="headerlink" href="#plugin-views" title="Permanent link">&para;</a></h2>
+<h3 id="creating-plugin-views">Creating Plugin Views<a class="headerlink" href="#creating-plugin-views" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># my_plugin/views.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.shortcuts</span><span class="w"> </span><span class="kn">import</span> <span class="n">render</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">login_required</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.views.decorators.http</span><span class="w"> </span><span class="kn">import</span> <span class="n">require_http_methods</span>
+
+<span class="nd">@login_required</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">plugin_index</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Plugin main page&quot;&quot;&quot;</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;My Plugin&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;my_plugin/index.html&#39;</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+
+<span class="nd">@login_required</span>
+<span class="nd">@require_http_methods</span><span class="p">([</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="s2">&quot;POST&quot;</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">custom_action</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Custom plugin action&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;POST&#39;</span><span class="p">:</span>
+        <span class="c1"># Handle POST</span>
+        <span class="k">pass</span>
+    <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;my_plugin/action.html&#39;</span><span class="p">)</span>
+</code></pre></div>
+
+<h3 id="plugin-urls">Plugin URLs<a class="headerlink" href="#plugin-urls" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># my_plugin/urls.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.urls</span><span class="w"> </span><span class="kn">import</span> <span class="n">path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">views</span>
+
+<span class="n">app_name</span> <span class="o">=</span> <span class="s1">&#39;my_plugin&#39;</span>
+
+<span class="n">urlpatterns</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">path</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">views</span><span class="o">.</span><span class="n">plugin_index</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">),</span>
+    <span class="n">path</span><span class="p">(</span><span class="s1">&#39;action/&#39;</span><span class="p">,</span> <span class="n">views</span><span class="o">.</span><span class="n">custom_action</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;action&#39;</span><span class="p">),</span>
+<span class="p">]</span>
+</code></pre></div>
+
+<h2 id="plugin-templates">Plugin Templates<a class="headerlink" href="#plugin-templates" title="Permanent link">&para;</a></h2>
+<h3 id="template-structure">Template Structure<a class="headerlink" href="#template-structure" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code>my_plugin/
+└── templates/
+    └── my_plugin/
+        ├── index.html
+        ├── action.html
+        └── partials/
+            └── widget.html
+</code></pre></div>
+
+<h3 id="base-template-extension">Base Template Extension<a class="headerlink" href="#base-template-extension" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="cm">&lt;!-- my_plugin/templates/my_plugin/index.html --&gt;</span>
+{% extends &quot;base.html&quot; %}
+{% load static %}
+
+{% block title %}My Plugin{% endblock %}
+
+{% block content %}
+<span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;container&quot;</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">h1</span><span class="p">&gt;</span>My Plugin<span class="p">&lt;/</span><span class="nt">h1</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;</span>Plugin content goes here<span class="p">&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+{% endblock %}
+</code></pre></div>
+
+<h2 id="plugin-models">Plugin Models<a class="headerlink" href="#plugin-models" title="Permanent link">&para;</a></h2>
+<h3 id="custom-models">Custom Models<a class="headerlink" href="#custom-models" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># my_plugin/models.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.db</span><span class="w"> </span><span class="kn">import</span> <span class="n">models</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">access_management.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">AccessRecord</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">CustomAccessMetadata</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Custom metadata for access records&quot;&quot;&quot;</span>
+    <span class="n">access_record</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">OneToOneField</span><span class="p">(</span>
+        <span class="n">AccessRecord</span><span class="p">,</span>
+        <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">,</span>
+        <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;custom_metadata&#39;</span>
+    <span class="p">)</span>
+    <span class="n">custom_field_1</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">custom_field_2</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">(</span><span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">created_at</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">(</span><span class="n">auto_now_add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">updated_at</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">(</span><span class="n">auto_now</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Metadata for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">access_record</span><span class="si">}</span><span class="s2">&quot;</span>
+</code></pre></div>
+
+<h2 id="plugin-management-commands">Plugin Management Commands<a class="headerlink" href="#plugin-management-commands" title="Permanent link">&para;</a></h2>
+<h3 id="creating-commands">Creating Commands<a class="headerlink" href="#creating-commands" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># my_plugin/management/commands/my_plugin_command.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.core.management.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseCommand</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Command</span><span class="p">(</span><span class="n">BaseCommand</span><span class="p">):</span>
+    <span class="n">help</span> <span class="o">=</span> <span class="s1">&#39;My plugin management command&#39;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parser</span><span class="p">):</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+            <span class="s1">&#39;--option&#39;</span><span class="p">,</span>
+            <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+            <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Command option&#39;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">handle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">):</span>
+        <span class="n">option</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;option&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Command executed with option: </span><span class="si">{</span><span class="n">option</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="p">)</span>
+</code></pre></div>
+
+<h2 id="plugin-api">Plugin API<a class="headerlink" href="#plugin-api" title="Permanent link">&para;</a></h2>
+<h3 id="exposing-plugin-api">Exposing Plugin API<a class="headerlink" href="#exposing-plugin-api" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># my_plugin/api.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">rest_framework</span><span class="w"> </span><span class="kn">import</span> <span class="n">viewsets</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">rest_framework.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">action</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">rest_framework.response</span><span class="w"> </span><span class="kn">import</span> <span class="n">Response</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">PluginAPIViewSet</span><span class="p">(</span><span class="n">viewsets</span><span class="o">.</span><span class="n">ViewSet</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plugin API endpoints</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@action</span><span class="p">(</span><span class="n">detail</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;get&#39;</span><span class="p">])</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get plugin status&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">Response</span><span class="p">({</span>
+            <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;active&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="s1">&#39;1.0.0&#39;</span><span class="p">,</span>
+        <span class="p">})</span>
+
+    <span class="nd">@action</span><span class="p">(</span><span class="n">detail</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;post&#39;</span><span class="p">])</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">custom_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Custom API action&quot;&quot;&quot;</span>
+        <span class="c1"># Process request</span>
+        <span class="k">return</span> <span class="n">Response</span><span class="p">({</span><span class="s1">&#39;result&#39;</span><span class="p">:</span> <span class="s1">&#39;success&#39;</span><span class="p">})</span>
+</code></pre></div>
+
+<h2 id="plugin-menu-integration">Plugin Menu Integration<a class="headerlink" href="#plugin-menu-integration" title="Permanent link">&para;</a></h2>
+<h3 id="adding-menu-items">Adding Menu Items<a class="headerlink" href="#adding-menu-items" title="Permanent link">&para;</a></h3>
+<p>Plugins can add items to the main navigation:</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># my_plugin/plugin_config.py</span>
+<span class="n">PLUGIN_CONFIG</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># ... other config ...</span>
+    <span class="s1">&#39;menu_items&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;My Plugin&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;my_plugin:index&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;icon&#39;</span><span class="p">:</span> <span class="s1">&#39;fa-cog&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;permission&#39;</span><span class="p">:</span> <span class="s1">&#39;my_plugin.view_plugin&#39;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Plugin Settings&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;my_plugin:settings&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;icon&#39;</span><span class="p">:</span> <span class="s1">&#39;fa-gear&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;permission&#39;</span><span class="p">:</span> <span class="s1">&#39;my_plugin.change_settings&#39;</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h2 id="plugin-permissions">Plugin Permissions<a class="headerlink" href="#plugin-permissions" title="Permanent link">&para;</a></h2>
+<h3 id="defining-permissions">Defining Permissions<a class="headerlink" href="#defining-permissions" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># my_plugin/models.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.db</span><span class="w"> </span><span class="kn">import</span> <span class="n">models</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">PluginPermission</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Plugin-specific permissions&quot;&quot;&quot;</span>
+    <span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">permissions</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s1">&#39;view_plugin&#39;</span><span class="p">,</span> <span class="s1">&#39;Can view plugin&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;use_plugin&#39;</span><span class="p">,</span> <span class="s1">&#39;Can use plugin features&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;admin_plugin&#39;</span><span class="p">,</span> <span class="s1">&#39;Can administer plugin&#39;</span><span class="p">),</span>
+        <span class="p">]</span>
+</code></pre></div>
+
+<h3 id="checking-permissions">Checking Permissions<a class="headerlink" href="#checking-permissions" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># my_plugin/views.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">permission_required</span>
+
+<span class="nd">@permission_required</span><span class="p">(</span><span class="s1">&#39;my_plugin.view_plugin&#39;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">plugin_view</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="c1"># View logic</span>
+    <span class="k">pass</span>
+</code></pre></div>
+
+<h2 id="plugin-settings">Plugin Settings<a class="headerlink" href="#plugin-settings" title="Permanent link">&para;</a></h2>
+<h3 id="plugin-configuration_1">Plugin Configuration<a class="headerlink" href="#plugin-configuration_1" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># my_plugin/settings.py</span>
+<span class="n">PLUGIN_SETTINGS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;enabled&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s1">&#39;api_key&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;webhook_url&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;custom_option&#39;</span><span class="p">:</span> <span class="s1">&#39;default_value&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h3 id="settings-management">Settings Management<a class="headerlink" href="#settings-management" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># my_plugin/views.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.conf</span><span class="w"> </span><span class="kn">import</span> <span class="n">settings</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_plugin_setting</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get plugin setting&quot;&quot;&quot;</span>
+    <span class="n">plugin_settings</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="s1">&#39;MY_PLUGIN_SETTINGS&#39;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="k">return</span> <span class="n">plugin_settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span>
+</code></pre></div>
+
+<h2 id="plugin-testing">Plugin Testing<a class="headerlink" href="#plugin-testing" title="Permanent link">&para;</a></h2>
+<h3 id="writing-tests">Writing Tests<a class="headerlink" href="#writing-tests" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># my_plugin/tests.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.test</span><span class="w"> </span><span class="kn">import</span> <span class="n">TestCase</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_user_model</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">access_management.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">AccessRecord</span>
+
+<span class="n">User</span> <span class="o">=</span> <span class="n">get_user_model</span><span class="p">()</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">PluginTestCase</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span>
+            <span class="n">username</span><span class="o">=</span><span class="s1">&#39;testuser&#39;</span><span class="p">,</span>
+            <span class="n">email</span><span class="o">=</span><span class="s1">&#39;test@example.com&#39;</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_plugin_hook</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test plugin hook execution&quot;&quot;&quot;</span>
+        <span class="c1"># Test hook logic</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_plugin_view</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test plugin view&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">force_login</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/my_plugin/&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+</code></pre></div>
+
+<h2 id="plugin-distribution">Plugin Distribution<a class="headerlink" href="#plugin-distribution" title="Permanent link">&para;</a></h2>
+<h3 id="packaging-plugin">Packaging Plugin<a class="headerlink" href="#packaging-plugin" title="Permanent link">&para;</a></h3>
+<p>Create <code>setup.py</code>:</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># setup.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">setuptools</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup</span><span class="p">,</span> <span class="n">find_packages</span>
+
+<span class="n">setup</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s1">&#39;uams-my-plugin&#39;</span><span class="p">,</span>
+    <span class="n">version</span><span class="o">=</span><span class="s1">&#39;1.0.0&#39;</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s1">&#39;My UAMS Plugin&#39;</span><span class="p">,</span>
+    <span class="n">author</span><span class="o">=</span><span class="s1">&#39;Your Name&#39;</span><span class="p">,</span>
+    <span class="n">packages</span><span class="o">=</span><span class="n">find_packages</span><span class="p">(),</span>
+    <span class="n">install_requires</span><span class="o">=</span><span class="p">[</span>
+        <span class="s1">&#39;Django&gt;=3.2&#39;</span><span class="p">,</span>
+    <span class="p">],</span>
+<span class="p">)</span>
+</code></pre></div>
+
+<h3 id="installing-plugin">Installing Plugin<a class="headerlink" href="#installing-plugin" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>uams-my-plugin
+</code></pre></div>
+
+<p>Add to <code>INSTALLED_APPS</code>:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">INSTALLED_APPS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="c1"># ... existing apps ...</span>
+    <span class="s1">&#39;my_plugin&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+</code></pre></div>
+
+<h2 id="plugin-examples">Plugin Examples<a class="headerlink" href="#plugin-examples" title="Permanent link">&para;</a></h2>
+<h3 id="example-notification-plugin">Example: Notification Plugin<a class="headerlink" href="#example-notification-plugin" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># notification_plugin/plugin_config.py</span>
+<span class="n">PLUGIN_CONFIG</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Notification Plugin&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="s1">&#39;1.0.0&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;hooks&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;access_granted&#39;</span><span class="p">:</span> <span class="s1">&#39;notification_plugin.hooks.send_grant_notification&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;access_revoked&#39;</span><span class="p">:</span> <span class="s1">&#39;notification_plugin.hooks.send_revoke_notification&#39;</span><span class="p">,</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+
+<span class="c1"># notification_plugin/hooks.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.core.mail</span><span class="w"> </span><span class="kn">import</span> <span class="n">send_mail</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">send_grant_notification</span><span class="p">(</span><span class="n">access_record</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">send_mail</span><span class="p">(</span>
+        <span class="n">subject</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Access Granted: </span><span class="si">{</span><span class="n">access_record</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">message</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;You have been granted </span><span class="si">{</span><span class="n">access_record</span><span class="o">.</span><span class="n">access_level</span><span class="si">}</span><span class="s1"> access to </span><span class="si">{</span><span class="n">access_record</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">from_email</span><span class="o">=</span><span class="s1">&#39;noreply@example.com&#39;</span><span class="p">,</span>
+        <span class="n">recipient_list</span><span class="o">=</span><span class="p">[</span><span class="n">access_record</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">],</span>
+    <span class="p">)</span>
+</code></pre></div>
+
+<h3 id="example-reporting-plugin">Example: Reporting Plugin<a class="headerlink" href="#example-reporting-plugin" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># reporting_plugin/views.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.shortcuts</span><span class="w"> </span><span class="kn">import</span> <span class="n">render</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">login_required</span>
+
+<span class="nd">@login_required</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">custom_report</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate custom report&quot;&quot;&quot;</span>
+    <span class="c1"># Report generation logic</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;report_data&#39;</span><span class="p">:</span> <span class="n">generate_report_data</span><span class="p">(),</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;reporting_plugin/report.html&#39;</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+</code></pre></div>
+
+<h2 id="plugin-best-practices">Plugin Best Practices<a class="headerlink" href="#plugin-best-practices" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Namespace</strong>: Use unique plugin names</li>
+<li><strong>Documentation</strong>: Document plugin functionality</li>
+<li><strong>Testing</strong>: Write comprehensive tests</li>
+<li><strong>Error Handling</strong>: Handle errors gracefully</li>
+<li><strong>Performance</strong>: Optimize plugin performance</li>
+<li><strong>Security</strong>: Follow security best practices</li>
+<li><strong>Compatibility</strong>: Ensure compatibility with UAMS versions</li>
+<li><strong>Updates</strong>: Plan for plugin updates</li>
+<li><strong>Dependencies</strong>: Minimize dependencies</li>
+<li><strong>Configuration</strong>: Make plugins configurable</li>
+</ol>
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../development/">Development</a> - Development guidelines</li>
+<li><a href="../customization/">Customization</a> - Customization options</li>
+<li><a href="../reference/">Reference</a> - API reference</li>
+<li><a href="../integrations/">Integrations</a> - Integration guides</li>
+</ul>
+<hr />
+<p>For plugin development examples, see the <a href="../development/">Development</a> documentation.</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js"></script>
+        <script src="../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

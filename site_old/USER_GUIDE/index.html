@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Quick Start Guide - User Access Management System</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../css/brands.min.css" rel="stylesheet">
+        <link href="../css/solid.min.css" rel="stylesheet">
+        <link href="../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="..">User Access Management System</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href="../home/" class="nav-link">Home</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Getting Started</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../introduction/" class="dropdown-item">Introduction</a>
+</li>
+                                    
+<li>
+    <a href="../getting_started/" class="dropdown-item">Getting Started</a>
+</li>
+                                    
+<li>
+    <a href="../installation_upgrade/" class="dropdown-item">Installation & Upgrade</a>
+</li>
+                                    
+<li>
+    <a href="./" class="dropdown-item active" aria-current="page">Quick Start Guide</a>
+</li>
+                                    
+<li>
+    <a href="../user_guide.html" class="dropdown-item">HTML User Guide</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Features & Capabilities</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../features/" class="dropdown-item">Features</a>
+</li>
+                                    
+<li>
+    <a href="../data_model/" class="dropdown-item">Data Model</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Configuration</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../configuration/" class="dropdown-item">Configuration</a>
+</li>
+                                    
+<li>
+    <a href="../customization/" class="dropdown-item">Customization</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Administration</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../administration/" class="dropdown-item">Administration</a>
+</li>
+                                    
+<li>
+    <a href="../best_practices/" class="dropdown-item">Best Practices</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Development</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../DEV_GUIDE/" class="dropdown-item">Developer Guide</a>
+</li>
+                                    
+<li>
+    <a href="../development/" class="dropdown-item">Development</a>
+</li>
+                                    
+<li>
+    <a href="../reference/" class="dropdown-item">Reference</a>
+</li>
+                                    
+<li>
+    <a href="../plugins/" class="dropdown-item">Plugins</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Integrations</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../integrations/" class="dropdown-item">Integrations Overview</a>
+</li>
+                                    
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Additional Integrations</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../additional_integrations/integrations/" class="dropdown-item">Integrations Overview</a>
+</li>
+            
+<li>
+    <a href="../additional_integrations/diode/" class="dropdown-item">Diode Integration</a>
+</li>
+            
+<li>
+    <a href="../additional_integrations/copilot/" class="dropdown-item">Copilot Integration</a>
+</li>
+            
+<li>
+    <a href="../additional_integrations/mcp_server/" class="dropdown-item">MCP Server</a>
+</li>
+            
+<li>
+    <a href="../additional_integrations/extensions/" class="dropdown-item">Extensions</a>
+</li>
+    </ul>
+  </li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Enterprise & Cloud</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../enterprise/" class="dropdown-item">Enterprise Features</a>
+</li>
+                                    
+<li>
+    <a href="../cloud/" class="dropdown-item">Cloud Deployment</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Compliance Playbooks</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../ADMINISTRATOR_ACCESS_4_3_GOVERNANCE/" class="dropdown-item">Administrator Access (4.3)</a>
+</li>
+                                    
+<li>
+    <a href="../ACCESS_APPROVAL_COMPLIANCE_4_6/" class="dropdown-item">Access Approval (4.6)</a>
+</li>
+                                    
+<li>
+    <a href="../QUARTERLY_ACCESS_REVIEW_4_5/" class="dropdown-item">Quarterly Access Review (4.5)</a>
+</li>
+                                    
+<li>
+    <a href="../DEFAULT_ACCOUNT_MANAGEMENT_4_7/" class="dropdown-item">Default Account Management (4.7)</a>
+</li>
+                                    
+<li>
+    <a href="../SERVICE_ACCOUNT_GOVERNANCE/" class="dropdown-item">Service Account Governance</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Operations</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../CHANGE_MANAGEMENT_4_4_PROCESS/" class="dropdown-item">Change Management (4.4)</a>
+</li>
+                                    
+<li>
+    <a href="../POLICY_DRIFT_SCHEDULING/" class="dropdown-item">Policy Drift Scheduling</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Product Information</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../product_feature_lifecycle/" class="dropdown-item">Product Feature Lifecycle</a>
+</li>
+                                    
+<li>
+    <a href="../release_notes/" class="dropdown-item">Release Notes</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../installation_upgrade/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../user_guide.html" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="https://github.com/abdelmanem/User-Access-Management-System/edit/master/docs/USER_GUIDE.md" class="nav-link"><i class="fa-brands fa-github"></i> Edit on GitHub</a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#user-guide" class="nav-link">User Guide</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#user-access-management-system-uams" class="nav-link">User Access Management System (UAMS)</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#table-of-contents" class="nav-link">Table of Contents</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#introduction" class="nav-link">Introduction</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#getting-started" class="nav-link">Getting Started</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#user-management" class="nav-link">User Management</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#department-management" class="nav-link">Department Management</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#system-management" class="nav-link">System Management</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#access-management" class="nav-link">Access Management</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#dashboard-reports" class="nav-link">Dashboard &amp; Reports</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#search-functionality" class="nav-link">Search Functionality</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#data-importexport" class="nav-link">Data Import/Export</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#user-roles-permissions" class="nav-link">User Roles &amp; Permissions</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#troubleshooting" class="nav-link">Troubleshooting</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#faqs" class="nav-link">FAQs</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#best-practices" class="nav-link">Best Practices</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#keyboard-shortcuts" class="nav-link">Keyboard Shortcuts</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#system-requirements" class="nav-link">System Requirements</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#contact-support" class="nav-link">Contact &amp; Support</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="user-guide">User Guide<a class="headerlink" href="#user-guide" title="Permanent link">&para;</a></h1>
+<h2 id="user-access-management-system-uams">User Access Management System (UAMS)<a class="headerlink" href="#user-access-management-system-uams" title="Permanent link">&para;</a></h2>
+<hr />
+<h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">&para;</a></h2>
+<ol>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#getting-started">Getting Started</a></li>
+<li><a href="#user-management">User Management</a></li>
+<li><a href="#department-management">Department Management</a></li>
+<li><a href="#system-management">System Management</a></li>
+<li><a href="#access-management">Access Management</a></li>
+<li><a href="#dashboard-reports">Dashboard &amp; Reports</a></li>
+<li><a href="#search-functionality">Search Functionality</a></li>
+<li><a href="#data-importexport">Data Import/Export</a></li>
+<li><a href="#user-roles-permissions">User Roles &amp; Permissions</a></li>
+<li><a href="#troubleshooting">Troubleshooting</a></li>
+<li><a href="#faqs">FAQs</a></li>
+</ol>
+<hr />
+<h2 id="introduction">Introduction<a class="headerlink" href="#introduction" title="Permanent link">&para;</a></h2>
+<h3 id="what-is-uams">What is UAMS?<a class="headerlink" href="#what-is-uams" title="Permanent link">&para;</a></h3>
+<p>The User Access Management System (UAMS) is a web-based application designed to help organizations:
+- Document and manage employee information
+- Track system access assignments
+- Maintain organizational structure
+- Generate reports and analytics
+- Ensure compliance with access management policies</p>
+<h3 id="key-features">Key Features<a class="headerlink" href="#key-features" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>User Management</strong>: Comprehensive employee profiles with photos</li>
+<li><strong>Department Organization</strong>: Hierarchical department structure</li>
+<li><strong>System Tracking</strong>: Document all systems and applications</li>
+<li><strong>Access Documentation</strong>: Track who has access to what systems</li>
+<li><strong>Audit Trail</strong>: Complete history of all changes</li>
+<li><strong>Search</strong>: Quick search across all data</li>
+<li><strong>Reports</strong>: Export data in multiple formats</li>
+</ul>
+<hr />
+<h2 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h2>
+<h3 id="logging-in">Logging In<a class="headerlink" href="#logging-in" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Navigate to the UAMS login page</li>
+<li>Enter your <strong>Username</strong> and <strong>Password</strong></li>
+<li>Click <strong>Login</strong></li>
+</ol>
+<p><strong>Note</strong>: If you don't have an account, contact your system administrator.</p>
+<h3 id="dashboard-overview">Dashboard Overview<a class="headerlink" href="#dashboard-overview" title="Permanent link">&para;</a></h3>
+<p>After logging in, you'll see the main dashboard with:
+- <strong>Statistics Cards</strong>: Overview of users, departments, systems, and access assignments
+- <strong>Charts</strong>: Visual representation of access trends
+- <strong>Quick Actions</strong>: Shortcuts to common tasks
+- <strong>Recent Activity</strong>: Latest changes in the system</p>
+<h3 id="navigation-menu">Navigation Menu<a class="headerlink" href="#navigation-menu" title="Permanent link">&para;</a></h3>
+<p>The main navigation menu provides access to:
+- <strong>Dashboard</strong>: Home page with statistics
+- <strong>Users</strong>: User management
+- <strong>Departments</strong>: Department management
+- <strong>Systems</strong>: System/application management
+- <strong>Access Management</strong>: Access assignments
+- <strong>Search</strong>: Global search functionality
+- <strong>Import/Export</strong>: Data import and export tools</p>
+<hr />
+<h2 id="user-management">User Management<a class="headerlink" href="#user-management" title="Permanent link">&para;</a></h2>
+<h3 id="viewing-users">Viewing Users<a class="headerlink" href="#viewing-users" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Click <strong>Users</strong> in the navigation menu</li>
+<li>You'll see a list of all users with:</li>
+<li>Name and email</li>
+<li>Department</li>
+<li>Status (Active/Inactive)</li>
+<li>Employee ID</li>
+</ol>
+<h3 id="filtering-users">Filtering Users<a class="headerlink" href="#filtering-users" title="Permanent link">&para;</a></h3>
+<p>Use the filter options at the top:
+- <strong>Search</strong>: Search by name, email, or employee ID
+- <strong>Status</strong>: Filter by Active/Inactive
+- <strong>Department</strong>: Filter by department
+- <strong>Page Size</strong>: Choose how many users per page</p>
+<h3 id="viewing-user-details">Viewing User Details<a class="headerlink" href="#viewing-user-details" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Click on a user's name or the <strong>View</strong> button</li>
+<li>The user detail page shows:</li>
+<li><strong>Profile Photo</strong>: User's profile picture (if uploaded)</li>
+<li><strong>Personal Information</strong>: Name, email, phone numbers</li>
+<li><strong>Employment Information</strong>: Employee ID, position, join date</li>
+<li><strong>Access Assignments</strong>: All systems the user has access to</li>
+</ol>
+<h3 id="creating-a-new-user">Creating a New User<a class="headerlink" href="#creating-a-new-user" title="Permanent link">&para;</a></h3>
+<p><strong>Required Permissions</strong>: HR Admin or Super Admin</p>
+<ol>
+<li>Click <strong>Add User</strong> button</li>
+<li>Fill in the required fields:</li>
+<li><strong>Username</strong>: Unique username for login</li>
+<li><strong>Email</strong>: Work email address</li>
+<li><strong>First Name</strong> and <strong>Last Name</strong></li>
+<li><strong>Password</strong>: Set initial password</li>
+<li><strong>Department</strong>: Select from dropdown</li>
+<li><strong>Position</strong>: Job title</li>
+<li><strong>Employment Type</strong>: Full-time, Part-time, etc.</li>
+<li><strong>Phone</strong>: Primary phone number</li>
+<li>Optionally fill in additional fields:</li>
+<li>Profile photo (max 2MB, JPG/PNG)</li>
+<li>Secondary phone</li>
+<li>Personal email</li>
+<li>Notes</li>
+<li>Click <strong>Save</strong></li>
+</ol>
+<h3 id="editing-a-user">Editing a User<a class="headerlink" href="#editing-a-user" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Navigate to the user's detail page</li>
+<li>Click <strong>Edit User</strong> button</li>
+<li>Make your changes</li>
+<li>Click <strong>Save</strong></li>
+</ol>
+<h3 id="uploading-profile-photo">Uploading Profile Photo<a class="headerlink" href="#uploading-profile-photo" title="Permanent link">&para;</a></h3>
+<ol>
+<li>When creating or editing a user</li>
+<li>Click <strong>Choose File</strong> under Profile Photo</li>
+<li>Select an image file (JPG or PNG, max 2MB)</li>
+<li>The photo will be automatically cropped to a circle</li>
+<li>Click <strong>Save</strong></li>
+</ol>
+<h3 id="resetting-user-password">Resetting User Password<a class="headerlink" href="#resetting-user-password" title="Permanent link">&para;</a></h3>
+<p><strong>Required Permissions</strong>: HR Admin or Super Admin</p>
+<ol>
+<li>Go to the user's detail page</li>
+<li>Click <strong>Reset Password</strong> button</li>
+<li>Enter the new password</li>
+<li>Confirm the password</li>
+<li>Click <strong>Reset Password</strong></li>
+</ol>
+<h3 id="deactivating-a-user">Deactivating a User<a class="headerlink" href="#deactivating-a-user" title="Permanent link">&para;</a></h3>
+<p><strong>Required Permissions</strong>: HR Admin or Super Admin</p>
+<ol>
+<li>Go to the user's detail page</li>
+<li>Click <strong>Delete User</strong> button</li>
+<li>Confirm the deactivation</li>
+<li>The user will be marked as inactive (not deleted)</li>
+</ol>
+<p><strong>Note</strong>: Deactivated users are archived for audit purposes.</p>
+<h3 id="managing-user-permissions">Managing User Permissions<a class="headerlink" href="#managing-user-permissions" title="Permanent link">&para;</a></h3>
+<p><strong>Required Permissions</strong>: Super Admin only</p>
+<ol>
+<li>Go to the user's detail page</li>
+<li>Click <strong>Manage Permissions</strong> button</li>
+<li>Select/deselect permissions</li>
+<li>Click <strong>Save</strong></li>
+</ol>
+<h3 id="bulk-actions">Bulk Actions<a class="headerlink" href="#bulk-actions" title="Permanent link">&para;</a></h3>
+<p><strong>Required Permissions</strong>: HR Admin or Super Admin</p>
+<ol>
+<li>Select multiple users using checkboxes</li>
+<li>Choose an action from the dropdown:</li>
+<li>Activate</li>
+<li>Deactivate</li>
+<li>Assign Department</li>
+<li>Export Selected</li>
+<li>Click <strong>Apply</strong></li>
+</ol>
+<hr />
+<h2 id="department-management">Department Management<a class="headerlink" href="#department-management" title="Permanent link">&para;</a></h2>
+<h3 id="viewing-departments">Viewing Departments<a class="headerlink" href="#viewing-departments" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Click <strong>Departments</strong> in the navigation menu</li>
+<li>View the list of all departments with:</li>
+<li>Department name</li>
+<li>Description</li>
+<li>Number of users</li>
+<li>Status</li>
+</ol>
+<h3 id="creating-a-department">Creating a Department<a class="headerlink" href="#creating-a-department" title="Permanent link">&para;</a></h3>
+<p><strong>Required Permissions</strong>: HR Admin or Super Admin</p>
+<ol>
+<li>Click <strong>Add Department</strong> button</li>
+<li>Fill in:</li>
+<li><strong>Name</strong>: Department name (required)</li>
+<li><strong>Description</strong>: Optional description</li>
+<li><strong>Parent Department</strong>: For sub-departments (optional)</li>
+<li>Click <strong>Save</strong></li>
+</ol>
+<h3 id="editing-a-department">Editing a Department<a class="headerlink" href="#editing-a-department" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Click on a department name</li>
+<li>Click <strong>Edit</strong> button</li>
+<li>Make changes</li>
+<li>Click <strong>Save</strong></li>
+</ol>
+<h3 id="viewing-department-users">Viewing Department Users<a class="headerlink" href="#viewing-department-users" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Click on a department name</li>
+<li>View the <strong>Users</strong> section</li>
+<li>See all users assigned to this department</li>
+</ol>
+<hr />
+<h2 id="system-management">System Management<a class="headerlink" href="#system-management" title="Permanent link">&para;</a></h2>
+<h3 id="viewing-systems">Viewing Systems<a class="headerlink" href="#viewing-systems" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Click <strong>Systems</strong> in the navigation menu</li>
+<li>View all systems with:</li>
+<li>System name and code</li>
+<li>Category</li>
+<li>Vendor</li>
+<li>Status</li>
+</ol>
+<h3 id="creating-a-system">Creating a System<a class="headerlink" href="#creating-a-system" title="Permanent link">&para;</a></h3>
+<p><strong>Required Permissions</strong>: Access Administrator or Super Admin</p>
+<ol>
+<li>Click <strong>Add System</strong> button</li>
+<li>Fill in required fields:</li>
+<li><strong>Name</strong>: System name</li>
+<li><strong>Code</strong>: Unique system code</li>
+<li><strong>Category</strong>: System category</li>
+<li><strong>Description</strong>: System description</li>
+<li>Optionally fill in:</li>
+<li>Vendor</li>
+<li>URL</li>
+<li>Environment (Production, Staging, etc.)</li>
+<li>Support contact information</li>
+<li>Click <strong>Save</strong></li>
+</ol>
+<h3 id="editing-a-system">Editing a System<a class="headerlink" href="#editing-a-system" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Click on a system name</li>
+<li>Click <strong>Edit</strong> button</li>
+<li>Make changes</li>
+<li>Click <strong>Save</strong></li>
+</ol>
+<hr />
+<h2 id="access-management">Access Management<a class="headerlink" href="#access-management" title="Permanent link">&para;</a></h2>
+<h3 id="viewing-access-assignments">Viewing Access Assignments<a class="headerlink" href="#viewing-access-assignments" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Click <strong>Access Management</strong> in the navigation menu</li>
+<li>View all access assignments with:</li>
+<li>User name</li>
+<li>System name</li>
+<li>Access type</li>
+<li>Status</li>
+<li>Dates</li>
+</ol>
+<h3 id="creating-access-assignment">Creating Access Assignment<a class="headerlink" href="#creating-access-assignment" title="Permanent link">&para;</a></h3>
+<p><strong>Required Permissions</strong>: Access Administrator or Super Admin</p>
+<ol>
+<li>Click <strong>Add Access Assignment</strong> button</li>
+<li>Fill in:</li>
+<li><strong>User</strong>: Select user from dropdown</li>
+<li><strong>System</strong>: Select system from dropdown</li>
+<li><strong>Access Type</strong>: Full Access, Read Only, Admin, etc.</li>
+<li><strong>Status</strong>: Active, Pending, etc.</li>
+<li><strong>Priority</strong>: Low, Medium, High, Critical</li>
+<li><strong>Request Type</strong>: New Access, Renewal, etc.</li>
+<li><strong>Start Date</strong>: When access begins</li>
+<li><strong>End Date</strong>: When access expires (optional)</li>
+<li>Click <strong>Save</strong></li>
+</ol>
+<h3 id="editing-access-assignment">Editing Access Assignment<a class="headerlink" href="#editing-access-assignment" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Click on an access assignment</li>
+<li>Click <strong>Edit</strong> button</li>
+<li>Make changes</li>
+<li>Click <strong>Save</strong></li>
+</ol>
+<h3 id="viewing-access-history">Viewing Access History<a class="headerlink" href="#viewing-access-history" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Click <strong>Access History</strong> in the Access Management menu</li>
+<li>View all access events:</li>
+<li>User actions</li>
+<li>System changes</li>
+<li>Status changes</li>
+<li>Timestamps</li>
+</ol>
+<h3 id="filtering-access-assignments">Filtering Access Assignments<a class="headerlink" href="#filtering-access-assignments" title="Permanent link">&para;</a></h3>
+<p>Use filters to find specific assignments:
+- <strong>User</strong>: Filter by user
+- <strong>System</strong>: Filter by system
+- <strong>Status</strong>: Filter by status
+- <strong>Date Range</strong>: Filter by date</p>
+<hr />
+<h2 id="dashboard-reports">Dashboard &amp; Reports<a class="headerlink" href="#dashboard-reports" title="Permanent link">&para;</a></h2>
+<h3 id="dashboard-overview_1">Dashboard Overview<a class="headerlink" href="#dashboard-overview_1" title="Permanent link">&para;</a></h3>
+<p>The dashboard provides:
+- <strong>User Statistics</strong>: Total users, active users, new users
+- <strong>System Statistics</strong>: Total systems, active systems
+- <strong>Access Statistics</strong>: Total assignments, active access
+- <strong>Charts</strong>: Visual trends over time</p>
+<h3 id="viewing-reports">Viewing Reports<a class="headerlink" href="#viewing-reports" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Click <strong>Reports</strong> in the navigation menu</li>
+<li>Select a report type:</li>
+<li>User Reports</li>
+<li>Department Reports</li>
+<li>System Reports</li>
+<li>Access Reports</li>
+<li>Apply filters if needed</li>
+<li>View or export the report</li>
+</ol>
+<h3 id="exporting-data">Exporting Data<a class="headerlink" href="#exporting-data" title="Permanent link">&para;</a></h3>
+<h4 id="export-to-excel">Export to Excel<a class="headerlink" href="#export-to-excel" title="Permanent link">&para;</a></h4>
+<ol>
+<li>Navigate to any list page (Users, Departments, Systems, etc.)</li>
+<li>Click <strong>Export to Excel</strong> button</li>
+<li>The file will download automatically</li>
+</ol>
+<h4 id="export-to-pdf">Export to PDF<a class="headerlink" href="#export-to-pdf" title="Permanent link">&para;</a></h4>
+<ol>
+<li>Navigate to any list page</li>
+<li>Click <strong>Export to PDF</strong> button</li>
+<li>The file will download automatically</li>
+</ol>
+<h4 id="export-selected-items">Export Selected Items<a class="headerlink" href="#export-selected-items" title="Permanent link">&para;</a></h4>
+<ol>
+<li>Select items using checkboxes</li>
+<li>Click <strong>Export Selected</strong> from bulk actions</li>
+<li>Choose format (Excel or PDF)</li>
+<li>Download the file</li>
+</ol>
+<hr />
+<h2 id="search-functionality">Search Functionality<a class="headerlink" href="#search-functionality" title="Permanent link">&para;</a></h2>
+<h3 id="global-search">Global Search<a class="headerlink" href="#global-search" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Click <strong>Search</strong> in the navigation menu</li>
+<li>Enter your search term</li>
+<li>Select what to search:</li>
+<li>Users</li>
+<li>Departments</li>
+<li>Systems</li>
+<li>Access Assignments</li>
+<li>Click <strong>Search</strong></li>
+</ol>
+<h3 id="search-tips">Search Tips<a class="headerlink" href="#search-tips" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Search is case-insensitive</li>
+<li>Partial matches are supported</li>
+<li>Search across multiple fields:</li>
+<li>Users: Name, email, employee ID</li>
+<li>Departments: Name, description</li>
+<li>Systems: Name, code, description</li>
+<li>Access: User name, system name</li>
+</ul>
+<hr />
+<h2 id="data-importexport">Data Import/Export<a class="headerlink" href="#data-importexport" title="Permanent link">&para;</a></h2>
+<h3 id="exporting-data_1">Exporting Data<a class="headerlink" href="#exporting-data_1" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Navigate to <strong>Data Import/Export</strong></li>
+<li>Select what to export:</li>
+<li>Users</li>
+<li>Departments</li>
+<li>Systems</li>
+<li>Access Assignments</li>
+<li>Choose format (CSV or Excel)</li>
+<li>Click <strong>Export</strong></li>
+</ol>
+<h3 id="importing-data">Importing Data<a class="headerlink" href="#importing-data" title="Permanent link">&para;</a></h3>
+<p><strong>Required Permissions</strong>: HR Admin or Super Admin</p>
+<ol>
+<li>Navigate to <strong>Data Import/Export</strong></li>
+<li>Select what to import</li>
+<li>Download the template file (if available)</li>
+<li>Fill in the template with your data</li>
+<li>Upload the file</li>
+<li>Review the preview</li>
+<li>Click <strong>Import</strong></li>
+</ol>
+<h3 id="csv-format-requirements">CSV Format Requirements<a class="headerlink" href="#csv-format-requirements" title="Permanent link">&para;</a></h3>
+<h4 id="users-csv">Users CSV<a class="headerlink" href="#users-csv" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="n">username</span><span class="p">,</span><span class="n">email</span><span class="p">,</span><span class="n">first_name</span><span class="p">,</span><span class="n">last_name</span><span class="p">,</span><span class="n">department</span><span class="p">,</span><span class="k">position</span><span class="p">,</span><span class="n">phone_primary</span>
+<span class="n">john</span><span class="p">.</span><span class="n">doe</span><span class="p">,</span><span class="n">john</span><span class="p">.</span><span class="n">doe</span><span class="nv">@company</span><span class="p">.</span><span class="n">com</span><span class="p">,</span><span class="n">John</span><span class="p">,</span><span class="n">Doe</span><span class="p">,</span><span class="n">IT</span><span class="p">,</span><span class="n">Developer</span><span class="p">,</span><span class="o">+</span><span class="mi">1234567890</span>
+</code></pre></div>
+
+<h4 id="departments-csv">Departments CSV<a class="headerlink" href="#departments-csv" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code>name,description,parent
+IT Department,Information Technology,
+Development,Software Development,IT Department
+</code></pre></div>
+
+<h4 id="systems-csv">Systems CSV<a class="headerlink" href="#systems-csv" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code>name,code,category,description,vendor
+CRM System,CRM-001,Application,Customer Management,Microsoft
+</code></pre></div>
+
+<hr />
+<h2 id="user-roles-permissions">User Roles &amp; Permissions<a class="headerlink" href="#user-roles-permissions" title="Permanent link">&para;</a></h2>
+<h3 id="understanding-your-role">Understanding Your Role<a class="headerlink" href="#understanding-your-role" title="Permanent link">&para;</a></h3>
+<p>Your role determines what you can do in the system:</p>
+<h4 id="super-admin">Super Admin<a class="headerlink" href="#super-admin" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Full access to all features</li>
+<li>Can manage all users, departments, and systems</li>
+<li>Can configure system settings</li>
+</ul>
+<h4 id="hr-admin">HR Admin<a class="headerlink" href="#hr-admin" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Can manage users and departments</li>
+<li>Can import/export data</li>
+<li>Cannot manage system access</li>
+</ul>
+<h4 id="access-administrator">Access Administrator<a class="headerlink" href="#access-administrator" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Can manage systems and access assignments</li>
+<li>Can view access history</li>
+<li>Cannot delete users</li>
+</ul>
+<h4 id="department-manager">Department Manager<a class="headerlink" href="#department-manager" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Can view users in their department</li>
+<li>Can view access for their department</li>
+<li>Read-only for other departments</li>
+</ul>
+<h4 id="viewer">Viewer<a class="headerlink" href="#viewer" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Can view all information</li>
+<li>Cannot make any changes</li>
+<li>Read-only access</li>
+</ul>
+<h3 id="what-you-can-do">What You Can Do<a class="headerlink" href="#what-you-can-do" title="Permanent link">&para;</a></h3>
+<p>Check the action buttons on each page:
+- If you see <strong>Edit</strong>, you can modify that item
+- If you see <strong>Delete</strong>, you can remove that item
+- If buttons are missing, you don't have permission</p>
+<hr />
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="common-issues">Common Issues<a class="headerlink" href="#common-issues" title="Permanent link">&para;</a></h3>
+<h4 id="cant-log-in">Can't Log In<a class="headerlink" href="#cant-log-in" title="Permanent link">&para;</a></h4>
+<p><strong>Problem</strong>: Login fails with incorrect credentials</p>
+<p><strong>Solutions</strong>:
+- Check username and password (case-sensitive)
+- Contact administrator to reset password
+- Ensure account is active</p>
+<h4 id="cant-see-certain-features">Can't See Certain Features<a class="headerlink" href="#cant-see-certain-features" title="Permanent link">&para;</a></h4>
+<p><strong>Problem</strong>: Buttons or menu items are missing</p>
+<p><strong>Solution</strong>: Your user role may not have permission. Contact your administrator.</p>
+<h4 id="profile-photo-not-showing">Profile Photo Not Showing<a class="headerlink" href="#profile-photo-not-showing" title="Permanent link">&para;</a></h4>
+<p><strong>Problem</strong>: User photo displays as placeholder</p>
+<p><strong>Solutions</strong>:
+- Check if photo was uploaded (max 2MB, JPG/PNG)
+- Clear browser cache
+- Contact administrator if issue persists</p>
+<h4 id="export-not-working">Export Not Working<a class="headerlink" href="#export-not-working" title="Permanent link">&para;</a></h4>
+<p><strong>Problem</strong>: Export button doesn't download file</p>
+<p><strong>Solutions</strong>:
+- Check browser pop-up blocker settings
+- Try a different browser
+- Check file size (very large exports may take time)</p>
+<h4 id="search-not-finding-results">Search Not Finding Results<a class="headerlink" href="#search-not-finding-results" title="Permanent link">&para;</a></h4>
+<p><strong>Problem</strong>: Search returns no results</p>
+<p><strong>Solutions</strong>:
+- Check spelling
+- Try partial words
+- Select correct search category
+- Clear search and try again</p>
+<h3 id="getting-help">Getting Help<a class="headerlink" href="#getting-help" title="Permanent link">&para;</a></h3>
+<p>If you encounter issues:
+1. Check this user guide
+2. Contact your system administrator
+3. Check system notifications for announcements</p>
+<hr />
+<h2 id="faqs">FAQs<a class="headerlink" href="#faqs" title="Permanent link">&para;</a></h2>
+<h3 id="general-questions">General Questions<a class="headerlink" href="#general-questions" title="Permanent link">&para;</a></h3>
+<p><strong>Q: Can I change my own password?</strong>
+A: Currently, password changes must be done by an administrator. Contact your HR or IT department.</p>
+<p><strong>Q: How do I upload a profile photo?</strong>
+A: Only administrators can upload profile photos when creating or editing users.</p>
+<p><strong>Q: Can I delete a user?</strong>
+A: Users are deactivated, not deleted, to maintain audit trails. Only HR Admins and Super Admins can deactivate users.</p>
+<p><strong>Q: What happens to access when a user is deactivated?</strong>
+A: Access assignments remain in the system for audit purposes but are marked as inactive.</p>
+<p><strong>Q: Can I export my own access information?</strong>
+A: Yes, if you have export permissions. Go to Access Management and use the export feature.</p>
+<p><strong>Q: How often is data updated?</strong>
+A: Data is updated in real-time when changes are made by authorized users.</p>
+<p><strong>Q: Can I see who made changes?</strong>
+A: Yes, the system tracks who created and updated each record. Check the detail pages for this information.</p>
+<p><strong>Q: What file formats are supported for import?</strong>
+A: CSV and Excel (.xlsx) formats are supported.</p>
+<p><strong>Q: Is there a mobile app?</strong>
+A: The system is web-based and works on mobile browsers, but there is no dedicated mobile app.</p>
+<p><strong>Q: How do I report a bug or request a feature?</strong>
+A: Contact your system administrator or IT support team.</p>
+<hr />
+<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
+<h3 id="for-all-users">For All Users<a class="headerlink" href="#for-all-users" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Keep your information up to date</li>
+<li>Use the search function before creating duplicates</li>
+<li>Review access assignments regularly</li>
+<li>Report any discrepancies to administrators</li>
+</ul>
+<h3 id="for-administrators">For Administrators<a class="headerlink" href="#for-administrators" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Regularly review and update user information</li>
+<li>Document system access accurately</li>
+<li>Keep department structure current</li>
+<li>Export data regularly for backups</li>
+<li>Review access history for compliance</li>
+</ul>
+<h3 id="data-entry-tips">Data Entry Tips<a class="headerlink" href="#data-entry-tips" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Use consistent naming conventions</li>
+<li>Fill in all required fields</li>
+<li>Add descriptions where helpful</li>
+<li>Upload profile photos when available</li>
+<li>Keep notes updated</li>
+</ul>
+<hr />
+<h2 id="keyboard-shortcuts">Keyboard Shortcuts<a class="headerlink" href="#keyboard-shortcuts" title="Permanent link">&para;</a></h2>
+<p>While the system doesn't have specific keyboard shortcuts, you can use standard browser shortcuts:
+- <strong>Ctrl+F</strong> (Cmd+F on Mac): Find on page
+- <strong>Ctrl+P</strong> (Cmd+P on Mac): Print page
+- <strong>F5</strong>: Refresh page
+- <strong>Esc</strong>: Close modals/dialogs</p>
+<hr />
+<h2 id="system-requirements">System Requirements<a class="headerlink" href="#system-requirements" title="Permanent link">&para;</a></h2>
+<h3 id="browser-support">Browser Support<a class="headerlink" href="#browser-support" title="Permanent link">&para;</a></h3>
+<p>The system works best with:
+- <strong>Chrome</strong> (recommended)
+- <strong>Firefox</strong>
+- <strong>Edge</strong>
+- <strong>Safari</strong></p>
+<h3 id="screen-resolution">Screen Resolution<a class="headerlink" href="#screen-resolution" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Minimum: 1024x768</li>
+<li>Recommended: 1920x1080 or higher</li>
+</ul>
+<hr />
+<h2 id="contact-support">Contact &amp; Support<a class="headerlink" href="#contact-support" title="Permanent link">&para;</a></h2>
+<p>For technical support or questions:
+- Contact your system administrator
+- Check system announcements
+- Refer to this user guide</p>
+<hr />
+<p><strong>Last Updated</strong>: 2024
+<strong>Version</strong>: 1.0.0</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js"></script>
+        <script src="../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Development - User Access Management System</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../css/brands.min.css" rel="stylesheet">
+        <link href="../css/solid.min.css" rel="stylesheet">
+        <link href="../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="..">User Access Management System</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href="../home/" class="nav-link">Home</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Getting Started</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../introduction/" class="dropdown-item">Introduction</a>
+</li>
+                                    
+<li>
+    <a href="../getting_started/" class="dropdown-item">Getting Started</a>
+</li>
+                                    
+<li>
+    <a href="../installation_upgrade/" class="dropdown-item">Installation & Upgrade</a>
+</li>
+                                    
+<li>
+    <a href="../USER_GUIDE/" class="dropdown-item">Quick Start Guide</a>
+</li>
+                                    
+<li>
+    <a href="../user_guide.html" class="dropdown-item">HTML User Guide</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Features & Capabilities</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../features/" class="dropdown-item">Features</a>
+</li>
+                                    
+<li>
+    <a href="../data_model/" class="dropdown-item">Data Model</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Configuration</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../configuration/" class="dropdown-item">Configuration</a>
+</li>
+                                    
+<li>
+    <a href="../customization/" class="dropdown-item">Customization</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Administration</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../administration/" class="dropdown-item">Administration</a>
+</li>
+                                    
+<li>
+    <a href="../best_practices/" class="dropdown-item">Best Practices</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Development</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../DEV_GUIDE/" class="dropdown-item">Developer Guide</a>
+</li>
+                                    
+<li>
+    <a href="./" class="dropdown-item active" aria-current="page">Development</a>
+</li>
+                                    
+<li>
+    <a href="../reference/" class="dropdown-item">Reference</a>
+</li>
+                                    
+<li>
+    <a href="../plugins/" class="dropdown-item">Plugins</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Integrations</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../integrations/" class="dropdown-item">Integrations Overview</a>
+</li>
+                                    
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Additional Integrations</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../additional_integrations/integrations/" class="dropdown-item">Integrations Overview</a>
+</li>
+            
+<li>
+    <a href="../additional_integrations/diode/" class="dropdown-item">Diode Integration</a>
+</li>
+            
+<li>
+    <a href="../additional_integrations/copilot/" class="dropdown-item">Copilot Integration</a>
+</li>
+            
+<li>
+    <a href="../additional_integrations/mcp_server/" class="dropdown-item">MCP Server</a>
+</li>
+            
+<li>
+    <a href="../additional_integrations/extensions/" class="dropdown-item">Extensions</a>
+</li>
+    </ul>
+  </li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Enterprise & Cloud</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../enterprise/" class="dropdown-item">Enterprise Features</a>
+</li>
+                                    
+<li>
+    <a href="../cloud/" class="dropdown-item">Cloud Deployment</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Compliance Playbooks</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../ADMINISTRATOR_ACCESS_4_3_GOVERNANCE/" class="dropdown-item">Administrator Access (4.3)</a>
+</li>
+                                    
+<li>
+    <a href="../ACCESS_APPROVAL_COMPLIANCE_4_6/" class="dropdown-item">Access Approval (4.6)</a>
+</li>
+                                    
+<li>
+    <a href="../QUARTERLY_ACCESS_REVIEW_4_5/" class="dropdown-item">Quarterly Access Review (4.5)</a>
+</li>
+                                    
+<li>
+    <a href="../DEFAULT_ACCOUNT_MANAGEMENT_4_7/" class="dropdown-item">Default Account Management (4.7)</a>
+</li>
+                                    
+<li>
+    <a href="../SERVICE_ACCOUNT_GOVERNANCE/" class="dropdown-item">Service Account Governance</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Operations</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../CHANGE_MANAGEMENT_4_4_PROCESS/" class="dropdown-item">Change Management (4.4)</a>
+</li>
+                                    
+<li>
+    <a href="../POLICY_DRIFT_SCHEDULING/" class="dropdown-item">Policy Drift Scheduling</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Product Information</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../product_feature_lifecycle/" class="dropdown-item">Product Feature Lifecycle</a>
+</li>
+                                    
+<li>
+    <a href="../release_notes/" class="dropdown-item">Release Notes</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../DEV_GUIDE/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../reference/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="https://github.com/abdelmanem/User-Access-Management-System/edit/master/docs/development.md" class="nav-link"><i class="fa-brands fa-github"></i> Edit on GitHub</a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#development" class="nav-link">Development</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#development-overview" class="nav-link">Development Overview</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#development-environment-setup" class="nav-link">Development Environment Setup</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#project-structure" class="nav-link">Project Structure</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#code-style-and-conventions" class="nav-link">Code Style and Conventions</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#testing" class="nav-link">Testing</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#database-migrations" class="nav-link">Database Migrations</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#version-control" class="nav-link">Version Control</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#code-review" class="nav-link">Code Review</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#debugging" class="nav-link">Debugging</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#performance-optimization" class="nav-link">Performance Optimization</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#security-considerations" class="nav-link">Security Considerations</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#documentation" class="nav-link">Documentation</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#release-process" class="nav-link">Release Process</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#next-steps" class="nav-link">Next Steps</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="development">Development<a class="headerlink" href="#development" title="Permanent link">&para;</a></h1>
+<p>This guide covers development practices, setup, and contribution guidelines for UAMS.</p>
+<p><img alt="Development" src="../images/development.png" /></p>
+<h2 id="development-overview">Development Overview<a class="headerlink" href="#development-overview" title="Permanent link">&para;</a></h2>
+<p>UAMS is built with Django and follows Django best practices. This guide covers:</p>
+<ul>
+<li>Development environment setup</li>
+<li>Code structure and conventions</li>
+<li>Testing practices</li>
+<li>Contribution guidelines</li>
+<li>Release process</li>
+</ul>
+<h2 id="development-environment-setup">Development Environment Setup<a class="headerlink" href="#development-environment-setup" title="Permanent link">&para;</a></h2>
+<h3 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Python 3.8 or higher</li>
+<li>pip and virtualenv</li>
+<li>Git</li>
+<li>PostgreSQL (optional, SQLite for development)</li>
+<li>IDE or text editor</li>
+</ul>
+<h3 id="setup-steps">Setup Steps<a class="headerlink" href="#setup-steps" title="Permanent link">&para;</a></h3>
+<h4 id="1-clone-repository">1. Clone Repository<a class="headerlink" href="#1-clone-repository" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/abdelmanem/User-Access-Management-System.git
+<span class="nb">cd</span><span class="w"> </span>User-Access-Management-System
+</code></pre></div>
+
+<h4 id="2-create-virtual-environment">2. Create Virtual Environment<a class="headerlink" href="#2-create-virtual-environment" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
+
+<span class="c1"># Activate virtual environment</span>
+<span class="c1"># Windows:</span>
+venv<span class="se">\S</span>cripts<span class="se">\a</span>ctivate
+<span class="c1"># Linux/Mac:</span>
+<span class="nb">source</span><span class="w"> </span>venv/bin/activate
+</code></pre></div>
+
+<h4 id="3-install-dependencies">3. Install Dependencies<a class="headerlink" href="#3-install-dependencies" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+
+<span class="c1"># For development, install additional packages</span>
+pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements-dev.txt
+</code></pre></div>
+
+<h4 id="4-configure-environment">4. Configure Environment<a class="headerlink" href="#4-configure-environment" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Copy environment template</span>
+cp<span class="w"> </span>env.example<span class="w"> </span>.env
+
+<span class="c1"># Edit .env with development settings</span>
+<span class="nv">DEBUG</span><span class="o">=</span>True
+<span class="nv">DATABASE_URL</span><span class="o">=</span>sqlite:///db.sqlite3
+</code></pre></div>
+
+<h4 id="5-run-migrations">5. Run Migrations<a class="headerlink" href="#5-run-migrations" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code>python<span class="w"> </span>manage.py<span class="w"> </span>migrate
+</code></pre></div>
+
+<h4 id="6-create-superuser">6. Create Superuser<a class="headerlink" href="#6-create-superuser" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code>python<span class="w"> </span>manage.py<span class="w"> </span>createsuperuser
+</code></pre></div>
+
+<h4 id="7-run-development-server">7. Run Development Server<a class="headerlink" href="#7-run-development-server" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code>python<span class="w"> </span>manage.py<span class="w"> </span>runserver
+</code></pre></div>
+
+<h2 id="project-structure">Project Structure<a class="headerlink" href="#project-structure" title="Permanent link">&para;</a></h2>
+<h3 id="directory-structure">Directory Structure<a class="headerlink" href="#directory-structure" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="n">User</span><span class="o">-</span><span class="n">Access</span><span class="o">-</span><span class="n">Management</span><span class="o">-</span><span class="n">System</span><span class="o">/</span>
+<span class="err">├──</span><span class="w"> </span><span class="n">accounts</span><span class="o">/</span><span class="w">              </span><span class="c1"># User management app</span>
+<span class="err">├──</span><span class="w"> </span><span class="n">departments</span><span class="o">/</span><span class="w">           </span><span class="c1"># Department management app</span>
+<span class="err">├──</span><span class="w"> </span><span class="n">systems</span><span class="o">/</span><span class="w">               </span><span class="c1"># System management app</span>
+<span class="err">├──</span><span class="w"> </span><span class="n">access_management</span><span class="o">/</span><span class="w">     </span><span class="c1"># Access management app</span>
+<span class="err">├──</span><span class="w"> </span><span class="n">dashboard</span><span class="o">/</span><span class="w">             </span><span class="c1"># Dashboard app</span>
+<span class="err">├──</span><span class="w"> </span><span class="n">data_import_export</span><span class="o">/</span><span class="w">     </span><span class="c1"># Import/export functionality</span>
+<span class="err">├──</span><span class="w"> </span><span class="n">hardware</span><span class="o">/</span><span class="w">              </span><span class="c1"># Hardware management</span>
+<span class="err">├──</span><span class="w"> </span><span class="n">service_accounts</span><span class="o">/</span><span class="w">      </span><span class="c1"># Service account management</span>
+<span class="err">├──</span><span class="w"> </span><span class="n">default_accounts</span><span class="o">/</span><span class="w">      </span><span class="c1"># Default account management</span>
+<span class="err">├──</span><span class="w"> </span><span class="n">change_management</span><span class="o">/</span><span class="w">     </span><span class="c1"># Change management</span>
+<span class="err">├──</span><span class="w"> </span><span class="n">user_access_management</span><span class="o">/</span><span class="w"> </span><span class="c1"># Main project settings</span>
+<span class="err">├──</span><span class="w"> </span><span class="n">templates</span><span class="o">/</span><span class="w">             </span><span class="c1"># Project templates</span>
+<span class="err">├──</span><span class="w"> </span><span class="k">static</span><span class="o">/</span><span class="w">                </span><span class="c1"># Static files</span>
+<span class="err">├──</span><span class="w"> </span><span class="n">media</span><span class="o">/</span><span class="w">                 </span><span class="c1"># Media files</span>
+<span class="err">├──</span><span class="w"> </span><span class="n">doc</span><span class="o">/</span><span class="w">                   </span><span class="c1"># Documentation</span>
+<span class="err">├──</span><span class="w"> </span><span class="n">tests</span><span class="o">/</span><span class="w">                 </span><span class="c1"># Test files</span>
+<span class="err">├──</span><span class="w"> </span><span class="n">manage</span><span class="o">.</span><span class="n">py</span><span class="w">              </span><span class="c1"># Django management script</span>
+<span class="err">├──</span><span class="w"> </span><span class="n">requirements</span><span class="o">.</span><span class="n">txt</span><span class="w">       </span><span class="c1"># Python dependencies</span>
+<span class="err">└──</span><span class="w"> </span><span class="n">README</span><span class="o">.</span><span class="n">md</span><span class="w">             </span><span class="c1"># Project README</span>
+</code></pre></div>
+
+<h3 id="app-structure">App Structure<a class="headerlink" href="#app-structure" title="Permanent link">&para;</a></h3>
+<p>Each Django app follows this structure:</p>
+<div class="codehilite"><pre><span></span><code>app_name/
+├── __init__.py
+├── admin.py              # Django admin configuration
+├── apps.py               # App configuration
+├── models.py             # Database models
+├── views.py              # View functions/classes
+├── urls.py               # URL routing
+├── forms.py              # Form definitions
+├── templates/            # App templates
+│   └── app_name/
+├── static/               # App static files
+│   └── app_name/
+├── management/           # Management commands
+│   └── commands/
+├── templatetags/         # Custom template tags
+├── tests.py              # Test cases
+└── migrations/           # Database migrations
+</code></pre></div>
+
+<h2 id="code-style-and-conventions">Code Style and Conventions<a class="headerlink" href="#code-style-and-conventions" title="Permanent link">&para;</a></h2>
+<h3 id="python-style">Python Style<a class="headerlink" href="#python-style" title="Permanent link">&para;</a></h3>
+<p>Follow PEP 8 style guide:</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Use 4 spaces for indentation</span>
+<span class="c1"># Maximum line length: 88 characters (Black formatter)</span>
+<span class="c1"># Use descriptive variable names</span>
+<span class="c1"># Add docstrings to functions and classes</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_user_access_count</span><span class="p">(</span><span class="n">user</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the number of active access records for a user.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        user: User instance</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        int: Number of active access records</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">AccessRecord</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+        <span class="n">user</span><span class="o">=</span><span class="n">user</span><span class="p">,</span>
+        <span class="n">is_active</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+</code></pre></div>
+
+<h3 id="django-conventions">Django Conventions<a class="headerlink" href="#django-conventions" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Use class-based views when appropriate</li>
+<li>Use model forms for model-related forms</li>
+<li>Use Django's built-in authentication</li>
+<li>Follow Django naming conventions</li>
+<li>Use migrations for database changes</li>
+</ul>
+<h3 id="import-organization">Import Organization<a class="headerlink" href="#import-organization" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Standard library imports</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+
+<span class="c1"># Third-party imports</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.shortcuts</span><span class="w"> </span><span class="kn">import</span> <span class="n">render</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">login_required</span>
+
+<span class="c1"># Local application imports</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">accounts.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">User</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">access_management.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">AccessRecord</span>
+</code></pre></div>
+
+<h2 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">&para;</a></h2>
+<h3 id="test-structure">Test Structure<a class="headerlink" href="#test-structure" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># tests.py or tests/test_models.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.test</span><span class="w"> </span><span class="kn">import</span> <span class="n">TestCase</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">accounts.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">User</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">access_management.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">AccessRecord</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">UserModelTest</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set up test data&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span>
+            <span class="n">username</span><span class="o">=</span><span class="s1">&#39;testuser&#39;</span><span class="p">,</span>
+            <span class="n">email</span><span class="o">=</span><span class="s1">&#39;test@example.com&#39;</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_user_creation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test user creation&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="p">,</span> <span class="s1">&#39;testuser&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_active</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_user_full_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test user full name method&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">first_name</span> <span class="o">=</span> <span class="s1">&#39;John&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">last_name</span> <span class="o">=</span> <span class="s1">&#39;Doe&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">get_full_name</span><span class="p">(),</span> <span class="s1">&#39;John Doe&#39;</span><span class="p">)</span>
+</code></pre></div>
+
+<h3 id="running-tests">Running Tests<a class="headerlink" href="#running-tests" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Run all tests</span>
+python<span class="w"> </span>manage.py<span class="w"> </span><span class="nb">test</span>
+
+<span class="c1"># Run specific app tests</span>
+python<span class="w"> </span>manage.py<span class="w"> </span><span class="nb">test</span><span class="w"> </span>accounts
+
+<span class="c1"># Run specific test class</span>
+python<span class="w"> </span>manage.py<span class="w"> </span><span class="nb">test</span><span class="w"> </span>accounts.tests.UserModelTest
+
+<span class="c1"># Run with coverage</span>
+coverage<span class="w"> </span>run<span class="w"> </span>--source<span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="w"> </span>manage.py<span class="w"> </span><span class="nb">test</span>
+coverage<span class="w"> </span>report
+</code></pre></div>
+
+<h3 id="test-best-practices">Test Best Practices<a class="headerlink" href="#test-best-practices" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Isolation</strong>: Each test should be independent</li>
+<li><strong>Setup/Teardown</strong>: Use setUp and tearDown methods</li>
+<li><strong>Naming</strong>: Use descriptive test names</li>
+<li><strong>Coverage</strong>: Aim for high test coverage</li>
+<li><strong>Speed</strong>: Keep tests fast</li>
+</ol>
+<h2 id="database-migrations">Database Migrations<a class="headerlink" href="#database-migrations" title="Permanent link">&para;</a></h2>
+<h3 id="creating-migrations">Creating Migrations<a class="headerlink" href="#creating-migrations" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Create migrations for all apps</span>
+python<span class="w"> </span>manage.py<span class="w"> </span>makemigrations
+
+<span class="c1"># Create migration for specific app</span>
+python<span class="w"> </span>manage.py<span class="w"> </span>makemigrations<span class="w"> </span>accounts
+
+<span class="c1"># Create empty migration</span>
+python<span class="w"> </span>manage.py<span class="w"> </span>makemigrations<span class="w"> </span>--empty<span class="w"> </span>accounts
+</code></pre></div>
+
+<h3 id="migration-best-practices">Migration Best Practices<a class="headerlink" href="#migration-best-practices" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Review Migrations</strong>: Always review generated migrations</li>
+<li><strong>Test Migrations</strong>: Test migrations on development data</li>
+<li><strong>Data Migrations</strong>: Use data migrations for data changes</li>
+<li><strong>Backward Compatibility</strong>: Ensure backward compatibility</li>
+<li><strong>Documentation</strong>: Document complex migrations</li>
+</ol>
+<h3 id="data-migrations">Data Migrations<a class="headerlink" href="#data-migrations" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># migrations/0002_update_user_roles.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.db</span><span class="w"> </span><span class="kn">import</span> <span class="n">migrations</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">update_user_roles</span><span class="p">(</span><span class="n">apps</span><span class="p">,</span> <span class="n">schema_editor</span><span class="p">):</span>
+    <span class="n">User</span> <span class="o">=</span> <span class="n">apps</span><span class="o">.</span><span class="n">get_model</span><span class="p">(</span><span class="s1">&#39;accounts&#39;</span><span class="p">,</span> <span class="s1">&#39;User&#39;</span><span class="p">)</span>
+    <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">is_staff</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">role</span><span class="o">=</span><span class="s1">&#39;admin&#39;</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">reverse_update</span><span class="p">(</span><span class="n">apps</span><span class="p">,</span> <span class="n">schema_editor</span><span class="p">):</span>
+    <span class="n">User</span> <span class="o">=</span> <span class="n">apps</span><span class="o">.</span><span class="n">get_model</span><span class="p">(</span><span class="s1">&#39;accounts&#39;</span><span class="p">,</span> <span class="s1">&#39;User&#39;</span><span class="p">)</span>
+    <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">role</span><span class="o">=</span><span class="s1">&#39;admin&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">is_staff</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Migration</span><span class="p">(</span><span class="n">migrations</span><span class="o">.</span><span class="n">Migration</span><span class="p">):</span>
+    <span class="n">dependencies</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s1">&#39;accounts&#39;</span><span class="p">,</span> <span class="s1">&#39;0001_initial&#39;</span><span class="p">),</span>
+    <span class="p">]</span>
+
+    <span class="n">operations</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">migrations</span><span class="o">.</span><span class="n">RunPython</span><span class="p">(</span><span class="n">update_user_roles</span><span class="p">,</span> <span class="n">reverse_update</span><span class="p">),</span>
+    <span class="p">]</span>
+</code></pre></div>
+
+<h2 id="version-control">Version Control<a class="headerlink" href="#version-control" title="Permanent link">&para;</a></h2>
+<h3 id="git-workflow">Git Workflow<a class="headerlink" href="#git-workflow" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Create feature branch</span>
+git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>feature/new-feature
+
+<span class="c1"># Make changes and commit</span>
+git<span class="w"> </span>add<span class="w"> </span>.
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Add new feature&quot;</span>
+
+<span class="c1"># Push to remote</span>
+git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>feature/new-feature
+
+<span class="c1"># Create pull request</span>
+</code></pre></div>
+
+<h3 id="commit-messages">Commit Messages<a class="headerlink" href="#commit-messages" title="Permanent link">&para;</a></h3>
+<p>Follow conventional commit format:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">feat</span><span class="o">:</span><span class="w"> </span><span class="n">Add</span><span class="w"> </span><span class="n">user</span><span class="w"> </span><span class="n">export</span><span class="w"> </span><span class="n">functionality</span>
+<span class="n">fix</span><span class="o">:</span><span class="w"> </span><span class="n">Fix</span><span class="w"> </span><span class="n">access</span><span class="w"> </span><span class="n">record</span><span class="w"> </span><span class="n">deletion</span><span class="w"> </span><span class="n">bug</span>
+<span class="n">docs</span><span class="o">:</span><span class="w"> </span><span class="n">Update</span><span class="w"> </span><span class="n">installation</span><span class="w"> </span><span class="n">guide</span>
+<span class="n">refactor</span><span class="o">:</span><span class="w"> </span><span class="n">Refactor</span><span class="w"> </span><span class="n">user</span><span class="w"> </span><span class="n">model</span><span class="w"> </span><span class="n">methods</span>
+<span class="n">test</span><span class="o">:</span><span class="w"> </span><span class="n">Add</span><span class="w"> </span><span class="n">tests</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">access</span><span class="w"> </span><span class="n">management</span>
+</code></pre></div>
+
+<h3 id="branch-naming">Branch Naming<a class="headerlink" href="#branch-naming" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>feature/</code>: New features</li>
+<li><code>fix/</code>: Bug fixes</li>
+<li><code>docs/</code>: Documentation updates</li>
+<li><code>refactor/</code>: Code refactoring</li>
+<li><code>test/</code>: Test additions/updates</li>
+</ul>
+<h2 id="code-review">Code Review<a class="headerlink" href="#code-review" title="Permanent link">&para;</a></h2>
+<h3 id="review-checklist">Review Checklist<a class="headerlink" href="#review-checklist" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[ ] Code follows style guidelines</li>
+<li>[ ] Tests are included and passing</li>
+<li>[ ] Documentation is updated</li>
+<li>[ ] No security vulnerabilities</li>
+<li>[ ] Performance considerations addressed</li>
+<li>[ ] Error handling is appropriate</li>
+<li>[ ] Code is well-commented</li>
+</ul>
+<h2 id="debugging">Debugging<a class="headerlink" href="#debugging" title="Permanent link">&para;</a></h2>
+<h3 id="django-debug-toolbar">Django Debug Toolbar<a class="headerlink" href="#django-debug-toolbar" title="Permanent link">&para;</a></h3>
+<p>Install and configure Django Debug Toolbar:</p>
+<div class="codehilite"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>django-debug-toolbar
+</code></pre></div>
+
+<div class="codehilite"><pre><span></span><code><span class="c1"># settings.py</span>
+<span class="k">if</span> <span class="n">DEBUG</span><span class="p">:</span>
+    <span class="n">INSTALLED_APPS</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;debug_toolbar&#39;</span><span class="p">]</span>
+    <span class="n">MIDDLEWARE</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;debug_toolbar.middleware.DebugToolbarMiddleware&#39;</span><span class="p">]</span>
+    <span class="n">INTERNAL_IPS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;127.0.0.1&#39;</span><span class="p">]</span>
+</code></pre></div>
+
+<h3 id="logging">Logging<a class="headerlink" href="#logging" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># settings.py</span>
+<span class="n">LOGGING</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s1">&#39;disable_existing_loggers&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="s1">&#39;handlers&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;console&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;logging.StreamHandler&#39;</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">},</span>
+    <span class="s1">&#39;root&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;handlers&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;console&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;level&#39;</span><span class="p">:</span> <span class="s1">&#39;INFO&#39;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s1">&#39;loggers&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;django&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;handlers&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;console&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;level&#39;</span><span class="p">:</span> <span class="s1">&#39;INFO&#39;</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<div class="codehilite"><pre><span></span><code><span class="c1"># In code</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">my_function</span><span class="p">():</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Function called&#39;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Code</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+
+<h2 id="performance-optimization">Performance Optimization<a class="headerlink" href="#performance-optimization" title="Permanent link">&para;</a></h2>
+<h3 id="database-optimization">Database Optimization<a class="headerlink" href="#database-optimization" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Use select_related for ForeignKey</span>
+<span class="n">users</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">select_related</span><span class="p">(</span><span class="s1">&#39;department&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+
+<span class="c1"># Use prefetch_related for reverse relations</span>
+<span class="n">departments</span> <span class="o">=</span> <span class="n">Department</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">prefetch_related</span><span class="p">(</span><span class="s1">&#39;user_set&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+
+<span class="c1"># Use only() to limit fields</span>
+<span class="n">users</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">only</span><span class="p">(</span><span class="s1">&#39;username&#39;</span><span class="p">,</span> <span class="s1">&#39;email&#39;</span><span class="p">)</span>
+
+<span class="c1"># Use defer() to exclude fields</span>
+<span class="n">users</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">defer</span><span class="p">(</span><span class="s1">&#39;profile_photo&#39;</span><span class="p">)</span>
+</code></pre></div>
+
+<h3 id="caching">Caching<a class="headerlink" href="#caching" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">django.core.cache</span><span class="w"> </span><span class="kn">import</span> <span class="n">cache</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_user_access_count</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
+    <span class="n">cache_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;user_access_count_</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cache_key</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">count</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="n">AccessRecord</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="n">user_id</span><span class="o">=</span><span class="n">user_id</span><span class="p">,</span>
+            <span class="n">is_active</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+        <span class="n">cache</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">cache_key</span><span class="p">,</span> <span class="n">count</span><span class="p">,</span> <span class="mi">3600</span><span class="p">)</span>  <span class="c1"># Cache for 1 hour</span>
+
+    <span class="k">return</span> <span class="n">count</span>
+</code></pre></div>
+
+<h2 id="security-considerations">Security Considerations<a class="headerlink" href="#security-considerations" title="Permanent link">&para;</a></h2>
+<h3 id="input-validation">Input Validation<a class="headerlink" href="#input-validation" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">django.core.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">ValidationError</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_email_domain</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="n">allowed_domains</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;example.com&#39;</span><span class="p">,</span> <span class="s1">&#39;company.com&#39;</span><span class="p">]</span>
+    <span class="n">domain</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;@&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">domain</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">allowed_domains</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="s1">&#39;Email domain not allowed&#39;</span><span class="p">)</span>
+</code></pre></div>
+
+<h3 id="sql-injection-prevention">SQL Injection Prevention<a class="headerlink" href="#sql-injection-prevention" title="Permanent link">&para;</a></h3>
+<p>Always use Django ORM or parameterized queries:</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Good: Use ORM</span>
+<span class="n">users</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="n">username</span><span class="p">)</span>
+
+<span class="c1"># Bad: Raw SQL without parameters</span>
+<span class="n">users</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">raw</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SELECT * FROM users WHERE username = &#39;</span><span class="si">{</span><span class="n">username</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<h3 id="xss-prevention">XSS Prevention<a class="headerlink" href="#xss-prevention" title="Permanent link">&para;</a></h3>
+<p>Django templates automatically escape variables:</p>
+<div class="codehilite"><pre><span></span><code><span class="cm">&lt;!-- Automatically escaped --&gt;</span>
+{{ user_input }}
+
+<span class="cm">&lt;!-- If you need to mark as safe --&gt;</span>
+{{ user_input|safe }}
+</code></pre></div>
+
+<h2 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h2>
+<h3 id="code-documentation">Code Documentation<a class="headerlink" href="#code-documentation" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">grant_access</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">access_level</span><span class="p">,</span> <span class="n">granted_by</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Grant access to a user for a system.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        user: User instance</span>
+<span class="sd">        system: System instance</span>
+<span class="sd">        access_level: Access level string</span>
+<span class="sd">        granted_by: User who is granting access</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        AccessRecord: Created access record</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValidationError: If access already exists</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Implementation</span>
+</code></pre></div>
+
+<h3 id="api-documentation">API Documentation<a class="headerlink" href="#api-documentation" title="Permanent link">&para;</a></h3>
+<p>Document API endpoints:</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># api/views.py</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">UserViewSet</span><span class="p">(</span><span class="n">viewsets</span><span class="o">.</span><span class="n">ModelViewSet</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    API endpoint for users.</span>
+
+<span class="sd">    list:</span>
+<span class="sd">    Return a list of all users.</span>
+
+<span class="sd">    retrieve:</span>
+<span class="sd">    Return a specific user.</span>
+
+<span class="sd">    create:</span>
+<span class="sd">    Create a new user.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+</code></pre></div>
+
+<h2 id="release-process">Release Process<a class="headerlink" href="#release-process" title="Permanent link">&para;</a></h2>
+<h3 id="version-numbering">Version Numbering<a class="headerlink" href="#version-numbering" title="Permanent link">&para;</a></h3>
+<p>Follow semantic versioning: MAJOR.MINOR.PATCH</p>
+<ul>
+<li><strong>MAJOR</strong>: Breaking changes</li>
+<li><strong>MINOR</strong>: New features, backward compatible</li>
+<li><strong>PATCH</strong>: Bug fixes, backward compatible</li>
+</ul>
+<h3 id="release-checklist">Release Checklist<a class="headerlink" href="#release-checklist" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[ ] All tests passing</li>
+<li>[ ] Documentation updated</li>
+<li>[ ] Version number updated</li>
+<li>[ ] CHANGELOG updated</li>
+<li>[ ] Migration files reviewed</li>
+<li>[ ] Security review completed</li>
+<li>[ ] Performance tested</li>
+</ul>
+<h3 id="creating-a-release">Creating a Release<a class="headerlink" href="#creating-a-release" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Update version</span>
+<span class="c1"># Create release branch</span>
+git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>release/1.0.0
+
+<span class="c1"># Tag release</span>
+git<span class="w"> </span>tag<span class="w"> </span>-a<span class="w"> </span>v1.0.0<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Release version 1.0.0&quot;</span>
+git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>v1.0.0
+</code></pre></div>
+
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../reference/">Reference</a> - API and technical reference</li>
+<li><a href="../data_model/">Data Model</a> - Database schema</li>
+<li><a href="../best_practices/">Best Practices</a> - Recommended practices</li>
+</ul>
+<hr />
+<p>For contribution guidelines, see the project's CONTRIBUTING.md file.</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js"></script>
+        <script src="../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

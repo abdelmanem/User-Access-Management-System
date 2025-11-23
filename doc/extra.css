@@ -1,0 +1,26 @@
+/* Custom CSS for sticky navbar */
+.md-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.md-container {
+    padding-top: 4.8rem; /* Adjust based on header height */
+}
+
+/* Ensure navbar stays on top when scrolling */
+.md-header-nav {
+    position: sticky;
+    top: 0;
+    z-index: 1001;
+}
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
