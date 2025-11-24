@@ -16,6 +16,7 @@ urlpatterns = [
     path('users/bulk-action/', views.user_bulk_action, name='user_bulk_action'),
     path('users/<int:pk>/assign-department/', views.user_assign_department, name='user_assign_department'),
     path('users/<int:pk>/toggle-active/', views.user_toggle_active, name='user_toggle_active'),
+    path('users/<int:pk>/toggle-follow-up/', views.user_toggle_follow_up, name='user_toggle_follow_up'),
     path('users/create/', views.user_create, name='user_create'),
     path('users/<int:pk>/', views.user_detail, name='user_detail'),
     path('users/<int:pk>/photo/update/', views.user_photo_update, name='user_photo_update'),

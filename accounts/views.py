@@ -42,6 +42,7 @@ def user_list(request):
     q = request.GET.get('q', '').strip()
     status = request.GET.get('status', '').strip()  # 'active', 'inactive', or ''
     dept_id = request.GET.get('department', '').strip()
+    follow_up = request.GET.get('follow_up', '').strip()
     page_size_param = request.GET.get('page_size', '').strip().lower()
     allowed_page_sizes = [25, 50, 100]
     paginate = True
@@ -72,6 +73,10 @@ def user_list(request):
         users_qs = users_qs.filter(is_active=False)
     if dept_id:
         users_qs = users_qs.filter(department_id=dept_id)
+    if follow_up == 'flagged':
+        users_qs = users_qs.filter(flag_for_follow_up=True)
+    elif follow_up == 'unflagged':
+        users_qs = users_qs.filter(flag_for_follow_up=False)
 
     sort_key = (request.GET.get('sort') or 'full_name').strip()
     sort_dir = (request.GET.get('dir') or 'asc').strip().lower()
@@ -85,6 +90,7 @@ def user_list(request):
         'department': 'department__name',
         'position': 'position',
         'description': 'description',
+        'follow_up': 'flag_for_follow_up',
         'notes': 'notes',
         'status': 'is_active',
     }
@@ -99,6 +105,7 @@ def user_list(request):
     active_count = users_qs.filter(is_active=True).count()
     inactive_count = total_count - active_count
     no_department_count = users_qs.filter(department__isnull=True).count()
+    follow_up_count = users_qs.filter(flag_for_follow_up=True).count()
 
     if paginate:
         paginator = Paginator(users_qs, page_size)  # type: ignore[arg-type]
@@ -123,6 +130,7 @@ def user_list(request):
         'q': q,
         'status': status,
         'department_selected': dept_id,
+        'follow_up': follow_up,
         'departments': departments,
         'page_size': page_size_display,
         'allowed_page_sizes': allowed_page_sizes,
@@ -133,6 +141,7 @@ def user_list(request):
         'active_count': active_count,
         'inactive_count': inactive_count,
         'no_department_count': no_department_count,
+        'follow_up_count': follow_up_count,
     })
 
 
@@ -147,6 +156,7 @@ def _build_filtered_users_queryset(request):
     q = request.GET.get('q', '').strip()
     status = request.GET.get('status', '').strip()
     dept_id = request.GET.get('department', '').strip()
+    follow_up = request.GET.get('follow_up', '').strip()
     if q:
         users_qs = users_qs.filter(
             Q(username__icontains=q) |
@@ -161,6 +171,10 @@ def _build_filtered_users_queryset(request):
         users_qs = users_qs.filter(is_active=False)
     if dept_id:
         users_qs = users_qs.filter(department_id=dept_id)
+    if follow_up == 'flagged':
+        users_qs = users_qs.filter(flag_for_follow_up=True)
+    elif follow_up == 'unflagged':
+        users_qs = users_qs.filter(flag_for_follow_up=False)
 
     sort_key = (request.GET.get('sort') or 'full_name').strip()
     sort_dir = (request.GET.get('dir') or 'asc').strip().lower()
@@ -173,6 +187,7 @@ def _build_filtered_users_queryset(request):
         'department': 'department__name',
         'position': 'position',
         'description': 'description',
+        'follow_up': 'flag_for_follow_up',
         'notes': 'notes',
         'status': 'is_active',
     }
@@ -212,7 +227,7 @@ def _filtered_user_archives(query: str = ''):
 @user_passes_test(lambda u: u.is_staff)
 def user_export_excel(request):
     qs = _build_filtered_users_queryset(request)
-    headers = ['ID', 'Username', 'Full Name', 'Email', 'Department', 'Position', 'Status']
+    headers = ['ID', 'Username', 'Full Name', 'Email', 'Department', 'Position', 'Status', 'Follow-up Flag']
     wb = Workbook()
     ws = wb.active
     ws.title = 'Users'
@@ -226,6 +241,7 @@ def user_export_excel(request):
             u.department.name if u.department else '',
             u.position or '',
             'Active' if u.is_active else 'Inactive',
+            'Yes' if u.flag_for_follow_up else 'No',
         ])
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -239,7 +255,7 @@ def user_export_excel(request):
 @user_passes_test(lambda u: u.is_staff)
 def user_export_pdf(request):
     qs = _build_filtered_users_queryset(request)
-    data = [['ID', 'Username', 'Full Name', 'Email', 'Department', 'Position', 'Status']]
+    data = [['ID', 'Username', 'Full Name', 'Email', 'Department', 'Position', 'Status', 'Follow-up Flag']]
     for u in qs:
         data.append([
             str(u.id),
@@ -249,6 +265,7 @@ def user_export_pdf(request):
             u.department.name if u.department else '',
             u.position or '',
             'Active' if u.is_active else 'Inactive',
+            'Yes' if u.flag_for_follow_up else 'No',
         ])
     buffer_response = HttpResponse(content_type='application/pdf')
     buffer_response['Content-Disposition'] = 'attachment; filename="users.pdf"'
@@ -696,6 +713,29 @@ def user_toggle_active(request, pk):
     messages.success(request, f"User {'activated' if user.is_active else 'deactivated'} successfully.")
     return redirect(next_url)
 
+
+@login_required
+@permission_required('accounts.change_customuser', raise_exception=True)
+def user_toggle_follow_up(request, pk):
+    user = get_object_or_404(CustomUser, pk=pk)
+    next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or reverse('accounts:user_list')
+
+    if request.method != 'POST':
+        return redirect(next_url)
+
+    user.flag_for_follow_up = not user.flag_for_follow_up
+    if hasattr(user, 'updated_by'):
+        user.updated_by = request.user
+        user.save(update_fields=['flag_for_follow_up', 'updated_by'])
+    else:
+        user.save(update_fields=['flag_for_follow_up'])
+
+    if user.flag_for_follow_up:
+        messages.success(request, f"{user.get_full_name() or user.username} marked for follow-up.")
+    else:
+        messages.success(request, f"Follow-up flag cleared for {user.get_full_name() or user.username}.")
+    return redirect(next_url)
+
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def user_bulk_action(request):
@@ -710,6 +750,7 @@ def user_bulk_action(request):
         'q': request.POST.get('q', ''),
         'status': request.POST.get('status', ''),
         'department': request.POST.get('department', ''),
+        'follow_up': request.POST.get('follow_up', ''),
         'page_size': request.POST.get('page_size', ''),
         'sort': request.POST.get('sort', ''),
         'dir': request.POST.get('dir', ''),
@@ -780,6 +821,18 @@ def user_bulk_action(request):
             return redirect(redirect_url)
         cleared = queryset.update(email='', updated_by=request.user)
         messages.success(request, f'Cleared email addresses for {cleared} user(s).')
+    elif action == 'flag_follow_up':
+        if not request.user.has_perm('accounts.change_customuser'):
+            messages.error(request, 'You do not have permission to flag users.')
+            return redirect(redirect_url)
+        updated = queryset.update(flag_for_follow_up=True, updated_by=request.user)
+        messages.success(request, f'Marked {updated} user(s) for follow-up.')
+    elif action == 'clear_follow_up':
+        if not request.user.has_perm('accounts.change_customuser'):
+            messages.error(request, 'You do not have permission to flag users.')
+            return redirect(redirect_url)
+        updated = queryset.update(flag_for_follow_up=False, updated_by=request.user)
+        messages.success(request, f'Cleared the follow-up flag for {updated} user(s).')
     else:
         messages.warning(request, 'Please choose a valid bulk action.')
 

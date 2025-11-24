@@ -275,6 +275,11 @@ class CustomUser(AbstractUser):
         null=True,
         help_text="Admin notes about the user (not visible to regular users)"
     )
+
+    flag_for_follow_up = models.BooleanField(
+        default=False,
+        help_text="Mark when this user needs a manual follow-up"
+    )
     
     # AD Integration Fields (Future)
     ad_username = models.CharField(

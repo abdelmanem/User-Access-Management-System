@@ -222,6 +222,13 @@
                                         </div>
                                         <div class="col-md-3">
                                             <div class="form-check mt-4">
+                                                {{ form.flag_for_follow_up|add_error_class:"is-invalid"|add_class:"form-check-input" }}
+                                                <label class="form-check-label">Flag for follow-up</label>
+                                            </div>
+                                            {% if form.flag_for_follow_up.errors %}<div class="invalid-feedback d-block">{{ form.flag_for_follow_up.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check mt-4">
                                                 {{ form.is_active|add_error_class:"is-invalid"|add_class:"form-check-input" }}
                                                 <label class="form-check-label">Active</label>
                                             </div>

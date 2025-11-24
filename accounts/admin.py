@@ -25,11 +25,11 @@ class CustomUserAdmin(BaseUserAdmin):
     # List display configuration
     list_display = [
         'username', 'full_name', 'employee_id', 'department', 'position',
-        'employment_status', 'is_active', 'created_at', 'last_login'
+        'employment_status', 'is_active', 'flag_for_follow_up', 'created_at', 'last_login'
     ]
     
     list_filter = [
-        'is_active', 'employment_status', 'department', 'employment_type',
+        'is_active', 'flag_for_follow_up', 'employment_status', 'department', 'employment_type',
         'is_staff', 'is_superuser', 'created_at', 'last_login'
     ]
     

@@ -21,7 +21,7 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        <div class="row row-cols-1 row-cols-md-4 g-3 mb-4">
+                        <div class="row row-cols-1 row-cols-md-5 g-3 mb-4">
                             <div class="col">
                                 <div class="card border-primary h-100">
                                     <div class="card-body text-primary">
@@ -54,6 +54,14 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="col">
+                                <div class="card border-info h-100">
+                                    <div class="card-body text-info">
+                                        <h6 class="card-subtitle text-uppercase fw-semibold mb-1">Need Follow-up</h6>
+                                        <h3 class="card-title mb-0">{{ follow_up_count }}</h3>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <form method="get" class="mb-3">
                             <input type="hidden" name="sort" value="{{ current_sort }}">
@@ -69,6 +77,14 @@
                                         <option value="">All</option>
                                         <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
                                         <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Inactive</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="follow_up" class="form-label">Follow-up flag</label>
+                                    <select id="follow_up" name="follow_up" class="form-select">
+                                        <option value="">All</option>
+                                        <option value="flagged" {% if follow_up == 'flagged' %}selected{% endif %}>Flagged</option>
+                                        <option value="unflagged" {% if follow_up == 'unflagged' %}selected{% endif %}>Not flagged</option>
                                     </select>
                                 </div>
                                 <div class="col-md-3">
@@ -99,6 +115,7 @@
                             <input type="hidden" name="q" value="{{ q }}">
                             <input type="hidden" name="status" value="{{ status }}">
                             <input type="hidden" name="department" value="{{ department_selected }}">
+                            <input type="hidden" name="follow_up" value="{{ follow_up }}">
                             <input type="hidden" name="page_size" value="{{ page_size }}">
                             <input type="hidden" name="sort" value="{{ current_sort }}">
                             <input type="hidden" name="dir" value="{{ current_dir }}">
@@ -115,6 +132,8 @@
                                             {% endif %}
                                             <option value="assign_department">Assign to department</option>
                                             <option value="clear_email">Clear work email</option>
+                                            <option value="flag_follow_up">Mark for follow-up</option>
+                                            <option value="clear_follow_up">Clear follow-up flag</option>
                                         </select>
                                         <button type="submit" class="btn btn-outline-primary">Apply</button>
                                     </div>
@@ -196,6 +215,14 @@
                                         </a>
                                     </th>
                                     <th>
+                                        <a href="?{% if base_query %}{{ base_query }}&{% endif %}sort=follow_up&dir={% if current_sort == 'follow_up' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
+                                            Follow-up
+                                            {% if current_sort == 'follow_up' %}
+                                                <span class="ms-1">{% if current_dir == 'asc' %}▲{% else %}▼{% endif %}</span>
+                                            {% endif %}
+                                        </a>
+                                    </th>
+                                    <th>
                                         <a href="?{% if base_query %}{{ base_query }}&{% endif %}sort=status&dir={% if current_sort == 'status' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
                                             Status
                                             {% if current_sort == 'status' %}
@@ -223,6 +250,13 @@
                                             <span title="{{ user.description }}">{{ user.description|truncatewords:10|default:"N/A" }}</span>
                                         {% else %}
                                             N/A
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if user.flag_for_follow_up %}
+                                            <span class="badge bg-warning text-dark"><i class="fas fa-flag"></i> Follow-up</span>
+                                        {% else %}
+                                            <span class="text-muted">&mdash;</span>
                                         {% endif %}
                                     </td>
                                     <td>
@@ -276,6 +310,19 @@
                                             </button>
                                             {% endif %}
                                         </form>
+                                        <form action="{% url 'accounts:user_toggle_follow_up' user.id %}" method="post" class="d-inline ms-1">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                            {% if user.flag_for_follow_up %}
+                                            <button type="submit" class="btn btn-warning btn-sm text-dark">
+                                                <i class="fas fa-flag"></i> Clear follow-up
+                                            </button>
+                                            {% else %}
+                                            <button type="submit" class="btn btn-outline-warning btn-sm">
+                                                <i class="fas fa-flag"></i> Flag follow-up
+                                            </button>
+                                            {% endif %}
+                                        </form>
                                         {% endif %}
                                     </td>
                                 </tr>
@@ -292,7 +339,7 @@
                             <ul class="pagination">
                                 {% if page_obj.has_previous %}
                                     <li class="page-item">
-                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ q }}&status={{ status }}&department={{ department_selected }}&page_size={{ page_size }}">Previous</a>
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ q }}&status={{ status }}&department={{ department_selected }}&follow_up={{ follow_up }}&page_size={{ page_size }}">Previous</a>
                                     </li>
                                 {% else %}
                                     <li class="page-item disabled"><span class="page-link">Previous</span></li>
@@ -300,7 +347,7 @@
                                 <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
                                 {% if page_obj.has_next %}
                                     <li class="page-item">
-                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ q }}&status={{ status }}&department={{ department_selected }}&page_size={{ page_size }}">Next</a>
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ q }}&status={{ status }}&department={{ department_selected }}&follow_up={{ follow_up }}&page_size={{ page_size }}">Next</a>
                                     </li>
                                 {% else %}
                                     <li class="page-item disabled"><span class="page-link">Next</span></li>

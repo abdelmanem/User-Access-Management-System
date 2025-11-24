@@ -44,6 +44,7 @@ class UserBaseForm(forms.ModelForm):
             'profile_photo',
             'description',
             'notes',
+            'flag_for_follow_up',
             # IT Administrator governance (RHG 4.3)
             'is_it_administrator',
             'it_admin_certification_date',
