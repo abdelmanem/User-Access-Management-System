@@ -57,9 +57,9 @@ sudo systemctl reload nginx
 ## Access Documentation
 
 After setup, access documentation at:
-- `https://yourdomain.com/docs/` - Home page
-- `https://yourdomain.com/docs/introduction/` - Introduction
-- `https://yourdomain.com/docs/features/` - Features
+- `https://yourdomain.com/doc/` - Home page
+- `https://yourdomain.com/doc/introduction/` - Introduction
+- `https://yourdomain.com/doc/features/` - Features
 
 **Note:** HTTP requests automatically redirect to HTTPS.
 
@@ -72,15 +72,15 @@ After setup, access documentation at:
 openssl s_client -connect yourdomain.com:443
 
 # Test redirect
-curl -I http://yourdomain.com/docs/
+curl -I http://yourdomain.com/doc/
 # Should return: HTTP/1.1 301 Moved Permanently
-# Location: https://yourdomain.com/docs/
+# Location: https://yourdomain.com/doc/
 ```
 
 ### Check Security Headers
 
 ```bash
-curl -I https://yourdomain.com/docs/
+curl -I https://yourdomain.com/doc/
 ```
 
 Look for:

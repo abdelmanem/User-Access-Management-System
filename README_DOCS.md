@@ -39,12 +39,12 @@ Visit: http://127.0.0.1:8000
 
 ### 4. Deploy to Production
 
-The documentation is automatically served by Django at `/docs/` after building.
+The documentation is automatically served by Django at `/doc/` after building.
 
 **Access documentation at:**
-- `https://yourdomain.com/docs/` - Redirects to home (HTTPS)
-- `https://yourdomain.com/docs/home/` - Home page
-- `https://yourdomain.com/docs/introduction/` - Introduction page
+- `https://yourdomain.com/doc/` - Redirects to home (HTTPS)
+- `https://yourdomain.com/doc/home/` - Home page
+- `https://yourdomain.com/doc/introduction/` - Introduction page
 
 **Note:** In production with HTTPS enabled, all HTTP requests are automatically redirected to HTTPS.
 
@@ -69,7 +69,7 @@ The documentation is already configured to be served by Django:
    gunicorn user_access_management.wsgi:application
    ```
 
-3. **Access at:** `https://yourdomain.com/docs/` (HTTPS)
+3. **Access at:** `https://yourdomain.com/doc/` (HTTPS)
 
 ### Option 2: Nginx with HTTPS (Recommended for High Traffic)
 
@@ -112,9 +112,9 @@ For better performance and security, serve static files directly with Nginx over
        add_header X-XSS-Protection "1; mode=block" always;
 
        # Documentation
-       location /docs/ {
+       location /doc/ {
            alias /path/to/User-Access-Management-System/site/;
-           try_files $uri $uri/ /docs/home/index.html;
+           try_files $uri $uri/ /doc/index.html;
            index index.html;
            
            # Cache static assets
@@ -158,7 +158,7 @@ For better performance and security, serve static files directly with Nginx over
    sudo systemctl reload nginx
    ```
 
-5. **Access at:** `https://yourdomain.com/docs/`
+5. **Access at:** `https://yourdomain.com/doc/`
 
 ## Updating Documentation
 
@@ -177,7 +177,7 @@ Add to your deployment script:
 mkdocs build --clean
 
 # Copy to production (if using separate web server)
-rsync -avz --delete site/ production-server:/var/www/docs/
+rsync -avz --delete site/ production-server:/var/www/doc/
 ```
 
 ### Cron Job (Auto-rebuild)

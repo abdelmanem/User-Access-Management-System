@@ -51,9 +51,9 @@ Edit `user_access_management/urls.py` to serve docs in production:
 ```python
 # Add this to urlpatterns (not just in DEBUG block)
 urlpatterns += [
-    path('docs/', lambda request: HttpResponseRedirect('/docs/home/')),
-    path('docs/home/', serve_docs, {'path': 'home/index.html'}),
-    re_path(r'^docs/(?P<path>.*)$', serve_docs),
+    path('doc', lambda request: HttpResponseRedirect('/doc/')),
+    path('doc/', lambda request: serve_docs(request, '')),
+    re_path(r'^doc/(?P<path>.*)$', serve_docs),
 ]
 ```
 
@@ -127,9 +127,9 @@ server {
     add_header Referrer-Policy "same-origin" always;
 
     # Documentation
-    location /docs/ {
+    location /doc/ {
         alias /path/to/User-Access-Management-System/site/;
-        try_files $uri $uri/ /docs/home/index.html;
+        try_files $uri $uri/ /doc/index.html;
         index index.html;
         
         # Cache static assets
@@ -312,13 +312,13 @@ mkdocs build --clean
 echo "Deploying to production..."
 
 # Option 1: Copy to web server
-# scp -r site/* user@server:/var/www/docs/
+# scp -r site/* user@server:/var/www/doc/
 
 # Option 2: Use rsync
-# rsync -avz --delete site/ user@server:/var/www/docs/
+# rsync -avz --delete site/ user@server:/var/www/doc/
 
 # Option 3: Use Docker
-# docker cp site/. container_name:/usr/share/nginx/html/docs/
+# docker cp site/. container_name:/usr/share/nginx/html/doc/
 
 echo "Documentation deployed successfully"
 ```
@@ -355,13 +355,13 @@ CSRF_TRUSTED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
 
 2. **Test HTTPS Redirect:**
    ```bash
-   curl -I http://yourdomain.com/docs/
+   curl -I http://yourdomain.com/doc/
    # Should return 301 redirect to https://
    ```
 
 3. **Verify Security Headers:**
    ```bash
-   curl -I https://yourdomain.com/docs/
+   curl -I https://yourdomain.com/doc/
    # Check for Strict-Transport-Security header
    ```
 
@@ -389,16 +389,16 @@ CSRF_TRUSTED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
 2. **Copy to Production**:
    ```bash
    # Via rsync
-   rsync -avz --delete site/ production-server:/var/www/docs/
+   rsync -avz --delete site/ production-server:/var/www/doc/
    
    # Or via SCP
-   scp -r site/* production-server:/var/www/docs/
+   scp -r site/* production-server:/var/www/doc/
    ```
 
 3. **Set Permissions** (if needed):
    ```bash
-   chown -R www-data:www-data /var/www/docs/
-   chmod -R 755 /var/www/docs/
+   chown -R www-data:www-data /var/www/doc/
+   chmod -R 755 /var/www/doc/
    ```
 
 4. **Restart Web Server** (if using Nginx):
