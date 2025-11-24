@@ -328,21 +328,24 @@ Create `/etc/systemd/system/uams.service`:
 
 ```ini
 [Unit]
-Description=UAMS Gunicorn daemon
+Description=User Access Management System Gunicorn Service
 After=network.target
 
 [Service]
-User=www-data
+User=uams
 Group=www-data
-WorkingDirectory=/path/to/User-Access-Management-System
-ExecStart=/path/to/venv/bin/gunicorn \
-    --access-logfile - \
-    --workers 4 \
-    --bind unix:/run/uams.sock \
-    user_access_management.wsgi:application
+WorkingDirectory=/srv/uams/app
+Environment="PATH=/srv/uams/app/venv/bin"
+EnvironmentFile=/srv/uams/app/.env
+RuntimeDirectory=uams
+RuntimeDirectoryMode=0755
+ExecStart=/srv/uams/app/venv/bin/gunicorn --workers 4 --bind unix:/run/uams/uams.sock user_access_management.wsgi:application
+Restart=always
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
+
 ```
 
 #### Step 2: Start Service
