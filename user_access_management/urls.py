@@ -85,9 +85,13 @@ if settings.DEBUG:
 # Serve documentation site (both development and production)
 site_dir = settings.BASE_DIR / 'site'
 if site_dir.exists():
-    # Documentation routes - serve at /docs/
+    # Documentation routes - primary location /doc/
     urlpatterns += [
-        path('docs', lambda request: HttpResponseRedirect('/docs/home/')),
-        path('docs/', lambda request: HttpResponseRedirect('/docs/home/')),
-        re_path(r'^docs/(?P<path>.*)$', serve_docs),
+        path('doc', lambda request: HttpResponseRedirect('/doc/')),
+        path('doc/', lambda request: serve_docs(request, '')),
+        re_path(r'^doc/(?P<path>.+)$', serve_docs),
+        # Backwards compatibility for legacy /site/ URLs
+        path('site', lambda request: HttpResponseRedirect('/doc/')),
+        path('site/', lambda request: serve_docs(request, '')),
+        re_path(r'^site/(?P<path>.+)$', serve_docs),
     ]
