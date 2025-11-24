@@ -28,11 +28,11 @@
             </a>
 
             {% nav_active_class 'accounts:user_list' 'accounts:user_create' 'accounts:user_detail' 'accounts:user_update' 'accounts:user_delete' as users_active %}
-            <button class="sidebar-link{{ users_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarUsers" aria-expanded="false" aria-controls="sidebarUsers">
+            <button class="sidebar-link{{ users_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarUsers" aria-expanded="{% if users_active %}true{% else %}false{% endif %}" aria-controls="sidebarUsers">
                 <span><i class="fa-solid fa-users"></i> Users</span>
                 <i class="fa-solid fa-angle-down collapse-arrow"></i>
             </button>
-            <div class="collapse sidebar-submenu" id="sidebarUsers" data-bs-parent="#sidebarNav">
+            <div class="collapse sidebar-submenu{% if users_active %} show{% endif %}" id="sidebarUsers" data-bs-parent="#sidebarNav">
                 {% nav_active_class 'accounts:user_list' 'accounts:user_detail' 'accounts:user_update' 'accounts:user_delete' as user_list_active %}
                 <a class="sidebar-sublink{{ user_list_active }}" href="{% url 'accounts:user_list' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-list"></i> User List
@@ -44,11 +44,11 @@
             </div>
 
             {% nav_active_class 'departments:department_*' 'departments:department_list' 'departments:department_detail' 'departments:department_update' 'departments:department_delete' 'departments:department_create' as dept_active %}
-            <button class="sidebar-link{{ dept_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarDepartments" aria-expanded="false" aria-controls="sidebarDepartments">
+            <button class="sidebar-link{{ dept_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarDepartments" aria-expanded="{% if dept_active %}true{% else %}false{% endif %}" aria-controls="sidebarDepartments">
                 <span><i class="fa-solid fa-sitemap"></i> Departments</span>
                 <i class="fa-solid fa-angle-down collapse-arrow"></i>
             </button>
-            <div class="collapse sidebar-submenu" id="sidebarDepartments" data-bs-parent="#sidebarNav">
+            <div class="collapse sidebar-submenu{% if dept_active %} show{% endif %}" id="sidebarDepartments" data-bs-parent="#sidebarNav">
                 {% nav_active_class 'departments:department_list' 'departments:department_detail' 'departments:department_update' 'departments:department_delete' as dept_list_active %}
                 <a class="sidebar-sublink{{ dept_list_active }}" href="{% url 'departments:department_list' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-list"></i> Department List
@@ -60,11 +60,11 @@
             </div>
 
             {% nav_active_class 'systems:system_*' 'systems:system_list' 'systems:system_detail' 'systems:system_update' 'systems:system_delete' 'systems:system_create' as systems_active %}
-            <button class="sidebar-link{{ systems_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarSystems" aria-expanded="false" aria-controls="sidebarSystems">
+            <button class="sidebar-link{{ systems_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarSystems" aria-expanded="{% if systems_active %}true{% else %}false{% endif %}" aria-controls="sidebarSystems">
                 <span><i class="fa-solid fa-server"></i> Systems</span>
                 <i class="fa-solid fa-angle-down collapse-arrow"></i>
             </button>
-            <div class="collapse sidebar-submenu" id="sidebarSystems" data-bs-parent="#sidebarNav">
+            <div class="collapse sidebar-submenu{% if systems_active %} show{% endif %}" id="sidebarSystems" data-bs-parent="#sidebarNav">
                 {% nav_active_class 'systems:system_list' 'systems:system_detail' 'systems:system_update' 'systems:system_delete' as system_list_active %}
                 <a class="sidebar-sublink{{ system_list_active }}" href="{% url 'systems:system_list' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-list"></i> System List
@@ -76,11 +76,11 @@
             </div>
 
             {% nav_active_class 'hardware:hardware_*' 'hardware:hardware_list' 'hardware:hardware_detail' 'hardware:hardware_update' 'hardware:hardware_delete' 'hardware:hardware_create' as hardware_active %}
-            <button class="sidebar-link{{ hardware_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarHardware" aria-expanded="false" aria-controls="sidebarHardware">
+            <button class="sidebar-link{{ hardware_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarHardware" aria-expanded="{% if hardware_active %}true{% else %}false{% endif %}" aria-controls="sidebarHardware">
                 <span><i class="fa-solid fa-desktop"></i> Hardware</span>
                 <i class="fa-solid fa-angle-down collapse-arrow"></i>
             </button>
-            <div class="collapse sidebar-submenu" id="sidebarHardware" data-bs-parent="#sidebarNav">
+            <div class="collapse sidebar-submenu{% if hardware_active %} show{% endif %}" id="sidebarHardware" data-bs-parent="#sidebarNav">
                 {% nav_active_class 'hardware:hardware_list' 'hardware:hardware_detail' 'hardware:hardware_update' 'hardware:hardware_delete' as hardware_list_active %}
                 <a class="sidebar-sublink{{ hardware_list_active }}" href="{% url 'hardware:hardware_list' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-list"></i> Hardware List
@@ -92,11 +92,11 @@
             </div>
 
             {% nav_active_class 'service_accounts:service_account_*' 'service_accounts:service_account_list' 'service_accounts:service_account_detail' 'service_accounts:service_account_update' 'service_accounts:service_account_delete' 'service_accounts:service_account_create' 'service_accounts:service_account_compliance_report' as svc_active %}
-            <button class="sidebar-link{{ svc_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarServiceAccounts" aria-expanded="false" aria-controls="sidebarServiceAccounts">
+            <button class="sidebar-link{{ svc_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarServiceAccounts" aria-expanded="{% if svc_active %}true{% else %}false{% endif %}" aria-controls="sidebarServiceAccounts">
                 <span><i class="fa-solid fa-user-shield"></i> Service Accounts</span>
                 <i class="fa-solid fa-angle-down collapse-arrow"></i>
             </button>
-            <div class="collapse sidebar-submenu" id="sidebarServiceAccounts" data-bs-parent="#sidebarNav">
+            <div class="collapse sidebar-submenu{% if svc_active %} show{% endif %}" id="sidebarServiceAccounts" data-bs-parent="#sidebarNav">
                 {% nav_active_class 'service_accounts:service_account_list' 'service_accounts:service_account_detail' 'service_accounts:service_account_update' 'service_accounts:service_account_delete' as svc_list_active %}
                 <a class="sidebar-sublink{{ svc_list_active }}" href="{% url 'service_accounts:service_account_list' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-list"></i> Service Account List
@@ -112,11 +112,11 @@
             </div>
 
             {% nav_active_class 'accounts:user_deactivation_audit_*' 'accounts:user_archive_*' 'accounts:user_deactivation_audit_list' 'accounts:user_deactivation_audit_detail' 'accounts:user_archive_list' 'accounts:user_archive_detail' as audit_active %}
-            <button class="sidebar-link{{ audit_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarAudit" aria-expanded="false" aria-controls="sidebarAudit">
+            <button class="sidebar-link{{ audit_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarAudit" aria-expanded="{% if audit_active %}true{% else %}false{% endif %}" aria-controls="sidebarAudit">
                 <span><i class="fa-solid fa-clipboard-list"></i> Audit</span>
                 <i class="fa-solid fa-angle-down collapse-arrow"></i>
             </button>
-            <div class="collapse sidebar-submenu" id="sidebarAudit" data-bs-parent="#sidebarNav">
+            <div class="collapse sidebar-submenu{% if audit_active %} show{% endif %}" id="sidebarAudit" data-bs-parent="#sidebarNav">
                 {% nav_active_class 'accounts:user_deactivation_audit_list' 'accounts:user_deactivation_audit_detail' as audit_deactivate_active %}
                 <a class="sidebar-sublink{{ audit_deactivate_active }}" href="{% url 'accounts:user_deactivation_audit_list' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-ban"></i> Deactivation Audit
@@ -128,11 +128,11 @@
             </div>
 
 {% nav_active_class 'access_management:access_assignment_*' 'access_management:user_access_*' 'access_management:system_access_*' 'access_management:access_history_*' 'access_management:approve_access_assignment' 'access_management:reject_access_assignment' 'access_management:cross_system_account_mapping' 'access_management:generic_accounts_report' 'access_management:user_cross_system_accounts' 'access_management:mark_generic_account_remediated' 'access_management:policy_drift_monitoring' 'access_management:admin_accounts_report' 'access_management:quarterly_access_review_dashboard' 'access_management:quarterly_access_review_bulk' 'access_management:access_approval_compliance' 'default_accounts:default_account_*' 'default_accounts:default_account_dashboard' 'default_accounts:default_account_detail' 'default_accounts:default_account_update' 'default_accounts:default_account_templates' 'default_accounts:default_account_create' 'change_management:change_request_*' 'change_management:change_request_list' 'change_management:change_request_create' 'change_management:change_request_detail' 'change_management:change_request_update' as access_active %}
-            <button class="sidebar-link{{ access_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarAccess" aria-expanded="false" aria-controls="sidebarAccess">
+            <button class="sidebar-link{{ access_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarAccess" aria-expanded="{% if access_active %}true{% else %}false{% endif %}" aria-controls="sidebarAccess">
                 <span><i class="fa-solid fa-key"></i> Access</span>
                 <i class="fa-solid fa-angle-down collapse-arrow"></i>
             </button>
-            <div class="collapse sidebar-submenu" id="sidebarAccess" data-bs-parent="#sidebarNav">
+            <div class="collapse sidebar-submenu{% if access_active %} show{% endif %}" id="sidebarAccess" data-bs-parent="#sidebarNav">
                 {% nav_active_class 'access_management:access_assignment_list' 'access_management:access_assignment_detail' 'access_management:access_assignment_update' 'access_management:access_assignment_delete' 'access_management:user_access_assignments' 'access_management:system_access_assignments' 'access_management:approve_access_assignment' 'access_management:reject_access_assignment' as access_assignments_active %}
                 <a class="sidebar-sublink{{ access_assignments_active }}" href="{% url 'access_management:access_assignment_list' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-list"></i> Access Assignments
@@ -204,11 +204,11 @@
             </div>
 
             {% nav_active_class 'data_import_export:home' 'data_import_export:export_*' 'data_import_export:import_*' 'data_import_export:custom_export' as import_active %}
-            <button class="sidebar-link{{ import_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarImportExport" aria-expanded="false" aria-controls="sidebarImportExport">
+            <button class="sidebar-link{{ import_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarImportExport" aria-expanded="{% if import_active %}true{% else %}false{% endif %}" aria-controls="sidebarImportExport">
                 <span><i class="fa-solid fa-file-import"></i> Import/Export</span>
                 <i class="fa-solid fa-angle-down collapse-arrow"></i>
             </button>
-            <div class="collapse sidebar-submenu" id="sidebarImportExport" data-bs-parent="#sidebarNav">
+            <div class="collapse sidebar-submenu{% if import_active %} show{% endif %}" id="sidebarImportExport" data-bs-parent="#sidebarNav">
                 {% nav_active_class 'data_import_export:home' as import_home_active %}
                 <a class="sidebar-sublink{{ import_home_active }}" href="{% url 'data_import_export:home' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-home"></i> Overview
