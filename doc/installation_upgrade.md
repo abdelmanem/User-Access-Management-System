@@ -244,26 +244,72 @@ sudo yum install nginx
 Create `/etc/nginx/sites-available/uams`:
 
 ```nginx
+
+# /etc/nginx/sites-available/uams.conf  (fixed)
+
 server {
-    listen 80;
+    listen 443 ssl http2;
     server_name yourdomain.com;
 
-    location / {
-        proxy_pass http://127.0.0.1:8000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
+    ssl_certificate     /etc/ssl/certs/nginx-selfsigned.crt;
+    ssl_certificate_key /etc/ssl/private/nginx-selfsigned.key;
 
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+
+    # Static
     location /static/ {
-        alias /path/to/User-Access-Management-System/staticfiles/;
+        alias /srv/uams/app/staticfiles/;
+        autoindex off; access_log off; expires 7d;
     }
 
+    # Media
     location /media/ {
-        alias /path/to/User-Access-Management-System/media/;
+        alias /srv/uams/app/media/;
+        autoindex off; expires 7d;
     }
+
+    # Documentation
+    location /doc/ {
+        alias /path/to/User-Access-Management-System/site/;
+        try_files $uri $uri/ /doc/index.html;
+        index index.html;
+        
+        # Cache static assets
+        location ~* \.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+            expires 1y;
+            add_header Cache-Control "public, immutable";
+        }
+    }
+
+
+
+    # App (HTTP over unix socket)
+    location / {
+        include proxy_params;               # keep this
+        proxy_pass http://unix:/run/uams/uams.sock;
+
+        # REMOVE duplicate headers:
+        # proxy_set_header Host $host;
+        # proxy_set_header X-Forwarded-Proto $scheme;
+        # proxy_set_header X-Real-IP $remote_addr;
+        # proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        proxy_read_timeout 300;
+        proxy_connect_timeout 60;
+        proxy_send_timeout 300;
+    }
+
+    client_max_body_size 20M;
 }
+
+server {
+    listen 80;
+    server_name yourdomain.com Server_IPadd;
+    return 301 https://$host$request_uri;
+}
+
 ```
 
 #### Step 3: Enable Site
