@@ -21,114 +21,82 @@
         <div class="d-flex align-items-center mb-4">
             <h1 class="h4 mb-0">{{ title }}</h1>
         </div>
-        <div class="alert alert-info d-flex align-items-center gap-3" role="alert">
-            <i class="fas fa-info-circle fs-4 mb-0"></i>
-            <div class="small mb-0">
-                Dashboard totals exclude accounts marked <strong>Exclude from metrics</strong>. Use the refreshed Quick Actions below to manage which users are counted.
-                <a href="#quick-actions" class="alert-link ms-1">Jump to Quick Actions</a>
-            </div>
-        </div>
-
-        <!-- Metric Cards -->
+        <!-- System Overview -->
         <div class="row g-3 mb-4">
-            <div class="col-xxl-3 col-md-6">
-                <div class="card shadow-sm border-0 h-100">
-                    <div class="card-body d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="text-uppercase text-muted small d-flex align-items-center gap-2">
-                                Reportable Users
-                                <span class="badge bg-light text-muted border">Excludes flagged</span>
+            <div class="col-12">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-primary text-white py-3">
+                        <h5 class="m-0"><i class="fas fa-chart-line me-2"></i>System Overview</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <!-- Users -->
+                            <div class="col-xxl-2 col-lg-3 col-md-4 col-sm-6">
+                                <div class="d-flex align-items-center p-2 rounded bg-light">
+                                    <span class="text-primary fs-3 me-3"><i class="fas fa-users"></i></span>
+                                    <div>
+                                        <div class="small text-muted text-uppercase">Users</div>
+                                        <div class="h5 mb-0 fw-bold">{{ stats.total_users }}</div>
+                                        <div class="small text-success">{{ stats.active_users }} active</div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="h4 fw-bold mb-0">{{ stats.total_users }}</div>
-                            <div class="small text-muted">Only users not marked "Exclude from metrics".</div>
+                            <!-- Hardware -->
+                            <div class="col-xxl-2 col-lg-3 col-md-4 col-sm-6">
+                                <div class="d-flex align-items-center p-2 rounded bg-light">
+                                    <span class="text-info fs-3 me-3"><i class="fas fa-desktop"></i></span>
+                                    <div>
+                                        <div class="small text-muted text-uppercase">Hardware</div>
+                                        <div class="h5 mb-0 fw-bold">{{ stats.total_hardware }}</div>
+                                        <div class="small text-success">{{ stats.active_hardware }} in service</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Pending Requests -->
+                            <div class="col-xxl-2 col-lg-3 col-md-4 col-sm-6">
+                                <div class="d-flex align-items-center p-2 rounded bg-light">
+                                    <span class="text-warning fs-3 me-3"><i class="fas fa-clock"></i></span>
+                                    <div>
+                                        <div class="small text-muted text-uppercase">Pending</div>
+                                        <div class="h5 mb-0 fw-bold">{{ stats.pending_requests }}</div>
+                                        <div class="small text-muted">Access requests</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Security Alerts -->
+                            <div class="col-xxl-2 col-lg-3 col-md-4 col-sm-6">
+                                <div class="d-flex align-items-center p-2 rounded bg-light">
+                                    <span class="text-danger fs-3 me-3"><i class="fas fa-shield-halved"></i></span>
+                                    <div>
+                                        <div class="small text-muted text-uppercase">Security</div>
+                                        <div class="h5 mb-0 fw-bold">{{ stats.failed_logins_24h }}</div>
+                                        <div class="small text-danger">Failed logins (24h)</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Warranties -->
+                            <div class="col-xxl-2 col-lg-3 col-md-4 col-sm-6">
+                                <div class="d-flex align-items-center p-2 rounded bg-light">
+                                    <span class="text-warning fs-3 me-3"><i class="fas fa-calendar-days"></i></span>
+                                    <div>
+                                        <div class="small text-muted text-uppercase">Warranties</div>
+                                        <div class="h5 mb-0 fw-bold">{{ stats.warranty_expiring }}</div>
+                                        <div class="small text-warning">Expiring ≤60d</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Patch Management -->
+                            <div class="col-xxl-2 col-lg-3 col-md-4 col-sm-6">
+                                <div class="d-flex align-items-center p-2 rounded bg-light">
+                                    <span class="text-secondary fs-3 me-3"><i class="fas fa-screwdriver-wrench"></i></span>
+                                    <div>
+                                        <div class="small text-muted text-uppercase">Patches</div>
+                                        <div class="h5 mb-0 fw-bold">{{ stats.patch_exceptions }}</div>
+                                        <div class="small text-muted">Exceptions</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <span class="text-primary fs-2"><i class="fas fa-users"></i></span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xxl-3 col-md-6">
-                <div class="card shadow-sm border-0 h-100">
-                    <div class="card-body d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="text-uppercase text-muted small">Active Reportable Users</div>
-                            <div class="h4 fw-bold mb-0">{{ stats.active_users }}</div>
-                            <div class="small text-muted">Subset of reportable users currently active.</div>
-                        </div>
-                        <span class="text-success fs-2"><i class="fas fa-user-check"></i></span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xxl-3 col-md-6">
-                <div class="card shadow-sm border-0 h-100">
-                    <div class="card-body d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="text-uppercase text-muted small">Total Hardware</div>
-                            <div class="h4 fw-bold mb-0">{{ stats.total_hardware }}</div>
-                        </div>
-                        <span class="text-info fs-2"><i class="fas fa-boxes-stacked"></i></span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xxl-3 col-md-6">
-                <div class="card shadow-sm border-0 h-100">
-                    <div class="card-body d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="text-uppercase text-muted small">Active Hardware</div>
-                            <div class="h4 fw-bold mb-0">{{ stats.active_hardware }}</div>
-                            <div class="small text-muted">Currently in service</div>
-                        </div>
-                        <span class="text-success fs-2"><i class="fas fa-laptop"></i></span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row g-3 mb-4">
-            <div class="col-xxl-3 col-md-6">
-                <div class="card shadow-sm border-0 h-100">
-                    <div class="card-body d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="text-uppercase text-muted small">Pending Requests</div>
-                            <div class="h4 fw-bold mb-0">{{ stats.pending_requests }}</div>
-                            {% if stats.suspicious_activities %}
-                            <div class="small text-muted">{{ stats.suspicious_activities }} suspicious events today</div>
-                            {% endif %}
-                        </div>
-                        <span class="text-warning fs-2"><i class="fas fa-clipboard-list"></i></span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xxl-3 col-md-6">
-                <div class="card shadow-sm border-0 h-100">
-                    <div class="card-body d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="text-uppercase text-muted small">Failed Logins (24h)</div>
-                            <div class="h4 fw-bold mb-0">{{ stats.failed_logins_24h }}</div>
-                        </div>
-                        <span class="text-danger fs-2"><i class="fas fa-exclamation-triangle"></i></span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xxl-3 col-md-6">
-                <div class="card shadow-sm border-0 h-100">
-                    <div class="card-body d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="text-uppercase text-muted small">Warranties ≤ 60 Days</div>
-                            <div class="h4 fw-bold mb-0">{{ stats.warranty_expiring }}</div>
-                        </div>
-                        <span class="text-warning fs-2"><i class="fas fa-calendar-check"></i></span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xxl-3 col-md-6">
-                <div class="card shadow-sm border-0 h-100">
-                    <div class="card-body d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="text-uppercase text-muted small">Patch Exceptions</div>
-                            <div class="h4 fw-bold mb-0">{{ stats.patch_exceptions }}</div>
-                            <div class="small text-muted">Require manual updates</div>
-                        </div>
-                        <span class="text-secondary fs-2"><i class="fas fa-screwdriver-wrench"></i></span>
                     </div>
                 </div>
             </div>
@@ -166,52 +134,43 @@
             </div>
         </div>
 
+        <!-- Hardware Analytics -->
         <div class="row g-3 mb-4">
-            <div class="col-xl-4">
+            <div class="col-xl-5">
                 <div class="card shadow-sm border-0 h-100">
                     <div class="card-header py-3">
-                        <h6 class="m-0 fw-bold text-primary">Hardware Type Distribution</h6>
+                        <h6 class="m-0 fw-bold text-primary"><i class="fas fa-server me-2"></i>Hardware Distribution</h6>
                     </div>
                     <div class="card-body">
                         {% if hardware_counts.total %}
-                        <div class="chart-pie pt-3" style="height: 280px;">
+                        <div class="chart-pie pt-2" style="height: 250px;">
                             <canvas id="hardware-type-chart"></canvas>
                         </div>
+                        <div class="text-center mt-3">
+                            <span class="badge bg-info-subtle text-info px-3 py-2">
+                                <i class="fas fa-cloud me-1"></i>{{ stats.virtual_assets }} Virtual Assets
+                            </span>
+                        </div>
                         {% else %}
-                        <p class="text-muted mb-0">No hardware assets recorded yet.</p>
+                        <p class="text-muted mb-0 text-center">No hardware assets recorded yet.</p>
                         {% endif %}
                     </div>
                 </div>
             </div>
-            <div class="col-xl-8">
+            <div class="col-xl-7">
                 <div class="card shadow-sm border-0 h-100">
-                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                        <h6 class="m-0 fw-bold text-primary">Hardware Status Overview</h6>
-                        <span class="badge bg-info-subtle text-info">{{ stats.virtual_assets }} virtual assets</span>
+                    <div class="card-header py-3">
+                        <h6 class="m-0 fw-bold text-primary"><i class="fas fa-chart-bar me-2"></i>Hardware Status Breakdown</h6>
                     </div>
                     <div class="card-body">
-                        <div class="d-flex flex-wrap gap-4 mb-3">
-                            <div>
-                                <div class="text-uppercase text-muted small">In Service</div>
-                                <div class="h5 fw-bold mb-0">{{ hardware_counts.in_service }}</div>
-                            </div>
-                            <div>
-                                <div class="text-uppercase text-muted small">In Storage</div>
-                                <div class="h5 fw-bold mb-0">{{ hardware_counts.in_storage }}</div>
-                            </div>
-                            <div>
-                                <div class="text-uppercase text-muted small">Retired/Disposed</div>
-                                <div class="h5 fw-bold mb-0">{{ hardware_counts.retired }}</div>
-                            </div>
-                        </div>
                         {% if hardware_status_breakdown %}
                             {% for status in hardware_status_breakdown %}
                             <div class="mb-3">
-                                <div class="d-flex justify-content-between small fw-semibold">
-                                    <span>{{ status.label }}</span>
-                                    <span>{{ status.count }} ({{ status.percentage }}%)</span>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="fw-semibold">{{ status.label }}</span>
+                                    <span class="text-muted small">{{ status.count }} ({{ status.percentage }}%)</span>
                                 </div>
-                                <div class="progress" style="height: 8px;">
+                                <div class="progress" style="height: 10px;">
                                     <div class="progress-bar bg-{{ status.color }}" role="progressbar" style="width: {{ status.percentage }}%;" aria-valuenow="{{ status.percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
                                 </div>
                             </div>
@@ -224,163 +183,178 @@
             </div>
         </div>
 
+        <!-- Hardware Alerts & Maintenance -->
         <div class="row g-3 mb-4">
             <div class="col-xl-6">
                 <div class="card shadow-sm border-0 h-100">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 fw-bold text-primary">Upcoming Warranties (≤ 90 days)</h6>
+                    <div class="card-header py-3 bg-warning-subtle">
+                        <h6 class="m-0 fw-bold text-warning"><i class="fas fa-triangle-exclamation me-2"></i>Warranty Alerts</h6>
                     </div>
                     <div class="card-body">
-                        {% if hardware_warranties.upcoming %}
-                        <ul class="list-group list-group-flush">
-                            {% for entry in hardware_warranties.upcoming %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    <a href="{% url 'hardware:hardware_detail' entry.id %}" class="fw-semibold text-decoration-none">{{ entry.name }}</a>
-                                    <div class="text-muted small">{{ entry.asset_tag }}{% if entry.department %} · {{ entry.department }}{% endif %}</div>
+                        <!-- Overdue Warranties -->
+                        {% if hardware_warranties.overdue %}
+                        <div class="alert alert-danger mb-3">
+                            <strong><i class="fas fa-exclamation-circle me-1"></i>{{ hardware_warranties.overdue|length }} Overdue</strong>
+                        </div>
+                        <div class="mb-3" style="max-height: 200px; overflow-y: auto;">
+                            {% for entry in hardware_warranties.overdue %}
+                            <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                                <div class="flex-grow-1">
+                                    <a href="{% url 'hardware:hardware_detail' entry.id %}" class="fw-semibold text-decoration-none small">{{ entry.name }}</a>
+                                    <div class="text-muted" style="font-size: 0.75rem;">{{ entry.asset_tag }}</div>
                                 </div>
-                                <div class="text-end">
-                                    <span class="badge bg-warning-subtle text-warning">{{ entry.days_remaining }}d</span>
-                                    <div class="small text-muted">{{ entry.warranty_expiration|date:"M d, Y" }}</div>
-                                </div>
-                            </li>
+                                <span class="badge bg-danger ms-2">{{ entry.overdue_days }}d overdue</span>
+                            </div>
                             {% endfor %}
-                        </ul>
-                        {% else %}
-                        <p class="text-muted mb-0">No warranties expiring in the next 90 days.</p>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Upcoming Warranties -->
+                        {% if hardware_warranties.upcoming %}
+                        <div class="alert alert-warning mb-2">
+                            <strong><i class="fas fa-clock me-1"></i>{{ hardware_warranties.upcoming|length }} Expiring Soon</strong>
+                        </div>
+                        <div style="max-height: 200px; overflow-y: auto;">
+                            {% for entry in hardware_warranties.upcoming %}
+                            <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                                <div class="flex-grow-1">
+                                    <a href="{% url 'hardware:hardware_detail' entry.id %}" class="fw-semibold text-decoration-none small">{{ entry.name }}</a>
+                                    <div class="text-muted" style="font-size: 0.75rem;">{{ entry.asset_tag }}</div>
+                                </div>
+                                <span class="badge bg-warning text-dark ms-2">{{ entry.days_remaining }}d left</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        
+                        {% if not hardware_warranties.overdue and not hardware_warranties.upcoming %}
+                        <p class="text-muted mb-0 text-center"><i class="fas fa-check-circle text-success me-2"></i>No warranty concerns</p>
                         {% endif %}
                     </div>
                 </div>
             </div>
             <div class="col-xl-6">
                 <div class="card shadow-sm border-0 h-100">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 fw-bold text-primary">Hardware Alerts</h6>
+                    <div class="card-header py-3 bg-info-subtle">
+                        <h6 class="m-0 fw-bold text-info"><i class="fas fa-tools me-2"></i>Patch Management Exceptions</h6>
                     </div>
                     <div class="card-body">
-                        <h6 class="text-danger text-uppercase small">Overdue Warranties</h6>
-                        {% if hardware_warranties.overdue %}
-                        <ul class="list-group list-group-flush mb-3">
-                            {% for entry in hardware_warranties.overdue %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    <a href="{% url 'hardware:hardware_detail' entry.id %}" class="fw-semibold text-decoration-none">{{ entry.name }}</a>
-                                    <div class="text-muted small">{{ entry.asset_tag }}{% if entry.department %} · {{ entry.department }}{% endif %}</div>
-                                </div>
-                                <div class="text-end">
-                                    <span class="badge bg-danger-subtle text-danger">{{ entry.overdue_days }}d</span>
-                                    <div class="small text-muted">{{ entry.warranty_expiration|date:"M d, Y" }}</div>
-                                </div>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                        {% else %}
-                        <p class="text-muted mb-3">No overdue warranties detected.</p>
-                        {% endif %}
-
-                        <h6 class="text-warning text-uppercase small">Patch Exceptions</h6>
                         {% if hardware_patch_exceptions %}
-                        <ul class="list-group list-group-flush">
+                        <div class="alert alert-info mb-3">
+                            <strong><i class="fas fa-info-circle me-1"></i>{{ hardware_patch_exceptions|length }} Assets Require Manual Updates</strong>
+                        </div>
+                        <div style="max-height: 420px; overflow-y: auto;">
                             {% for asset in hardware_patch_exceptions %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    <a href="{% url 'hardware:hardware_detail' asset.id %}" class="fw-semibold text-decoration-none">{{ asset.name }}</a>
-                                    <div class="text-muted small">{{ asset.asset_tag }}{% if asset.department %} · {{ asset.department }}{% endif %}</div>
+                            <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                                <div class="flex-grow-1">
+                                    <a href="{% url 'hardware:hardware_detail' asset.id %}" class="fw-semibold text-decoration-none small">{{ asset.name }}</a>
+                                    <div class="text-muted" style="font-size: 0.75rem;">
+                                        {{ asset.asset_tag }}
+                                        {% if asset.department %}<span class="mx-1">·</span>{{ asset.department }}{% endif %}
+                                    </div>
                                 </div>
-                                <div class="text-end">
+                                <div class="text-end ms-2">
                                     <span class="badge bg-{{ asset.status_badge }}">{{ asset.status }}</span>
                                     <div class="small text-muted">{{ asset.systems_count }} system{{ asset.systems_count|pluralize }}</div>
                                 </div>
-                            </li>
+                            </div>
                             {% endfor %}
-                        </ul>
+                        </div>
                         {% else %}
-                        <p class="text-muted mb-0">All hardware assets are enrolled in patch management.</p>
+                        <p class="text-muted mb-0 text-center"><i class="fas fa-check-circle text-success me-2"></i>All assets enrolled in patch management</p>
                         {% endif %}
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- Activity & Requests -->
         <div class="row g-3 mb-4">
-            <div class="col-xl-4">
+            <div class="col-xl-8">
                 <div class="card shadow-sm border-0 h-100">
                     <div class="card-header py-3">
-                        <h6 class="m-0 fw-bold text-primary">Pending Access Requests</h6>
-                    </div>
-                    <div class="card-body">
-                        {% if pending_requests %}
-                        <ul class="list-group list-group-flush">
-                            {% for request in pending_requests %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    <div class="fw-semibold">{{ request.user_name }}</div>
-                                    <div class="text-muted small">{{ request.system_name }}</div>
-                                </div>
-                                <div class="text-end">
-                                    <span class="badge bg-{{ request.priority_badge }}">{{ request.priority }}</span>
-                                    <div class="small text-muted">{{ request.submitted|date:"M d, Y H:i" }}</div>
-                                </div>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                        {% else %}
-                        <p class="text-muted mb-0">No pending access requests at this time.</p>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-4">
-                <div class="card shadow-sm border-0 h-100">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 fw-bold text-primary">Recent Activity</h6>
+                        <h6 class="m-0 fw-bold text-primary"><i class="fas fa-clock-rotate-left me-2"></i>Recent Activity</h6>
                     </div>
                     <div class="card-body">
                         {% if recent_activity %}
-                        <ul class="list-group list-group-flush">
+                        <div class="row">
                             {% for item in recent_activity %}
-                            <li class="list-group-item">
-                                <div class="d-flex align-items-center">
-                                    <span class="badge rounded-pill bg-primary-subtle text-primary me-3">
+                            <div class="col-md-6 mb-2">
+                                <div class="d-flex align-items-start p-2 rounded hover-bg-light">
+                                    <span class="badge rounded-circle bg-primary-subtle text-primary me-2 p-2">
                                         <i class="fas fa-{{ item.icon }}"></i>
                                     </span>
-                                    <div>
+                                    <div class="flex-grow-1">
                                         <div class="small fw-semibold">{{ item.title }}</div>
-                                        <div class="text-muted small">{{ item.timestamp|date:"M d, Y H:i" }}</div>
+                                        <div class="text-muted" style="font-size: 0.75rem;">{{ item.timestamp|date:"M d, Y H:i" }}</div>
                                     </div>
                                 </div>
-                            </li>
+                            </div>
                             {% endfor %}
-                        </ul>
+                        </div>
                         {% else %}
-                        <p class="text-muted mb-0">No recent activity recorded.</p>
+                        <p class="text-muted mb-0 text-center">No recent activity recorded.</p>
                         {% endif %}
                     </div>
                 </div>
             </div>
             <div class="col-xl-4">
                 <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header py-3 {% if stats.pending_requests > 0 %}bg-warning-subtle{% endif %}">
+                        <h6 class="m-0 fw-bold {% if stats.pending_requests > 0 %}text-warning{% else %}text-primary{% endif %}">
+                            <i class="fas fa-hourglass-half me-2"></i>Pending Requests
+                            {% if stats.pending_requests > 0 %}<span class="badge bg-warning text-dark ms-2">{{ stats.pending_requests }}</span>{% endif %}
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        {% if pending_requests %}
+                        <div style="max-height: 300px; overflow-y: auto;">
+                            {% for request in pending_requests %}
+                            <div class="mb-2 pb-2 border-bottom">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <div class="fw-semibold small">{{ request.user_name }}</div>
+                                        <div class="text-muted" style="font-size: 0.75rem;">{{ request.system_name }}</div>
+                                    </div>
+                                    <span class="badge bg-{{ request.priority_badge }} ms-2">{{ request.priority }}</span>
+                                </div>
+                                <div class="text-muted mt-1" style="font-size: 0.7rem;">{{ request.submitted|date:"M d, Y H:i" }}</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-muted mb-0 text-center"><i class="fas fa-check-circle text-success me-2"></i>All requests processed</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Insights -->
+        <div class="row g-3 mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm border-0">
                     <div class="card-header py-3">
-                        <h6 class="m-0 fw-bold text-primary">Top Systems with Hardware</h6>
+                        <h6 class="m-0 fw-bold text-primary"><i class="fas fa-server me-2"></i>Top Systems with Hardware</h6>
                     </div>
                     <div class="card-body">
                         {% if hardware_top_systems %}
-                        <ul class="list-group list-group-flush">
+                        <div class="row">
                             {% for system in hardware_top_systems %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    <a href="{% url 'systems:system_detail' system.id %}" class="fw-semibold text-decoration-none">{{ system.name }}</a>
-                                    <div class="text-muted small">Code: {{ system.code }}</div>
+                            <div class="col-md-6 col-lg-4 col-xl-2-4 mb-3">
+                                <div class="border rounded p-3 h-100">
+                                    <a href="{% url 'systems:system_detail' system.id %}" class="fw-semibold text-decoration-none d-block mb-1">{{ system.name }}</a>
+                                    <div class="text-muted small mb-2">Code: {{ system.code }}</div>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="badge bg-primary-subtle text-primary">{{ system.hardware_count }} Assets</span>
+                                        <span class="badge bg-success-subtle text-success">{{ system.active_assignments }} Users</span>
+                                    </div>
                                 </div>
-                                <div class="text-end">
-                                    <span class="badge bg-primary-subtle text-primary">{{ system.hardware_count }} HW</span>
-                                    <div class="small text-muted">{{ system.active_assignments }} active users</div>
-                                </div>
-                            </li>
+                            </div>
                             {% endfor %}
-                        </ul>
+                        </div>
                         {% else %}
-                        <p class="text-muted mb-0">No systems have hardware mapped yet.</p>
+                        <p class="text-muted mb-0 text-center">No systems have hardware mapped yet.</p>
                         {% endif %}
                     </div>
                 </div>
@@ -391,136 +365,64 @@
         <div class="row g-3" id="quick-actions">
             <div class="col-12">
                 <div class="card shadow-sm border-0">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 fw-bold text-primary">Quick Actions</h6>
+                    <div class="card-header py-3 bg-primary text-white">
+                        <h5 class="m-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
                     </div>
                     <div class="card-body">
                         <div class="row g-3">
-                            <div class="col-md-6 col-xl-4 col-xxl-3">
-                                <div class="card shadow-sm border-0 h-100">
-                                    <div class="card-body d-flex flex-column">
-                                        <div class="d-flex align-items-center mb-3">
-                                            <span class="badge rounded-circle bg-light text-primary border me-3 p-3">
-                                                <i class="fas fa-users"></i>
-                                            </span>
-                                            <div>
-                                                <p class="text-uppercase text-muted small mb-0">Directory</p>
-                                                <h6 class="mb-0">Manage Users</h6>
-                                            </div>
-                                        </div>
-                                        <p class="text-muted small flex-grow-1 mb-0">
-                                            Review accounts and toggle the "Exclude from metrics" flag for service or super users.
-                                        </p>
-                                        <div class="d-grid mt-3">
-                                            <a href="{% url 'accounts:user_list' %}" class="btn btn-sm btn-primary">Open User List</a>
-                                        </div>
+                            <div class="col-md-4 col-lg-3 col-xl-2">
+                                <a href="{% url 'accounts:user_list' %}" class="text-decoration-none">
+                                    <div class="text-center p-3 rounded border hover-shadow transition">
+                                        <div class="fs-2 text-primary mb-2"><i class="fas fa-users"></i></div>
+                                        <div class="fw-bold small">Users</div>
+                                        <div class="text-muted" style="font-size: 0.7rem;">Manage Directory</div>
                                     </div>
-                                </div>
+                                </a>
                             </div>
-                            <div class="col-md-6 col-xl-4 col-xxl-3">
-                                <div class="card shadow-sm border-0 h-100">
-                                    <div class="card-body d-flex flex-column">
-                                        <div class="d-flex align-items-center mb-3">
-                                            <span class="badge rounded-circle bg-light text-success border me-3 p-3">
-                                                <i class="fas fa-clipboard-check"></i>
-                                            </span>
-                                            <div>
-                                                <p class="text-uppercase text-muted small mb-0">Access</p>
-                                                <h6 class="mb-0">Manage Assignments</h6>
-                                            </div>
-                                        </div>
-                                        <p class="text-muted small flex-grow-1 mb-0">
-                                            Triage pending approvals, revoke stale access, and audit active assignments.
-                                        </p>
-                                        <div class="d-grid mt-3">
-                                            <a href="{% url 'access_management:access_assignment_list' %}" class="btn btn-sm btn-success">Review Access</a>
-                                        </div>
+                            <div class="col-md-4 col-lg-3 col-xl-2">
+                                <a href="{% url 'access_management:access_assignment_list' %}" class="text-decoration-none">
+                                    <div class="text-center p-3 rounded border hover-shadow transition">
+                                        <div class="fs-2 text-success mb-2"><i class="fas fa-key"></i></div>
+                                        <div class="fw-bold small">Access</div>
+                                        <div class="text-muted" style="font-size: 0.7rem;">Manage Assignments</div>
                                     </div>
-                                </div>
+                                </a>
                             </div>
-                            <div class="col-md-6 col-xl-4 col-xxl-3">
-                                <div class="card shadow-sm border-0 h-100">
-                                    <div class="card-body d-flex flex-column">
-                                        <div class="d-flex align-items-center mb-3">
-                                            <span class="badge rounded-circle bg-light text-warning border me-3 p-3">
-                                                <i class="fas fa-calendar-check"></i>
-                                            </span>
-                                            <div>
-                                                <p class="text-uppercase text-muted small mb-0">Reviews</p>
-                                                <h6 class="mb-0">Quarterly Access</h6>
-                                            </div>
-                                        </div>
-                                        <p class="text-muted small flex-grow-1 mb-0">
-                                            Launch quarterly reviews to keep compliance targets on track.
-                                        </p>
-                                        <div class="d-grid mt-3">
-                                            <a href="{% url 'access_management:quarterly_access_review_dashboard' %}" class="btn btn-sm btn-warning text-white">Open Review Hub</a>
-                                        </div>
+                            <div class="col-md-4 col-lg-3 col-xl-2">
+                                <a href="{% url 'access_management:quarterly_access_review_dashboard' %}" class="text-decoration-none">
+                                    <div class="text-center p-3 rounded border hover-shadow transition">
+                                        <div class="fs-2 text-warning mb-2"><i class="fas fa-calendar-check"></i></div>
+                                        <div class="fw-bold small">Reviews</div>
+                                        <div class="text-muted" style="font-size: 0.7rem;">Quarterly Access</div>
                                     </div>
-                                </div>
+                                </a>
                             </div>
-                            <div class="col-md-6 col-xl-4 col-xxl-3">
-                                <div class="card shadow-sm border-0 h-100">
-                                    <div class="card-body d-flex flex-column">
-                                        <div class="d-flex align-items-center mb-3">
-                                            <span class="badge rounded-circle bg-light text-info border me-3 p-3">
-                                                <i class="fas fa-desktop"></i>
-                                            </span>
-                                            <div>
-                                                <p class="text-uppercase text-muted small mb-0">Hardware</p>
-                                                <h6 class="mb-0">Inventory Overview</h6>
-                                            </div>
-                                        </div>
-                                        <p class="text-muted small flex-grow-1 mb-0">
-                                            View assigned devices, lifecycle state, and patch requirements.
-                                        </p>
-                                        <div class="d-grid mt-3">
-                                            <a href="{% url 'hardware:hardware_list' %}" class="btn btn-sm btn-info text-white">Open Inventory</a>
-                                        </div>
+                            <div class="col-md-4 col-lg-3 col-xl-2">
+                                <a href="{% url 'hardware:hardware_list' %}" class="text-decoration-none">
+                                    <div class="text-center p-3 rounded border hover-shadow transition">
+                                        <div class="fs-2 text-info mb-2"><i class="fas fa-desktop"></i></div>
+                                        <div class="fw-bold small">Hardware</div>
+                                        <div class="text-muted" style="font-size: 0.7rem;">Inventory</div>
                                     </div>
-                                </div>
+                                </a>
                             </div>
-                            <div class="col-md-6 col-xl-4 col-xxl-3">
-                                <div class="card shadow-sm border-0 h-100">
-                                    <div class="card-body d-flex flex-column">
-                                        <div class="d-flex align-items-center mb-3">
-                                            <span class="badge rounded-circle bg-light text-primary border me-3 p-3">
-                                                <i class="fas fa-chart-column"></i>
-                                            </span>
-                                            <div>
-                                                <p class="text-uppercase text-muted small mb-0">Reporting</p>
-                                                <h6 class="mb-0">Hardware Reports</h6>
-                                            </div>
-                                        </div>
-                                        <p class="text-muted small flex-grow-1 mb-0">
-                                            Download warranty, lifecycle, and ownership analytics for audits.
-                                        </p>
-                                        <div class="d-grid mt-3">
-                                            <a href="{% url 'hardware_inventory_report' %}" class="btn btn-sm btn-outline-primary">Run Report</a>
-                                        </div>
+                            <div class="col-md-4 col-lg-3 col-xl-2">
+                                <a href="{% url 'hardware_inventory_report' %}" class="text-decoration-none">
+                                    <div class="text-center p-3 rounded border hover-shadow transition">
+                                        <div class="fs-2 text-primary mb-2"><i class="fas fa-chart-bar"></i></div>
+                                        <div class="fw-bold small">Reports</div>
+                                        <div class="text-muted" style="font-size: 0.7rem;">Generate Analytics</div>
                                     </div>
-                                </div>
+                                </a>
                             </div>
-                            <div class="col-md-6 col-xl-4 col-xxl-3">
-                                <div class="card shadow-sm border-0 h-100">
-                                    <div class="card-body d-flex flex-column">
-                                        <div class="d-flex align-items-center mb-3">
-                                            <span class="badge rounded-circle bg-light text-secondary border me-3 p-3">
-                                                <i class="fas fa-exchange-alt"></i>
-                                            </span>
-                                            <div>
-                                                <p class="text-uppercase text-muted small mb-0">Data</p>
-                                                <h6 class="mb-0">Import / Export</h6>
-                                            </div>
-                                        </div>
-                                        <p class="text-muted small flex-grow-1 mb-0">
-                                            Load new systems or export authoritative records for downstream systems.
-                                        </p>
-                                        <div class="d-grid mt-3">
-                                            <a href="{% url 'data_import_export:home' %}" class="btn btn-sm btn-outline-secondary">Open Workspace</a>
-                                        </div>
+                            <div class="col-md-4 col-lg-3 col-xl-2">
+                                <a href="{% url 'data_import_export:home' %}" class="text-decoration-none">
+                                    <div class="text-center p-3 rounded border hover-shadow transition">
+                                        <div class="fs-2 text-secondary mb-2"><i class="fas fa-exchange-alt"></i></div>
+                                        <div class="fw-bold small">Import/Export</div>
+                                        <div class="text-muted" style="font-size: 0.7rem;">Data Management</div>
                                     </div>
-                                </div>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -529,6 +431,24 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extracss %}
+<style>
+    .hover-shadow {
+        transition: all 0.3s ease;
+    }
+    .hover-shadow:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        transform: translateY(-2px);
+    }
+    .transition {
+        transition: all 0.3s ease;
+    }
+    .hover-bg-light:hover {
+        background-color: #f8f9fa;
+    }
+</style>
 {% endblock %}
 
 {% block extrajs %}
