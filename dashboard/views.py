@@ -177,6 +177,14 @@ def dashboard_home(request):
     reportable_users = User.objects.included_in_metrics()
     total_users = reportable_users.count()
     active_users = reportable_users.filter(is_active=True).count()
+
+    all_users = User.objects.all()
+    total_user_population = all_users.count()
+    excluded_users_count = all_users.filter(exclude_from_metrics=True).count()
+    total_active_users = reportable_users.filter(is_active=True).count()
+    total_inactive_users = reportable_users.filter(is_active=False).count()
+    no_department_users = reportable_users.filter(department__isnull=True).count()
+    follow_up_users = reportable_users.filter(flag_for_follow_up=True).count()
     total_systems = System.objects.count()
     active_systems = System.objects.filter(is_active=True).count()
     total_departments = Department.objects.count()
@@ -364,11 +372,61 @@ def dashboard_home(request):
             'active_assignments': system.active_assignments,
         })
 
+    user_kpis = [
+        {
+            'label': 'Reportable Users',
+            'value': total_users,
+            'badge': 'primary',
+            'description': 'Included in dashboard metrics',
+        },
+        {
+            'label': 'Active Reportable Users',
+            'value': active_users,
+            'badge': 'success',
+            'description': 'Reportable accounts currently active',
+        },
+        {
+            'label': 'Excluded from Metrics',
+            'value': excluded_users_count,
+            'badge': 'secondary',
+            'description': 'Users flagged to be ignored in totals',
+        },
+        {
+            'label': 'Active',
+            'value': total_active_users,
+            'badge': 'info',
+            'description': 'All user accounts marked active',
+        },
+        {
+            'label': 'Inactive',
+            'value': total_inactive_users,
+            'badge': 'warning',
+            'description': 'All user accounts marked inactive',
+        },
+        {
+            'label': 'No Department',
+            'value': no_department_users,
+            'badge': 'danger',
+            'description': 'Users missing department assignment',
+        },
+        {
+            'label': 'Need Follow-up',
+            'value': follow_up_users,
+            'badge': 'dark',
+            'description': 'Flagged for manual review',
+        },
+    ]
+
     context = {
         'title': 'Dashboard',
         'stats': {
             'total_users': total_users,
             'active_users': active_users,
+            'excluded_users': excluded_users_count,
+            'all_active_users': total_active_users,
+            'all_inactive_users': total_inactive_users,
+            'no_department_users': no_department_users,
+            'follow_up_users': follow_up_users,
             'total_systems': total_systems,
             'active_systems': active_systems,
             'total_hardware': hardware_counts['total'],
@@ -380,6 +438,7 @@ def dashboard_home(request):
             'virtual_assets': hardware_counts['virtual'],
             'suspicious_activities': suspicious_activities,
         },
+        'user_kpis': user_kpis,
         'hardware_counts': hardware_counts,
         'recent_activity': formatted_activities,
         'pending_requests': formatted_requests,

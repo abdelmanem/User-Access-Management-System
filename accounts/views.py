@@ -78,7 +78,6 @@ def user_list(request):
         users_qs = users_qs.filter(flag_for_follow_up=True)
     elif follow_up == 'unflagged':
         users_qs = users_qs.filter(flag_for_follow_up=False)
-    metrics_counts_qs = users_qs
     if metrics_filter == 'included':
         users_qs = users_qs.filter(exclude_from_metrics=False)
     elif metrics_filter == 'excluded':
@@ -109,12 +108,63 @@ def user_list(request):
     users_qs = users_qs.order_by(order_field, 'id')
 
     total_count = users_qs.count()
-    active_count = users_qs.filter(is_active=True).count()
-    inactive_count = total_count - active_count
-    no_department_count = users_qs.filter(department__isnull=True).count()
-    follow_up_count = users_qs.filter(flag_for_follow_up=True).count()
-    excluded_count = metrics_counts_qs.filter(exclude_from_metrics=True).count()
-    included_count = metrics_counts_qs.filter(exclude_from_metrics=False).count()
+    reportable_kpi_qs = users_qs.filter(exclude_from_metrics=False)
+    excluded_kpi_qs = users_qs.filter(exclude_from_metrics=True)
+
+    included_count = reportable_kpi_qs.count()
+    excluded_count = excluded_kpi_qs.count()
+    active_reportable_count = reportable_kpi_qs.filter(is_active=True).count()
+    inactive_reportable_count = reportable_kpi_qs.filter(is_active=False).count()
+    no_department_count = reportable_kpi_qs.filter(department__isnull=True).count()
+    follow_up_count = reportable_kpi_qs.filter(flag_for_follow_up=True).count()
+
+    active_count = active_reportable_count
+    inactive_count = inactive_reportable_count
+
+    user_kpis = [
+        {
+            'label': 'Reportable Users',
+            'value': included_count,
+            'badge': 'primary',
+            'description': 'Included in KPI metrics',
+        },
+        {
+            'label': 'Active Reportable Users',
+            'value': active_reportable_count,
+            'badge': 'success',
+            'description': 'Reportable accounts currently active',
+        },
+        {
+            'label': 'Excluded from Metrics',
+            'value': excluded_count,
+            'badge': 'secondary',
+            'description': 'Users intentionally excluded from reporting',
+        },
+        {
+            'label': 'Active',
+            'value': active_count,
+            'badge': 'info',
+            'description': 'All users marked active in this view',
+        },
+        {
+            'label': 'Inactive',
+            'value': inactive_count,
+            'badge': 'warning',
+            'description': 'All users marked inactive in this view',
+        },
+        {
+            'label': 'No Department',
+            'value': no_department_count,
+            'badge': 'danger',
+            'description': 'Users missing department assignment',
+        },
+        {
+            'label': 'Need Follow-up',
+            'value': follow_up_count,
+            'badge': 'dark',
+            'description': 'Flagged for manual review',
+        },
+    ]
 
     if paginate:
         paginator = Paginator(users_qs, page_size)  # type: ignore[arg-type]
@@ -154,6 +204,8 @@ def user_list(request):
         'follow_up_count': follow_up_count,
         'excluded_count': excluded_count,
         'included_count': included_count,
+        'active_reportable_count': active_reportable_count,
+        'user_kpis': user_kpis,
     })
 
 
