@@ -25,11 +25,13 @@ class CustomUserAdmin(BaseUserAdmin):
     # List display configuration
     list_display = [
         'username', 'full_name', 'employee_id', 'department', 'position',
-        'employment_status', 'is_active', 'flag_for_follow_up', 'created_at', 'last_login'
+        'employment_status', 'is_active', 'flag_for_follow_up', 'exclude_from_metrics',
+        'created_at', 'last_login'
     ]
     
     list_filter = [
-        'is_active', 'flag_for_follow_up', 'employment_status', 'department', 'employment_type',
+        'is_active', 'flag_for_follow_up', 'exclude_from_metrics',
+        'employment_status', 'department', 'employment_type',
         'is_staff', 'is_superuser', 'created_at', 'last_login'
     ]
     
@@ -71,6 +73,9 @@ class CustomUserAdmin(BaseUserAdmin):
         }),
         ('Profile & Media', {
             'fields': ('profile_photo', 'profile_photo_preview')
+        }),
+        ('Monitoring & Metrics', {
+            'fields': ('flag_for_follow_up', 'exclude_from_metrics')
         }),
         ('AD Integration', {
             'fields': (

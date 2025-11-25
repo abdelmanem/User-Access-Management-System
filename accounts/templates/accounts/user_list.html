@@ -21,12 +21,20 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        <div class="row row-cols-1 row-cols-md-5 g-3 mb-4">
+                        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-6 g-3 mb-4">
                             <div class="col">
                                 <div class="card border-primary h-100">
                                     <div class="card-body text-primary">
-                                        <h6 class="card-subtitle text-uppercase fw-semibold mb-1">Total Users</h6>
-                                        <h3 class="card-title mb-0">{{ total_count }}</h3>
+                                        <h6 class="card-subtitle text-uppercase fw-semibold mb-1">Reportable Users</h6>
+                                        <h3 class="card-title mb-0">{{ included_count }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="card border-secondary h-100">
+                                    <div class="card-body text-secondary">
+                                        <h6 class="card-subtitle text-uppercase fw-semibold mb-1">Excluded from Metrics</h6>
+                                        <h3 class="card-title mb-0">{{ excluded_count }}</h3>
                                     </div>
                                 </div>
                             </div>
@@ -88,6 +96,14 @@
                                     </select>
                                 </div>
                                 <div class="col-md-3">
+                                    <label for="metrics" class="form-label">Metric visibility</label>
+                                    <select id="metrics" name="metrics" class="form-select">
+                                        <option value="" {% if not metrics %}selected{% endif %}>All users</option>
+                                        <option value="included" {% if metrics == 'included' %}selected{% endif %}>Reportable only</option>
+                                        <option value="excluded" {% if metrics == 'excluded' %}selected{% endif %}>Excluded only</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
                                     <label for="department" class="form-label">Department</label>
                                     <select id="department" name="department" class="form-select">
                                         <option value="">All</option>
@@ -116,6 +132,7 @@
                             <input type="hidden" name="status" value="{{ status }}">
                             <input type="hidden" name="department" value="{{ department_selected }}">
                             <input type="hidden" name="follow_up" value="{{ follow_up }}">
+                            <input type="hidden" name="metrics" value="{{ metrics }}">
                             <input type="hidden" name="page_size" value="{{ page_size }}">
                             <input type="hidden" name="sort" value="{{ current_sort }}">
                             <input type="hidden" name="dir" value="{{ current_dir }}">
@@ -223,6 +240,14 @@
                                         </a>
                                     </th>
                                     <th>
+                                        <a href="?{% if base_query %}{{ base_query }}&{% endif %}sort=metrics&dir={% if current_sort == 'metrics' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
+                                            Metrics
+                                            {% if current_sort == 'metrics' %}
+                                                <span class="ms-1">{% if current_dir == 'asc' %}▲{% else %}▼{% endif %}</span>
+                                            {% endif %}
+                                        </a>
+                                    </th>
+                                    <th>
                                         <a href="?{% if base_query %}{{ base_query }}&{% endif %}sort=status&dir={% if current_sort == 'status' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
                                             Status
                                             {% if current_sort == 'status' %}
@@ -257,6 +282,13 @@
                                             <span class="badge bg-warning text-dark"><i class="fas fa-flag"></i> Follow-up</span>
                                         {% else %}
                                             <span class="text-muted">&mdash;</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if user.exclude_from_metrics %}
+                                            <span class="badge bg-secondary">Excluded</span>
+                                        {% else %}
+                                            <span class="badge bg-success">Reportable</span>
                                         {% endif %}
                                     </td>
                                     <td>
@@ -320,6 +352,19 @@
                                             {% else %}
                                             <button type="submit" class="btn btn-outline-warning btn-sm">
                                                 <i class="fas fa-flag"></i> Flag follow-up
+                                            </button>
+                                            {% endif %}
+                                        </form>
+                                        <form action="{% url 'accounts:user_toggle_metrics' user.id %}" method="post" class="d-inline ms-1">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                            {% if user.exclude_from_metrics %}
+                                            <button type="submit" class="btn btn-outline-secondary btn-sm">
+                                                <i class="fas fa-chart-line"></i> Include in metrics
+                                            </button>
+                                            {% else %}
+                                            <button type="submit" class="btn btn-secondary btn-sm">
+                                                <i class="fas fa-chart-line"></i> Exclude from metrics
                                             </button>
                                             {% endif %}
                                         </form>

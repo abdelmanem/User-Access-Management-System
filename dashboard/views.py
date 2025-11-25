@@ -173,9 +173,10 @@ def run_active_directory_sync(ad_setting: ApplicationSetting, user) -> dict:
 def dashboard_home(request):
     """Main dashboard view with overview statistics."""
     
-    # Get basic statistics
-    total_users = User.objects.count()
-    active_users = User.objects.filter(is_active=True).count()
+    # Get basic statistics (exclude non-reportable accounts)
+    reportable_users = User.objects.included_in_metrics()
+    total_users = reportable_users.count()
+    active_users = reportable_users.filter(is_active=True).count()
     total_systems = System.objects.count()
     active_systems = System.objects.filter(is_active=True).count()
     total_departments = Department.objects.count()
@@ -839,11 +840,22 @@ def generate_user_access_report(request):
     
     # Get department access distribution
     department_queryset = Department.objects.annotate(
-        total_users=Count('department_members', distinct=True),
-        total_access=Count('department_members__system_accesses', distinct=True),
+        total_users=Count(
+            'department_members',
+            filter=Q(department_members__exclude_from_metrics=False),
+            distinct=True
+        ),
+        total_access=Count(
+            'department_members__system_accesses',
+            filter=Q(department_members__exclude_from_metrics=False),
+            distinct=True
+        ),
         active_access=Count(
             'department_members__system_accesses',
-            filter=Q(department_members__system_accesses__status='Active'),
+            filter=Q(
+                department_members__exclude_from_metrics=False,
+                department_members__system_accesses__status='Active'
+            ),
             distinct=True
         )
     ).order_by('-total_access')
@@ -1097,15 +1109,17 @@ def generate_security_audit_report(request):
     # Compliance metrics
     compliance_metrics = {
         'total_users_with_access': UserSystemAccess.objects.filter(
-            status='Active'
+            status='Active',
+            user__exclude_from_metrics=False
         ).values('user').distinct().count(),
         'users_with_expired_access': UserSystemAccess.objects.filter(
-            status='Expired'
+            status='Expired',
+            user__exclude_from_metrics=False
         ).values('user').distinct().count(),
         'pending_reviews': UserSystemAccess.objects.filter(
             next_review_date__lte=timezone.now().date()
         ).count(),
-        'users_without_recent_activity': User.objects.exclude(
+        'users_without_recent_activity': User.objects.included_in_metrics().exclude(
             id__in=AccessHistory.objects.filter(
                 accessed_at__date__gte=timezone.now().date() - timedelta(days=90)
             ).values('user_id')
@@ -1146,21 +1160,38 @@ def generate_department_access_report(request):
     
     # Get department statistics
     departments = Department.objects.annotate(
-        total_members=Count('department_members', distinct=True),
-        active_members=Count(
+        total_members=Count(
             'department_members',
-            filter=Q(department_members__is_active=True),
+            filter=Q(department_members__exclude_from_metrics=False),
             distinct=True
         ),
-        total_access=Count('department_members__system_accesses', distinct=True),
+        active_members=Count(
+            'department_members',
+            filter=Q(
+                department_members__exclude_from_metrics=False,
+                department_members__is_active=True
+            ),
+            distinct=True
+        ),
+        total_access=Count(
+            'department_members__system_accesses',
+            filter=Q(department_members__exclude_from_metrics=False),
+            distinct=True
+        ),
         active_access=Count(
             'department_members__system_accesses',
-            filter=Q(department_members__system_accesses__status='Active'),
+            filter=Q(
+                department_members__exclude_from_metrics=False,
+                department_members__system_accesses__status='Active'
+            ),
             distinct=True
         ),
         pending_requests=Count(
             'department_members__system_accesses',
-            filter=Q(department_members__system_accesses__status='Pending'),
+            filter=Q(
+                department_members__exclude_from_metrics=False,
+                department_members__system_accesses__status='Pending'
+            ),
             distinct=True
         )
     ).order_by('-total_members')
@@ -1397,9 +1428,10 @@ def api_dashboard_data(request):
     """API endpoint for dashboard data (for AJAX updates)."""
     
     # Get real-time statistics
+    reportable_users = User.objects.included_in_metrics()
     stats = {
-        'total_users': User.objects.count(),
-        'active_users': User.objects.filter(is_active=True).count(),
+        'total_users': reportable_users.count(),
+        'active_users': reportable_users.filter(is_active=True).count(),
         'total_systems': System.objects.count(),
         'active_systems': System.objects.filter(is_active=True).count(),
         'total_departments': Department.objects.count(),

@@ -68,9 +68,10 @@ class DashboardAdminSite(admin.AdminSite):
     
     def get_dashboard_stats(self):
         now = timezone.now()
+        reportable_users = CustomUser.objects.included_in_metrics()
         return {
-            'total_users': CustomUser.objects.count(),
-            'active_users': CustomUser.objects.filter(is_active=True).count(),
+            'total_users': reportable_users.count(),
+            'active_users': reportable_users.filter(is_active=True).count(),
             'total_systems': System.objects.filter(is_active=True).count(),
             'total_departments': Department.objects.filter(is_active=True).count(),
             'active_access': UserSystemAccess.objects.filter(
@@ -128,14 +129,15 @@ class DashboardAdminSite(admin.AdminSite):
         return health_data
     
     def get_user_stats(self):
+        reportable_users = CustomUser.objects.included_in_metrics()
         return {
-            'by_department': CustomUser.objects.values('department__name').annotate(
+            'by_department': reportable_users.values('department__name').annotate(
                 count=Count('id')
             ).order_by('-count')[:5],
-            'by_status': CustomUser.objects.values('employment_status').annotate(
+            'by_status': reportable_users.values('employment_status').annotate(
                 count=Count('id')
             ),
-            'recent_joined': CustomUser.objects.filter(
+            'recent_joined': reportable_users.filter(
                 join_date__gte=timezone.now() - timedelta(days=30)
             ).count(),
         }
@@ -179,7 +181,11 @@ class DashboardAdminSite(admin.AdminSite):
     
     def get_department_stats(self):
         return Department.objects.filter(is_active=True).annotate(
-            user_count=Count('department_members', distinct=True)
+            user_count=Count(
+                'department_members',
+                filter=Q(department_members__exclude_from_metrics=False),
+                distinct=True
+            )
         ).order_by('-user_count')[:10]
     
     def get_security_metrics(self):

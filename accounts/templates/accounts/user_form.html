@@ -234,6 +234,16 @@
                                             </div>
                                             {% if form.is_active.errors %}<div class="invalid-feedback d-block">{{ form.is_active.errors|striptags }}</div>{% endif %}
                                         </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check mt-4">
+                                                {{ form.exclude_from_metrics|add_error_class:"is-invalid"|add_class:"form-check-input" }}
+                                                <label class="form-check-label">
+                                                    Exclude from metrics
+                                                    <small class="text-muted d-block">Removes this user from all total-user counts.</small>
+                                                </label>
+                                            </div>
+                                            {% if form.exclude_from_metrics.errors %}<div class="invalid-feedback d-block">{{ form.exclude_from_metrics.errors|striptags }}</div>{% endif %}
+                                        </div>
                                     </div>
                                 </div>
                             </div>

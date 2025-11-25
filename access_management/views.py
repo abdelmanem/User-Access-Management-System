@@ -473,7 +473,7 @@ def _annual_review_progress(year=None):
     """Return progress metrics for annual user review coverage."""
     now = timezone.now()
     year = year or now.year
-    total_users = CustomUser.objects.filter(is_active=True).count()
+    total_users = CustomUser.objects.included_in_metrics().filter(is_active=True).count()
     reviewed_users = (
         QuarterlyAccessReview.objects.filter(review_date__year=year)
         .values_list('reviewed_user', flat=True)
@@ -2696,7 +2696,7 @@ def cross_system_account_mapping(request):
     page_obj = paginator.get_page(page_number)
     
     # Statistics
-    total_users = users.count()
+    total_users = users.filter(exclude_from_metrics=False).count()
     users_with_access = len(user_system_mapping)
     total_systems = systems.count()
     

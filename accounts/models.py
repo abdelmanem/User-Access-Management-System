@@ -1,11 +1,21 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager
 from django.core.validators import RegexValidator
 from django.utils import timezone
 from departments.models import Department
 import uuid
 from django.core.exceptions import ValidationError
 from PIL import Image, UnidentifiedImageError
+
+
+class CustomUserQuerySet(models.QuerySet):
+    def included_in_metrics(self):
+        """Return users that should be counted in dashboards/metrics."""
+        return self.filter(exclude_from_metrics=False)
+
+
+class CustomUserManager(UserManager.from_queryset(CustomUserQuerySet)):
+    pass
 
 
 class CustomUser(AbstractUser):
@@ -280,6 +290,10 @@ class CustomUser(AbstractUser):
         default=False,
         help_text="Mark when this user needs a manual follow-up"
     )
+    exclude_from_metrics = models.BooleanField(
+        default=False,
+        help_text="Exclude this account from total user counts and dashboards"
+    )
     
     # AD Integration Fields (Future)
     ad_username = models.CharField(
@@ -406,6 +420,8 @@ class CustomUser(AbstractUser):
             next_seq += 1
             candidate = f"{prefix}{next_seq:05d}"
         return candidate
+
+    objects = CustomUserManager()
 
 
 class UserDeactivationAudit(models.Model):

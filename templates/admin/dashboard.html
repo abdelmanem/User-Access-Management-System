@@ -21,6 +21,13 @@
         <div class="d-flex align-items-center mb-4">
             <h1 class="h4 mb-0">{{ title }}</h1>
         </div>
+        <div class="alert alert-info d-flex align-items-center gap-3" role="alert">
+            <i class="fas fa-info-circle fs-4 mb-0"></i>
+            <div class="small mb-0">
+                Dashboard totals exclude accounts marked <strong>Exclude from metrics</strong>. Use the refreshed Quick Actions below to manage which users are counted.
+                <a href="#quick-actions" class="alert-link ms-1">Jump to Quick Actions</a>
+            </div>
+        </div>
 
         <!-- Metric Cards -->
         <div class="row g-3 mb-4">
@@ -28,8 +35,12 @@
                 <div class="card shadow-sm border-0 h-100">
                     <div class="card-body d-flex justify-content-between align-items-center">
                         <div>
-                            <div class="text-uppercase text-muted small">Total Users</div>
+                            <div class="text-uppercase text-muted small d-flex align-items-center gap-2">
+                                Reportable Users
+                                <span class="badge bg-light text-muted border">Excludes flagged</span>
+                            </div>
                             <div class="h4 fw-bold mb-0">{{ stats.total_users }}</div>
+                            <div class="small text-muted">Only users not marked "Exclude from metrics".</div>
                         </div>
                         <span class="text-primary fs-2"><i class="fas fa-users"></i></span>
                     </div>
@@ -39,8 +50,9 @@
                 <div class="card shadow-sm border-0 h-100">
                     <div class="card-body d-flex justify-content-between align-items-center">
                         <div>
-                            <div class="text-uppercase text-muted small">Active Users</div>
+                            <div class="text-uppercase text-muted small">Active Reportable Users</div>
                             <div class="h4 fw-bold mb-0">{{ stats.active_users }}</div>
+                            <div class="small text-muted">Subset of reportable users currently active.</div>
                         </div>
                         <span class="text-success fs-2"><i class="fas fa-user-check"></i></span>
                     </div>
@@ -376,7 +388,7 @@
         </div>
 
         <!-- Quick Actions -->
-        <div class="row g-3">
+        <div class="row g-3" id="quick-actions">
             <div class="col-12">
                 <div class="card shadow-sm border-0">
                     <div class="card-header py-3">
@@ -384,25 +396,131 @@
                     </div>
                     <div class="card-body">
                         <div class="row g-3">
-                            <div class="col-sm-6 col-xl-3">
-                                <a href="{% url 'access_management:access_assignment_list' %}" class="btn btn-primary w-100 h-100">
-                                    <i class="fas fa-tasks me-2"></i> Manage Access
-                                </a>
+                            <div class="col-md-6 col-xl-4 col-xxl-3">
+                                <div class="card shadow-sm border-0 h-100">
+                                    <div class="card-body d-flex flex-column">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <span class="badge rounded-circle bg-light text-primary border me-3 p-3">
+                                                <i class="fas fa-users"></i>
+                                            </span>
+                                            <div>
+                                                <p class="text-uppercase text-muted small mb-0">Directory</p>
+                                                <h6 class="mb-0">Manage Users</h6>
+                                            </div>
+                                        </div>
+                                        <p class="text-muted small flex-grow-1 mb-0">
+                                            Review accounts and toggle the "Exclude from metrics" flag for service or super users.
+                                        </p>
+                                        <div class="d-grid mt-3">
+                                            <a href="{% url 'accounts:user_list' %}" class="btn btn-sm btn-primary">Open User List</a>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="col-sm-6 col-xl-3">
-                                <a href="{% url 'hardware:hardware_list' %}" class="btn btn-info w-100 h-100 text-white">
-                                    <i class="fas fa-desktop me-2"></i> Hardware Inventory
-                                </a>
+                            <div class="col-md-6 col-xl-4 col-xxl-3">
+                                <div class="card shadow-sm border-0 h-100">
+                                    <div class="card-body d-flex flex-column">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <span class="badge rounded-circle bg-light text-success border me-3 p-3">
+                                                <i class="fas fa-clipboard-check"></i>
+                                            </span>
+                                            <div>
+                                                <p class="text-uppercase text-muted small mb-0">Access</p>
+                                                <h6 class="mb-0">Manage Assignments</h6>
+                                            </div>
+                                        </div>
+                                        <p class="text-muted small flex-grow-1 mb-0">
+                                            Triage pending approvals, revoke stale access, and audit active assignments.
+                                        </p>
+                                        <div class="d-grid mt-3">
+                                            <a href="{% url 'access_management:access_assignment_list' %}" class="btn btn-sm btn-success">Review Access</a>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="col-sm-6 col-xl-3">
-                                <a href="{% url 'hardware_inventory_report' %}" class="btn btn-outline-primary w-100 h-100">
-                                    <i class="fas fa-chart-column me-2"></i> Hardware Reports
-                                </a>
+                            <div class="col-md-6 col-xl-4 col-xxl-3">
+                                <div class="card shadow-sm border-0 h-100">
+                                    <div class="card-body d-flex flex-column">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <span class="badge rounded-circle bg-light text-warning border me-3 p-3">
+                                                <i class="fas fa-calendar-check"></i>
+                                            </span>
+                                            <div>
+                                                <p class="text-uppercase text-muted small mb-0">Reviews</p>
+                                                <h6 class="mb-0">Quarterly Access</h6>
+                                            </div>
+                                        </div>
+                                        <p class="text-muted small flex-grow-1 mb-0">
+                                            Launch quarterly reviews to keep compliance targets on track.
+                                        </p>
+                                        <div class="d-grid mt-3">
+                                            <a href="{% url 'access_management:quarterly_access_review_dashboard' %}" class="btn btn-sm btn-warning text-white">Open Review Hub</a>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="col-sm-6 col-xl-3">
-                                <a href="{% url 'data_import_export:home' %}" class="btn btn-outline-secondary w-100 h-100">
-                                    <i class="fas fa-exchange-alt me-2"></i> Data Import/Export
-                                </a>
+                            <div class="col-md-6 col-xl-4 col-xxl-3">
+                                <div class="card shadow-sm border-0 h-100">
+                                    <div class="card-body d-flex flex-column">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <span class="badge rounded-circle bg-light text-info border me-3 p-3">
+                                                <i class="fas fa-desktop"></i>
+                                            </span>
+                                            <div>
+                                                <p class="text-uppercase text-muted small mb-0">Hardware</p>
+                                                <h6 class="mb-0">Inventory Overview</h6>
+                                            </div>
+                                        </div>
+                                        <p class="text-muted small flex-grow-1 mb-0">
+                                            View assigned devices, lifecycle state, and patch requirements.
+                                        </p>
+                                        <div class="d-grid mt-3">
+                                            <a href="{% url 'hardware:hardware_list' %}" class="btn btn-sm btn-info text-white">Open Inventory</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-xl-4 col-xxl-3">
+                                <div class="card shadow-sm border-0 h-100">
+                                    <div class="card-body d-flex flex-column">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <span class="badge rounded-circle bg-light text-primary border me-3 p-3">
+                                                <i class="fas fa-chart-column"></i>
+                                            </span>
+                                            <div>
+                                                <p class="text-uppercase text-muted small mb-0">Reporting</p>
+                                                <h6 class="mb-0">Hardware Reports</h6>
+                                            </div>
+                                        </div>
+                                        <p class="text-muted small flex-grow-1 mb-0">
+                                            Download warranty, lifecycle, and ownership analytics for audits.
+                                        </p>
+                                        <div class="d-grid mt-3">
+                                            <a href="{% url 'hardware_inventory_report' %}" class="btn btn-sm btn-outline-primary">Run Report</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-xl-4 col-xxl-3">
+                                <div class="card shadow-sm border-0 h-100">
+                                    <div class="card-body d-flex flex-column">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <span class="badge rounded-circle bg-light text-secondary border me-3 p-3">
+                                                <i class="fas fa-exchange-alt"></i>
+                                            </span>
+                                            <div>
+                                                <p class="text-uppercase text-muted small mb-0">Data</p>
+                                                <h6 class="mb-0">Import / Export</h6>
+                                            </div>
+                                        </div>
+                                        <p class="text-muted small flex-grow-1 mb-0">
+                                            Load new systems or export authoritative records for downstream systems.
+                                        </p>
+                                        <div class="d-grid mt-3">
+                                            <a href="{% url 'data_import_export:home' %}" class="btn btn-sm btn-outline-secondary">Open Workspace</a>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

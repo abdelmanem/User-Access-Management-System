@@ -44,6 +44,7 @@ def user_list(request):
     dept_id = request.GET.get('department', '').strip()
     follow_up = request.GET.get('follow_up', '').strip()
     page_size_param = request.GET.get('page_size', '').strip().lower()
+    metrics_filter = request.GET.get('metrics', '').strip().lower()
     allowed_page_sizes = [25, 50, 100]
     paginate = True
     if page_size_param == 'all':
@@ -77,6 +78,11 @@ def user_list(request):
         users_qs = users_qs.filter(flag_for_follow_up=True)
     elif follow_up == 'unflagged':
         users_qs = users_qs.filter(flag_for_follow_up=False)
+    metrics_counts_qs = users_qs
+    if metrics_filter == 'included':
+        users_qs = users_qs.filter(exclude_from_metrics=False)
+    elif metrics_filter == 'excluded':
+        users_qs = users_qs.filter(exclude_from_metrics=True)
 
     sort_key = (request.GET.get('sort') or 'full_name').strip()
     sort_dir = (request.GET.get('dir') or 'asc').strip().lower()
@@ -91,6 +97,7 @@ def user_list(request):
         'position': 'position',
         'description': 'description',
         'follow_up': 'flag_for_follow_up',
+        'metrics': 'exclude_from_metrics',
         'notes': 'notes',
         'status': 'is_active',
     }
@@ -106,6 +113,8 @@ def user_list(request):
     inactive_count = total_count - active_count
     no_department_count = users_qs.filter(department__isnull=True).count()
     follow_up_count = users_qs.filter(flag_for_follow_up=True).count()
+    excluded_count = metrics_counts_qs.filter(exclude_from_metrics=True).count()
+    included_count = metrics_counts_qs.filter(exclude_from_metrics=False).count()
 
     if paginate:
         paginator = Paginator(users_qs, page_size)  # type: ignore[arg-type]
@@ -131,6 +140,7 @@ def user_list(request):
         'status': status,
         'department_selected': dept_id,
         'follow_up': follow_up,
+        'metrics': metrics_filter,
         'departments': departments,
         'page_size': page_size_display,
         'allowed_page_sizes': allowed_page_sizes,
@@ -142,6 +152,8 @@ def user_list(request):
         'inactive_count': inactive_count,
         'no_department_count': no_department_count,
         'follow_up_count': follow_up_count,
+        'excluded_count': excluded_count,
+        'included_count': included_count,
     })
 
 
@@ -157,6 +169,7 @@ def _build_filtered_users_queryset(request):
     status = request.GET.get('status', '').strip()
     dept_id = request.GET.get('department', '').strip()
     follow_up = request.GET.get('follow_up', '').strip()
+    metrics_filter = request.GET.get('metrics', '').strip().lower()
     if q:
         users_qs = users_qs.filter(
             Q(username__icontains=q) |
@@ -175,6 +188,10 @@ def _build_filtered_users_queryset(request):
         users_qs = users_qs.filter(flag_for_follow_up=True)
     elif follow_up == 'unflagged':
         users_qs = users_qs.filter(flag_for_follow_up=False)
+    if metrics_filter == 'included':
+        users_qs = users_qs.filter(exclude_from_metrics=False)
+    elif metrics_filter == 'excluded':
+        users_qs = users_qs.filter(exclude_from_metrics=True)
 
     sort_key = (request.GET.get('sort') or 'full_name').strip()
     sort_dir = (request.GET.get('dir') or 'asc').strip().lower()
@@ -188,6 +205,7 @@ def _build_filtered_users_queryset(request):
         'position': 'position',
         'description': 'description',
         'follow_up': 'flag_for_follow_up',
+        'metrics': 'exclude_from_metrics',
         'notes': 'notes',
         'status': 'is_active',
     }
@@ -227,7 +245,17 @@ def _filtered_user_archives(query: str = ''):
 @user_passes_test(lambda u: u.is_staff)
 def user_export_excel(request):
     qs = _build_filtered_users_queryset(request)
-    headers = ['ID', 'Username', 'Full Name', 'Email', 'Department', 'Position', 'Status', 'Follow-up Flag']
+    headers = [
+        'ID',
+        'Username',
+        'Full Name',
+        'Email',
+        'Department',
+        'Position',
+        'Status',
+        'Follow-up Flag',
+        'Excluded from Metrics',
+    ]
     wb = Workbook()
     ws = wb.active
     ws.title = 'Users'
@@ -242,6 +270,7 @@ def user_export_excel(request):
             u.position or '',
             'Active' if u.is_active else 'Inactive',
             'Yes' if u.flag_for_follow_up else 'No',
+            'Yes' if u.exclude_from_metrics else 'No',
         ])
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -255,7 +284,17 @@ def user_export_excel(request):
 @user_passes_test(lambda u: u.is_staff)
 def user_export_pdf(request):
     qs = _build_filtered_users_queryset(request)
-    data = [['ID', 'Username', 'Full Name', 'Email', 'Department', 'Position', 'Status', 'Follow-up Flag']]
+    data = [[
+        'ID',
+        'Username',
+        'Full Name',
+        'Email',
+        'Department',
+        'Position',
+        'Status',
+        'Follow-up Flag',
+        'Excluded from Metrics',
+    ]]
     for u in qs:
         data.append([
             str(u.id),
@@ -266,6 +305,7 @@ def user_export_pdf(request):
             u.position or '',
             'Active' if u.is_active else 'Inactive',
             'Yes' if u.flag_for_follow_up else 'No',
+            'Yes' if u.exclude_from_metrics else 'No',
         ])
     buffer_response = HttpResponse(content_type='application/pdf')
     buffer_response['Content-Disposition'] = 'attachment; filename="users.pdf"'
@@ -736,6 +776,29 @@ def user_toggle_follow_up(request, pk):
         messages.success(request, f"Follow-up flag cleared for {user.get_full_name() or user.username}.")
     return redirect(next_url)
 
+
+@login_required
+@permission_required('accounts.change_customuser', raise_exception=True)
+def user_toggle_metrics(request, pk):
+    user = get_object_or_404(CustomUser, pk=pk)
+    next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or reverse('accounts:user_list')
+
+    if request.method != 'POST':
+        return redirect(next_url)
+
+    user.exclude_from_metrics = not user.exclude_from_metrics
+    update_fields = ['exclude_from_metrics']
+    if hasattr(user, 'updated_by'):
+        user.updated_by = request.user
+        update_fields.append('updated_by')
+    user.save(update_fields=update_fields)
+
+    if user.exclude_from_metrics:
+        messages.success(request, f"{user.get_full_name() or user.username} will be excluded from dashboards and totals.")
+    else:
+        messages.success(request, f"{user.get_full_name() or user.username} is now counted in dashboards and totals.")
+    return redirect(next_url)
+
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def user_bulk_action(request):
@@ -751,6 +814,7 @@ def user_bulk_action(request):
         'status': request.POST.get('status', ''),
         'department': request.POST.get('department', ''),
         'follow_up': request.POST.get('follow_up', ''),
+        'metrics': request.POST.get('metrics', ''),
         'page_size': request.POST.get('page_size', ''),
         'sort': request.POST.get('sort', ''),
         'dir': request.POST.get('dir', ''),

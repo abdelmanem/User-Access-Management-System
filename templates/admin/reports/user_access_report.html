@@ -26,8 +26,12 @@
                     <div class="card shadow-sm border-0 h-100">
                         <div class="card-body d-flex justify-content-between align-items-center">
                             <div>
-                                <div class="text-uppercase text-muted small">Total Users</div>
+                                <div class="text-uppercase text-muted small d-flex align-items-center gap-2">
+                                    Reportable Users
+                                    <span class="badge bg-light text-muted border">Excludes flagged</span>
+                                </div>
                                 <div class="h4 fw-bold mb-0">{{ users.count }}</div>
+                                <div class="small text-muted">Matches dashboard totals.</div>
                             </div>
                             <span class="text-primary fs-3"><i class="fas fa-users"></i></span>
                         </div>
@@ -173,7 +177,7 @@
                         <thead class="table-light">
                             <tr>
                                 <th>Department</th>
-                                <th>Total Users</th>
+                                <th>Reportable Users</th>
                                 <th>Total Access</th>
                                 <th>Active Access</th>
                                 <th>Access per User</th>

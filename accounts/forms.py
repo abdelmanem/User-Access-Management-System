@@ -50,6 +50,7 @@ class UserBaseForm(forms.ModelForm):
             'it_admin_certification_date',
             'it_admin_certified_by',
             'is_active',
+            'exclude_from_metrics',
         ]
 
 
