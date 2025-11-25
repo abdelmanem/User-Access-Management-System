@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+{% load static form_extras %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <div class="container-fluid">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="h4 mb-0">{{ title }}</h1>
+                <p class="text-muted mb-0">Restricted maintenance console &mdash; changes impact every tenant.</p>
+            </div>
+            <span class="badge bg-danger-subtle text-danger fw-semibold">
+                <i class="fa-solid fa-triangle-exclamation me-1"></i> Superuser Access Required
+            </span>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="text-uppercase text-muted small">Directory Sync</div>
+                                <div class="h4 fw-bold mb-0">
+                                    {% if ad_status.enabled %}
+                                        <span class="text-success"><i class="fa-solid fa-circle-check me-1"></i>Enabled</span>
+                                    {% else %}
+                                        <span class="text-danger"><i class="fa-solid fa-circle-xmark me-1"></i>Disabled</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <span class="badge bg-primary-subtle text-primary text-uppercase">AD</span>
+                        </div>
+                        <p class="small text-muted mb-1">Last sync: {{ ad_status.last_sync|default:"Never" }}</p>
+                        <p class="small text-muted mb-0">Frequency: {{ ad_status.sync_frequency|title }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="text-uppercase text-muted small">Audit Trail Retention</div>
+                                <div class="h4 fw-bold mb-0">{{ db_status.retention_days }} days</div>
+                            </div>
+                            <span class="badge bg-warning-subtle text-warning text-uppercase">DB</span>
+                        </div>
+                        <p class="small text-muted mb-1">Last purge: {{ db_status.last_run|default:"Never" }}</p>
+                        <p class="small text-muted mb-0">Rows removed: {{ db_status.last_deleted }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="text-uppercase text-muted small">Seeding Jobs</div>
+                                <div class="h4 fw-bold mb-0">{{ seed_status.created_count }} created</div>
+                            </div>
+                            <span class="badge bg-info-subtle text-info text-uppercase">Seeds</span>
+                        </div>
+                        <p class="small text-muted mb-1">Last scope: {{ seed_status.last_scope|default:"Never" }}</p>
+                        <p class="small text-muted mb-0">Last run: {{ seed_status.last_seed_run|default:"Never" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-xl-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0 fw-bold">Active Directory Integration</h6>
+                            <small class="text-muted">{{ ad_setting.description }}</small>
+                        </div>
+                        <span class="badge bg-primary text-uppercase">Integration</span>
+                    </div>
+                    <div class="card-body">
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="update_ad">
+                            {% if ad_form.non_field_errors %}
+                                <div class="alert alert-danger">{{ ad_form.non_field_errors }}</div>
+                            {% endif %}
+                            <div class="form-check form-switch mb-3">
+                                {{ ad_form.enabled }}
+                                <label class="form-check-label" for="{{ ad_form.enabled.id_for_label }}">Enable directory sync</label>
+                                {% if ad_form.enabled.errors %}<div class="text-danger small">{{ ad_form.enabled.errors|join:", " }}</div>{% endif %}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="{{ ad_form.domain_controller.id_for_label }}">Domain Controller</label>
+                                {{ ad_form.domain_controller|add_class:"form-control" }}
+                                {% if ad_form.domain_controller.errors %}<div class="text-danger small">{{ ad_form.domain_controller.errors|join:", " }}</div>{% endif %}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="{{ ad_form.base_dn.id_for_label }}">Base DN</label>
+                                {{ ad_form.base_dn|add_class:"form-control" }}
+                                {% if ad_form.base_dn.errors %}<div class="text-danger small">{{ ad_form.base_dn.errors|join:", " }}</div>{% endif %}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="{{ ad_form.service_account.id_for_label }}">Service Account</label>
+                                {{ ad_form.service_account|add_class:"form-control" }}
+                                {% if ad_form.service_account.errors %}<div class="text-danger small">{{ ad_form.service_account.errors|join:", " }}</div>{% endif %}
+                                <small class="text-muted">Store the password in your enterprise secret manager.</small>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label" for="{{ ad_form.sync_frequency.id_for_label }}">Sync Frequency</label>
+                                {{ ad_form.sync_frequency|add_class:"form-select" }}
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">Last updated: {{ ad_status.last_updated|default:"Never" }}</small>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fa-solid fa-floppy-disk me-1"></i> Save Settings
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0 fw-bold">Database Maintenance</h6>
+                            <small class="text-muted">{{ db_setting.description }}</small>
+                        </div>
+                        <span class="badge bg-warning text-dark text-uppercase">Danger Zone</span>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" class="needs-validation">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="purge_data">
+                            {% if db_form.non_field_errors %}
+                                <div class="alert alert-danger">{{ db_form.non_field_errors }}</div>
+                            {% endif %}
+                            <div class="mb-3">
+                                <label class="form-label" for="{{ db_form.retention_days.id_for_label }}">Retention Window (days)</label>
+                                {{ db_form.retention_days|add_class:"form-control" }}
+                                <small class="text-muted">Delete audit rows older than this value.</small>
+                                {% if db_form.retention_days.errors %}<div class="text-danger small">{{ db_form.retention_days.errors|join:", " }}</div>{% endif %}
+                            </div>
+                            <div class="form-check mb-3">
+                                {{ db_form.confirm }}
+                                <label class="form-check-label" for="{{ db_form.confirm.id_for_label }}">
+                                    I understand this permanently removes historical data.
+                                </label>
+                                {% if db_form.confirm.errors %}<div class="text-danger small">{{ db_form.confirm.errors|join:", " }}</div>{% endif %}
+                            </div>
+                            <button type="submit" class="btn btn-outline-danger w-100">
+                                <i class="fa-solid fa-broom me-1"></i> Run Purge Job
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mt-1">
+            <div class="col-xl-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0 fw-bold">System Seed Utilities</h6>
+                            <small class="text-muted">{{ seed_setting.description }}</small>
+                        </div>
+                        <span class="badge bg-info text-uppercase">Bulk Action</span>
+                    </div>
+                    <div class="card-body">
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="run_seed">
+                            {% if seed_form.non_field_errors %}
+                                <div class="alert alert-danger">{{ seed_form.non_field_errors }}</div>
+                            {% endif %}
+                            <div class="mb-3">
+                                <label class="form-label" for="{{ seed_form.seed_scope.id_for_label }}">Seed Scope</label>
+                                {{ seed_form.seed_scope|add_class:"form-select" }}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="{{ seed_form.target_system.id_for_label }}">Target System (optional)</label>
+                                {{ seed_form.target_system|add_class:"form-select" }}
+                                <small class="text-muted">Required when "Specific System Defaults" is selected.</small>
+                                {% if seed_form.target_system.errors %}<div class="text-danger small">{{ seed_form.target_system.errors|join:", " }}</div>{% endif %}
+                            </div>
+                            <button type="submit" class="btn btn-outline-primary w-100">
+                                <i class="fa-solid fa-seedling me-1"></i> Run Seeding Task
+                            </button>
+                        </form>
+                        <div class="mt-4">
+                            <h6 class="text-muted text-uppercase small mb-2">Last Result</h6>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item px-0 d-flex justify-content-between">
+                                    <span>Scope</span>
+                                    <strong>{{ seed_status.last_scope|default:"Never" }}</strong>
+                                </li>
+                                <li class="list-group-item px-0 d-flex justify-content-between">
+                                    <span>System</span>
+                                    <strong>{{ seed_status.last_system|default:"n/a" }}</strong>
+                                </li>
+                                <li class="list-group-item px-0 d-flex justify-content-between">
+                                    <span>Created</span>
+                                    <strong>{{ seed_status.created_count }}</strong>
+                                </li>
+                                <li class="list-group-item px-0 d-flex justify-content-between">
+                                    <span>Skipped</span>
+                                    <strong>{{ seed_status.skipped_count }}</strong>
+                                </li>
+                                <li class="list-group-item px-0 d-flex justify-content-between">
+                                    <span>Run at</span>
+                                    <strong>{{ seed_status.last_seed_run|default:"Never" }}</strong>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0 fw-bold">Future Settings Placeholder</h6>
+                            <small class="text-muted">{{ future_setting.description }}</small>
+                        </div>
+                        <span class="badge bg-secondary text-uppercase">Coming Soon</span>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-3">{{ future_setting.value.notes }}</p>
+                        <div class="alert alert-secondary d-flex align-items-center" role="alert">
+                            <i class="fa-solid fa-lightbulb me-2"></i>
+                            <div>
+                                Status: <strong>{{ future_setting.value.status }}</strong>. Use this space for the next high-priority toggle.
+                            </div>
+                        </div>
+                        <p class="small text-muted mb-0">
+                            Need to add a new setting? Duplicate the pattern above and register a new <code>ApplicationSetting</code> key
+                            to surface it here instantly.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

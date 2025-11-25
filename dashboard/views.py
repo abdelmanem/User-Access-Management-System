@@ -1,20 +1,134 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import get_user_model
-from django.db.models import Count, Q, Avg, Max, Min, Sum
-from django.db.models.functions import ExtractHour, ExtractWeekDay, TruncDate
-from django.utils import timezone
-from django.http import JsonResponse, HttpResponse
-from django.urls import reverse
-from datetime import timedelta, datetime
+from copy import deepcopy
 import csv
 import json
+from datetime import timedelta, datetime
+
+from django.contrib import messages
+from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
+from django.db.models import Count, Q, Avg, Max, Min, Sum
+from django.db.models.functions import ExtractHour, ExtractWeekDay, TruncDate
+from django.http import JsonResponse, HttpResponse
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from django.utils import timezone
+
 from access_management.models import UserSystemAccess, AccessHistory
-from systems.models import System
 from departments.models import Department
+from default_accounts.models import DefaultAccountTemplate
+from default_accounts.services import (
+    create_default_accounts_for_system,
+    ensure_default_account_templates_seeded,
+)
 from hardware.models import HardwareAsset
+from systems.models import System
+
+from .forms import (
+    ActiveDirectorySettingsForm,
+    DatabaseMaintenanceForm,
+    SystemSeedForm,
+)
+from .models import ApplicationSetting
 
 User = get_user_model()
+
+
+APPLICATION_SETTING_DEFAULTS = {
+    'active_directory': {
+        'label': 'Active Directory Integration',
+        'description': 'Manage synchronization with corporate Active Directory.',
+        'category': 'integration',
+        'value': {
+            'enabled': False,
+            'domain_controller': '',
+            'base_dn': '',
+            'service_account': '',
+            'sync_frequency': 'daily',
+            'last_sync': None,
+            'last_updated': None,
+            'last_status': 'Never run',
+        },
+    },
+    'database_maintenance': {
+        'label': 'Database Maintenance',
+        'description': 'Configure purge windows for historical audit data.',
+        'category': 'maintenance',
+        'value': {
+            'retention_days': 365,
+            'last_run': None,
+            'last_deleted': 0,
+        },
+    },
+    'system_seeding': {
+        'label': 'System Seeding',
+        'description': 'Trigger default data seeding jobs for systems and templates.',
+        'category': 'maintenance',
+        'value': {
+            'last_seed_run': None,
+            'last_scope': None,
+            'last_system': None,
+            'created_count': 0,
+            'skipped_count': 0,
+        },
+    },
+    'future_placeholder': {
+        'label': 'Future Settings',
+        'description': 'Reserved section for upcoming configuration toggles.',
+        'category': 'roadmap',
+        'value': {
+            'notes': 'No configurable options yet. This space is ready for the next setting.',
+            'status': 'Planned',
+        },
+    },
+}
+
+
+def _ensure_setting(key: str) -> ApplicationSetting:
+    """
+    Materialize persistent storage for the requested key using
+    the baseline defaults when it does not already exist.
+    """
+    defaults = APPLICATION_SETTING_DEFAULTS[key]
+    setting, _ = ApplicationSetting.objects.get_or_create(
+        key=key,
+        defaults={
+            'label': defaults['label'],
+            'description': defaults['description'],
+            'category': defaults['category'],
+            'value': deepcopy(defaults['value']),
+        },
+    )
+    # When the record exists but is missing keys because of previous schema, merge them.
+    stored_value = setting.value or {}
+    if stored_value is not setting.value:
+        setting.value = stored_value
+        setting.save(update_fields=['value'])
+    missing_keys = set(defaults['value'].keys()) - set(stored_value.keys())
+    if missing_keys:
+        updated_value = {**defaults['value'], **stored_value}
+        setting.value = updated_value
+        setting.save(update_fields=['value', 'updated_at'])
+    return setting
+
+
+def _iso_to_datetime(value):
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(value)
+    except ValueError:
+        return None
+
+
+def purge_old_access_history(retention_days: int) -> int:
+    """
+    Removes access history entries older than the retention window.
+    Returns the number of deleted rows.
+    """
+    cutoff = timezone.now() - timedelta(days=retention_days)
+    deleted, _ = AccessHistory.objects.filter(accessed_at__lt=cutoff).delete()
+    return deleted
 
 @login_required
 def dashboard_home(request):
@@ -457,6 +571,177 @@ def reports_view(request):
     }
     
     return render(request, 'admin/reports.html', context)
+
+
+@login_required
+def application_settings_view(request):
+    """
+    Administrative control panel for superusers/system admins to manage high-risk
+    configuration such as AD integration, purge schedules, and data seeding tasks.
+    """
+
+    if not (request.user.is_superuser or request.user.is_staff):
+        raise PermissionDenied('Only system administrators may view this page.')
+
+    ad_setting = _ensure_setting('active_directory')
+    db_setting = _ensure_setting('database_maintenance')
+    seed_setting = _ensure_setting('system_seeding')
+    future_setting = _ensure_setting('future_placeholder')
+
+    ad_initial = {
+        'enabled': ad_setting.value.get('enabled', False),
+        'domain_controller': ad_setting.value.get('domain_controller', ''),
+        'base_dn': ad_setting.value.get('base_dn', ''),
+        'service_account': ad_setting.value.get('service_account', ''),
+        'sync_frequency': ad_setting.value.get('sync_frequency', 'daily'),
+    }
+    db_initial = {
+        'retention_days': db_setting.value.get('retention_days', 365),
+    }
+    seed_initial = {
+        'seed_scope': seed_setting.value.get('last_scope', 'template_catalog') or 'template_catalog',
+    }
+
+    ad_form = ActiveDirectorySettingsForm(initial=ad_initial)
+    db_form = DatabaseMaintenanceForm(initial=db_initial)
+    seed_form = SystemSeedForm(initial=seed_initial)
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'update_ad':
+            ad_form = ActiveDirectorySettingsForm(request.POST)
+            if ad_form.is_valid():
+                payload = {**ad_setting.value, **ad_form.cleaned_data}
+                payload['last_updated'] = timezone.now().isoformat()
+                ad_setting.value = payload
+                ad_setting.last_modified_by = request.user
+                ad_setting.save(update_fields=['value', 'last_modified_by', 'updated_at'])
+                messages.success(request, 'Active Directory settings updated.')
+                return redirect('application_settings')
+            else:
+                messages.error(request, 'Please correct the errors in the Active Directory form.')
+
+        elif action == 'purge_data':
+            db_form = DatabaseMaintenanceForm(request.POST)
+            if db_form.is_valid():
+                retention_days = db_form.cleaned_data['retention_days']
+                deleted_rows = purge_old_access_history(retention_days)
+                db_value = {**db_setting.value}
+                db_value.update({
+                    'retention_days': retention_days,
+                    'last_run': timezone.now().isoformat(),
+                    'last_deleted': deleted_rows,
+                })
+                db_setting.value = db_value
+                db_setting.last_modified_by = request.user
+                db_setting.save(update_fields=['value', 'last_modified_by', 'updated_at'])
+                messages.success(
+                    request,
+                    f'Purged {deleted_rows} access history rows older than {retention_days} days.',
+                )
+                return redirect('application_settings')
+            else:
+                messages.error(request, 'Confirm the purge acknowledgement before continuing.')
+
+        elif action == 'run_seed':
+            seed_form = SystemSeedForm(request.POST)
+            if seed_form.is_valid():
+                scope = seed_form.cleaned_data['seed_scope']
+                created_count = 0
+                skipped_count = 0
+                system_name = None
+                seed_success = False
+
+                if scope == 'template_catalog':
+                    before = DefaultAccountTemplate.objects.count()
+                    ensure_default_account_templates_seeded()
+                    after = DefaultAccountTemplate.objects.count()
+                    created_count = max(after - before, 0)
+                    seed_success = True
+                elif scope == 'system_defaults':
+                    target_system = seed_form.cleaned_data['target_system']
+                    if not target_system:
+                        messages.error(request, 'Select a system to seed default accounts.')
+                    else:
+                        result = create_default_accounts_for_system(
+                            target_system,
+                            created_by=request.user,
+                        )
+                        created_count = result.created_count
+                        skipped_count = result.skipped
+                        system_name = target_system.name
+                        seed_success = True
+                else:
+                    messages.error(request, 'Unknown seeding scope.')
+                if seed_success:
+                    seed_value = {**seed_setting.value}
+                    seed_value.update({
+                        'last_seed_run': timezone.now().isoformat(),
+                        'last_scope': scope,
+                        'last_system': system_name,
+                        'created_count': created_count,
+                        'skipped_count': skipped_count,
+                    })
+                    seed_setting.value = seed_value
+                    seed_setting.last_modified_by = request.user
+                    seed_setting.save(update_fields=['value', 'last_modified_by', 'updated_at'])
+
+                    if scope == 'template_catalog':
+                        if created_count:
+                            messages.success(
+                                request,
+                                f'Template catalog ensured. {created_count} new templates created.',
+                            )
+                        else:
+                            messages.success(
+                                request,
+                                'Template catalog already up to date.',
+                            )
+                    else:
+                        messages.success(
+                            request,
+                            f'Seeded {created_count} default accounts for {system_name or "the selected system"}. '
+                            f'{skipped_count} existing entries skipped.',
+                        )
+                    return redirect('application_settings')
+            else:
+                messages.error(request, 'Resolve the errors in the seeding form before retrying.')
+
+        else:
+            messages.error(request, 'Unsupported action.')
+
+    context = {
+        'title': 'Application Settings',
+        'ad_form': ad_form,
+        'db_form': db_form,
+        'seed_form': seed_form,
+        'ad_setting': ad_setting,
+        'db_setting': db_setting,
+        'seed_setting': seed_setting,
+        'future_setting': future_setting,
+        'ad_status': {
+            'enabled': ad_setting.value.get('enabled', False),
+            'last_sync': _iso_to_datetime(ad_setting.value.get('last_sync')),
+            'last_updated': _iso_to_datetime(ad_setting.value.get('last_updated')),
+            'sync_frequency': ad_setting.value.get('sync_frequency', 'daily'),
+            'domain_controller': ad_setting.value.get('domain_controller', ''),
+            'last_status': ad_setting.value.get('last_status', 'Never run'),
+        },
+        'db_status': {
+            'retention_days': db_setting.value.get('retention_days', 365),
+            'last_run': _iso_to_datetime(db_setting.value.get('last_run')),
+            'last_deleted': db_setting.value.get('last_deleted', 0),
+        },
+        'seed_status': {
+            'last_seed_run': _iso_to_datetime(seed_setting.value.get('last_seed_run')),
+            'last_scope': seed_setting.value.get('last_scope'),
+            'last_system': seed_setting.value.get('last_system'),
+            'created_count': seed_setting.value.get('created_count', 0),
+            'skipped_count': seed_setting.value.get('skipped_count', 0),
+        },
+    }
+    return render(request, 'admin/application_settings.html', context)
 
 @login_required
 def generate_user_access_report(request):

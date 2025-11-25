@@ -220,6 +220,14 @@
                 </a>
             </div>
 
+            {% if user.is_superuser or user.is_staff %}
+            {% nav_active_class 'application_settings' as app_settings_active %}
+            <a class="sidebar-link{{ app_settings_active }}" href="{% url 'application_settings' %}" data-sidebar-close="true">
+                <span><i class="fa-solid fa-gear"></i> Application Settings</span>
+                {% if app_settings_active %}<i class="fa-solid fa-circle text-success ms-auto"></i>{% endif %}
+            </a>
+            {% endif %}
+
             {% nav_active_class 'reports' 'user_access_report' 'system_usage_report' 'security_audit_report' 'department_access_report' as reports_active %}
             <a class="sidebar-link{{ reports_active }}" href="{% url 'reports' %}" data-sidebar-close="true">
                 <span><i class="fa-solid fa-chart-pie"></i> Reports</span>

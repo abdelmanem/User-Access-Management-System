@@ -43,6 +43,7 @@ nav:
       - HTTPS/SSL Setup: HTTPS_SETUP.md
   - Administration:
       - Administration: administration.md
+      - Application Settings Console: application_settings.md
       - Best Practices: best_practices.md
   - Development:
       - Developer Guide: DEV_GUIDE.md
