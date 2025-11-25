@@ -175,21 +175,24 @@ def dashboard_home(request):
     
     # Get basic statistics (exclude non-reportable accounts)
     reportable_users = User.objects.included_in_metrics()
-    total_users = reportable_users.count()
-    active_users = reportable_users.filter(is_active=True).count()
-    total_systems = System.objects.count()
-    active_systems = System.objects.filter(is_active=True).count()
-    total_departments = Department.objects.count()
-    active_departments = Department.objects.filter(is_active=True).count()
-    
-    # Get failed logins from today
     today = timezone.now().date()
+    
+    # Core metrics
+    stats = {
+        'total_users': reportable_users.count(),
+        'active_users': reportable_users.filter(is_active=True).count(),
+        'total_systems': System.objects.count(),
+        'active_systems': System.objects.filter(is_active=True).count(),
+        'total_departments': Department.objects.count(),
+        'active_departments': Department.objects.filter(is_active=True).count(),
+    }
+    
+    # Security metrics
     failed_logins_today = AccessHistory.objects.filter(
         action='Failed Login',
         accessed_at__date=today
     ).count()
     
-    # Get suspicious activities (multiple failed logins from same IP)
     suspicious_activities = AccessHistory.objects.filter(
         action='Failed Login',
         accessed_at__date=today
@@ -197,71 +200,75 @@ def dashboard_home(request):
         failure_count=Count('id')
     ).filter(failure_count__gte=3).count()
     
-    # Get recent activities
+    # Get and format recent activities
     recent_activities = AccessHistory.objects.select_related(
         'user', 'system'
     ).order_by('-accessed_at')[:10]
     
-    # Format recent activities for template
+    action_icons = {
+        'Login': ('sign-in-alt', 'login'),
+        'Approved': ('key', 'access'),
+        'Failed Login': ('exclamation-triangle', 'error'),
+    }
+    
     formatted_activities = []
     for activity in recent_activities:
-        if activity.action == 'Login':
-            formatted_activities.append({
-                'type': 'login',
-                'icon': 'sign-in-alt',
-                'title': f"{activity.user.get_full_name()} logged into {activity.system.name}",
-                'timestamp': activity.accessed_at
-            })
-        elif activity.action == 'Approved':
-            formatted_activities.append({
-                'type': 'access',
-                'icon': 'key',
-                'title': f"Access granted to {activity.user.get_full_name()} for {activity.system.name}",
-                'timestamp': activity.accessed_at
-            })
-        elif activity.action == 'Failed Login':
-            formatted_activities.append({
-                'type': 'error',
-                'icon': 'exclamation-triangle',
-                'title': f"Failed login attempt for {activity.user.get_full_name() if activity.user else 'Unknown user'}",
-                'timestamp': activity.accessed_at
-            })
+        icon, activity_type = action_icons.get(activity.action, ('circle', 'info'))
+        user_name = activity.user.get_full_name() if activity.user else 'Unknown user'
+        system_name = activity.system.name if activity.system else 'Unknown system'
+        
+        title_map = {
+            'Login': f"{user_name} logged into {system_name}",
+            'Approved': f"Access granted to {user_name} for {system_name}",
+            'Failed Login': f"Failed login attempt for {user_name}",
+        }
+        
+        formatted_activities.append({
+            'type': activity_type,
+            'icon': icon,
+            'title': title_map.get(activity.action, f"{user_name} - {activity.action}"),
+            'timestamp': activity.accessed_at
+        })
     
     # Pending access requests
     pending_requests_queryset = UserSystemAccess.objects.filter(
         status='Pending'
     ).select_related('user', 'system').order_by('-created_at')
     total_pending_requests = pending_requests_queryset.count()
-    pending_requests = list(pending_requests_queryset[:5])
     
-    # Format pending requests for template
-    formatted_requests = []
-    for request in pending_requests:
-        formatted_requests.append({
-            'id': request.id,
-            'user_name': request.user.get_full_name(),
-            'system_name': request.system.name,
-            'priority': request.get_priority_display() if hasattr(request, 'get_priority_display') else request.priority,
-            'priority_badge': request.get_priority_color() if hasattr(request, 'get_priority_color') else 'secondary',
-            'submitted': request.request_date,
-        })
+    formatted_requests = [
+        {
+            'id': req.id,
+            'user_name': req.user.get_full_name(),
+            'system_name': req.system.name,
+            'priority': req.get_priority_display() if hasattr(req, 'get_priority_display') else req.priority,
+            'priority_badge': req.get_priority_color() if hasattr(req, 'get_priority_color') else 'secondary',
+            'submitted': req.request_date,
+        }
+        for req in pending_requests_queryset[:5]
+    ]
     
-    # System usage for doughnut chart
-    system_usage = UserSystemAccess.objects.values('system__name').annotate(count=Count('id')).order_by('-count')
-    system_usage_labels = [item['system__name'] for item in system_usage]
-    system_usage_data = [item['count'] for item in system_usage]
-
+    # System usage chart data
+    system_usage = UserSystemAccess.objects.values('system__name').annotate(
+        count=Count('id')
+    ).order_by('-count')[:10]  # Limit to top 10 for readability
+    
     # Access trends for the past 7 days
+    seven_days_ago = timezone.now() - timezone.timedelta(days=7)
     access_trends = AccessHistory.objects.filter(
-        accessed_at__gte=timezone.now() - timezone.timedelta(days=7)
-    ).values('accessed_at__date').annotate(count=Count('id')).order_by('accessed_at__date')
+        accessed_at__gte=seven_days_ago
+    ).values('accessed_at__date').annotate(
+        count=Count('id')
+    ).order_by('accessed_at__date')
 
-    access_trends_labels = [item['accessed_at__date'].strftime('%Y-%m-%d') for item in access_trends]
-    access_trends_data = [item['count'] for item in access_trends]
-
-    # Hardware insights
-    hardware_qs = HardwareAsset.objects.select_related('department', 'primary_user').prefetch_related('related_systems')
+    # Hardware insights with optimized queries
+    hardware_qs = HardwareAsset.objects.select_related(
+        'department', 'primary_user'
+    ).prefetch_related('related_systems')
+    
     hardware_total = hardware_qs.count()
+    warranty_expiring_threshold = today + timedelta(days=60)
+    
     hardware_counts = {
         'total': hardware_total,
         'in_service': hardware_qs.filter(status='In Service').count(),
@@ -273,7 +280,7 @@ def dashboard_home(request):
         'warranty_expiring': hardware_qs.filter(
             warranty_expiration__isnull=False,
             warranty_expiration__gte=today,
-            warranty_expiration__lte=today + timedelta(days=60)
+            warranty_expiration__lte=warranty_expiring_threshold
         ).count(),
         'warranty_overdue': hardware_qs.filter(
             warranty_expiration__isnull=False,
@@ -281,7 +288,7 @@ def dashboard_home(request):
         ).count(),
     }
 
-    status_rows = hardware_qs.values('status').annotate(count=Count('id')).order_by('-count')
+    # Hardware status breakdown
     status_colors = {
         'In Service': 'success',
         'Provisioning': 'info',
@@ -290,96 +297,118 @@ def dashboard_home(request):
         'Retired': 'dark',
         'Disposed': 'danger',
     }
-    hardware_status_breakdown = []
-    for row in status_rows:
-        percentage = round((row['count'] / hardware_total) * 100, 1) if hardware_total else 0
-        hardware_status_breakdown.append({
+    
+    status_rows = hardware_qs.values('status').annotate(
+        count=Count('id')
+    ).order_by('-count')
+    
+    hardware_status_breakdown = [
+        {
             'label': row['status'],
             'count': row['count'],
-            'percentage': percentage,
+            'percentage': round((row['count'] / hardware_total) * 100, 1) if hardware_total else 0,
             'color': status_colors.get(row['status'], 'primary'),
-        })
+        }
+        for row in status_rows
+    ]
 
-    type_rows = hardware_qs.values('hardware_type').annotate(count=Count('id')).order_by('-count')
+    # Hardware type distribution
+    type_rows = hardware_qs.values('hardware_type').annotate(
+        count=Count('id')
+    ).order_by('-count')
     type_lookup = dict(HardwareAsset.HARDWARE_TYPE_CHOICES)
-    type_labels = [type_lookup.get(row['hardware_type'], row['hardware_type']) for row in type_rows]
-    type_data = [row['count'] for row in type_rows]
+    
     hardware_distribution = {
-        'labels': json.dumps(type_labels),
-        'data': json.dumps(type_data),
+        'labels': json.dumps([type_lookup.get(row['hardware_type'], row['hardware_type']) for row in type_rows]),
+        'data': json.dumps([row['count'] for row in type_rows]),
     }
 
-    upcoming_warranties = []
-    for asset in hardware_qs.filter(
-        warranty_expiration__isnull=False,
-        warranty_expiration__gte=today,
-        warranty_expiration__lte=today + timedelta(days=90)
-    ).order_by('warranty_expiration')[:5]:
-        upcoming_warranties.append({
+    # Warranty alerts - upcoming and overdue
+    warranty_threshold_90d = today + timedelta(days=90)
+    
+    upcoming_warranties = [
+        {
             'id': asset.id,
             'name': asset.name,
             'asset_tag': asset.asset_tag,
             'department': asset.department.name if asset.department else None,
             'warranty_expiration': asset.warranty_expiration,
             'days_remaining': asset.days_until_warranty_expires,
-        })
+        }
+        for asset in hardware_qs.filter(
+            warranty_expiration__isnull=False,
+            warranty_expiration__gte=today,
+            warranty_expiration__lte=warranty_threshold_90d
+        ).order_by('warranty_expiration')[:5]
+    ]
 
-    overdue_warranties = []
-    for asset in hardware_qs.filter(
-        warranty_expiration__isnull=False,
-        warranty_expiration__lt=today
-    ).order_by('warranty_expiration')[:5]:
-        overdue_warranties.append({
+    overdue_warranties = [
+        {
             'id': asset.id,
             'name': asset.name,
             'asset_tag': asset.asset_tag,
             'department': asset.department.name if asset.department else None,
             'warranty_expiration': asset.warranty_expiration,
             'overdue_days': asset.warranty_overdue_days,
-        })
+        }
+        for asset in hardware_qs.filter(
+            warranty_expiration__isnull=False,
+            warranty_expiration__lt=today
+        ).order_by('warranty_expiration')[:5]
+    ]
 
-    hardware_patch_exceptions = []
-    for asset in hardware_qs.filter(requires_patch_management=False).order_by('name')[:5]:
-        hardware_patch_exceptions.append({
+    # Patch management exceptions
+    hardware_patch_exceptions = [
+        {
             'id': asset.id,
             'name': asset.name,
             'asset_tag': asset.asset_tag,
             'department': asset.department.name if asset.department else None,
             'status': asset.status,
             'status_badge': asset.lifecycle_state_color,
-            'systems_count': len(asset.related_systems.all()),
-        })
+            'systems_count': asset.related_systems.count(),
+        }
+        for asset in hardware_qs.filter(
+            requires_patch_management=False
+        ).order_by('name')[:5]
+    ]
 
-    hardware_top_systems = []
+    # Top systems with hardware
     top_systems_qs = System.objects.annotate(
         hardware_count=Count('hardware_assets', distinct=True),
-        active_assignments=Count('user_accesses', filter=Q(user_accesses__status='Active'), distinct=True)
+        active_assignments=Count(
+            'user_accesses', 
+            filter=Q(user_accesses__status='Active'), 
+            distinct=True
+        )
     ).filter(hardware_count__gt=0).order_by('-hardware_count')[:5]
-    for system in top_systems_qs:
-        hardware_top_systems.append({
+    
+    hardware_top_systems = [
+        {
             'id': system.id,
             'name': system.name,
             'code': system.code,
             'hardware_count': system.hardware_count,
             'active_assignments': system.active_assignments,
-        })
+        }
+        for system in top_systems_qs
+    ]
 
+    # Update stats with additional metrics
+    stats.update({
+        'total_hardware': hardware_counts['total'],
+        'active_hardware': hardware_counts['in_service'],
+        'failed_logins_24h': failed_logins_today,
+        'pending_requests': total_pending_requests,
+        'warranty_expiring': hardware_counts['warranty_expiring'],
+        'patch_exceptions': hardware_counts['patch_exceptions'],
+        'virtual_assets': hardware_counts['virtual'],
+        'suspicious_activities': suspicious_activities,
+    })
+    
     context = {
         'title': 'Dashboard',
-        'stats': {
-            'total_users': total_users,
-            'active_users': active_users,
-            'total_systems': total_systems,
-            'active_systems': active_systems,
-            'total_hardware': hardware_counts['total'],
-            'active_hardware': hardware_counts['in_service'],
-            'failed_logins_24h': failed_logins_today,
-            'pending_requests': total_pending_requests,
-            'warranty_expiring': hardware_counts['warranty_expiring'],
-            'patch_exceptions': hardware_counts['patch_exceptions'],
-            'virtual_assets': hardware_counts['virtual'],
-            'suspicious_activities': suspicious_activities,
-        },
+        'stats': stats,
         'hardware_counts': hardware_counts,
         'recent_activity': formatted_activities,
         'pending_requests': formatted_requests,
@@ -392,12 +421,12 @@ def dashboard_home(request):
         'hardware_patch_exceptions': hardware_patch_exceptions,
         'hardware_top_systems': hardware_top_systems,
         'access_trends': {
-            'labels': access_trends_labels,
-            'data': access_trends_data,
+            'labels': json.dumps([item['accessed_at__date'].strftime('%Y-%m-%d') for item in access_trends]),
+            'data': json.dumps([item['count'] for item in access_trends]),
         },
         'system_usage': {
-            'labels': system_usage_labels,
-            'data': system_usage_data,
+            'labels': json.dumps([item['system__name'] for item in system_usage]),
+            'data': json.dumps([item['count'] for item in system_usage]),
         },
     }
     
