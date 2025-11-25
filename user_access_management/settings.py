@@ -273,6 +273,12 @@ LOGGING = {
     },
 }
 
+# Active Directory (optional integration)
+# These are used by AD sync utilities; leave blank if not using direct AD bind.
+AD_BIND_USERNAME = config('AD_BIND_USERNAME', default='')
+AD_BIND_PASSWORD = config('AD_BIND_PASSWORD', default='')
+
+
 # Optional Sentry integration (set SENTRY_DSN to enable)
 SENTRY_DSN = config('SENTRY_DSN', default='')
 if SENTRY_DSN and sentry_sdk:

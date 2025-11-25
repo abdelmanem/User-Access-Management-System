@@ -3,6 +3,7 @@ import csv
 import json
 from datetime import timedelta, datetime
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
@@ -135,17 +136,29 @@ def run_active_directory_sync(ad_setting: ApplicationSetting, user) -> dict:
     """
     Placeholder for an actual AD sync job.
 
+    Secrets are NOT read from ApplicationSetting. Instead, this helper expects
+    credentials to come from environment-backed Django settings:
+    - settings.AD_BIND_USERNAME
+    - settings.AD_BIND_PASSWORD
+
     In a real deployment, this function should:
-    - Connect to Active Directory using credentials from a secure store
+    - Connect to Active Directory using these credentials (or a vault client)
     - Pull user/group data and apply updates
     - Capture any errors and return a status message
     """
+    username = getattr(settings, 'AD_BIND_USERNAME', '') or None
+    password_provided = bool(getattr(settings, 'AD_BIND_PASSWORD', ''))
+
     now = timezone.now()
     value = {**(ad_setting.value or {})}
     value.update(
         {
             'last_sync': now.isoformat(),
-            'last_status': 'Manual sync triggered from Application Settings (implementation pending).',
+            'last_status': (
+                'Manual sync triggered from Application Settings. '
+                'Credentials were '
+                + ('found in environment.' if username and password_provided else 'NOT configured.')
+            ),
         }
     )
     ad_setting.value = value
