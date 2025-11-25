@@ -130,6 +130,32 @@ def purge_old_access_history(retention_days: int) -> int:
     deleted, _ = AccessHistory.objects.filter(accessed_at__lt=cutoff).delete()
     return deleted
 
+
+def run_active_directory_sync(ad_setting: ApplicationSetting, user) -> dict:
+    """
+    Placeholder for an actual AD sync job.
+
+    In a real deployment, this function should:
+    - Connect to Active Directory using credentials from a secure store
+    - Pull user/group data and apply updates
+    - Capture any errors and return a status message
+    """
+    now = timezone.now()
+    value = {**(ad_setting.value or {})}
+    value.update(
+        {
+            'last_sync': now.isoformat(),
+            'last_status': 'Manual sync triggered from Application Settings (implementation pending).',
+        }
+    )
+    ad_setting.value = value
+    ad_setting.last_modified_by = user
+    ad_setting.save(update_fields=['value', 'last_modified_by', 'updated_at'])
+    return {
+        'timestamp': now,
+        'message': value['last_status'],
+    }
+
 @login_required
 def dashboard_home(request):
     """Main dashboard view with overview statistics."""
@@ -707,6 +733,18 @@ def application_settings_view(request):
                     return redirect('application_settings')
             else:
                 messages.error(request, 'Resolve the errors in the seeding form before retrying.')
+
+        elif action == 'run_ad_sync_now':
+            if not ad_setting.value.get('enabled'):
+                messages.error(request, 'Enable directory sync before running a manual sync.')
+            else:
+                result = run_active_directory_sync(ad_setting, request.user)
+                messages.info(
+                    request,
+                    f'AD sync requested at {result["timestamp"].strftime("%Y-%m-%d %H:%M:%S")}. '
+                    f'{result["message"]}',
+                )
+            return redirect('application_settings')
 
         else:
             messages.error(request, 'Unsupported action.')

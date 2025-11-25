@@ -73,6 +73,25 @@ These cards are read‑only summaries pulled from underlying application setting
 
 The **Active Directory Integration** card manages metadata for future or existing AD sync jobs.
 
+---
+
+## Server Requirements (Ubuntu)
+
+You do **not** need a separate “AD sync app” installed on the server, but your Ubuntu host running UAMS must have:
+
+- A working **Python environment** for your Django project (already required by UAMS).
+- Optional but recommended **LDAP / AD client libraries** if you plan to talk to AD directly from Django, for example:
+  - System packages:
+    - `sudo apt update`
+    - `sudo apt install -y libsasl2-dev python3-dev libldap2-dev libssl-dev`
+  - Python packages (add to your `requirements.txt` if using them):
+    - `ldap3` (pure Python LDAP client), or
+    - `django-auth-ldap` (Django integration helper)
+
+If you use Microsoft Graph / REST APIs instead of LDAP, you’ll typically just need `requests` / `msal` in your Python env rather than the LDAP system libraries above.
+
+---
+
 ### Fields
 
 - **Enable directory sync**
@@ -89,7 +108,7 @@ The **Active Directory Integration** card manages metadata for future or existin
 
 - **Service Account**
   - Username (or identifier) of the account used to bind to AD.
-  - **Password is not stored here**; keep credentials in your secret manager or vault.
+  - **Password is not stored here**; keep credentials in your enterprise **secret manager** or **vault** (for example: Azure Key Vault, AWS Secrets Manager, HashiCorp Vault, or another secure store managed by your infra team). The UAMS application or background worker should read those secrets at runtime instead of saving them in this settings page or in the database.
 
 - **Sync Frequency**
   - Controls how often a scheduled job *should* run:
@@ -97,8 +116,141 @@ The **Active Directory Integration** card manages metadata for future or existin
     - `Daily` (default)
     - `Weekly`
 
-> ℹ️ **Note**  
-> This page stores sync configuration; the actual job (Celery/cron/other) must be wired to respect these settings.
+> ℹ️ **How the sync actually runs**  
+> This page only stores configuration (enabled flag, domain, base DN, etc.). The *real* sync work is done by a **background job** such as Celery, a cron job, or another scheduler. That process should:
+> - Read AD connection details and credentials from your secret manager  
+> - Respect the `enabled` flag and `sync_frequency` set here  
+> - Update the `last_sync` / `last_status` fields when it completes
+
+### Manual Sync Button
+
+If you need to trigger a sync outside the normal schedule, the page includes a **Run Manual AD Sync** button:
+
+- Available only when **Enable directory sync** is turned on.
+- Intended to be wired into the same underlying sync routine your scheduler uses.
+- The current implementation records a manual sync request timestamp and status; you can extend the underlying sync function to perform a full AD import/update when this button is pressed.
+
+---
+
+## Handling the AD Password Securely
+
+**Goal:** never store the AD bind password in plain text in:
+
+- Django settings
+- The UAMS database
+- Logs or environment dumps
+
+Typical patterns on Ubuntu:
+
+- **Environment variables + external secret store**
+  - Your deploy tool (Ansible, Kubernetes, systemd drop‑in, etc.) injects the password as an env var at runtime:
+    - Example: `AD_BIND_PASSWORD` set via systemd unit, Docker secret, or Kubernetes secret.
+  - Your sync code reads `os.environ["AD_BIND_PASSWORD"]` directly, never saving it to the DB.
+
+- **Secret manager / vault**
+  - Use a library/SDK to retrieve secrets from:
+    - Azure Key Vault, AWS Secrets Manager, GCP Secret Manager, or HashiCorp Vault.
+  - The sync function:
+    1. Reads connection metadata (domain, base DN, service account) from **Application Settings**.
+    2. Fetches the **password** from the vault.
+    3. Connects to AD and performs the sync.
+
+> ✅ **Best practice**  
+> Treat the AD password like any other production secret: rotate regularly, restrict who can read it, and never paste it into the Application Settings UI.
+
+---
+
+## Creating Sync Jobs on Ubuntu
+
+The Application Settings page exposes configuration. On Ubuntu, you still need something that **runs the sync code** on a schedule. Common options:
+
+### Option 1: Cron + Management Command
+
+1. Implement a Django **management command** (example name):  
+   `python manage.py run_ad_sync`
+2. On the server, edit the crontab for the service user:
+
+```bash
+crontab -e
+```
+
+3. Add a job that runs, for example, every day at 01:00:
+
+```bash
+0 1 * * * /usr/bin/bash -lc 'cd /opt/uams && source venv/bin/activate && python manage.py run_ad_sync >> /var/log/uams/ad_sync.log 2>&1'
+```
+
+Inside `run_ad_sync`, your code should:
+
+- Read the **Application Settings** values (enabled flag, frequency, etc.).
+- Decide whether to run based on those settings.
+- Read the password from env/secret manager.
+- Execute the AD synchronization logic.
+- Update `last_sync` and `last_status` in the Application Settings record.
+
+### Option 2: systemd Service + Timer
+
+For more control than cron, use a **systemd timer**:
+
+1. Create a unit file, e.g. `/etc/systemd/system/uams-ad-sync.service`:
+
+```ini
+[Unit]
+Description=UAMS Active Directory Sync
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/uams
+Environment="DJANGO_SETTINGS_MODULE=user_access_management.settings"
+ExecStart=/usr/bin/bash -lc 'source venv/bin/activate && python manage.py run_ad_sync'
+```
+
+2. Create a timer file, e.g. `/etc/systemd/system/uams-ad-sync.timer`:
+
+```ini
+[Unit]
+Description=Run UAMS AD sync periodically
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+```
+
+3. Enable and start the timer:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now uams-ad-sync.timer
+```
+
+This will run `run_ad_sync` daily; the command itself should still respect the **enabled** flag and **frequency** stored in the Application Settings page.
+
+### Option 3: Celery Beat (if you already use Celery)
+
+If your deployment uses **Celery**:
+
+- Define a periodic task (e.g. `tasks.sync_active_directory`).
+- Configure **Celery Beat** to run it on a schedule.
+- Inside the task:
+  - Read Application Settings for AD.
+  - Check `enabled` / `sync_frequency`.
+  - Call the same core sync function used by:
+    - The periodic task
+    - The **Run Manual AD Sync** button
+
+---
+
+## Summary
+
+- You don’t need a separate Ubuntu “app” for AD sync; you need:
+  - Python deps (and LDAP libs if using LDAP).
+  - A **job runner** (cron, systemd timer, Celery beat, etc.).
+- The **Application Settings** page holds configuration and shows status.
+- Passwords belong in **secret managers** or controlled environments, not in the UI.
+- Manual sync and scheduled jobs should both call the same sync routine and then update `last_sync`/`last_status` so admins can see what happened. 
 
 ### How to Update
 

@@ -112,12 +112,22 @@
                                 <label class="form-label" for="{{ ad_form.sync_frequency.id_for_label }}">Sync Frequency</label>
                                 {{ ad_form.sync_frequency|add_class:"form-select" }}
                             </div>
-                            <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
                                 <small class="text-muted">Last updated: {{ ad_status.last_updated|default:"Never" }}</small>
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fa-solid fa-floppy-disk me-1"></i> Save Settings
-                                </button>
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fa-solid fa-floppy-disk me-1"></i> Save Settings
+                                    </button>
+                                </div>
                             </div>
+                        </form>
+                        <form method="post" class="mt-3">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="run_ad_sync_now">
+                            <button type="submit" class="btn btn-outline-primary w-100"
+                                    {% if not ad_status.enabled %}disabled title="Enable directory sync to run a manual sync"{% endif %}>
+                                <i class="fa-solid fa-rotate me-1"></i> Run Manual AD Sync
+                            </button>
                         </form>
                     </div>
                 </div>
