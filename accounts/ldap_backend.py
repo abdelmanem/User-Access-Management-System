@@ -211,13 +211,17 @@ class LDAPAuthenticationBackend(ModelBackend):
         """
         Get existing user or create new one from LDAP data
         """
+        def get_field(data, field):
+            """Get field value case-insensitively"""
+            return data.get(field) or data.get(field.lower()) or data.get(field.upper(), '')
+        
         try:
             username_field = ldap_config.ldap_username_field or 'sAMAccountName'
-            ldap_username = ldap_user_data.get(username_field, username)
+            ldap_username = get_field(ldap_user_data, username_field) or username
             
             # Try to find user by username or email
             email_field = ldap_config.ldap_email_field or 'mail'
-            email = ldap_user_data.get(email_field, '')
+            email = get_field(ldap_user_data, email_field)
             
             # Try username first
             try:
@@ -240,9 +244,9 @@ class LDAPAuthenticationBackend(ModelBackend):
             
             user = User.objects.create_user(
                 username=ldap_username,
-                email=email,
-                first_name=ldap_user_data.get(firstname_field, ''),
-                last_name=ldap_user_data.get(lastname_field, ''),
+                email=email or '',
+                first_name=get_field(ldap_user_data, firstname_field) or '',
+                last_name=get_field(ldap_user_data, lastname_field) or '',
             )
             
             # Mark as AD synced
@@ -264,6 +268,10 @@ class LDAPAuthenticationBackend(ModelBackend):
         from django.utils import timezone
         from departments.models import Department
         
+        def get_field(data, field):
+            """Get field value case-insensitively"""
+            return data.get(field) or data.get(field.lower()) or data.get(field.upper())
+        
         try:
             # Update basic fields
             firstname_field = ldap_config.ldap_firstname_field or 'givenName'
@@ -271,9 +279,9 @@ class LDAPAuthenticationBackend(ModelBackend):
             email_field = ldap_config.ldap_email_field or 'mail'
             displayname_field = ldap_config.ldap_displayname_field or 'displayName'
             
-            user.first_name = ldap_user_data.get(firstname_field, user.first_name)
-            user.last_name = ldap_user_data.get(lastname_field, user.last_name)
-            user.email = ldap_user_data.get(email_field, user.email)
+            user.first_name = get_field(ldap_user_data, firstname_field) or user.first_name
+            user.last_name = get_field(ldap_user_data, lastname_field) or user.last_name
+            user.email = get_field(ldap_user_data, email_field) or user.email
             
             # Update extended fields if available
             phone_field = ldap_config.ldap_phone_field or 'telephoneNumber'
@@ -414,16 +422,19 @@ class LDAPSync:
             
             for entry in conn.entries:
                 try:
-                    # Convert entry to dict
+                    # Convert entry to dict (case-insensitive keys)
                     user_data = {}
                     for attr in entry.entry_attributes:
+                        # Store both original and lowercase keys for compatibility
                         user_data[attr] = entry[attr].value
+                        user_data[attr.lower()] = entry[attr].value
                     
-                    # Get username
+                    # Get username - try both cases
                     username_field = ldap_config.ldap_username_field or 'sAMAccountName'
-                    username = user_data.get(username_field, '')
+                    username = user_data.get(username_field) or user_data.get(username_field.lower()) or user_data.get('sAMAccountName') or user_data.get('samaccountname', '')
                     
-                    if username:
+                    # Skip computer accounts (end with $) and system accounts
+                    if username and not username.endswith('$') and username.lower() not in ['krbtgt', 'guest']:
                         user = backend._get_or_create_user(username, user_data, ldap_config)
                         if user:
                             backend._update_user_from_ldap(user, user_data, ldap_config)
