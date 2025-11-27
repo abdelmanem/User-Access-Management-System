@@ -1103,7 +1103,27 @@ body.dark-mode .card-body p {
 html[data-theme="dark"] .card-body span,
 html.dark-mode .card-body span,
 body.dark-mode .card-body span {
-    color: inherit;
+    color: var(--text-primary) !important;
+}
+
+/* Force all card text to be visible in dark mode */
+html[data-theme="dark"] .card-body,
+html.dark-mode .card-body,
+body.dark-mode .card-body {
+    color: var(--text-primary) !important;
+}
+
+html[data-theme="dark"] .card-body *:not(.btn):not(.badge):not(.text-primary):not(.text-success):not(.text-danger):not(.text-warning):not(.text-info),
+html.dark-mode .card-body *:not(.btn):not(.badge):not(.text-primary):not(.text-success):not(.text-danger):not(.text-warning):not(.text-info),
+body.dark-mode .card-body *:not(.btn):not(.badge):not(.text-primary):not(.text-success):not(.text-danger):not(.text-warning):not(.text-info) {
+    color: var(--text-primary) !important;
+}
+
+/* Fix text-body class in dark mode */
+html[data-theme="dark"] .text-body,
+html.dark-mode .text-body,
+body.dark-mode .text-body {
+    color: var(--text-primary) !important;
 }
 
 /* Fix for badge text-dark in dark mode */
@@ -1350,4 +1370,94 @@ html.dark-mode .table .text-center.text-muted,
 body.dark-mode .table .text-center.text-muted {
     color: var(--text-muted) !important;
     background-color: var(--table-bg) !important;
+}
+
+/* Fix table row text in dark mode - KPI table and similar */
+html[data-theme="dark"] .table th,
+html.dark-mode .table th,
+body.dark-mode .table th {
+    color: var(--text-primary) !important;
+}
+
+html[data-theme="dark"] .table-striped > tbody > tr,
+html.dark-mode .table-striped > tbody > tr,
+body.dark-mode .table-striped > tbody > tr {
+    color: var(--text-primary) !important;
+}
+
+html[data-theme="dark"] .table-striped > tbody > tr > th,
+html.dark-mode .table-striped > tbody > tr > th,
+body.dark-mode .table-striped > tbody > tr > th {
+    color: var(--text-primary) !important;
+    background-color: transparent !important;
+}
+
+html[data-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd),
+html.dark-mode .table-striped > tbody > tr:nth-of-type(odd),
+body.dark-mode .table-striped > tbody > tr:nth-of-type(odd) {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    color: var(--text-primary) !important;
+}
+
+html[data-theme="dark"] .table-striped > tbody > tr:nth-of-type(even),
+html.dark-mode .table-striped > tbody > tr:nth-of-type(even),
+body.dark-mode .table-striped > tbody > tr:nth-of-type(even) {
+    background-color: var(--table-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Fix Bootstrap subtle backgrounds in dark mode */
+html[data-theme="dark"] .bg-primary-subtle,
+html.dark-mode .bg-primary-subtle,
+body.dark-mode .bg-primary-subtle {
+    background-color: rgba(90, 123, 200, 0.2) !important;
+}
+
+html[data-theme="dark"] .bg-success-subtle,
+html.dark-mode .bg-success-subtle,
+body.dark-mode .bg-success-subtle {
+    background-color: rgba(40, 167, 69, 0.2) !important;
+}
+
+html[data-theme="dark"] .bg-danger-subtle,
+html.dark-mode .bg-danger-subtle,
+body.dark-mode .bg-danger-subtle {
+    background-color: rgba(220, 53, 69, 0.2) !important;
+}
+
+html[data-theme="dark"] .bg-warning-subtle,
+html.dark-mode .bg-warning-subtle,
+body.dark-mode .bg-warning-subtle {
+    background-color: rgba(255, 193, 7, 0.2) !important;
+}
+
+html[data-theme="dark"] .bg-info-subtle,
+html.dark-mode .bg-info-subtle,
+body.dark-mode .bg-info-subtle {
+    background-color: rgba(23, 162, 184, 0.2) !important;
+}
+
+html[data-theme="dark"] .bg-secondary-subtle,
+html.dark-mode .bg-secondary-subtle,
+body.dark-mode .bg-secondary-subtle {
+    background-color: rgba(108, 117, 125, 0.2) !important;
+}
+
+html[data-theme="dark"] .bg-light-subtle,
+html.dark-mode .bg-light-subtle,
+body.dark-mode .bg-light-subtle {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Fix bg-light in dark mode */
+html[data-theme="dark"] .bg-light,
+html.dark-mode .bg-light,
+body.dark-mode .bg-light {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+html[data-theme="dark"] .bg-light.text-muted,
+html.dark-mode .bg-light.text-muted,
+body.dark-mode .bg-light.text-muted {
+    color: var(--text-secondary) !important;
 }
