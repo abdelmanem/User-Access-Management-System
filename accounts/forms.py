@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.contrib.auth.models import Group, Permission
-from .models import CustomUser
+from .models import CustomUser, LDAPConfiguration
 
 
 class UserBaseForm(forms.ModelForm):
@@ -159,3 +159,101 @@ class UserPhotoForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['profile_photo'].required = False
+
+
+class LDAPConfigurationForm(forms.ModelForm):
+    """
+    Form for LDAP/AD configuration
+    """
+    class Meta:
+        model = LDAPConfiguration
+        fields = [
+            'ldap_enabled',
+            'is_active_directory',
+            'cache_passwords',
+            'ad_domain',
+            'ldap_client_tls_key',
+            'ldap_client_tls_cert',
+            'ldap_server',
+            'use_tls',
+            'allow_invalid_ssl',
+            'bind_username',
+            'bind_password',
+            'base_dn',
+            'ldap_filter',
+            'ldap_auth_query',
+            'default_permission_group',
+            'ldap_username_field',
+            'ldap_lastname_field',
+            'ldap_firstname_field',
+            'ldap_displayname_field',
+            'ldap_employeenumber_field',
+            'ldap_department_field',
+            'ldap_manager_field',
+            'ldap_email_field',
+            'ldap_phone_field',
+            'ldap_mobile_field',
+            'ldap_jobtitle_field',
+            'ldap_address_field',
+            'ldap_city_field',
+            'ldap_state_field',
+            'ldap_postalcode_field',
+            'ldap_country_field',
+            'ldap_location_field',
+            'ldap_active_flag',
+            'ldap_invert_active_flag',
+            'custom_password_reset_url',
+        ]
+        widgets = {
+            'ldap_client_tls_key': forms.Textarea(attrs={'rows': 5, 'class': 'form-control'}),
+            'ldap_client_tls_cert': forms.Textarea(attrs={'rows': 5, 'class': 'form-control'}),
+            'bind_password': forms.PasswordInput(attrs={'class': 'form-control'}),
+            'ldap_filter': forms.TextInput(attrs={'class': 'form-control'}),
+            'ldap_auth_query': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+        help_texts = {
+            'ldap_server': 'Format: ldap://server:389 or ldaps://server:636',
+            'base_dn': 'Example: DC=example,DC=com',
+            'bind_username': 'Format: CN=ServiceAccount,CN=Users,DC=example,DC=com or username@domain.com',
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add CSS classes
+        for field_name, field in self.fields.items():
+            if field_name not in ['ldap_enabled', 'is_active_directory', 'cache_passwords', 
+                                   'use_tls', 'allow_invalid_ssl', 'ldap_invert_active_flag']:
+                if not isinstance(field.widget, (forms.Textarea, forms.PasswordInput)):
+                    field.widget.attrs['class'] = 'form-control'
+
+
+class LDAPTestConnectionForm(forms.Form):
+    """
+    Form for testing LDAP connection
+    """
+    pass  # No fields needed, uses active config
+
+
+class LDAPTestLoginForm(forms.Form):
+    """
+    Form for testing LDAP login
+    """
+    username = forms.CharField(
+        max_length=150,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter LDAP username'})
+    )
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Enter password'})
+    )
+
+
+class LDAPSyncForm(forms.Form):
+    """
+    Form for syncing users from LDAP
+    """
+    force_sync = forms.BooleanField(
+        required=False,
+        initial=False,
+        help_text='Force sync all users even if they were recently synced',
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )

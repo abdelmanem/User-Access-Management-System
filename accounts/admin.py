@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django import forms
 from django.utils.html import format_html
-from .models import CustomUser, UserDeactivationAudit, UserArchive
+from .models import CustomUser, UserDeactivationAudit, UserArchive, LDAPConfiguration
 from dashboard.admin import dashboard_admin_site
 
 
@@ -184,3 +184,111 @@ class UserArchiveAdmin(admin.ModelAdmin):
 
 dashboard_admin_site.register(UserDeactivationAudit, UserDeactivationAuditAdmin)
 dashboard_admin_site.register(UserArchive, UserArchiveAdmin)
+
+
+class LDAPConfigurationAdmin(admin.ModelAdmin):
+    """
+    Admin interface for LDAP Configuration
+    """
+    list_display = (
+        'ldap_server',
+        'ldap_enabled',
+        'is_active_directory',
+        'cache_passwords',
+        'updated_at',
+        'updated_by',
+    )
+    list_filter = ('ldap_enabled', 'is_active_directory', 'cache_passwords', 'use_tls', 'allow_invalid_ssl')
+    search_fields = ('ldap_server', 'base_dn', 'bind_username', 'ad_domain')
+    readonly_fields = ('created_at', 'updated_at', 'updated_by')
+    
+    fieldsets = (
+        ('Server Settings', {
+            'fields': (
+                'ldap_enabled',
+                'is_active_directory',
+                'cache_passwords',
+                'ad_domain',
+            )
+        }),
+        ('TLS/SSL Configuration', {
+            'fields': (
+                'ldap_client_tls_key',
+                'ldap_client_tls_cert',
+                'ldap_server',
+                'use_tls',
+                'allow_invalid_ssl',
+            )
+        }),
+        ('Bind Settings', {
+            'fields': (
+                'bind_username',
+                'bind_password',
+                'base_dn',
+            )
+        }),
+        ('Search and Authentication', {
+            'fields': (
+                'ldap_filter',
+                'ldap_auth_query',
+                'default_permission_group',
+            )
+        }),
+        ('Field Mapping - Basic', {
+            'fields': (
+                'ldap_username_field',
+                'ldap_firstname_field',
+                'ldap_lastname_field',
+                'ldap_displayname_field',
+                'ldap_email_field',
+            )
+        }),
+        ('Field Mapping - Extended', {
+            'fields': (
+                'ldap_employeenumber_field',
+                'ldap_department_field',
+                'ldap_manager_field',
+                'ldap_phone_field',
+                'ldap_mobile_field',
+                'ldap_jobtitle_field',
+            ),
+            'classes': ('collapse',)
+        }),
+        ('Field Mapping - Location', {
+            'fields': (
+                'ldap_address_field',
+                'ldap_city_field',
+                'ldap_state_field',
+                'ldap_postalcode_field',
+                'ldap_country_field',
+                'ldap_location_field',
+            ),
+            'classes': ('collapse',)
+        }),
+        ('Active Flag Settings', {
+            'fields': (
+                'ldap_active_flag',
+                'ldap_invert_active_flag',
+            )
+        }),
+        ('Miscellaneous', {
+            'fields': (
+                'custom_password_reset_url',
+            )
+        }),
+        ('Metadata', {
+            'fields': ('created_at', 'updated_at', 'updated_by'),
+            'classes': ('collapse',)
+        })
+    )
+    
+    def save_model(self, request, obj, form, change):
+        obj.updated_by = request.user
+        super().save_model(request, obj, form, change)
+    
+    def has_delete_permission(self, request, obj=None):
+        # Prevent deletion of LDAP configurations
+        return False
+
+
+dashboard_admin_site.register(LDAPConfiguration, LDAPConfigurationAdmin)

@@ -1,6 +1,6 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from . import views, test_auth
+from . import views, test_auth, ldap_views
 
 app_name = 'accounts'
 
@@ -34,4 +34,10 @@ urlpatterns = [
     path('audit/archives/<int:pk>/', views.user_archive_detail, name='user_archive_detail'),
     path('audit/archives/export/excel/', views.user_archive_export_excel, name='user_archive_export_excel'),
     path('audit/archives/export/pdf/', views.user_archive_export_pdf, name='user_archive_export_pdf'),
+    # LDAP/AD Configuration
+    path('ldap/configuration/', ldap_views.ldap_configuration, name='ldap_configuration'),
+    path('ldap/configuration/list/', ldap_views.ldap_configuration_list, name='ldap_configuration_list'),
+    path('ldap/test-connection/', ldap_views.ldap_test_connection, name='ldap_test_connection'),
+    path('ldap/test-login/', ldap_views.ldap_test_login, name='ldap_test_login'),
+    path('ldap/sync-users/', ldap_views.ldap_sync_users, name='ldap_sync_users'),
 ]

@@ -6,12 +6,16 @@ from django.db import transaction
 from django.db.models import Q, F, Value
 from django.db.models.functions import Concat
 from django.utils import timezone
-from .models import CustomUser, UserDeactivationAudit, UserArchive
+from .models import CustomUser, UserDeactivationAudit, UserArchive, LDAPConfiguration
 from .forms import (
     UserCreateForm,
     UserUpdateForm,
     UserPermissionForm,
     UserPhotoForm,
+    LDAPConfigurationForm,
+    LDAPTestConnectionForm,
+    LDAPTestLoginForm,
+    LDAPSyncForm,
 )
 from departments.models import Department
 from hardware.models import HardwareAsset

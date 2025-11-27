@@ -1,0 +1,424 @@
+{% extends 'base.html' %}
+
+{% block title %}LDAP/AD Configuration{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-network-wired"></i> LDAP/AD Configuration</h2>
+                <a href="{% url 'dashboard_home' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Banner -->
+    {% if ldap_config and ldap_config.ldap_enabled %}
+    <div class="alert alert-success">
+        <i class="fas fa-check-circle"></i> LDAP is currently <strong>ENABLED</strong> and configured.
+    </div>
+    {% else %}
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle"></i> LDAP is currently <strong>DISABLED</strong>. Enable it below to use LDAP authentication.
+    </div>
+    {% endif %}
+
+    <!-- Configuration Form -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-cog"></i> Server Settings</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{% url 'accounts:ldap_configuration' %}">
+                {% csrf_token %}
+                
+                <!-- Basic Settings -->
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <div class="form-check">
+                            {{ form.ldap_enabled }}
+                            <label class="form-check-label" for="{{ form.ldap_enabled.id_for_label }}">
+                                <strong>LDAP Integration Enabled</strong>
+                            </label>
+                            <small class="form-text text-muted">{{ form.ldap_enabled.help_text }}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check">
+                            {{ form.is_active_directory }}
+                            <label class="form-check-label" for="{{ form.is_active_directory.id_for_label }}">
+                                <strong>Active Directory</strong>
+                            </label>
+                            <small class="form-text text-muted">{{ form.is_active_directory.help_text }}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check">
+                            {{ form.cache_passwords }}
+                            <label class="form-check-label" for="{{ form.cache_passwords.id_for_label }}">
+                                <strong>Cache LDAP Passwords</strong>
+                            </label>
+                            <small class="form-text text-muted">{{ form.cache_passwords.help_text }}</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.ad_domain.id_for_label }}" class="form-label"><strong>Active Directory Domain</strong></label>
+                        {{ form.ad_domain }}
+                        <small class="form-text text-muted">{{ form.ad_domain.help_text }}</small>
+                    </div>
+                </div>
+
+                <!-- TLS/SSL Settings -->
+                <hr>
+                <h5 class="mt-4 mb-3"><i class="fas fa-lock"></i> TLS/SSL Configuration</h5>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.ldap_server.id_for_label }}" class="form-label"><strong>LDAP Server *</strong></label>
+                        {{ form.ldap_server }}
+                        <small class="form-text text-muted">{{ form.ldap_server.help_text }}</small>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-check mt-4">
+                            {{ form.use_tls }}
+                            <label class="form-check-label" for="{{ form.use_tls.id_for_label }}">
+                                <strong>Use TLS (STARTTLS)</strong>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-check mt-4">
+                            {{ form.allow_invalid_ssl }}
+                            <label class="form-check-label" for="{{ form.allow_invalid_ssl.id_for_label }}">
+                                <strong>Allow Invalid SSL Certificate</strong>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.ldap_client_tls_cert.id_for_label }}" class="form-label"><strong>LDAP Client TLS Certificate</strong></label>
+                        {{ form.ldap_client_tls_cert }}
+                        <small class="form-text text-muted">{{ form.ldap_client_tls_cert.help_text }}</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.ldap_client_tls_key.id_for_label }}" class="form-label"><strong>LDAP Client TLS Key</strong></label>
+                        {{ form.ldap_client_tls_key }}
+                        <small class="form-text text-muted">{{ form.ldap_client_tls_key.help_text }}</small>
+                    </div>
+                </div>
+
+                <!-- Bind Settings -->
+                <hr>
+                <h5 class="mt-4 mb-3"><i class="fas fa-user-lock"></i> Bind Settings</h5>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.bind_username.id_for_label }}" class="form-label"><strong>LDAP Bind Username</strong></label>
+                        {{ form.bind_username }}
+                        <small class="form-text text-muted">{{ form.bind_username.help_text }}</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.bind_password.id_for_label }}" class="form-label"><strong>LDAP Bind Password</strong></label>
+                        {{ form.bind_password }}
+                        <small class="form-text text-muted">{{ form.bind_password.help_text }}</small>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label for="{{ form.base_dn.id_for_label }}" class="form-label"><strong>Base Bind DN</strong></label>
+                        {{ form.base_dn }}
+                        <small class="form-text text-muted">{{ form.base_dn.help_text }}</small>
+                    </div>
+                </div>
+
+                <!-- Search & Authentication -->
+                <hr>
+                <h5 class="mt-4 mb-3"><i class="fas fa-search"></i> Search and Authentication</h5>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.ldap_filter.id_for_label }}" class="form-label"><strong>LDAP Filter</strong></label>
+                        {{ form.ldap_filter }}
+                        <small class="form-text text-muted">{{ form.ldap_filter.help_text }}</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.ldap_auth_query.id_for_label }}" class="form-label"><strong>LDAP Authentication Query</strong></label>
+                        {{ form.ldap_auth_query }}
+                        <small class="form-text text-muted">{{ form.ldap_auth_query.help_text }}</small>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.default_permission_group.id_for_label }}" class="form-label"><strong>Default Permission Group</strong></label>
+                        {{ form.default_permission_group }}
+                        <small class="form-text text-muted">{{ form.default_permission_group.help_text }}</small>
+                    </div>
+                </div>
+
+                <!-- Field Mapping -->
+                <hr>
+                <h5 class="mt-4 mb-3"><i class="fas fa-exchange-alt"></i> LDAP Field Mapping</h5>
+                <p class="text-muted">Map LDAP attributes to user fields. Use lowercase for AD fields (e.g., samaccountname, displayname, givenname).</p>
+                
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <label for="{{ form.ldap_username_field.id_for_label }}" class="form-label"><strong>Username Field</strong></label>
+                        {{ form.ldap_username_field }}
+                    </div>
+                    <div class="col-md-3">
+                        <label for="{{ form.ldap_firstname_field.id_for_label }}" class="form-label"><strong>First Name Field</strong></label>
+                        {{ form.ldap_firstname_field }}
+                    </div>
+                    <div class="col-md-3">
+                        <label for="{{ form.ldap_lastname_field.id_for_label }}" class="form-label"><strong>Last Name Field</strong></label>
+                        {{ form.ldap_lastname_field }}
+                    </div>
+                    <div class="col-md-3">
+                        <label for="{{ form.ldap_displayname_field.id_for_label }}" class="form-label"><strong>Display Name Field</strong></label>
+                        {{ form.ldap_displayname_field }}
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <label for="{{ form.ldap_email_field.id_for_label }}" class="form-label"><strong>Email Field</strong></label>
+                        {{ form.ldap_email_field }}
+                    </div>
+                    <div class="col-md-3">
+                        <label for="{{ form.ldap_employeenumber_field.id_for_label }}" class="form-label"><strong>Employee Number Field</strong></label>
+                        {{ form.ldap_employeenumber_field }}
+                    </div>
+                    <div class="col-md-3">
+                        <label for="{{ form.ldap_department_field.id_for_label }}" class="form-label"><strong>Department Field</strong></label>
+                        {{ form.ldap_department_field }}
+                    </div>
+                    <div class="col-md-3">
+                        <label for="{{ form.ldap_manager_field.id_for_label }}" class="form-label"><strong>Manager Field</strong></label>
+                        {{ form.ldap_manager_field }}
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <label for="{{ form.ldap_phone_field.id_for_label }}" class="form-label"><strong>Phone Field</strong></label>
+                        {{ form.ldap_phone_field }}
+                    </div>
+                    <div class="col-md-3">
+                        <label for="{{ form.ldap_mobile_field.id_for_label }}" class="form-label"><strong>Mobile Field</strong></label>
+                        {{ form.ldap_mobile_field }}
+                    </div>
+                    <div class="col-md-3">
+                        <label for="{{ form.ldap_jobtitle_field.id_for_label }}" class="form-label"><strong>Job Title Field</strong></label>
+                        {{ form.ldap_jobtitle_field }}
+                    </div>
+                </div>
+
+                <!-- Location Fields -->
+                <h6 class="mt-3 mb-2">Location Fields</h6>
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <label for="{{ form.ldap_address_field.id_for_label }}" class="form-label">Address Field</label>
+                        {{ form.ldap_address_field }}
+                    </div>
+                    <div class="col-md-3">
+                        <label for="{{ form.ldap_city_field.id_for_label }}" class="form-label">City Field</label>
+                        {{ form.ldap_city_field }}
+                    </div>
+                    <div class="col-md-2">
+                        <label for="{{ form.ldap_state_field.id_for_label }}" class="form-label">State Field</label>
+                        {{ form.ldap_state_field }}
+                    </div>
+                    <div class="col-md-2">
+                        <label for="{{ form.ldap_postalcode_field.id_for_label }}" class="form-label">Postal Code Field</label>
+                        {{ form.ldap_postalcode_field }}
+                    </div>
+                    <div class="col-md-2">
+                        <label for="{{ form.ldap_country_field.id_for_label }}" class="form-label">Country Field</label>
+                        {{ form.ldap_country_field }}
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.ldap_location_field.id_for_label }}" class="form-label">Location Field</label>
+                        {{ form.ldap_location_field }}
+                        <small class="form-text text-muted">{{ form.ldap_location_field.help_text }}</small>
+                    </div>
+                </div>
+
+                <!-- Active Flag -->
+                <hr>
+                <h5 class="mt-4 mb-3"><i class="fas fa-user-check"></i> Active Flag Settings</h5>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.ldap_active_flag.id_for_label }}" class="form-label"><strong>LDAP Active Flag</strong></label>
+                        {{ form.ldap_active_flag }}
+                        <small class="form-text text-muted">{{ form.ldap_active_flag.help_text }}</small>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check mt-4">
+                            {{ form.ldap_invert_active_flag }}
+                            <label class="form-check-label" for="{{ form.ldap_invert_active_flag.id_for_label }}">
+                                <strong>Invert Active Flag</strong>
+                            </label>
+                            <small class="form-text text-muted">{{ form.ldap_invert_active_flag.help_text }}</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Miscellaneous -->
+                <hr>
+                <h5 class="mt-4 mb-3"><i class="fas fa-ellipsis-h"></i> Miscellaneous</h5>
+                
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label for="{{ form.custom_password_reset_url.id_for_label }}" class="form-label"><strong>Custom Password Reset URL</strong></label>
+                        {{ form.custom_password_reset_url }}
+                        <small class="form-text text-muted">{{ form.custom_password_reset_url.help_text }}</small>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-save"></i> Save LDAP Configuration
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Test Connection Section -->
+    {% if ldap_config %}
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="fas fa-vial"></i> Test LDAP Connection</h5>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">Test your LDAP configuration before using it. Make sure to save your settings first.</p>
+            
+            <div class="row">
+                <!-- Test Connection -->
+                <div class="col-md-6 mb-3">
+                    <div class="card border-info">
+                        <div class="card-body">
+                            <h6 class="card-title"><i class="fas fa-plug"></i> Test Connection</h6>
+                            <p class="card-text">Test if the system can connect to the LDAP server with the bind credentials.</p>
+                            <form method="post" action="{% url 'accounts:ldap_test_connection' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-info">
+                                    <i class="fas fa-network-wired"></i> Test Connection
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Test Login -->
+                <div class="col-md-6 mb-3">
+                    <div class="card border-success">
+                        <div class="card-body">
+                            <h6 class="card-title"><i class="fas fa-sign-in-alt"></i> Test LDAP Login</h6>
+                            <p class="card-text">Test authentication with actual LDAP user credentials.</p>
+                            <form method="post" action="{% url 'accounts:ldap_test_login' %}">
+                                {% csrf_token %}
+                                <div class="mb-2">
+                                    {{ test_login_form.username }}
+                                </div>
+                                <div class="mb-2">
+                                    {{ test_login_form.password }}
+                                </div>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-user-check"></i> Test Login
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sync Users -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card border-warning">
+                        <div class="card-body">
+                            <h6 class="card-title"><i class="fas fa-sync"></i> Sync All Users from LDAP</h6>
+                            <p class="card-text">Import/sync all users from your LDAP directory. This may take a while for large directories.</p>
+                            <form method="post" action="{% url 'accounts:ldap_sync_users' %}" onsubmit="return confirm('This will sync all users from LDAP. Continue?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-warning">
+                                    <i class="fas fa-users"></i> Sync All Users
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Help Section -->
+    <div class="card mb-4">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0"><i class="fas fa-question-circle"></i> Configuration Help</h5>
+        </div>
+        <div class="card-body">
+            <h6>Common Configuration Examples:</h6>
+            <ul>
+                <li><strong>Active Directory:</strong>
+                    <ul>
+                        <li>Server: ldap://dc.example.com:389 or ldaps://dc.example.com:636</li>
+                        <li>Bind Username: CN=ServiceAccount,CN=Users,DC=example,DC=com</li>
+                        <li>Base DN: DC=example,DC=com</li>
+                        <li>Filter: (&(objectClass=user)(objectCategory=person))</li>
+                        <li>Username Field: samaccountname (lowercase)</li>
+                    </ul>
+                </li>
+                <li><strong>OpenLDAP:</strong>
+                    <ul>
+                        <li>Server: ldap://ldap.example.com:389</li>
+                        <li>Bind Username: cn=admin,dc=example,dc=com</li>
+                        <li>Base DN: ou=users,dc=example,dc=com</li>
+                        <li>Filter: (objectClass=inetOrgPerson)</li>
+                        <li>Username Field: uid</li>
+                    </ul>
+                </li>
+            </ul>
+            
+            <h6 class="mt-3">Important Notes:</h6>
+            <ul>
+                <li>Always test your connection before enabling LDAP authentication</li>
+                <li>Use lowercase field names for Active Directory (e.g., samaccountname, not sAMAccountName)</li>
+                <li>The bind user must have read access to the directory</li>
+                <li>Enable "Cache Passwords" to allow local login when LDAP server is unavailable</li>
+                <li>For SSL, use ldaps:// or enable "Use TLS" for STARTTLS</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-control, .form-select {
+    margin-bottom: 0.25rem;
+}
+.form-check-input {
+    margin-right: 0.5rem;
+}
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+}
+</style>
+{% endblock %}
+

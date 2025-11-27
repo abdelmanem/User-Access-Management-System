@@ -483,3 +483,257 @@ class UserArchive(models.Model):
 
     def __str__(self):
         return f"Archived user {self.username} ({self.employee_id}) at {self.archived_at:%Y-%m-%d %H:%M}"
+
+
+class LDAPConfiguration(models.Model):
+    """
+    LDAP/Active Directory configuration settings
+    Follows Snipe-IT style comprehensive LDAP configuration
+    """
+    # Server Settings
+    ldap_enabled = models.BooleanField(
+        default=False,
+        help_text="Enable LDAP authentication"
+    )
+    
+    is_active_directory = models.BooleanField(
+        default=True,
+        help_text="This is an Active Directory server"
+    )
+    
+    cache_passwords = models.BooleanField(
+        default=True,
+        help_text="Cache LDAP passwords as local hashed passwords. Uncheck if you don't want to keep LDAP passwords cached."
+    )
+    
+    ad_domain = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Active Directory domain (sometimes the same as email domain)"
+    )
+    
+    # TLS/SSL Settings
+    ldap_client_tls_key = models.TextField(
+        blank=True,
+        help_text="LDAP Client-Side TLS Key (usually for Google Workspace Secure LDAP)"
+    )
+    
+    ldap_client_tls_cert = models.TextField(
+        blank=True,
+        help_text="LDAP Client-Side TLS Certificate (usually for Google Workspace Secure LDAP)"
+    )
+    
+    ldap_server = models.CharField(
+        max_length=500,
+        default='ldap://ldap.example.com:389',
+        help_text="LDAP Server URL (ldap:// for unencrypted or ldaps:// for TLS/SSL)"
+    )
+    
+    use_tls = models.BooleanField(
+        default=False,
+        help_text="Use STARTTLS for LDAP connection"
+    )
+    
+    allow_invalid_ssl = models.BooleanField(
+        default=False,
+        help_text="Allow invalid SSL certificates (for self-signed certificates)"
+    )
+    
+    # Bind Settings
+    bind_username = models.CharField(
+        max_length=500,
+        blank=True,
+        help_text="LDAP Bind Username (full DN or UPN format)"
+    )
+    
+    bind_password = models.CharField(
+        max_length=500,
+        blank=True,
+        help_text="LDAP Bind Password"
+    )
+    
+    base_dn = models.CharField(
+        max_length=500,
+        blank=True,
+        help_text="Base Bind DN (e.g., DC=example,DC=com)"
+    )
+    
+    # Search and Authentication
+    ldap_filter = models.CharField(
+        max_length=500,
+        default='(&(objectClass=user)(objectCategory=person))',
+        blank=True,
+        help_text="LDAP Filter for user search"
+    )
+    
+    ldap_auth_query = models.CharField(
+        max_length=500,
+        blank=True,
+        help_text="LDAP Authentication query"
+    )
+    
+    default_permission_group = models.ForeignKey(
+        'auth.Group',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text="Default permission group for new LDAP users"
+    )
+    
+    # Field Mapping
+    ldap_username_field = models.CharField(
+        max_length=100,
+        default='samaccountname',
+        help_text="LDAP Username Field (use lowercase for AD: samaccountname)"
+    )
+    
+    ldap_lastname_field = models.CharField(
+        max_length=100,
+        default='sn',
+        help_text="LDAP Last Name Field"
+    )
+    
+    ldap_firstname_field = models.CharField(
+        max_length=100,
+        default='givenname',
+        help_text="LDAP First Name Field (use lowercase: givenname)"
+    )
+    
+    ldap_displayname_field = models.CharField(
+        max_length=100,
+        default='displayname',
+        blank=True,
+        help_text="LDAP Display Name Field (use lowercase: displayname)"
+    )
+    
+    ldap_employeenumber_field = models.CharField(
+        max_length=100,
+        default='employeenumber',
+        blank=True,
+        help_text="LDAP Employee Number Field"
+    )
+    
+    ldap_department_field = models.CharField(
+        max_length=100,
+        default='department',
+        blank=True,
+        help_text="LDAP Department Field"
+    )
+    
+    ldap_manager_field = models.CharField(
+        max_length=100,
+        default='manager',
+        blank=True,
+        help_text="LDAP Manager Field (DN of manager)"
+    )
+    
+    ldap_email_field = models.CharField(
+        max_length=100,
+        default='mail',
+        help_text="LDAP Email Field"
+    )
+    
+    ldap_phone_field = models.CharField(
+        max_length=100,
+        default='telephonenumber',
+        blank=True,
+        help_text="LDAP Phone Number Field"
+    )
+    
+    ldap_mobile_field = models.CharField(
+        max_length=100,
+        default='mobile',
+        blank=True,
+        help_text="LDAP Mobile Field"
+    )
+    
+    ldap_jobtitle_field = models.CharField(
+        max_length=100,
+        default='title',
+        blank=True,
+        help_text="LDAP Job Title Field"
+    )
+    
+    ldap_address_field = models.CharField(
+        max_length=100,
+        default='streetaddress',
+        blank=True,
+        help_text="LDAP Address Field"
+    )
+    
+    ldap_city_field = models.CharField(
+        max_length=100,
+        default='l',
+        blank=True,
+        help_text="LDAP City Field"
+    )
+    
+    ldap_state_field = models.CharField(
+        max_length=100,
+        default='st',
+        blank=True,
+        help_text="LDAP State/Province Field"
+    )
+    
+    ldap_postalcode_field = models.CharField(
+        max_length=100,
+        default='postalcode',
+        blank=True,
+        help_text="LDAP Postal Code Field"
+    )
+    
+    ldap_country_field = models.CharField(
+        max_length=100,
+        default='co',
+        blank=True,
+        help_text="LDAP Country Field"
+    )
+    
+    ldap_location_field = models.CharField(
+        max_length=100,
+        default='',
+        blank=True,
+        help_text="LDAP Location Field (if not using OU in Base Bind DN)"
+    )
+    
+    ldap_active_flag = models.CharField(
+        max_length=100,
+        default='useraccountcontrol',
+        blank=True,
+        help_text="LDAP Active Flag field (userAccountControl for AD)"
+    )
+    
+    ldap_invert_active_flag = models.BooleanField(
+        default=False,
+        help_text="Invert the active flag logic (enabled when value is 0 or false)"
+    )
+    
+    # Miscellaneous
+    custom_password_reset_url = models.URLField(
+        max_length=500,
+        blank=True,
+        help_text="Custom password reset URL for LDAP users"
+    )
+    
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(
+        CustomUser,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='ldap_configs_updated'
+    )
+    
+    class Meta:
+        verbose_name = 'LDAP Configuration'
+        verbose_name_plural = 'LDAP Configurations'
+    
+    def __str__(self):
+        return f"LDAP Config - {'Enabled' if self.ldap_enabled else 'Disabled'} - {self.ldap_server}"
+    
+    @classmethod
+    def get_active_config(cls):
+        """Get the active LDAP configuration"""
+        return cls.objects.filter(ldap_enabled=True).first()

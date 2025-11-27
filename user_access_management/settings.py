@@ -278,6 +278,13 @@ LOGGING = {
 AD_BIND_USERNAME = config('AD_BIND_USERNAME', default='')
 AD_BIND_PASSWORD = config('AD_BIND_PASSWORD', default='')
 
+# LDAP/AD Authentication Backend
+# Add custom LDAP backend along with default ModelBackend
+AUTHENTICATION_BACKENDS = [
+    'accounts.ldap_backend.LDAPAuthenticationBackend',  # Try LDAP first
+    'django.contrib.auth.backends.ModelBackend',        # Fallback to local DB
+]
+
 
 # Optional Sentry integration (set SENTRY_DSN to enable)
 SENTRY_DSN = config('SENTRY_DSN', default='')
