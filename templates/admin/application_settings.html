@@ -22,19 +22,19 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <div class="text-uppercase text-muted small">Directory Sync</div>
+                                <div class="text-uppercase text-muted small">LDAP Authentication</div>
                                 <div class="h4 fw-bold mb-0">
-                                    {% if ad_status.enabled %}
+                                    {% if ldap_status.enabled %}
                                         <span class="text-success"><i class="fa-solid fa-circle-check me-1"></i>Enabled</span>
                                     {% else %}
-                                        <span class="text-danger"><i class="fa-solid fa-circle-xmark me-1"></i>Disabled</span>
+                                        <span class="text-secondary"><i class="fa-solid fa-circle-xmark me-1"></i>Disabled</span>
                                     {% endif %}
                                 </div>
                             </div>
-                            <span class="badge bg-primary-subtle text-primary text-uppercase">AD</span>
+                            <span class="badge bg-success-subtle text-success text-uppercase">LDAP</span>
                         </div>
-                        <p class="small text-muted mb-1">Last sync: {{ ad_status.last_sync|default:"Never" }}</p>
-                        <p class="small text-muted mb-0">Frequency: {{ ad_status.sync_frequency|title }}</p>
+                        <p class="small text-muted mb-1">Server: {{ ldap_status.server|default:"Not configured" }}</p>
+                        <p class="small text-muted mb-0">Last sync: {{ ldap_status.last_sync|default:"Never" }}</p>
                     </div>
                 </div>
             </div>
@@ -75,60 +75,94 @@
                 <div class="card shadow-sm border-0 h-100">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="mb-0 fw-bold">Active Directory Integration</h6>
-                            <small class="text-muted">{{ ad_setting.description }}</small>
+                            <h6 class="mb-0 fw-bold">LDAP/Active Directory Integration</h6>
+                            <small class="text-muted">Enterprise authentication and user synchronization</small>
                         </div>
-                        <span class="badge bg-primary text-uppercase">Integration</span>
+                        <span class="badge bg-success text-uppercase">LDAP</span>
                     </div>
                     <div class="card-body">
-                        <form method="post">
-                            {% csrf_token %}
-                            <input type="hidden" name="action" value="update_ad">
-                            {% if ad_form.non_field_errors %}
-                                <div class="alert alert-danger">{{ ad_form.non_field_errors }}</div>
-                            {% endif %}
-                            <div class="form-check form-switch mb-3">
-                                {{ ad_form.enabled }}
-                                <label class="form-check-label" for="{{ ad_form.enabled.id_for_label }}">Enable directory sync</label>
-                                {% if ad_form.enabled.errors %}<div class="text-danger small">{{ ad_form.enabled.errors|join:", " }}</div>{% endif %}
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <h6 class="mb-1">Current Status</h6>
+                                    <p class="small text-muted mb-0">LDAP authentication allows users to login with corporate credentials</p>
+                                </div>
+                                {% if ldap_status.enabled %}
+                                    <span class="badge bg-success-subtle text-success px-3 py-2">
+                                        <i class="fa-solid fa-circle-check me-1"></i>Active
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary px-3 py-2">
+                                        <i class="fa-solid fa-circle-xmark me-1"></i>Inactive
+                                    </span>
+                                {% endif %}
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label" for="{{ ad_form.domain_controller.id_for_label }}">Domain Controller</label>
-                                {{ ad_form.domain_controller|add_class:"form-control" }}
-                                {% if ad_form.domain_controller.errors %}<div class="text-danger small">{{ ad_form.domain_controller.errors|join:", " }}</div>{% endif %}
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label" for="{{ ad_form.base_dn.id_for_label }}">Base DN</label>
-                                {{ ad_form.base_dn|add_class:"form-control" }}
-                                {% if ad_form.base_dn.errors %}<div class="text-danger small">{{ ad_form.base_dn.errors|join:", " }}</div>{% endif %}
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label" for="{{ ad_form.service_account.id_for_label }}">Service Account</label>
-                                {{ ad_form.service_account|add_class:"form-control" }}
-                                {% if ad_form.service_account.errors %}<div class="text-danger small">{{ ad_form.service_account.errors|join:", " }}</div>{% endif %}
-                                <small class="text-muted">Store the password in your enterprise secret manager.</small>
-                            </div>
-                            <div class="mb-4">
-                                <label class="form-label" for="{{ ad_form.sync_frequency.id_for_label }}">Sync Frequency</label>
-                                {{ ad_form.sync_frequency|add_class:"form-select" }}
-                            </div>
-                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
-                                <small class="text-muted">Last updated: {{ ad_status.last_updated|default:"Never" }}</small>
-                                <div class="d-flex gap-2">
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fa-solid fa-floppy-disk me-1"></i> Save Settings
-                                    </button>
+                            
+                            {% if ldap_status.configured %}
+                            <div class="alert alert-info mb-3">
+                                <div class="d-flex align-items-start">
+                                    <i class="fa-solid fa-info-circle mt-1 me-2"></i>
+                                    <div class="small">
+                                        <strong>Configuration Summary:</strong><br>
+                                        Server: <code>{{ ldap_status.server|default:"Not set" }}</code><br>
+                                        Type: {{ ldap_status.type|default:"Generic LDAP" }}<br>
+                                        Base DN: <code>{{ ldap_status.base_dn|default:"Not set" }}</code><br>
+                                        Password Caching: {{ ldap_status.cache_passwords|yesno:"Enabled,Disabled" }}
+                                    </div>
                                 </div>
                             </div>
-                        </form>
-                        <form method="post" class="mt-3">
-                            {% csrf_token %}
-                            <input type="hidden" name="action" value="run_ad_sync_now">
-                            <button type="submit" class="btn btn-outline-primary w-100"
-                                    {% if not ad_status.enabled %}disabled title="Enable directory sync to run a manual sync"{% endif %}>
-                                <i class="fa-solid fa-rotate me-1"></i> Run Manual AD Sync
-                            </button>
-                        </form>
+                            {% else %}
+                            <div class="alert alert-warning mb-3">
+                                <div class="d-flex align-items-start">
+                                    <i class="fa-solid fa-exclamation-triangle mt-1 me-2"></i>
+                                    <div class="small">
+                                        <strong>Not Configured:</strong> LDAP/AD integration has not been set up yet. 
+                                        Configure it to enable enterprise authentication.
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'accounts:ldap_configuration' %}" class="btn btn-primary">
+                                <i class="fa-solid fa-cog me-1"></i> 
+                                {% if ldap_status.configured %}Manage LDAP Configuration{% else %}Configure LDAP/AD{% endif %}
+                            </a>
+                            
+                            {% if ldap_status.configured %}
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'accounts:ldap_configuration' %}#test" class="btn btn-outline-info">
+                                    <i class="fa-solid fa-vial me-1"></i> Test Connection
+                                </a>
+                                <a href="{% url 'accounts:ldap_configuration' %}#sync" class="btn btn-outline-warning">
+                                    <i class="fa-solid fa-sync me-1"></i> Sync Users
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <hr class="my-3">
+                        
+                        <div class="small text-muted">
+                            <h6 class="text-uppercase small mb-2">Features</h6>
+                            <ul class="ps-3 mb-0">
+                                <li>Authenticate against AD/LDAP server</li>
+                                <li>Automatic user synchronization</li>
+                                <li>35+ field mappings (name, email, phone, etc.)</li>
+                                <li>TLS/SSL encryption support</li>
+                                <li>Password caching for offline auth</li>
+                            </ul>
+                        </div>
+
+                        {% if ldap_status.last_sync %}
+                        <div class="mt-3 pt-3 border-top">
+                            <small class="text-muted">
+                                Last sync: <strong>{{ ldap_status.last_sync }}</strong>
+                                {% if ldap_status.updated_by %} by {{ ldap_status.updated_by }}{% endif %}
+                            </small>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>

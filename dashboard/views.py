@@ -16,6 +16,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from access_management.models import UserSystemAccess, AccessHistory
+from accounts.models import LDAPConfiguration
 from departments.models import Department
 from default_accounts.models import DefaultAccountTemplate
 from default_accounts.services import (
@@ -822,6 +823,19 @@ def application_settings_view(request):
         else:
             messages.error(request, 'Unsupported action.')
 
+    # Get LDAP configuration status
+    ldap_config = LDAPConfiguration.objects.first()
+    ldap_status = {
+        'enabled': ldap_config.ldap_enabled if ldap_config else False,
+        'configured': ldap_config is not None,
+        'server': ldap_config.ldap_server if ldap_config else None,
+        'type': 'Active Directory' if (ldap_config and ldap_config.is_active_directory) else 'Generic LDAP',
+        'base_dn': ldap_config.base_dn if ldap_config else None,
+        'cache_passwords': ldap_config.cache_passwords if ldap_config else False,
+        'last_sync': ldap_config.updated_at if ldap_config else None,
+        'updated_by': ldap_config.updated_by.get_full_name() if (ldap_config and ldap_config.updated_by) else None,
+    }
+
     context = {
         'title': 'Application Settings',
         'ad_form': ad_form,
@@ -831,6 +845,7 @@ def application_settings_view(request):
         'db_setting': db_setting,
         'seed_setting': seed_setting,
         'future_setting': future_setting,
+        'ldap_status': ldap_status,
         'ad_status': {
             'enabled': ad_setting.value.get('enabled', False),
             'last_sync': _iso_to_datetime(ad_setting.value.get('last_sync')),
