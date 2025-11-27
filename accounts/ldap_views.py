@@ -136,3 +136,4 @@ def ldap_configuration_list(request):
         'configs': configs,
     })
 
+
