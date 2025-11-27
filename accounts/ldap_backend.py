@@ -283,7 +283,7 @@ class LDAPAuthenticationBackend(ModelBackend):
             user.last_name = get_field(ldap_user_data, lastname_field) or user.last_name
             user.email = get_field(ldap_user_data, email_field) or user.email
             
-            # Update extended fields if available
+            # Update extended fields if available (using case-insensitive lookup)
             phone_field = ldap_config.ldap_phone_field or 'telephoneNumber'
             mobile_field = ldap_config.ldap_mobile_field or 'mobile'
             jobtitle_field = ldap_config.ldap_jobtitle_field or 'title'
@@ -294,36 +294,75 @@ class LDAPAuthenticationBackend(ModelBackend):
             country_field = ldap_config.ldap_country_field or 'co'
             department_field = ldap_config.ldap_department_field or 'department'
             
-            if phone_field in ldap_user_data and ldap_user_data[phone_field]:
-                phone = str(ldap_user_data[phone_field])
-                if phone and len(phone) >= 9:  # Basic validation
+            # Phone
+            phone_value = get_field(ldap_user_data, phone_field)
+            if phone_value:
+                phone = str(phone_value)
+                if len(phone) >= 7:  # Basic validation
                     user.phone_primary = phone
             
-            if mobile_field in ldap_user_data and ldap_user_data[mobile_field]:
-                user.phone_secondary = str(ldap_user_data[mobile_field])
+            # Mobile
+            mobile_value = get_field(ldap_user_data, mobile_field)
+            if mobile_value:
+                user.phone_secondary = str(mobile_value)
             
-            if jobtitle_field in ldap_user_data and ldap_user_data[jobtitle_field]:
-                user.position = str(ldap_user_data[jobtitle_field])
-                user.job_title = str(ldap_user_data[jobtitle_field])
+            # Job Title / Position
+            jobtitle_value = get_field(ldap_user_data, jobtitle_field)
+            if jobtitle_value:
+                user.position = str(jobtitle_value)
+                user.job_title = str(jobtitle_value)
             
-            if address_field in ldap_user_data and ldap_user_data[address_field]:
-                user.work_address = str(ldap_user_data[address_field])
+            # Description (from AD description field)
+            description_value = get_field(ldap_user_data, 'description')
+            if description_value:
+                user.description = str(description_value)
             
-            if city_field in ldap_user_data and ldap_user_data[city_field]:
-                user.city = str(ldap_user_data[city_field])
+            # Office Location (from physicalDeliveryOfficeName or office)
+            office_value = get_field(ldap_user_data, 'physicalDeliveryOfficeName') or get_field(ldap_user_data, 'office')
+            if office_value:
+                user.office_location = str(office_value)
             
-            if state_field in ldap_user_data and ldap_user_data[state_field]:
-                user.state_province = str(ldap_user_data[state_field])
+            # Company (can be used for notes or other field)
+            company_value = get_field(ldap_user_data, 'company')
+            if company_value and not user.notes:
+                user.notes = f"Company: {company_value}"
             
-            if postalcode_field in ldap_user_data and ldap_user_data[postalcode_field]:
-                user.postal_code = str(ldap_user_data[postalcode_field])
+            # Address fields
+            address_value = get_field(ldap_user_data, address_field)
+            if address_value:
+                user.work_address = str(address_value)
             
-            if country_field in ldap_user_data and ldap_user_data[country_field]:
-                user.country = str(ldap_user_data[country_field])
+            city_value = get_field(ldap_user_data, city_field)
+            if city_value:
+                user.city = str(city_value)
+            
+            state_value = get_field(ldap_user_data, state_field)
+            if state_value:
+                user.state_province = str(state_value)
+            
+            postalcode_value = get_field(ldap_user_data, postalcode_field)
+            if postalcode_value:
+                user.postal_code = str(postalcode_value)
+            
+            country_value = get_field(ldap_user_data, country_field)
+            if country_value:
+                user.country = str(country_value)
+            
+            # Employee Number / ID
+            employee_field = ldap_config.ldap_employeenumber_field or 'employeeNumber'
+            employee_value = get_field(ldap_user_data, employee_field) or get_field(ldap_user_data, 'employeeID')
+            # Note: employee_id is auto-generated, so we store AD employee number in notes if different
+            if employee_value and str(employee_value) != user.employee_id:
+                if user.notes:
+                    if 'AD Employee#' not in user.notes:
+                        user.notes += f"\nAD Employee#: {employee_value}"
+                else:
+                    user.notes = f"AD Employee#: {employee_value}"
             
             # Update department
-            if department_field in ldap_user_data and ldap_user_data[department_field]:
-                dept_name = str(ldap_user_data[department_field])
+            dept_value = get_field(ldap_user_data, department_field)
+            if dept_value:
+                dept_name = str(dept_value)
                 dept, created = Department.objects.get_or_create(
                     name=dept_name,
                     defaults={'description': f'Auto-created from LDAP sync'}
@@ -332,14 +371,16 @@ class LDAPAuthenticationBackend(ModelBackend):
             
             # Update AD sync fields
             user.ad_synced = True
+            user.ad_username = user.username
             user.last_ad_sync = timezone.now()
-            if 'distinguishedName' in ldap_user_data:
-                user.ad_distinguished_name = str(ldap_user_data['distinguishedName'])
+            dn_value = get_field(ldap_user_data, 'distinguishedName')
+            if dn_value:
+                user.ad_distinguished_name = str(dn_value)
             
-            # Check active flag
-            active_flag_field = ldap_config.ldap_active_flag
-            if active_flag_field and active_flag_field in ldap_user_data:
-                active_value = ldap_user_data[active_flag_field]
+            # Check active flag (userAccountControl for AD)
+            active_flag_field = ldap_config.ldap_active_flag or 'userAccountControl'
+            active_value = get_field(ldap_user_data, active_flag_field)
+            if active_value is not None:
                 # For AD userAccountControl: bit 2 (value 2) means disabled
                 # Normal active account has value like 512, 544, etc.
                 # Disabled account has value like 514, 546, etc.
