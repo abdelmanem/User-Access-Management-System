@@ -52,6 +52,7 @@ nav:
       - Plugins: plugins.md
   - Integrations:
       - Integrations Overview: integrations.md
+      - LDAP/Active Directory: LDAP_AD_INTEGRATION.md
       - Additional Integrations:
           - Integrations Overview: additional_integrations/integrations.md
           - Diode Integration: additional_integrations/diode.md

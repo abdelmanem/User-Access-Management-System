@@ -1,124 +1,136 @@
-# LDAP/Active Directory Integration Guide
+# LDAP/Active Directory Integration
 
 ## Overview
 
-The User Access Management System includes comprehensive LDAP/Active Directory (AD) integration for enterprise authentication and user synchronization. This feature allows organizations to:
+The User Access Management System (UAMS) provides comprehensive LDAP/Active Directory integration for enterprise authentication and user synchronization. This allows organizations to:
 
-- Authenticate users against their corporate LDAP/AD server
-- Automatically sync user information from LDAP/AD
-- Map LDAP attributes to user profile fields
-- Support both Active Directory and generic LDAP servers
-- Cache passwords locally for offline authentication
-
-## Table of Contents
-
-1. [Prerequisites](#prerequisites)
-2. [Configuration](#configuration)
-3. [Server Settings](#server-settings)
-4. [Field Mapping](#field-mapping)
-5. [Testing](#testing)
-6. [User Synchronization](#user-synchronization)
-7. [Troubleshooting](#troubleshooting)
-8. [Security Considerations](#security-considerations)
+- **Authenticate users** against corporate LDAP/AD servers
+- **Automatically sync** user information from directory services
+- **Map LDAP attributes** to user profile fields
+- **Support both** Active Directory and generic LDAP servers
+- **Cache passwords** locally for offline authentication
 
 ---
 
-## Prerequisites
+## Quick Start
 
-### Required Packages
+### 1. Access Configuration
 
-The following Python packages are required and included in `requirements.txt`:
+Navigate to **Application Settings** → **LDAP/Active Directory Integration** or directly to:
 
-- `ldap3==2.9.1` - Pure Python LDAP client library
-- `pyasn1==0.6.0` - ASN.1 types and codecs
-
-Install them using:
-
-```bash
-pip install ldap3==2.9.1 pyasn1==0.6.0
+```
+/accounts/ldap/configuration/
 ```
 
-**Why ldap3?** We use `ldap3` (pure Python) instead of `python-ldap` because:
-- No C compiler required (works on Windows without Visual Studio)
-- Cross-platform compatibility
-- Easier installation
-- Full-featured LDAP v3 client
-- We built a custom authentication backend using `ldap3`
+!!! note "Superuser Required"
+    Only superusers can access and modify LDAP configuration.
 
-### LDAP Server Requirements
+### 2. Basic Configuration
 
-- Access to an LDAP or Active Directory server
-- A service account with read access to the directory
-- Network connectivity to the LDAP server (port 389 for LDAP, 636 for LDAPS)
+| Setting | Example Value |
+|---------|---------------|
+| LDAP Enabled | ✓ Checked |
+| Active Directory | ✓ Checked (for AD) |
+| Cache Passwords | ✓ Recommended |
+| LDAP Server | `ldap://dc.example.com:389` |
+| Bind Username | `Administrator@example.com` |
+| Bind Password | `••••••••` |
+| Base DN | `DC=example,DC=com` |
+
+### 3. Test & Sync
+
+1. Click **Test Connection** to verify server connectivity
+2. Click **Test Login** with actual user credentials
+3. Click **Sync All Users** to import users
 
 ---
 
-## Configuration
-
-### Accessing Configuration
-
-1. Log in as a superuser
-2. Navigate to **LDAP/AD Configuration** from the admin menu
-3. Or access directly: `/accounts/ldap/configuration/`
+## Configuration Reference
 
 ### Server Settings
 
-#### LDAP Integration
+#### LDAP Integration Enabled
+Toggle to enable/disable LDAP authentication system-wide.
 
-- **LDAP Enabled**: Toggle to enable/disable LDAP authentication
-- **Active Directory**: Check if connecting to an Active Directory server
-- **Cache LDAP Passwords**: When enabled, stores hashed passwords locally for offline authentication
+#### Active Directory
+Check this if connecting to a Microsoft Active Directory server. This enables AD-specific features like `userAccountControl` handling.
+
+#### Cache LDAP Passwords
+When enabled, user passwords are cached locally as secure hashes. This allows users to login even if the LDAP server is temporarily unavailable.
+
+!!! warning "Security Note"
+    Disabling password caching means users cannot login if LDAP is unreachable.
 
 #### Active Directory Domain
+Your AD domain name (e.g., `example.com`). Often matches your email domain.
 
-- Example: `example.com` or `corp.example.com`
-- Often matches your email domain but not always
+---
 
-#### LDAP Server
+### TLS/SSL Configuration
+
+#### LDAP Server URL
 
 Format: `protocol://hostname:port`
 
-Examples:
-- Unencrypted: `ldap://dc.example.com:389`
-- SSL/TLS: `ldaps://dc.example.com:636`
-- With STARTTLS: `ldap://dc.example.com:389` (enable "Use TLS" checkbox)
+| Protocol | Port | Description |
+|----------|------|-------------|
+| `ldap://` | 389 | Unencrypted (use with STARTTLS) |
+| `ldaps://` | 636 | SSL/TLS encrypted |
 
-#### TLS/SSL Settings
+**Examples:**
+```
+ldap://dc.example.com:389
+ldaps://dc.example.com:636
+```
 
-- **Use TLS**: Enable STARTTLS for encrypted connection
-- **Allow Invalid SSL Certificate**: For self-signed certificates (not recommended for production)
-- **Client TLS Certificate/Key**: Required for Google Workspace Secure LDAP
+#### Use TLS (STARTTLS)
+Enable STARTTLS encryption on standard LDAP port (389).
+
+#### Allow Invalid SSL Certificate
+For self-signed certificates in development/testing environments.
+
+!!! danger "Production Warning"
+    Never enable this in production. Use proper certificates.
+
+#### Client TLS Certificate/Key
+Required for Google Workspace Secure LDAP and some enterprise configurations.
+
+---
 
 ### Bind Settings
 
 #### Bind Username
 
-The service account used to connect to LDAP. Format varies:
+The service account used to connect to LDAP. Supported formats:
 
-**Active Directory:**
-- Distinguished Name: `CN=ServiceAccount,CN=Users,DC=example,DC=com`
-- User Principal Name: `serviceaccount@example.com`
+| Format | Example |
+|--------|---------|
+| User Principal Name (UPN) | `serviceaccount@example.com` |
+| Distinguished Name (DN) | `CN=ServiceAccount,CN=Users,DC=example,DC=com` |
+| Domain\Username | `EXAMPLE\serviceaccount` |
 
-**OpenLDAP:**
-- `cn=admin,dc=example,dc=com`
+!!! tip "Best Practice"
+    Use a dedicated service account with minimal read-only permissions, not an administrator account.
 
 #### Bind Password
-
-Password for the bind user account.
+Password for the bind account.
 
 #### Base Bind DN
+The starting point for LDAP searches.
 
-Starting point for LDAP searches.
+**Examples:**
+```
+DC=example,DC=com                    # Search entire domain
+OU=Users,DC=example,DC=com           # Search specific OU
+OU=Employees,OU=Users,DC=example,DC=com  # Nested OU
+```
 
-Examples:
-- Active Directory: `DC=example,DC=com`
-- OpenLDAP: `ou=users,dc=example,dc=com`
+---
 
 ### Search and Authentication
 
 #### LDAP Filter
-
-Filter to identify user objects.
+Filter to identify user objects during sync.
 
 **Active Directory:**
 ```
@@ -130,28 +142,29 @@ Filter to identify user objects.
 (objectClass=inetOrgPerson)
 ```
 
-#### LDAP Authentication Query
+**Exclude disabled accounts (AD):**
+```
+(&(objectClass=user)(objectCategory=person)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))
+```
 
-Custom authentication query (optional). Leave blank for default behavior.
+#### LDAP Authentication Query
+Custom query for authentication (optional). Leave blank for default behavior.
 
 #### Default Permission Group
-
-Automatically assign new LDAP users to a Django group.
+Automatically assign new LDAP users to a Django permission group.
 
 ---
 
 ## Field Mapping
 
-### Important Notes
+### Overview
 
-- **Use lowercase** for Active Directory field names (e.g., `samaccountname`, not `sAMAccountName`)
-- Fields left blank won't sync from LDAP
-- Custom field mappings depend on your LDAP schema
+LDAP attributes are mapped to user profile fields during sync. Use **lowercase** field names for Active Directory compatibility.
 
 ### Basic Fields
 
-| Field | AD Default | OpenLDAP Default | Description |
-|-------|-----------|------------------|-------------|
+| User Field | AD Attribute | OpenLDAP | Description |
+|------------|--------------|----------|-------------|
 | Username | `samaccountname` | `uid` | Login username |
 | First Name | `givenname` | `givenName` | User's first name |
 | Last Name | `sn` | `sn` | User's surname |
@@ -160,39 +173,58 @@ Automatically assign new LDAP users to a Django group.
 
 ### Extended Fields
 
-| Field | AD Default | Description |
-|-------|-----------|-------------|
-| Employee Number | `employeenumber` | Employee ID |
-| Department | `department` | Department name |
-| Manager | `manager` | Manager's DN |
+| User Field | AD Attribute | Description |
+|------------|--------------|-------------|
+| Department | `department` | Auto-creates department |
+| Position/Job Title | `title` | Job position |
+| Description | `description` | User description |
 | Phone | `telephonenumber` | Primary phone |
 | Mobile | `mobile` | Mobile phone |
-| Job Title | `title` | Job position |
+| Office Location | `physicaldeliveryofficename` | Office/building |
+| Company | `company` | Stored in notes |
+| Employee Number | `employeenumber` | Stored in notes |
 
-### Location Fields
+### Address Fields
 
-| Field | AD Default | Description |
-|-------|-----------|-------------|
+| User Field | AD Attribute | Description |
+|------------|--------------|-------------|
 | Address | `streetaddress` | Street address |
 | City | `l` | City/locality |
 | State | `st` | State/province |
 | Postal Code | `postalcode` | ZIP/postal code |
-| Country | `co` | Country |
-| Location | - | Custom location field |
+| Country | `co` | Country name |
 
-### Active Flag
+### System Fields
 
-Controls whether users can log in based on LDAP status.
+| User Field | AD Attribute | Description |
+|------------|--------------|-------------|
+| Distinguished Name | `distinguishedname` | Full AD path |
+| Active Status | `useraccountcontrol` | Account enabled/disabled |
+| AD Synced | (auto) | Marks user as synced |
+| Last AD Sync | (auto) | Sync timestamp |
 
-**Active Directory:**
-- Field: `useraccountcontrol`
-- Logic: Checks bit 2 (disabled flag)
-- Invert: When enabled, treats 0/false as active
+---
 
-**Generic LDAP:**
-- Common fields: `active`, `enabled`, `accountStatus`
-- Treats 1/true/enabled as active
-- Use "Invert Active Flag" to reverse logic
+## Active Flag Settings
+
+### userAccountControl (Active Directory)
+
+For AD, the `userAccountControl` attribute determines account status:
+
+| Value | Meaning |
+|-------|---------|
+| 512 | Normal active account |
+| 514 | Disabled account |
+| 544 | Active, password not required |
+| 546 | Disabled, password not required |
+
+The system automatically checks bit 2 (value 2) to determine if an account is disabled.
+
+### Invert Active Flag
+
+When enabled, inverts the logic:
+- Normal: `0` or `false` = inactive
+- Inverted: `0` or `false` = active
 
 ---
 
@@ -200,324 +232,311 @@ Controls whether users can log in based on LDAP status.
 
 ### Test Connection
 
-1. Save your configuration
-2. Click **Test Connection**
-3. Verifies:
-   - Server is reachable
-   - Bind credentials are correct
-   - TLS/SSL configuration works
+Verifies:
+- Server is reachable
+- Bind credentials are correct
+- TLS/SSL configuration works
+
+**Success:**
+```
+✓ LDAP connection successful
+```
+
+**Failure:**
+```
+✗ Connection failed: [error details]
+```
 
 ### Test Login
 
-1. Save your configuration
-2. Enter valid LDAP credentials in the test form
-3. Click **Test Login**
-4. Verifies:
-   - User can be found in directory
-   - Authentication succeeds
-   - Field mapping works correctly
+Tests actual user authentication:
 
-**Success Example:**
+1. Enter valid LDAP username
+2. Enter user's password
+3. Click Test Login
+
+**Success:**
 ```
 ✓ LDAP login successful for user: jdoe (John Doe)
 ```
 
-**Failure Example:**
+### User Sync
+
+Imports all users from LDAP:
+
 ```
-✗ LDAP login failed for user: jdoe. Check credentials and LDAP configuration.
-```
-
----
-
-## User Synchronization
-
-### Manual Sync
-
-1. Navigate to LDAP Configuration
-2. Click **Sync All Users**
-3. System will:
-   - Search for all users matching the LDAP filter
-   - Create new users or update existing ones
-   - Sync all mapped fields
-   - Apply default permission group
-
-**Note:** Large directories may take several minutes to sync.
-
-### Automatic Sync on Login
-
-When a user logs in with LDAP credentials:
-1. User is authenticated against LDAP
-2. User account is created/updated automatically
-3. All mapped fields are synced
-4. Password is cached (if enabled)
-
-### Sync Results
-
-After sync, you'll see:
-```
-✓ Synced 150 users successfully, 3 errors
+✓ Synced 150 users successfully, 0 errors
 ```
 
-Check logs for detailed error information.
-
----
-
-## Troubleshooting
-
-### Common Issues
-
-#### "Connection Failed"
-
-**Causes:**
-- Server unreachable
-- Incorrect hostname/port
-- Firewall blocking connection
-- SSL/TLS configuration issues
-
-**Solutions:**
-- Verify server URL format
-- Test network connectivity: `telnet dc.example.com 389`
-- Check firewall rules
-- Try without TLS first, then enable
-
-#### "Bind Failed"
-
-**Causes:**
-- Incorrect bind username/password
-- Service account locked/disabled
-- Insufficient permissions
-
-**Solutions:**
-- Verify credentials with ldapsearch or AD tools
-- Check account status in Active Directory
-- Ensure service account has read permissions
-
-#### "User Not Found"
-
-**Causes:**
-- Incorrect Base DN
-- LDAP filter too restrictive
-- User outside search scope
-
-**Solutions:**
-- Verify Base DN covers user location
-- Test LDAP filter with ldapsearch
-- Check user's OU/container path
-
-#### "Login Succeeds but No Field Sync"
-
-**Causes:**
-- Field names incorrect (case-sensitive in some cases)
-- Attributes not present in LDAP
-- Permissions to read attributes
-
-**Solutions:**
-- Use lowercase for AD field names
-- Verify attributes exist: `ldapsearch -x -b "CN=User,DC=example,DC=com" -s base`
-- Check service account read permissions
-
-#### "SSL Certificate Validation Failed"
-
-**Causes:**
-- Self-signed certificate
-- Certificate chain incomplete
-- Certificate expired
-
-**Solutions:**
-- Enable "Allow Invalid SSL Certificate" (development only)
-- Install proper CA certificate
-- Use non-SSL connection for testing
-
-### Debug Logging
-
-Enable debug logging in `settings.py`:
-
-```python
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'loggers': {
-        'accounts.ldap_backend': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-        },
-    },
-}
-```
-
----
-
-## Security Considerations
-
-### Best Practices
-
-1. **Service Account Security**
-   - Use dedicated service account with minimal permissions
-   - Implement strong password policies
-   - Rotate credentials regularly
-   - Audit service account usage
-
-2. **Connection Security**
-   - Always use TLS/SSL in production
-   - Never allow invalid certificates in production
-   - Use LDAPS (port 636) or STARTTLS (port 389)
-
-3. **Password Caching**
-   - Enable for better availability
-   - Passwords stored as Django-style hashes (bcrypt/PBKDF2)
-   - Users can still login if LDAP is unavailable
-
-4. **Access Control**
-   - Restrict LDAP configuration to superusers only
-   - Audit configuration changes
-   - Monitor authentication logs
-
-5. **Network Security**
-   - Use VPN or private network for LDAP traffic
-   - Implement IP restrictions on LDAP server
-   - Use firewall rules to limit access
-
-### Data Privacy
-
-- LDAP data processed according to your privacy policy
-- Synced data stored in Django database
-- Consider GDPR/compliance requirements
-- Implement data retention policies
+!!! note "Sync Behavior"
+    - Creates new users automatically
+    - Updates existing user information
+    - Skips computer accounts (ending with `$`)
+    - Skips system accounts (krbtgt, guest)
+    - Auto-creates departments from AD
 
 ---
 
 ## Configuration Examples
 
-### Example 1: Active Directory (Standard)
+### Active Directory (Standard)
 
-```
-LDAP Server: ldap://dc.corp.example.com:389
-Use TLS: Yes
-Bind Username: CN=ServiceAccount,CN=Users,DC=corp,DC=example,DC=com
+```yaml
+LDAP Enabled: ✓
+Active Directory: ✓
+Cache Passwords: ✓
+
+Server: ldap://dc.corp.example.com:389
+Use TLS: ✓
+Bind Username: svc-ldap@corp.example.com
+Bind Password: ********
 Base DN: DC=corp,DC=example,DC=com
-LDAP Filter: (&(objectClass=user)(objectCategory=person))
+
+Filter: (&(objectClass=user)(objectCategory=person))
 Username Field: samaccountname
 Email Field: mail
 ```
 
-### Example 2: Active Directory (LDAPS)
+### Active Directory (LDAPS)
 
-```
-LDAP Server: ldaps://dc.corp.example.com:636
-Use TLS: No (already using LDAPS)
-Allow Invalid SSL: No
-Bind Username: serviceaccount@corp.example.com
-Base DN: DC=corp,DC=example,DC=com
-LDAP Filter: (&(objectClass=user)(objectCategory=person)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))
+```yaml
+Server: ldaps://dc.corp.example.com:636
+Use TLS: ✗ (already using LDAPS)
+Allow Invalid SSL: ✗
 ```
 
-### Example 3: OpenLDAP
+### OpenLDAP
 
-```
-LDAP Server: ldap://ldap.example.com:389
-Use TLS: Yes
+```yaml
+LDAP Enabled: ✓
+Active Directory: ✗
+Cache Passwords: ✓
+
+Server: ldap://ldap.example.com:389
+Use TLS: ✓
 Bind Username: cn=admin,dc=example,dc=com
+Bind Password: ********
 Base DN: ou=users,dc=example,dc=com
-LDAP Filter: (objectClass=inetOrgPerson)
+
+Filter: (objectClass=inetOrgPerson)
 Username Field: uid
 Email Field: mail
 ```
 
-### Example 4: Google Workspace Secure LDAP
+### Google Workspace Secure LDAP
 
-```
-LDAP Server: ldaps://ldap.google.com:636
-Client TLS Certificate: [Paste certificate from Google Admin Console]
-Client TLS Key: [Paste private key from Google Admin Console]
-Bind Username: [Service account from Google]
+```yaml
+Server: ldaps://ldap.google.com:636
+Client TLS Certificate: [From Google Admin Console]
+Client TLS Key: [From Google Admin Console]
+Bind Username: [Service account]
 Base DN: dc=example,dc=com
-LDAP Filter: (objectClass=user)
+Filter: (objectClass=user)
 ```
+
+---
+
+## Troubleshooting
+
+### Connection Issues
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| Connection refused | Server unreachable | Check hostname, port, firewall |
+| Invalid credentials | Wrong bind password | Verify credentials |
+| Certificate error | SSL/TLS issue | Check certificate, try Allow Invalid SSL |
+
+### Sync Issues
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| 0 users synced | Empty filter | Set filter to `(&(objectClass=user)(objectCategory=person))` |
+| Missing fields | Case sensitivity | Use lowercase field names |
+| Users not found | Wrong Base DN | Verify Base DN includes user containers |
+
+### Authentication Issues
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| User not found | Filter too restrictive | Broaden LDAP filter |
+| Invalid password | Cached password mismatch | Re-sync user or reset password |
+| Account disabled | AD account disabled | Check userAccountControl |
+
+### Diagnostic Commands
+
+Run on server to diagnose issues:
+
+```bash
+# Check configuration
+python check_ldap_config.py
+
+# Test LDAP search
+python test_ldap_search.py
+
+# Manual sync
+python -c "
+import os, django
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'user_access_management.settings')
+django.setup()
+from accounts.ldap_backend import LDAPSync
+print(LDAPSync.sync_all_users())
+"
+```
+
+---
+
+## Security Best Practices
+
+### Service Account
+
+- Use dedicated service account, not administrator
+- Grant minimal read-only permissions
+- Rotate credentials regularly
+- Monitor account usage
+
+### Connection Security
+
+- Always use TLS/SSL in production
+- Use LDAPS (port 636) or STARTTLS
+- Never allow invalid certificates in production
+- Use certificate pinning if possible
+
+### Password Handling
+
+- Enable password caching for availability
+- Passwords stored as Django hashes (bcrypt/PBKDF2)
+- Never store plaintext passwords
+- Implement password policies
+
+### Access Control
+
+- Restrict LDAP configuration to superusers
+- Audit configuration changes
+- Monitor sync operations
+- Log authentication attempts
+
+---
+
+## Integration with Application Settings
+
+The LDAP configuration is integrated into the **Application Settings** page for centralized management:
+
+1. Navigate to **Dashboard** → **Application Settings**
+2. Find the **LDAP/Active Directory Integration** card
+3. View status and quick actions
+4. Click **Manage LDAP Configuration** for full settings
+
+### Status Indicators
+
+| Status | Meaning |
+|--------|---------|
+| ✅ Active | LDAP enabled and configured |
+| ⚪ Inactive | LDAP disabled |
+| ⚠️ Not Configured | No configuration exists |
 
 ---
 
 ## API Reference
 
-### LDAPConfiguration Model
+### Models
+
+#### LDAPConfiguration
 
 Located in `accounts/models.py`
 
-**Key Methods:**
-- `get_active_config()`: Returns the currently active LDAP configuration
+```python
+from accounts.models import LDAPConfiguration
 
-### LDAPAuthenticationBackend
+# Get active configuration
+config = LDAPConfiguration.get_active_config()
+
+# Check if enabled
+if config and config.ldap_enabled:
+    print(f"LDAP Server: {config.ldap_server}")
+```
+
+### Backend
+
+#### LDAPAuthenticationBackend
 
 Located in `accounts/ldap_backend.py`
 
-**Key Methods:**
-- `authenticate(username, password)`: Authenticate user against LDAP
-- `_ldap_authenticate()`: Handle LDAP connection and authentication
-- `_update_user_from_ldap()`: Sync user data from LDAP
+```python
+from accounts.ldap_backend import LDAPAuthenticationBackend
 
-### LDAPSync Utility
+backend = LDAPAuthenticationBackend()
+user = backend.authenticate(request, username='jdoe', password='secret')
+```
 
-**Methods:**
-- `sync_all_users(ldap_config)`: Sync all users from LDAP directory
-- `test_connection(ldap_config)`: Test LDAP server connection
+#### LDAPSync
 
----
+```python
+from accounts.ldap_backend import LDAPSync
 
-## Migration from Other Systems
+# Test connection
+result = LDAPSync.test_connection(config)
+print(result['message'])
 
-### From Manual User Management
-
-1. Configure LDAP settings
-2. Test connection and login
-3. Run full user sync
-4. Verify all users imported correctly
-5. Enable LDAP authentication
-6. Communicate change to users
-
-### From Other LDAP Systems
-
-1. Export current LDAP configuration
-2. Map field names to new system
-3. Import configuration
-4. Test with sample users
-5. Full migration during maintenance window
+# Sync all users
+result = LDAPSync.sync_all_users()
+print(f"Synced: {result['synced_count']}")
+```
 
 ---
 
-## Support
+## URLs
 
-For issues or questions:
+| URL | Description |
+|-----|-------------|
+| `/accounts/ldap/configuration/` | Main configuration page |
+| `/accounts/ldap/test-connection/` | Test connection endpoint |
+| `/accounts/ldap/test-login/` | Test login endpoint |
+| `/accounts/ldap/sync-users/` | Sync users endpoint |
+| `/dashboard/settings/application/` | Application settings (includes LDAP card) |
 
-1. Check troubleshooting section
-2. Review debug logs
-3. Consult Django and ldap3 documentation
-4. Contact your IT administrator for LDAP-specific questions
+---
+
+## Requirements
+
+### Python Packages
+
+```
+ldap3==2.9.1
+pyasn1==0.6.0
+```
+
+### Network Requirements
+
+- Access to LDAP server (port 389 or 636)
+- DNS resolution for LDAP hostname
+- Firewall rules allowing LDAP traffic
+
+### Active Directory Requirements
+
+- Service account with read permissions
+- Access to user containers/OUs
+- Proper Base DN configuration
 
 ---
 
 ## Changelog
 
-### Version 1.0 (Initial Release)
-- Comprehensive LDAP/AD authentication
-- User synchronization
-- Field mapping for all user attributes
-- Active Directory support
-- Generic LDAP support
+### Version 1.0
+
+- Initial LDAP/AD integration
+- Support for Active Directory and OpenLDAP
+- Comprehensive field mapping (35+ fields)
 - TLS/SSL support
 - Password caching
-- Test tools (connection, login, sync)
-- Admin interface
-- Configuration management
+- User synchronization
+- Test tools
+- Application Settings integration
 
 ---
 
 ## Related Documentation
 
-- [User Management Guide](USER_GUIDE.md)
 - [Administration Guide](administration.md)
+- [Application Settings](application_settings.md)
 - [Security Best Practices](best_practices.md)
-
+- [User Guide](USER_GUIDE.md)
