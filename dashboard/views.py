@@ -245,14 +245,14 @@ def dashboard_home(request):
     
     # Format pending requests for template
     formatted_requests = []
-    for request in pending_requests:
+    for pending_req in pending_requests:
         formatted_requests.append({
-            'id': request.id,
-            'user_name': request.user.get_full_name(),
-            'system_name': request.system.name,
-            'priority': request.get_priority_display() if hasattr(request, 'get_priority_display') else request.priority,
-            'priority_badge': request.get_priority_color() if hasattr(request, 'get_priority_color') else 'secondary',
-            'submitted': request.request_date,
+            'id': pending_req.id,
+            'user_name': pending_req.user.get_full_name(),
+            'system_name': pending_req.system.name,
+            'priority': pending_req.get_priority_display() if hasattr(pending_req, 'get_priority_display') else pending_req.priority,
+            'priority_badge': pending_req.get_priority_color() if hasattr(pending_req, 'get_priority_color') else 'secondary',
+            'submitted': pending_req.request_date,
         })
     
     # System usage for doughnut chart
