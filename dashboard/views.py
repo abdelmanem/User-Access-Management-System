@@ -55,6 +55,7 @@ def home(request):
 @login_required
 def dashboard_home(request):
     """Main dashboard view with overview statistics."""
+    from dashboard.admin import dashboard_admin_site
     
     # Get basic statistics (exclude non-reportable accounts)
     reportable_users = User.objects.included_in_metrics()
@@ -90,7 +91,187 @@ def dashboard_home(request):
     ).count()
     
     # Get pending access requests
-    pending_requests = UserSystemAccess.objects.filter(status='Pending').count()
+    pending_requests_count = UserSystemAccess.objects.filter(status='Pending').count()
+    pending_requests_queryset = UserSystemAccess.objects.filter(status='Pending').select_related(
+        'user', 'system', 'created_by'
+    ).order_by('-created_at')[:10]
+    
+    pending_requests = [
+        {
+            'user_name': req.user.get_full_name() if hasattr(req.user, 'get_full_name') and req.user.get_full_name() else req.user.username,
+            'system_name': req.system.name if req.system else 'Unknown',
+            'priority': getattr(req, 'priority', 'Normal'),
+            'priority_badge': {
+                'High': 'danger',
+                'Medium': 'warning',
+                'Low': 'info',
+                'Normal': 'secondary',
+            }.get(getattr(req, 'priority', 'Normal'), 'secondary'),
+            'submitted': req.created_at,
+        }
+        for req in pending_requests_queryset
+    ]
+    
+    # Hardware statistics
+    total_hardware = HardwareAsset.objects.count()
+    active_hardware = HardwareAsset.objects.filter(status='In Service').count()
+    hardware_counts = {
+        'total': total_hardware,
+        'in_service': HardwareAsset.objects.filter(status='In Service').count(),
+        'in_storage': HardwareAsset.objects.filter(status='In Storage').count(),
+        'retired': HardwareAsset.objects.filter(status='Retired').count(),
+    }
+    virtual_assets = HardwareAsset.objects.filter(is_virtual=True).count()
+    
+    # Hardware warranties
+    warranty_cutoff = today + timedelta(days=90)
+    warranty_expiring_soon = HardwareAsset.objects.filter(
+        warranty_expiration__lte=warranty_cutoff,
+        warranty_expiration__gte=today
+    ).count()
+    
+    hardware_warranties = {
+        'upcoming': [
+            {
+                'id': hw.id,
+                'name': hw.name,
+                'asset_tag': hw.asset_tag,
+                'department': hw.department.name if hw.department else None,
+                'warranty_expiration': hw.warranty_expiration,
+                'days_remaining': (hw.warranty_expiration - today).days if hw.warranty_expiration else None,
+            }
+            for hw in HardwareAsset.objects.filter(
+                warranty_expiration__lte=warranty_cutoff,
+                warranty_expiration__gte=today
+            ).select_related('department').order_by('warranty_expiration')[:10]
+        ],
+        'overdue': [
+            {
+                'id': hw.id,
+                'name': hw.name,
+                'asset_tag': hw.asset_tag,
+                'department': hw.department.name if hw.department else None,
+                'warranty_expiration': hw.warranty_expiration,
+                'overdue_days': (today - hw.warranty_expiration).days if hw.warranty_expiration else None,
+            }
+            for hw in HardwareAsset.objects.filter(
+                warranty_expiration__lt=today
+            ).select_related('department').order_by('warranty_expiration')[:10]
+        ],
+    }
+    
+    # Hardware patch exceptions
+    hardware_patch_exceptions_list = []
+    for hw in HardwareAsset.objects.filter(
+        requires_patch_management=False
+    ).select_related('department').prefetch_related('related_systems')[:10]:
+        hardware_patch_exceptions_list.append({
+            'id': hw.id,
+            'name': hw.name,
+            'asset_tag': hw.asset_tag,
+            'department': hw.department.name if hw.department else None,
+            'status': hw.status,
+            'status_badge': hw.lifecycle_state_color,
+            'systems_count': hw.related_systems.count(),
+        })
+    hardware_patch_exceptions = hardware_patch_exceptions_list
+    
+    # Hardware status breakdown
+    status_counts = HardwareAsset.objects.values('status').annotate(count=Count('id'))
+    total_for_percentage = sum(s['count'] for s in status_counts)
+    hardware_status_breakdown = [
+        {
+            'label': s['status'] or 'Unknown',
+            'count': s['count'],
+            'percentage': round((s['count'] / total_for_percentage * 100) if total_for_percentage > 0 else 0, 1),
+            'color': {
+                'In Service': 'success',
+                'In Storage': 'info',
+                'Retired': 'secondary',
+            }.get(s['status'], 'secondary'),
+        }
+        for s in status_counts
+    ]
+    
+    # Hardware top systems
+    hardware_top_systems = System.objects.annotate(
+        hardware_count=Count('hardware_assets', distinct=True),
+        active_assignments=Count(
+            'user_accesses',
+            filter=Q(
+                user_accesses__status='Active',
+                user_accesses__access_start_date__lte=now
+            ) & (
+                Q(user_accesses__access_end_date__isnull=True) |
+                Q(user_accesses__access_end_date__gte=now)
+            ),
+            distinct=True
+        )
+    ).filter(hardware_count__gt=0).order_by('-hardware_count')[:10]
+    
+    # Recent activity
+    recent_activity = [
+        {
+            'title': f"{ah.user.get_full_name() if hasattr(ah.user, 'get_full_name') else ah.user.username} {ah.action.lower()} {ah.system.name if ah.system else 'system'}",
+            'timestamp': ah.accessed_at,
+            'icon': 'sign-in-alt' if ah.action == 'Login' else 'key' if 'Access' in ah.action else 'info-circle',
+        }
+        for ah in AccessHistory.objects.select_related('user', 'system').order_by('-accessed_at')[:10]
+    ]
+    
+    # Access trends for charts (last 7 days)
+    access_trends_data = []
+    access_trends_labels = []
+    for i in range(7):
+        date = today - timedelta(days=6-i)
+        access_count = AccessHistory.objects.filter(
+            action='Login',
+            success=True,
+            accessed_at__date=date
+        ).count()
+        access_trends_data.append(access_count)
+        access_trends_labels.append(date.strftime('%b %d'))
+    
+    access_trends = {
+        'labels': json.dumps(access_trends_labels),
+        'data': json.dumps(access_trends_data),
+    }
+    
+    # System usage for charts
+    system_usage_queryset = System.objects.filter(is_active=True).annotate(
+        user_count=Count(
+            'user_accesses',
+            filter=Q(
+                user_accesses__status='Active',
+                user_accesses__access_start_date__lte=now
+            ) & (
+                Q(user_accesses__access_end_date__isnull=True) |
+                Q(user_accesses__access_end_date__gte=now)
+            ),
+            distinct=True
+        )
+    ).filter(user_count__gt=0).order_by('-user_count')[:10]
+    
+    system_usage_labels = [s.name for s in system_usage_queryset]
+    system_usage_data = [s.user_count for s in system_usage_queryset]
+    
+    system_usage = {
+        'labels': json.dumps(system_usage_labels),
+        'data': json.dumps(system_usage_data),
+    }
+    
+    # Hardware distribution for charts
+    hardware_distribution_data = HardwareAsset.objects.values('hardware_type').annotate(
+        count=Count('id')
+    ).order_by('-count')[:10]
+    
+    hardware_distribution_labels = [h['hardware_type'] or 'Unknown' for h in hardware_distribution_data]
+    hardware_distribution_counts = [h['count'] for h in hardware_distribution_data]
+    
+    hardware_distribution = {
+        'labels': json.dumps(hardware_distribution_labels),
+        'data': json.dumps(hardware_distribution_counts),
+    }
     
     # Create User KPI Snapshot list
     user_kpis = [
@@ -138,6 +319,19 @@ def dashboard_home(request):
         },
     ]
     
+    # Stats dictionary for template
+    stats = {
+        'total_users': total_users,
+        'active_users': active_users,
+        'total_hardware': total_hardware,
+        'active_hardware': active_hardware,
+        'pending_requests': pending_requests_count,
+        'failed_logins_24h': failed_logins_today,
+        'warranty_expiring': warranty_expiring_soon,
+        'patch_exceptions': len(hardware_patch_exceptions),
+        'virtual_assets': virtual_assets,
+    }
+    
     context = {
         'title': 'Dashboard',
         'total_users': total_users,
@@ -156,6 +350,16 @@ def dashboard_home(request):
         'active_access': active_access,
         'pending_requests': pending_requests,
         'user_kpis': user_kpis,
+        'stats': stats,
+        'access_trends': access_trends,
+        'system_usage': system_usage,
+        'hardware_distribution': hardware_distribution,
+        'hardware_counts': hardware_counts,
+        'hardware_warranties': hardware_warranties,
+        'hardware_patch_exceptions': hardware_patch_exceptions,
+        'hardware_status_breakdown': hardware_status_breakdown,
+        'hardware_top_systems': hardware_top_systems,
+        'recent_activity': recent_activity,
     }
     
     return render(request, 'admin/dashboard.html', context)

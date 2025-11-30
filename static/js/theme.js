@@ -44,7 +44,6 @@
      * Apply theme to document
      */
     function applyTheme(theme) {
-        console.log('Applying theme:', theme);
         const html = document.documentElement;
         const body = document.body;
         
@@ -56,7 +55,6 @@
                 body.classList.add('dark-mode');
                 body.classList.remove('light-mode');
             }
-            console.log('Dark mode applied - classes:', html.className);
         } else {
             html.setAttribute('data-theme', 'light');
             html.classList.add('light-mode');
@@ -65,7 +63,6 @@
                 body.classList.add('light-mode');
                 body.classList.remove('dark-mode');
             }
-            console.log('Light mode applied - classes:', html.className);
         }
     }
 
@@ -108,15 +105,11 @@
      * Toggle between light and dark themes
      */
     function toggleTheme() {
-        console.log('toggleTheme function called');
         const currentTheme = getTheme();
-        console.log('Current theme:', currentTheme);
         const newTheme = currentTheme === THEME_DARK ? THEME_LIGHT : THEME_DARK;
-        console.log('Switching to theme:', newTheme);
         saveTheme(newTheme);
         applyTheme(newTheme);
         updateThemeButton(newTheme);
-        console.log('Theme toggled successfully');
     }
 
     /**
@@ -170,7 +163,6 @@
                 newButton.onclick = function(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('Button clicked - toggling theme');
                     toggleTheme();
                     return false;
                 };
@@ -178,12 +170,9 @@
                 newButton.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('Button clicked (addEventListener) - toggling theme');
                     toggleTheme();
                     return false;
                 }, true);
-                
-                console.log('Theme button handler attached');
                 return true;
             }
             return false;
@@ -224,7 +213,6 @@
         if (e.target && (e.target.id === 'theme-toggle-btn' || e.target.closest('#theme-toggle-btn'))) {
             e.preventDefault();
             e.stopPropagation();
-            console.log('Theme button clicked via event delegation');
             toggleTheme();
             return false;
         }

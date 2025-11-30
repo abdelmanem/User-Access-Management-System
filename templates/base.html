@@ -740,17 +740,6 @@
       document.addEventListener('DOMContentLoaded', function () {
         var toastElList = [].slice.call(document.querySelectorAll('.toast'));
         toastElList.map(function (toastEl) { return new bootstrap.Toast(toastEl).show(); });
-        
-        // Debug: Check if theme functions are available
-        console.log('Theme functions available:', {
-          toggleTheme: typeof window.toggleTheme,
-          getCurrentTheme: typeof window.getCurrentTheme,
-          currentTheme: window.getCurrentTheme ? window.getCurrentTheme() : 'N/A'
-        });
-        
-        // Debug: Check button
-        const btn = document.getElementById('theme-toggle-btn');
-        console.log('Theme button found:', !!btn, btn ? btn.outerHTML : 'N/A');
 
         const sidebarToggle = document.getElementById('sidebarToggle');
         const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');

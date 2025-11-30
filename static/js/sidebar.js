@@ -46,7 +46,6 @@
         saveSidebarState(isCollapsed);
 
         updateToggleButton(isCollapsed);
-        console.log('Sidebar toggled:', isCollapsed ? 'collapsed' : 'expanded');
     }
 
     function updateToggleButton(isCollapsed) {
@@ -71,7 +70,6 @@
         const isCollapsed = getSidebarState();
         if (setSidebarCollapsed(isCollapsed)) {
             updateToggleButton(isCollapsed);
-            console.log('Sidebar state applied:', isCollapsed ? 'collapsed' : 'expanded');
         }
     }
 
@@ -164,7 +162,6 @@
                 e.stopPropagation();
                 toggleSidebarCollapse();
             });
-            console.log('Sidebar collapse toggle initialized');
         }
 
         addSidebarTooltips();
