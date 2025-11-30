@@ -6,6 +6,7 @@ from departments.models import Department
 import uuid
 from django.core.exceptions import ValidationError
 from PIL import Image, UnidentifiedImageError
+from .encryption import encrypt_password, decrypt_password, is_encrypted
 
 
 class CustomUserQuerySet(models.QuerySet):
@@ -737,3 +738,46 @@ class LDAPConfiguration(models.Model):
     def get_active_config(cls):
         """Get the active LDAP configuration"""
         return cls.objects.filter(ldap_enabled=True).first()
+    
+    def save(self, *args, **kwargs):
+        """
+        Override save to encrypt bind_password before saving to database
+        """
+        # Encrypt bind_password if it's provided and not already encrypted
+        if hasattr(self, '_bind_password_plain'):
+            # If we have a plaintext version stored, encrypt it
+            if self._bind_password_plain:
+                self.bind_password = encrypt_password(self._bind_password_plain)
+            else:
+                self.bind_password = ''
+            # Clear the plaintext version
+            delattr(self, '_bind_password_plain')
+        elif self.bind_password and not is_encrypted(self.bind_password):
+            # If bind_password is set and not encrypted, encrypt it
+            self.bind_password = encrypt_password(self.bind_password)
+        
+        super().save(*args, **kwargs)
+    
+    def get_bind_password(self):
+        """
+        Get the decrypted bind password
+        This method should be used instead of accessing bind_password directly
+        """
+        if not self.bind_password:
+            return ''
+        
+        # If it's already encrypted, decrypt it
+        if is_encrypted(self.bind_password):
+            return decrypt_password(self.bind_password)
+        
+        # If it's plaintext (for backward compatibility with existing records)
+        return self.bind_password
+    
+    def set_bind_password(self, plaintext_password):
+        """
+        Set the bind password (will be encrypted on save)
+        """
+        # Store plaintext temporarily, will be encrypted in save()
+        self._bind_password_plain = plaintext_password
+        # Also set the field so it shows up in forms
+        self.bind_password = plaintext_password

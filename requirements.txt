@@ -16,3 +16,4 @@ reportlab==4.2.5
 mkdocs-material
 ldap3==2.9.1
 pyasn1==0.6.0
+cryptography==43.0.1

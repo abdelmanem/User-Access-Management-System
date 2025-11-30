@@ -77,7 +77,7 @@ class LDAPAuthenticationBackend(ModelBackend):
             
             # First, bind with service account to search for user
             bind_user = ldap_config.bind_username
-            bind_password = ldap_config.bind_password
+            bind_password = ldap_config.get_bind_password()
             
             # Search for user DN
             user_dn = self._find_user_dn(
@@ -443,7 +443,7 @@ class LDAPSync:
             conn = Connection(
                 server,
                 user=ldap_config.bind_username,
-                password=ldap_config.bind_password,
+                password=ldap_config.get_bind_password(),
                 authentication=SIMPLE,
                 auto_bind=True
             )
@@ -520,7 +520,7 @@ class LDAPSync:
             conn = Connection(
                 server,
                 user=ldap_config.bind_username,
-                password=ldap_config.bind_password,
+                password=ldap_config.get_bind_password(),
                 authentication=SIMPLE,
                 auto_bind=True
             )
