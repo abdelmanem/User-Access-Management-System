@@ -715,6 +715,27 @@
     <!-- Sidebar Collapse -->
     <script src="{% static 'js/sidebar.js' %}"></script>
     <script>
+      // Security: Ensure sidebar is hidden if user is not authenticated
+      // This is a backup check in case of browser caching or template rendering issues
+      (function() {
+        const bodyEl = document.body;
+        const hasSidebarClass = bodyEl.classList.contains('has-sidebar');
+        const sidebar = document.querySelector('.sidebar');
+        const appShell = document.querySelector('.app-shell');
+        
+        // If body doesn't have has-sidebar class, ensure sidebar is hidden
+        if (!hasSidebarClass) {
+          if (sidebar) {
+            sidebar.style.display = 'none';
+          }
+          if (appShell) {
+            appShell.style.display = 'none';
+          }
+          // Remove has-sidebar class if it was incorrectly added
+          bodyEl.classList.remove('has-sidebar', 'sidebar-open');
+        }
+      })();
+      
       // Auto-show toasts
       document.addEventListener('DOMContentLoaded', function () {
         var toastElList = [].slice.call(document.querySelectorAll('.toast'));
@@ -761,6 +782,30 @@
             }
           });
         });
+        
+        // Final security check: Hide sidebar if user is not authenticated
+        // This runs after DOM is loaded to catch any edge cases
+        if (!bodyEl.classList.contains('has-sidebar')) {
+          const sidebar = document.querySelector('.sidebar');
+          const appShell = document.querySelector('.app-shell');
+          const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+          if (sidebar) sidebar.style.display = 'none';
+          if (appShell) appShell.style.display = 'none';
+          if (sidebarBackdrop) sidebarBackdrop.style.display = 'none';
+          
+          // Prevent navigation links from working if user is not authenticated
+          const navLinks = document.querySelectorAll('.sidebar a[href]');
+          navLinks.forEach(function(link) {
+            link.addEventListener('click', function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              // Redirect to login page
+              const loginUrl = '/accounts/login/';
+              window.location.href = loginUrl;
+              return false;
+            });
+          });
+        }
       });
     </script>
     {% block extrajs %}{% endblock %}

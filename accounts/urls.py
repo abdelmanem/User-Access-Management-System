@@ -1,12 +1,32 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
+from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import csrf_protect
+from django.utils.decorators import method_decorator
 from . import views, test_auth, ldap_views
 
 app_name = 'accounts'
 
+# Custom LoginView with cache control headers
+class CustomLoginView(auth_views.LoginView):
+    template_name = 'accounts/login.html'
+    
+    @method_decorator(csrf_protect)
+    @method_decorator(never_cache)
+    def dispatch(self, *args, **kwargs):
+        # Clear any stale session data if user is not authenticated
+        if not self.request.user.is_authenticated:
+            self.request.session.flush()
+        response = super().dispatch(*args, **kwargs)
+        # Add cache-control headers to prevent browser caching
+        response['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+        response['Pragma'] = 'no-cache'
+        response['Expires'] = '0'
+        return response
+
 urlpatterns = [
-    path('', auth_views.LoginView.as_view(template_name='accounts/login.html'), name='login'),
-    path('login/', auth_views.LoginView.as_view(template_name='accounts/login.html'), name='login'),
+    path('', CustomLoginView.as_view(), name='login'),
+    path('login/', CustomLoginView.as_view(), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('test/', test_auth.test_login, name='test_login'),
     path('test/protected/', test_auth.test_protected, name='test_protected'),

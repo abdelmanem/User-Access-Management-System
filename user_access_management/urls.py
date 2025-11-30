@@ -23,6 +23,7 @@ from django.db import connection
 from django.views.static import serve
 from pathlib import Path
 import os
+from dashboard.views import home as dashboard_home
 
 
 def serve_docs(request, path):
@@ -62,7 +63,8 @@ admin_site = dashboard_admin_site
 urlpatterns = [
     path('dashboard/', include('dashboard.urls')),
     path('admin/', admin_site.urls),
-    path('', include('accounts.urls')),
+    path('accounts/', include('accounts.urls')),
+    path('', dashboard_home, name='home'),
     path('departments/', include('departments.urls')),
     path('systems/', include('systems.urls')),
     path('access-management/', include('access_management.urls')),
