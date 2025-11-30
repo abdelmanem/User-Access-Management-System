@@ -92,6 +92,52 @@ def dashboard_home(request):
     # Get pending access requests
     pending_requests = UserSystemAccess.objects.filter(status='Pending').count()
     
+    # Create User KPI Snapshot list
+    user_kpis = [
+        {
+            'label': 'Reportable Users',
+            'value': total_users,
+            'badge': 'primary',
+            'description': 'Included in KPI metrics',
+        },
+        {
+            'label': 'Active Reportable Users',
+            'value': active_users,
+            'badge': 'success',
+            'description': 'Reportable accounts currently active',
+        },
+        {
+            'label': 'Excluded from Metrics',
+            'value': excluded_users_count,
+            'badge': 'secondary',
+            'description': 'Users intentionally excluded from reporting',
+        },
+        {
+            'label': 'Active',
+            'value': total_active_users,
+            'badge': 'info',
+            'description': 'All reportable users marked active',
+        },
+        {
+            'label': 'Inactive',
+            'value': total_inactive_users,
+            'badge': 'warning',
+            'description': 'All reportable users marked inactive',
+        },
+        {
+            'label': 'No Department',
+            'value': no_department_users,
+            'badge': 'danger',
+            'description': 'Users missing department assignment',
+        },
+        {
+            'label': 'Need Follow-up',
+            'value': follow_up_users,
+            'badge': 'dark',
+            'description': 'Flagged for manual review',
+        },
+    ]
+    
     context = {
         'title': 'Dashboard',
         'total_users': total_users,
@@ -109,6 +155,7 @@ def dashboard_home(request):
         'failed_logins_today': failed_logins_today,
         'active_access': active_access,
         'pending_requests': pending_requests,
+        'user_kpis': user_kpis,
     }
     
     return render(request, 'admin/dashboard.html', context)

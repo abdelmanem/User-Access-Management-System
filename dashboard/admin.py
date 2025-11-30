@@ -39,6 +39,64 @@ class DashboardAdminSite(admin.AdminSite):
         return render(request, 'admin/dashboard_index.html', context)
     
     def dashboard_view(self, request):
+        # Get user statistics for KPIs
+        reportable_users = CustomUser.objects.included_in_metrics()
+        all_users = CustomUser.objects.all()
+        
+        total_users = reportable_users.count()
+        active_users = reportable_users.filter(is_active=True).count()
+        excluded_users_count = all_users.filter(exclude_from_metrics=True).count()
+        total_active_users = reportable_users.filter(is_active=True).count()
+        total_inactive_users = reportable_users.filter(is_active=False).count()
+        no_department_users = reportable_users.filter(department__isnull=True).count()
+        follow_up_users = reportable_users.filter(flag_for_follow_up=True).count()
+        
+        # Create User KPI Snapshot list
+        user_kpis = [
+            {
+                'label': 'Reportable Users',
+                'value': total_users,
+                'badge': 'primary',
+                'description': 'Included in KPI metrics',
+            },
+            {
+                'label': 'Active Reportable Users',
+                'value': active_users,
+                'badge': 'success',
+                'description': 'Reportable accounts currently active',
+            },
+            {
+                'label': 'Excluded from Metrics',
+                'value': excluded_users_count,
+                'badge': 'secondary',
+                'description': 'Users intentionally excluded from reporting',
+            },
+            {
+                'label': 'Active',
+                'value': total_active_users,
+                'badge': 'info',
+                'description': 'All reportable users marked active',
+            },
+            {
+                'label': 'Inactive',
+                'value': total_inactive_users,
+                'badge': 'warning',
+                'description': 'All reportable users marked inactive',
+            },
+            {
+                'label': 'No Department',
+                'value': no_department_users,
+                'badge': 'danger',
+                'description': 'Users missing department assignment',
+            },
+            {
+                'label': 'Need Follow-up',
+                'value': follow_up_users,
+                'badge': 'dark',
+                'description': 'Flagged for manual review',
+            },
+        ]
+        
         context = {
             'title': 'System Dashboard',
             'dashboard_stats': self.get_dashboard_stats(),
@@ -46,6 +104,7 @@ class DashboardAdminSite(admin.AdminSite):
             'pending_requests': self.get_pending_requests(),
             'system_health': self.get_system_health(),
             'user_stats': self.get_user_stats(),
+            'user_kpis': user_kpis,
         }
         return render(request, 'admin/dashboard.html', context)
     
