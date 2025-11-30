@@ -32,7 +32,7 @@
                                     <table class="table table-striped align-middle mb-0">
                                         <tbody>
                                             {% for kpi in user_kpis %}
-                                            <tr>
+                                            <tr class="kpi-row{% if kpi.filter_params %} clickable-kpi{% endif %}{% if kpi.is_active %} table-active{% endif %}" {% if kpi.filter_params %}data-filter-params="{{ kpi.filter_params }}" style="cursor: pointer;" title="Click to apply filter"{% endif %}>
                                                 <th scope="row" class="text-nowrap">{{ kpi.label }}</th>
                                                 <td class="text-end">
                                                     <span class="badge bg-{{ kpi.badge }}-subtle text-{{ kpi.badge }} fs-6">{{ kpi.value }}</span>
@@ -100,6 +100,11 @@
                                 </div>
                                 <div class="col-md-2">
                                     <button type="submit" class="btn btn-secondary w-100">Filter</button>
+                                </div>
+                                <div class="col-md-2">
+                                    <a href="{% url 'accounts:user_list' %}{% if current_sort or current_dir %}?sort={{ current_sort }}&dir={{ current_dir }}{% endif %}" class="btn btn-outline-secondary w-100">
+                                        <i class="fas fa-times"></i> Clear Filters
+                                    </a>
                                 </div>
                             </div>
                         </form>
@@ -391,6 +396,71 @@ document.addEventListener('DOMContentLoaded', function () {
       rowCbs.forEach(cb => { cb.checked = selectAll.checked; });
     });
   }
+
+  // Make KPI rows clickable to apply filters
+  const kpiRows = document.querySelectorAll('.clickable-kpi');
+  // Define all filter-related parameters that should be cleared
+  const allFilterParams = ['status', 'metrics', 'department', 'follow_up', 'q'];
+  // Parameters to preserve (not filters)
+  const preserveParams = ['sort', 'dir', 'page_size'];
+  
+  kpiRows.forEach(function(row) {
+    row.addEventListener('click', function() {
+      const filterParams = this.getAttribute('data-filter-params');
+      if (!filterParams) return;
+      
+      try {
+        const params = JSON.parse(filterParams);
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Store parameters to preserve
+        const preserved = {};
+        preserveParams.forEach(key => {
+          if (urlParams.has(key)) {
+            preserved[key] = urlParams.get(key);
+          }
+        });
+        
+        // Clear ALL existing filter params first (to ensure clean state)
+        allFilterParams.forEach(key => {
+          urlParams.delete(key);
+        });
+        
+        // Also clear preserved params temporarily
+        preserveParams.forEach(key => {
+          urlParams.delete(key);
+        });
+        
+        // Set new filter params from the clicked KPI
+        Object.keys(params).forEach(key => {
+          if (params[key]) {
+            urlParams.set(key, params[key]);
+          }
+        });
+        
+        // Restore preserved parameters
+        Object.keys(preserved).forEach(key => {
+          urlParams.set(key, preserved[key]);
+        });
+        
+        // Reset to page 1 when applying filter
+        urlParams.delete('page');
+        
+        // Navigate to filtered URL
+        window.location.href = window.location.pathname + '?' + urlParams.toString();
+      } catch (e) {
+        console.error('Error parsing filter params:', e);
+      }
+    });
+    
+    // Add hover effect
+    row.addEventListener('mouseenter', function() {
+      this.style.backgroundColor = 'rgba(0, 123, 255, 0.1)';
+    });
+    row.addEventListener('mouseleave', function() {
+      this.style.backgroundColor = '';
+    });
+  });
 });
 </script>
 </div>

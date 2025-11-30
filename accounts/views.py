@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required, user_passes_test
@@ -77,7 +78,10 @@ def user_list(request):
     elif status == 'inactive':
         users_qs = users_qs.filter(is_active=False)
     if dept_id:
-        users_qs = users_qs.filter(department_id=dept_id)
+        if dept_id == 'none':
+            users_qs = users_qs.filter(department__isnull=True)
+        else:
+            users_qs = users_qs.filter(department_id=dept_id)
     if follow_up == 'flagged':
         users_qs = users_qs.filter(flag_for_follow_up=True)
     elif follow_up == 'unflagged':
@@ -125,48 +129,89 @@ def user_list(request):
     active_count = active_reportable_count
     inactive_count = inactive_reportable_count
 
+    # Helper function to check if current filters match KPI filter
+    def matches_kpi_filter(kpi_filter):
+        # Check that all KPI filter params match current filters
+        for key, value in kpi_filter.items():
+            if key == 'metrics':
+                if metrics_filter != value:
+                    return False
+            elif key == 'status':
+                if status != value:
+                    return False
+            elif key == 'department':
+                if dept_id != value:
+                    return False
+            elif key == 'follow_up':
+                if follow_up != value:
+                    return False
+        # Check that no other filters are active (except search 'q')
+        if metrics_filter and 'metrics' not in kpi_filter:
+            return False
+        if status and 'status' not in kpi_filter:
+            return False
+        if dept_id and 'department' not in kpi_filter:
+            return False
+        if follow_up and 'follow_up' not in kpi_filter:
+            return False
+        return True
+
     user_kpis = [
         {
             'label': 'Reportable Users',
             'value': included_count,
             'badge': 'primary',
             'description': 'Included in KPI metrics',
+            'filter_params': json.dumps({'metrics': 'included'}),
+            'is_active': matches_kpi_filter({'metrics': 'included'}),
         },
         {
             'label': 'Active Reportable Users',
             'value': active_reportable_count,
             'badge': 'success',
             'description': 'Reportable accounts currently active',
+            'filter_params': json.dumps({'metrics': 'included', 'status': 'active'}),
+            'is_active': matches_kpi_filter({'metrics': 'included', 'status': 'active'}),
         },
         {
             'label': 'Excluded from Metrics',
             'value': excluded_count,
             'badge': 'secondary',
             'description': 'Users intentionally excluded from reporting',
+            'filter_params': json.dumps({'metrics': 'excluded'}),
+            'is_active': matches_kpi_filter({'metrics': 'excluded'}),
         },
         {
             'label': 'Active',
             'value': active_count,
             'badge': 'info',
             'description': 'All users marked active in this view',
+            'filter_params': json.dumps({'status': 'active'}),
+            'is_active': matches_kpi_filter({'status': 'active'}),
         },
         {
             'label': 'Inactive',
             'value': inactive_count,
             'badge': 'warning',
             'description': 'All users marked inactive in this view',
+            'filter_params': json.dumps({'status': 'inactive'}),
+            'is_active': matches_kpi_filter({'status': 'inactive'}),
         },
         {
             'label': 'No Department',
             'value': no_department_count,
             'badge': 'danger',
             'description': 'Users missing department assignment',
+            'filter_params': json.dumps({'department': 'none'}),
+            'is_active': matches_kpi_filter({'department': 'none'}),
         },
         {
             'label': 'Need Follow-up',
             'value': follow_up_count,
             'badge': 'dark',
             'description': 'Flagged for manual review',
+            'filter_params': json.dumps({'follow_up': 'flagged'}),
+            'is_active': matches_kpi_filter({'follow_up': 'flagged'}),
         },
     ]
 
@@ -239,7 +284,10 @@ def _build_filtered_users_queryset(request):
     elif status == 'inactive':
         users_qs = users_qs.filter(is_active=False)
     if dept_id:
-        users_qs = users_qs.filter(department_id=dept_id)
+        if dept_id == 'none':
+            users_qs = users_qs.filter(department__isnull=True)
+        else:
+            users_qs = users_qs.filter(department_id=dept_id)
     if follow_up == 'flagged':
         users_qs = users_qs.filter(flag_for_follow_up=True)
     elif follow_up == 'unflagged':
