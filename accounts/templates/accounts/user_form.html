@@ -65,6 +65,7 @@
                                         <div class="col-md-4">
                                             <label class="form-label">Primary phone <span class="text-danger">*</span></label>
                                             {{ form.phone_primary|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                            {% if form.phone_primary.help_text %}<small class="form-text text-muted">{{ form.phone_primary.help_text }}</small>{% endif %}
                                             {% if form.phone_primary.errors %}<div class="invalid-feedback d-block">{{ form.phone_primary.errors|striptags }}</div>{% endif %}
                                         </div>
                                         <div class="col-md-4">
@@ -128,6 +129,7 @@
                                         <div class="col-md-4">
                                             <label class="form-label">Secondary phone</label>
                                             {{ form.phone_secondary|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                            {% if form.phone_secondary.help_text %}<small class="form-text text-muted">{{ form.phone_secondary.help_text }}</small>{% endif %}
                                             {% if form.phone_secondary.errors %}<div class="invalid-feedback d-block">{{ form.phone_secondary.errors|striptags }}</div>{% endif %}
                                         </div>
                                         <div class="col-md-4">

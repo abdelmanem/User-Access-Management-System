@@ -8,6 +8,12 @@ class UserBaseForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['email'].required = False
+        # Add placeholders for phone number fields to show required format
+        self.fields['phone_primary'].widget.attrs['placeholder'] = 'e.g., +1234567890 or 1234567890'
+        self.fields['phone_primary'].help_text = 'Format: 9-15 digits, optionally starting with + or +1'
+        if 'phone_secondary' in self.fields:
+            self.fields['phone_secondary'].widget.attrs['placeholder'] = 'e.g., +1234567890 or 1234567890'
+            self.fields['phone_secondary'].help_text = 'Format: 9-15 digits, optionally starting with + or +1'
 
     class Meta:
         model = CustomUser
