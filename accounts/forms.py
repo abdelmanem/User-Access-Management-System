@@ -225,38 +225,10 @@ class LDAPConfigurationForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # Add CSS classes
         for field_name, field in self.fields.items():
-            if field_name not in ['ldap_enabled', 'is_active_directory', 'cache_passwords', 
+            if field_name not in ['ldap_enabled', 'is_active_directory', 'cache_passwords',
                                    'use_tls', 'allow_invalid_ssl', 'ldap_invert_active_flag']:
-                if not isinstance(field.widget, (forms.Textarea, forms.PasswordInput)):
+                if not isinstance(field.widget, forms.Textarea):
                     field.widget.attrs['class'] = 'form-control'
-        
-        # For password field, don't show existing encrypted value
-        # Password is no longer editable from this form; it is provided at runtime.
-    
-    def save(self, commit=True):
-        """
-        Override save to handle password encryption properly
-        """
-        instance = super().save(commit=False)
-        
-        # If password field is empty and we're editing, don't change it
-        if self.instance and self.instance.pk:
-            if not self.cleaned_data.get('bind_password'):
-                # Password not changed, keep existing encrypted value
-                # We need to preserve the encrypted value from the database
-                original = type(instance).objects.get(pk=instance.pk)
-                instance.bind_password = original.bind_password
-            else:
-                # New password provided, will be encrypted in model's save()
-                instance.set_bind_password(self.cleaned_data['bind_password'])
-        else:
-            # New instance, encrypt password if provided
-            if self.cleaned_data.get('bind_password'):
-                instance.set_bind_password(self.cleaned_data['bind_password'])
-        
-        if commit:
-            instance.save()
-        return instance
 
 
 class LDAPBindPasswordForm(forms.Form):

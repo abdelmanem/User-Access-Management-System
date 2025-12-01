@@ -75,30 +75,31 @@ class LDAPAuthenticationBackend(ModelBackend):
                 use_ssl=ldap_config.ldap_server.startswith('ldaps://')
             )
             
-            # First, bind with service account to search for user
-            bind_user = ldap_config.bind_username
-            bind_password = ldap_config.get_bind_password()
-            
-            # Search for user DN
-            user_dn = self._find_user_dn(
-                server, bind_user, bind_password, username, ldap_config
-            )
-            
-            if not user_dn:
-                logger.warning(f"User {username} not found in LDAP")
-                return None
-            
-            # Now authenticate as the user
+            # Authenticate directly as the user. We construct the bind user based
+            # on configuration (UPN-style for AD, or raw username for generic LDAP).
+            bind_user = username
+            if ldap_config.is_active_directory and ldap_config.ad_domain:
+                # For AD, prefer UPN format: user@domain
+                bind_user = f"{username}@{ldap_config.ad_domain}"
+
             user_conn = Connection(
                 server,
-                user=user_dn,
+                user=bind_user,
                 password=password,
                 authentication=SIMPLE,
                 auto_bind=True
             )
             
-            # If we got here, authentication was successful
-            # Now retrieve user attributes
+            # If we got here, authentication was successful.
+            # Now retrieve user DN and attributes using the authenticated connection.
+            user_dn = self._find_user_dn(
+                server, None, None, username, ldap_config, existing_connection=user_conn
+            )
+            if not user_dn:
+                logger.warning(f"User {username} authenticated but DN could not be found in LDAP")
+                user_conn.unbind()
+                return None
+
             user_data = self._get_ldap_user_attributes(
                 user_conn, user_dn, ldap_config
             )
@@ -113,19 +114,28 @@ class LDAPAuthenticationBackend(ModelBackend):
             logger.error(f"LDAP error during authentication: {str(e)}")
             return None
     
-    def _find_user_dn(self, server, bind_user, bind_password, username, ldap_config):
+    def _find_user_dn(self, server, bind_user, bind_password, username, ldap_config, existing_connection=None):
         """
         Find user's Distinguished Name (DN) in LDAP
         """
         try:
-            # Bind with service account
-            conn = Connection(
-                server,
-                user=bind_user,
-                password=bind_password,
-                authentication=SIMPLE,
-                auto_bind=True
-            )
+            # Either reuse an existing bound connection (preferred) or bind with
+            # a service account if credentials are provided.
+            if existing_connection is not None:
+                conn = existing_connection
+                reuse_conn = True
+            elif bind_user and bind_password:
+                conn = Connection(
+                    server,
+                    user=bind_user,
+                    password=bind_password,
+                    authentication=SIMPLE,
+                    auto_bind=True
+                )
+                reuse_conn = False
+            else:
+                logger.error("No valid connection or bind credentials provided to _find_user_dn")
+                return None
             
             # Build search filter
             username_field = ldap_config.ldap_username_field or 'sAMAccountName'
@@ -141,10 +151,12 @@ class LDAPAuthenticationBackend(ModelBackend):
             
             if conn.entries:
                 user_dn = conn.entries[0].entry_dn
-                conn.unbind()
+                if not reuse_conn:
+                    conn.unbind()
                 return user_dn
             
-            conn.unbind()
+            if not reuse_conn:
+                conn.unbind()
             return None
             
         except Exception as e:
@@ -417,10 +429,8 @@ class LDAPSync:
         """
         Sync all users from LDAP/AD directory.
 
-        If bind_password is provided, it will be used only for this operation
-        and not read from the database. If it is not provided, the method will
-        fall back to the stored (encrypted) bind password for backwards
-        compatibility.
+        A bind_password must be provided at runtime; it is not stored in the
+        database.
         """
         if not ldap_config:
             ldap_config = LDAPConfiguration.get_active_config()
@@ -429,9 +439,8 @@ class LDAPSync:
             logger.warning("LDAP is not enabled, cannot sync users")
             return {'success': False, 'message': 'LDAP is not enabled'}
 
-        # Prefer runtime bind_password when given; otherwise fall back
-        password_to_use = bind_password or ldap_config.get_bind_password()
-        if not password_to_use:
+        # Runtime bind_password is required for sync operations
+        if not bind_password:
             logger.warning("No LDAP bind password provided for sync_all_users")
             return {
                 'success': False,
@@ -457,7 +466,7 @@ class LDAPSync:
             conn = Connection(
                 server,
                 user=ldap_config.bind_username,
-                password=password_to_use,
+                password=bind_password,
                 authentication=SIMPLE,
                 auto_bind=True
             )
@@ -521,14 +530,11 @@ class LDAPSync:
         """
         Test LDAP connection.
 
-        If bind_password is provided, it will be used only for this operation
-        and not read from the database. If it is not provided, the method will
-        fall back to the stored (encrypted) bind password for backwards
-        compatibility.
+        A bind_password must be provided at runtime; it is not stored in the
+        database.
         """
-        # Prefer runtime bind_password when given; otherwise fall back
-        password_to_use = bind_password or ldap_config.get_bind_password()
-        if not password_to_use:
+        # Runtime bind_password is required for connection testing
+        if not bind_password:
             return {
                 'success': False,
                 'message': 'Bind password is required for LDAP connection test but was not provided.',
@@ -552,7 +558,7 @@ class LDAPSync:
             conn = Connection(
                 server,
                 user=ldap_config.bind_username,
-                password=password_to_use,
+                password=bind_password,
                 authentication=SIMPLE,
                 auto_bind=True
             )

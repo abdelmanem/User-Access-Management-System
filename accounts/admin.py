@@ -223,7 +223,6 @@ class LDAPConfigurationAdmin(admin.ModelAdmin):
         ('Bind Settings', {
             'fields': (
                 'bind_username',
-                'bind_password',
                 'base_dn',
             )
         }),
