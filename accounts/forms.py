@@ -184,7 +184,6 @@ class LDAPConfigurationForm(forms.ModelForm):
             'use_tls',
             'allow_invalid_ssl',
             'bind_username',
-            'bind_password',
             'base_dn',
             'ldap_filter',
             'ldap_auth_query',
@@ -213,7 +212,6 @@ class LDAPConfigurationForm(forms.ModelForm):
         widgets = {
             'ldap_client_tls_key': forms.Textarea(attrs={'rows': 5, 'class': 'form-control'}),
             'ldap_client_tls_cert': forms.Textarea(attrs={'rows': 5, 'class': 'form-control'}),
-            'bind_password': forms.PasswordInput(attrs={'class': 'form-control'}),
             'ldap_filter': forms.TextInput(attrs={'class': 'form-control'}),
             'ldap_auth_query': forms.TextInput(attrs={'class': 'form-control'}),
         }
@@ -233,12 +231,7 @@ class LDAPConfigurationForm(forms.ModelForm):
                     field.widget.attrs['class'] = 'form-control'
         
         # For password field, don't show existing encrypted value
-        # PasswordInput widgets typically don't pre-fill, but we ensure it's empty
-        if self.instance and self.instance.pk:
-            # If editing existing instance, clear the password field
-            # User must re-enter password if they want to change it
-            self.fields['bind_password'].required = False
-            self.fields['bind_password'].help_text = 'Leave blank to keep existing password'
+        # Password is no longer editable from this form; it is provided at runtime.
     
     def save(self, commit=True):
         """
@@ -266,10 +259,29 @@ class LDAPConfigurationForm(forms.ModelForm):
         return instance
 
 
+class LDAPBindPasswordForm(forms.Form):
+    """
+    Form for providing the LDAP bind password at run-time.
+
+    This allows admins to avoid storing the bind password in the database.
+    """
+    bind_password = forms.CharField(
+        label='LDAP Bind Password (not stored)',
+        widget=forms.PasswordInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter LDAP bind password (will not be saved)',
+            }
+        ),
+        help_text='Used only for this operation and not saved to the database.',
+    )
+
+
 class LDAPTestConnectionForm(forms.Form):
     """
     Form for testing LDAP connection
     """
+    # Kept for backwards compatibility; currently unused directly
     pass  # No fields needed, uses active config
 
 

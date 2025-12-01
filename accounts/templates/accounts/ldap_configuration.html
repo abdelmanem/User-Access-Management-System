@@ -125,11 +125,6 @@
                         {{ form.bind_username }}
                         <small class="form-text text-muted">{{ form.bind_username.help_text }}</small>
                     </div>
-                    <div class="col-md-6">
-                        <label for="{{ form.bind_password.id_for_label }}" class="form-label"><strong>LDAP Bind Password</strong></label>
-                        {{ form.bind_password }}
-                        <small class="form-text text-muted">{{ form.bind_password.help_text }}</small>
-                    </div>
                 </div>
 
                 <div class="row mb-3">
@@ -314,9 +309,15 @@
                     <div class="card border-info">
                         <div class="card-body">
                             <h6 class="card-title"><i class="fas fa-plug"></i> Test Connection</h6>
-                            <p class="card-text">Test if the system can connect to the LDAP server with the bind credentials.</p>
+                            <p class="card-text">
+                                Test if the system can connect to the LDAP server with the bind credentials.
+                                The bind password you enter here is used once and is <strong>not stored</strong>.
+                            </p>
                             <form method="post" action="{% url 'accounts:ldap_test_connection' %}">
                                 {% csrf_token %}
+                                <div class="mb-2">
+                                    {{ bind_password_form.bind_password }}
+                                </div>
                                 <button type="submit" class="btn btn-info">
                                     <i class="fas fa-network-wired"></i> Test Connection
                                 </button>
@@ -354,9 +355,15 @@
                     <div class="card border-warning">
                         <div class="card-body">
                             <h6 class="card-title"><i class="fas fa-sync"></i> Sync All Users from LDAP</h6>
-                            <p class="card-text">Import/sync all users from your LDAP directory. This may take a while for large directories.</p>
+                            <p class="card-text">
+                                Import/sync all users from your LDAP directory. This may take a while for large directories.
+                                The bind password you enter here is used only for this sync and is <strong>not stored</strong>.
+                            </p>
                             <form method="post" action="{% url 'accounts:ldap_sync_users' %}" onsubmit="return confirm('This will sync all users from LDAP. Continue?');">
                                 {% csrf_token %}
+                                <div class="mb-2">
+                                    {{ bind_password_form.bind_password }}
+                                </div>
                                 <button type="submit" class="btn btn-warning">
                                     <i class="fas fa-users"></i> Sync All Users
                                 </button>

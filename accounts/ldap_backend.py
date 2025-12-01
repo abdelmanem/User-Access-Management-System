@@ -413,17 +413,31 @@ class LDAPSync:
     """
     
     @staticmethod
-    def sync_all_users(ldap_config=None):
+    def sync_all_users(ldap_config=None, bind_password=None):
         """
-        Sync all users from LDAP/AD directory
+        Sync all users from LDAP/AD directory.
+
+        If bind_password is provided, it will be used only for this operation
+        and not read from the database. If it is not provided, the method will
+        fall back to the stored (encrypted) bind password for backwards
+        compatibility.
         """
         if not ldap_config:
             ldap_config = LDAPConfiguration.get_active_config()
-        
+
         if not ldap_config or not ldap_config.ldap_enabled:
             logger.warning("LDAP is not enabled, cannot sync users")
             return {'success': False, 'message': 'LDAP is not enabled'}
-        
+
+        # Prefer runtime bind_password when given; otherwise fall back
+        password_to_use = bind_password or ldap_config.get_bind_password()
+        if not password_to_use:
+            logger.warning("No LDAP bind password provided for sync_all_users")
+            return {
+                'success': False,
+                'message': 'Bind password is required for LDAP sync but was not provided.',
+            }
+
         try:
             # Setup connection
             tls_config = None
@@ -432,22 +446,22 @@ class LDAPSync:
                     validate=ssl.CERT_REQUIRED if not ldap_config.allow_invalid_ssl else ssl.CERT_NONE,
                     version=ssl.PROTOCOL_TLSv1_2
                 )
-            
+
             server = Server(
                 ldap_config.ldap_server,
                 get_info=ALL,
                 tls=tls_config,
                 use_ssl=ldap_config.ldap_server.startswith('ldaps://')
             )
-            
+
             conn = Connection(
                 server,
                 user=ldap_config.bind_username,
-                password=ldap_config.get_bind_password(),
+                password=password_to_use,
                 authentication=SIMPLE,
                 auto_bind=True
             )
-            
+
             # Search for all users
             conn.search(
                 search_base=ldap_config.base_dn,
@@ -455,12 +469,12 @@ class LDAPSync:
                 search_scope=SUBTREE,
                 attributes='*'
             )
-            
+
             synced_count = 0
             error_count = 0
-            
+
             backend = LDAPAuthenticationBackend()
-            
+
             for entry in conn.entries:
                 try:
                     # Convert entry to dict (case-insensitive keys)
@@ -469,11 +483,16 @@ class LDAPSync:
                         # Store both original and lowercase keys for compatibility
                         user_data[attr] = entry[attr].value
                         user_data[attr.lower()] = entry[attr].value
-                    
+
                     # Get username - try both cases
                     username_field = ldap_config.ldap_username_field or 'sAMAccountName'
-                    username = user_data.get(username_field) or user_data.get(username_field.lower()) or user_data.get('sAMAccountName') or user_data.get('samaccountname', '')
-                    
+                    username = (
+                        user_data.get(username_field)
+                        or user_data.get(username_field.lower())
+                        or user_data.get('sAMAccountName')
+                        or user_data.get('samaccountname', '')
+                    )
+
                     # Skip computer accounts (end with $) and system accounts
                     if username and not username.endswith('$') and username.lower() not in ['krbtgt', 'guest']:
                         user = backend._get_or_create_user(username, user_data, ldap_config)
@@ -483,25 +502,38 @@ class LDAPSync:
                 except Exception as e:
                     logger.error(f"Error syncing user: {str(e)}")
                     error_count += 1
-            
+
             conn.unbind()
-            
+
             return {
                 'success': True,
                 'synced_count': synced_count,
                 'error_count': error_count,
                 'message': f'Synced {synced_count} users successfully, {error_count} errors'
             }
-            
+
         except Exception as e:
             logger.error(f"Error during LDAP sync: {str(e)}")
             return {'success': False, 'message': str(e)}
-    
+
     @staticmethod
-    def test_connection(ldap_config):
+    def test_connection(ldap_config, bind_password=None):
         """
-        Test LDAP connection
+        Test LDAP connection.
+
+        If bind_password is provided, it will be used only for this operation
+        and not read from the database. If it is not provided, the method will
+        fall back to the stored (encrypted) bind password for backwards
+        compatibility.
         """
+        # Prefer runtime bind_password when given; otherwise fall back
+        password_to_use = bind_password or ldap_config.get_bind_password()
+        if not password_to_use:
+            return {
+                'success': False,
+                'message': 'Bind password is required for LDAP connection test but was not provided.',
+            }
+
         try:
             tls_config = None
             if ldap_config.use_tls or ldap_config.ldap_server.startswith('ldaps://'):
@@ -509,25 +541,25 @@ class LDAPSync:
                     validate=ssl.CERT_REQUIRED if not ldap_config.allow_invalid_ssl else ssl.CERT_NONE,
                     version=ssl.PROTOCOL_TLSv1_2
                 )
-            
+
             server = Server(
                 ldap_config.ldap_server,
                 get_info=ALL,
                 tls=tls_config,
                 use_ssl=ldap_config.ldap_server.startswith('ldaps://')
             )
-            
+
             conn = Connection(
                 server,
                 user=ldap_config.bind_username,
-                password=ldap_config.get_bind_password(),
+                password=password_to_use,
                 authentication=SIMPLE,
                 auto_bind=True
             )
-            
+
             conn.unbind()
             return {'success': True, 'message': 'LDAP connection successful'}
-            
+
         except Exception as e:
             return {'success': False, 'message': f'Connection failed: {str(e)}'}
 
