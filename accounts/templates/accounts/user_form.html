@@ -246,6 +246,41 @@
                                             </div>
                                             {% if form.exclude_from_metrics.errors %}<div class="invalid-feedback d-block">{{ form.exclude_from_metrics.errors|striptags }}</div>{% endif %}
                                         </div>
+                                        <!-- IT Administrator Governance (RHG 4.3) -->
+                                        <div class="col-md-3">
+                                            <div class="form-check mt-4">
+                                                {{ form.is_it_administrator|add_error_class:"is-invalid"|add_class:"form-check-input" }}
+                                                <label class="form-check-label">
+                                                    IT Administrator
+                                                    <small class="text-muted d-block">
+                                                        Marks this user as an authorized IT Administrator.
+                                                    </small>
+                                                </label>
+                                            </div>
+                                            {% if form.is_it_administrator.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ form.is_it_administrator.errors|striptags }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">IT Admin Certification Date</label>
+                                            {{ form.it_admin_certification_date|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                            {% if form.it_admin_certification_date.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ form.it_admin_certification_date.errors|striptags }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">IT Admin Certified By</label>
+                                            {{ form.it_admin_certified_by|add_error_class:"is-invalid"|add_class:"form-select" }}
+                                            {% if form.it_admin_certified_by.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ form.it_admin_certified_by.errors|striptags }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
