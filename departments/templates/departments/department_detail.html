@@ -103,12 +103,35 @@
                                             </div>
                                             {% endif %}
                                             <div class="row g-3">
-                                                <div class="col-12 col-lg-8">
+                                                <div class="col-12">
                                                     <label for="{{ member_form.users.id_for_label }}" class="form-label fw-semibold">
                                                         {{ member_form.users.label }}
                                                     </label>
-                                                    {{ member_form.users }}
-                                                    <div class="form-text">
+                                                    {# Keep the original Django field but hide it; we'll manage its value via JavaScript #}
+                                                    <div class="d-none">
+                                                        {{ member_form.users }}
+                                                    </div>
+
+                                                    <div class="row g-2">
+                                                        <div class="col-12 col-lg-5">
+                                                            <label class="form-label small fw-semibold">Available Users</label>
+                                                            <select id="available_users" class="form-select" size="12" multiple></select>
+                                                        </div>
+                                                        <div class="col-12 col-lg-2 d-flex flex-column justify-content-center align-items-center gap-2">
+                                                            <button type="button" id="add_member_btn" class="btn btn-outline-primary btn-sm w-100">
+                                                                Add &raquo;
+                                                            </button>
+                                                            <button type="button" id="remove_member_btn" class="btn btn-outline-secondary btn-sm w-100 mt-2">
+                                                                &laquo; Remove
+                                                            </button>
+                                                        </div>
+                                                        <div class="col-12 col-lg-5">
+                                                            <label class="form-label small fw-semibold">Department Members</label>
+                                                            <select id="department_members" class="form-select" size="12" multiple></select>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="form-text mt-2">
                                                         {{ member_form.users.help_text }}
                                                     </div>
                                                     {% for error in member_form.users.errors %}
@@ -116,12 +139,12 @@
                                                     {% endfor %}
                                                 </div>
                                                 <div class="col-12 col-lg-4">
-                                                    <div class="alert alert-info small">
+                                                    <div class="alert alert-info small mt-3 mt-lg-0">
                                                         <strong>Tips:</strong>
                                                         <ul class="mb-0 ps-3">
-                                                            <li>Use Ctrl/Command + Click to select multiple users.</li>
-                                                            <li>Users not selected will be removed from this department.</li>
-                                                            <li>Changes are applied immediately upon saving.</li>
+                                                            <li>Select users on the left and click <strong>Add</strong> to make them members.</li>
+                                                            <li>Select users on the right and click <strong>Remove</strong> to take them out of the department.</li>
+                                                            <li>Hold Ctrl/Command or Shift to select multiple users at once.</li>
                                                         </ul>
                                                     </div>
                                                 </div>
@@ -201,4 +224,65 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const originalSelect = document.getElementById('{{ member_form.users.id_for_label }}') || document.getElementById('id_users');
+        const availableSelect = document.getElementById('available_users');
+        const membersSelect = document.getElementById('department_members');
+        const addBtn = document.getElementById('add_member_btn');
+        const removeBtn = document.getElementById('remove_member_btn');
+
+        if (!originalSelect || !availableSelect || !membersSelect) {
+            return;
+        }
+
+        // Initialize the dual lists based on the original Django field
+        Array.from(originalSelect.options).forEach(function (opt) {
+            const clone = new Option(opt.text, opt.value, false, false);
+            if (opt.selected) {
+                membersSelect.add(clone);
+            } else {
+                availableSelect.add(clone);
+            }
+        });
+
+        function moveSelected(fromSelect, toSelect) {
+            const toMove = Array.from(fromSelect.selectedOptions);
+            toMove.forEach(function (opt) {
+                const newOpt = new Option(opt.text, opt.value, false, false);
+                toSelect.add(newOpt);
+                fromSelect.remove(opt.index);
+            });
+        }
+
+        if (addBtn) {
+            addBtn.addEventListener('click', function () {
+                moveSelected(availableSelect, membersSelect);
+            });
+        }
+
+        if (removeBtn) {
+            removeBtn.addEventListener('click', function () {
+                moveSelected(membersSelect, availableSelect);
+            });
+        }
+
+        // Before submitting, sync the members list back to the hidden Django field
+        const form = originalSelect.closest('form');
+        if (form) {
+            form.addEventListener('submit', function () {
+                // Clear existing options
+                while (originalSelect.options.length > 0) {
+                    originalSelect.remove(0);
+                }
+                // Add members as selected options
+                Array.from(membersSelect.options).forEach(function (opt) {
+                    const newOpt = new Option(opt.text, opt.value, true, true);
+                    originalSelect.add(newOpt);
+                });
+            });
+        }
+    });
+</script>
 {% endblock %}
