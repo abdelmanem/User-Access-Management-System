@@ -81,9 +81,9 @@ class SystemUserAssignForm(forms.Form):
     users = forms.ModelMultipleChoiceField(
         queryset=CustomUser.objects.none(),
         required=False,
-        widget=forms.SelectMultiple(attrs={'class': 'form-select', 'size': 15}),
+        widget=forms.SelectMultiple(attrs={'class': 'form-select d-none'}),
         label='System Users',
-        help_text='Select users who should have access assignments for this system.'
+        help_text='Move users between the Available and Selected boxes, then save.'
     )
 
     def __init__(self, *args, **kwargs):

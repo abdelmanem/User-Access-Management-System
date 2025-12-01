@@ -178,13 +178,49 @@
                                                 {{ assign_form.non_field_errors }}
                                             </div>
                                             {% endif %}
-                                            <div class="row g-3">
+                                            <div class="row g-3 align-items-stretch">
                                                 <div class="col-12 col-lg-8">
-                                                    <label for="{{ assign_form.users.id_for_label }}" class="form-label fw-semibold">
+                                                    <label class="form-label fw-semibold">
                                                         {{ assign_form.users.label }}
                                                     </label>
-                                                    {{ assign_form.users }}
-                                                    <div class="form-text">
+                                                    {% with all_users=assign_form.fields.users.queryset selected_ids=assign_form.users.value %}
+                                                    <div class="row g-2 align-items-center">
+                                                        <div class="col-12 col-md-5">
+                                                            <label class="form-label small fw-semibold">Available Users</label>
+                                                            <select id="available-users" class="form-select" size="12" multiple>
+                                                                {% for user in all_users %}
+                                                                    {% if not selected_ids or user.id|stringformat:"s" not in selected_ids %}
+                                                                        <option value="{{ user.id }}">
+                                                                            {{ user.get_full_name }} ({{ user.username }})
+                                                                        </option>
+                                                                    {% endif %}
+                                                                {% endfor %}
+                                                            </select>
+                                                        </div>
+                                                        <div class="col-12 col-md-2 d-flex flex-column justify-content-center align-items-center gap-2 my-2">
+                                                            <button type="button" id="btn-add-user" class="btn btn-outline-primary btn-sm w-100">
+                                                                &gt;&gt;
+                                                            </button>
+                                                            <button type="button" id="btn-remove-user" class="btn btn-outline-secondary btn-sm w-100 mt-1">
+                                                                &lt;&lt;
+                                                            </button>
+                                                        </div>
+                                                        <div class="col-12 col-md-5">
+                                                            <label class="form-label small fw-semibold">Selected Users</label>
+                                                            <select id="selected-users" name="{{ assign_form.users.html_name }}" class="form-select" size="12" multiple>
+                                                                {% for user in all_users %}
+                                                                    {% if selected_ids and user.id|stringformat:"s" in selected_ids %}
+                                                                        <option value="{{ user.id }}" selected>
+                                                                            {{ user.get_full_name }} ({{ user.username }})
+                                                                        </option>
+                                                                    {% endif %}
+                                                                {% endfor %}
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    {% endwith %}
+                                                    {{ assign_form.users }} {# hidden original field for validation #}
+                                                    <div class="form-text mt-2">
                                                         {{ assign_form.users.help_text }}
                                                     </div>
                                                     {% for error in assign_form.users.errors %}
@@ -195,8 +231,8 @@
                                                     <div class="alert alert-info small">
                                                         <strong>Tips:</strong>
                                                         <ul class="mb-0 ps-3">
-                                                            <li>Use Ctrl/Command + Click to select multiple users.</li>
-                                                            <li>Users not selected will have their assignments removed.</li>
+                                                            <li>Select one or more users in a box, then use the buttons to add or remove.</li>
+                                                            <li>Users not in the <em>Selected Users</em> box will have their assignments removed.</li>
                                                             <li>New assignments default to read-only access.</li>
                                                         </ul>
                                                     </div>
@@ -207,6 +243,41 @@
                                                     <i class="fas fa-save me-1"></i>Save User Assignments
                                                 </button>
                                             </div>
+                                            <script>
+                                                (function() {
+                                                    const available = document.getElementById('available-users');
+                                                    const selected = document.getElementById('selected-users');
+                                                    const addBtn = document.getElementById('btn-add-user');
+                                                    const removeBtn = document.getElementById('btn-remove-user');
+
+                                                    function moveOptions(source, target) {
+                                                        const moving = Array.from(source.selectedOptions);
+                                                        moving.forEach(opt => {
+                                                            opt.selected = false;
+                                                            target.add(opt);
+                                                        });
+                                                    }
+
+                                                    if (addBtn && removeBtn && available && selected) {
+                                                        addBtn.addEventListener('click', function() {
+                                                            moveOptions(available, selected);
+                                                        });
+                                                        removeBtn.addEventListener('click', function() {
+                                                            moveOptions(selected, available);
+                                                        });
+
+                                                        // Ensure all options in selected box are marked selected on submit
+                                                        const form = addBtn.closest('form');
+                                                        if (form) {
+                                                            form.addEventListener('submit', function() {
+                                                                Array.from(selected.options).forEach(opt => {
+                                                                    opt.selected = true;
+                                                                });
+                                                            });
+                                                        }
+                                                    }
+                                                })();
+                                            </script>
                                         </form>
                                     </div>
                                 </div>
