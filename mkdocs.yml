@@ -64,11 +64,13 @@ nav:
       - Cloud Deployment: cloud.md
   - Compliance Playbooks:
       - Access:
+          - User Accounts (4.1): USER_ACCOUNTS_4_1_UNIQUE_ID.md
+          - Service Account Passwords (4.2): SERVICE_ACCOUNT_PASSWORD_4_2.md
           - Administrator Access (4.3): ADMINISTRATOR_ACCESS_4_3_GOVERNANCE.md
-          - Access Approval (4.6): ACCESS_APPROVAL_COMPLIANCE_4_6.md
-          - Quarterly Access Review (4.5): QUARTERLY_ACCESS_REVIEW_4_5.md
-          - Default Account Management (4.7): DEFAULT_ACCOUNT_MANAGEMENT_4_7.md
           - Change Management (4.4): CHANGE_MANAGEMENT_4_4_PROCESS.md
+          - Quarterly Access Review (4.5): QUARTERLY_ACCESS_REVIEW_4_5.md
+          - Access Approval (4.6): ACCESS_APPROVAL_COMPLIANCE_4_6.md
+          - Default Account Management (4.7): DEFAULT_ACCOUNT_MANAGEMENT_4_7.md
       - Service Account Governance: SERVICE_ACCOUNT_GOVERNANCE.md
   - Operations:
       - Policy Drift Scheduling: POLICY_DRIFT_SCHEDULING.md
