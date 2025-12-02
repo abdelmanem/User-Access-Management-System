@@ -57,6 +57,19 @@ class SystemForm(forms.ModelForm):
         qs = CustomUser.objects.order_by('first_name', 'last_name')
         self.fields['system_owner'].queryset = qs
         self.fields['technical_lead'].queryset = qs
+        # Populate server_name choices from hardware assets so UI shows a dropdown of servers
+        server_qs = HardwareAsset.objects.filter(
+            hardware_type__in=['Server', 'Virtual Server']
+        ).order_by('name', 'asset_tag')
+        server_choices = [('', '---------')] + [
+            (asset.name, f"{asset.name} [{asset.asset_tag}]")
+            for asset in server_qs
+        ]
+        self.fields['server_name'] = forms.ChoiceField(
+            choices=server_choices,
+            required=False,
+            label='Server name',
+        )
 
     def clean_code(self):
         code = self.cleaned_data.get('code', '').strip()
