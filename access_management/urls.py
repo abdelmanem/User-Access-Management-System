@@ -6,6 +6,7 @@ app_name = 'access_management'
 urlpatterns = [
     # Access Assignment Management
     path('assignments/', views.access_assignment_list, name='access_assignment_list'),
+    path('assignments/my-pending/', views.my_pending_approvals, name='my_pending_approvals'),
     path('assignments/create/', views.access_assignment_create, name='access_assignment_create'),
     path('assignments/<int:pk>/', views.access_assignment_detail, name='access_assignment_detail'),
     path('assignments/<int:pk>/update/', views.access_assignment_update, name='access_assignment_update'),
@@ -37,6 +38,7 @@ urlpatterns = [
 
     # Access approval compliance (RHG 4.6)
     path('access-approval-compliance/', views.access_approval_compliance, name='access_approval_compliance'),
+    path('approval-summary-dashboard/', views.approval_summary_dashboard, name='approval_summary_dashboard'),
 
     # Policy Drift Monitoring
     path('policy-drift-monitoring/', views.policy_drift_monitoring, name='policy_drift_monitoring'),

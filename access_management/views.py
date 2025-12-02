@@ -899,6 +899,87 @@ def access_assignment_list(request):
 
 
 @login_required
+def my_pending_approvals(request):
+    """
+    Compact queue of access assignments that are currently pending
+    and where the logged-in user is involved as approver (IT approver
+    or system owner approver).
+    """
+    user = request.user
+
+    pending_qs = UserSystemAccess.objects.select_related(
+        "user", "system"
+    ).filter(
+        status="Pending"
+    ).filter(
+        Q(approved_by=user) | Q(system_owner_approver=user)
+    ).order_by("-priority", "request_date")
+
+    # Summary metrics for quick triage
+    oldest = pending_qs.order_by("request_date").first()
+    oldest_days = None
+    if oldest and oldest.request_date:
+        delta = timezone.now() - oldest.request_date
+        oldest_days = max(delta.days, 0)
+
+    summary_metrics = {
+        "total": pending_qs.count(),
+        "missing_owner": pending_qs.filter(system_owner_approved=False).count(),
+        "high_critical": pending_qs.filter(priority__in=["High", "Critical"]).count(),
+        "oldest_days": oldest_days,
+    }
+
+    context = {
+        "pending_assignments": pending_qs,
+        "summary_metrics": summary_metrics,
+    }
+    return render(request, "access_management/my_pending_approvals.html", context)
+
+
+@login_required
+def approval_summary_dashboard(request):
+    """
+    Summary dashboard of access approvals per system and per department.
+    Groups counts of assignments by status to give a quick overview.
+    """
+    # Aggregation per system
+    system_rows = (
+        UserSystemAccess.objects.select_related("system")
+        .values("system_id", "system__name", "system__code")
+        .annotate(
+            total=Count("id"),
+            pending=Count("id", filter=Q(status="Pending")),
+            approved=Count("id", filter=Q(status="Approved")),
+            active=Count("id", filter=Q(status="Active")),
+            revoked=Count("id", filter=Q(status="Revoked")),
+            expired=Count("id", filter=Q(status="Expired")),
+        )
+        .order_by("system__name")
+    )
+
+    # Aggregation per department (based on the user.department relation)
+    dept_rows = (
+        UserSystemAccess.objects.select_related("user__department")
+        .values("user__department_id", "user__department__name")
+        .annotate(
+            total=Count("id"),
+            pending=Count("id", filter=Q(status="Pending")),
+            approved=Count("id", filter=Q(status="Approved")),
+            active=Count("id", filter=Q(status="Active")),
+            revoked=Count("id", filter=Q(status="Revoked")),
+            expired=Count("id", filter=Q(status="Expired")),
+        )
+        .order_by("user__department__name")
+    )
+
+    context = {
+        "system_rows": system_rows,
+        "department_rows": dept_rows,
+    }
+    return render(request, "access_management/approval_summary_dashboard.html", context)
+
+
+@login_required
 def access_assignment_detail(request, pk):
     """Detail view of an access assignment"""
     access_assignment = get_object_or_404(
