@@ -39,6 +39,8 @@ urlpatterns = [
     # Access approval compliance (RHG 4.6)
     path('access-approval-compliance/', views.access_approval_compliance, name='access_approval_compliance'),
     path('approval-summary-dashboard/', views.approval_summary_dashboard, name='approval_summary_dashboard'),
+    path('unapproved-access/', views.unapproved_access_list, name='unapproved_access_list'),
+    path('my-unapproved-access-gaps/', views.my_unapproved_access_gaps, name='my_unapproved_access_gaps'),
 
     # Policy Drift Monitoring
     path('policy-drift-monitoring/', views.policy_drift_monitoring, name='policy_drift_monitoring'),

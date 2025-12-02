@@ -979,6 +979,168 @@ def approval_summary_dashboard(request):
     return render(request, "access_management/approval_summary_dashboard.html", context)
 
 
+def _export_unapproved_to_csv(queryset):
+    """Export unapproved access records to CSV."""
+    output = StringIO()
+    writer = csv.writer(output)
+    headers = [
+        "User",
+        "Username",
+        "Department",
+        "System",
+        "System Code",
+        "Status",
+        "Has IT Approval",
+        "Has System Owner Approval",
+        "Request Date",
+    ]
+    writer.writerow(headers)
+
+    for a in queryset.select_related("user__department", "system", "approved_by"):
+        user = a.user
+        system = a.system
+        writer.writerow([
+            user.get_full_name() if user else "",
+            user.username if user else "",
+            user.department.name if user and user.department else "",
+            system.name if system else "",
+            system.code if system else "",
+            a.status,
+            "Yes" if a.approved_by else "No",
+            "Yes" if a.system_owner_approved else "No",
+            _format_datetime(a.request_date),
+        ])
+
+    response = HttpResponse(output.getvalue(), content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="unapproved_access.csv"'
+    return response
+
+
+def _export_unapproved_to_excel(queryset):
+    """Export unapproved access records to Excel."""
+    workbook = Workbook()
+    worksheet = workbook.active
+    worksheet.title = "Unapproved Access"
+
+    headers = [
+        "User",
+        "Username",
+        "Department",
+        "System",
+        "System Code",
+        "Status",
+        "Has IT Approval",
+        "Has System Owner Approval",
+        "Request Date",
+    ]
+    worksheet.append(headers)
+
+    for a in queryset.select_related("user__department", "system", "approved_by"):
+        user = a.user
+        system = a.system
+        worksheet.append([
+            user.get_full_name() if user else "",
+            user.username if user else "",
+            user.department.name if user and user.department else "",
+            system.name if system else "",
+            system.code if system else "",
+            a.status,
+            "Yes" if a.approved_by else "No",
+            "Yes" if a.system_owner_approved else "No",
+            _format_datetime(a.request_date),
+        ])
+
+    stream = BytesIO()
+    workbook.save(stream)
+    stream.seek(0)
+
+    response = HttpResponse(
+        stream.getvalue(),
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    response["Content-Disposition"] = 'attachment; filename="unapproved_access.xlsx"'
+    return response
+
+
+@login_required
+def unapproved_access_list(request):
+    """
+    All unapproved access detected by get_unapproved_access_records(),
+    with simple filters and CSV/Excel export.
+    """
+    qs = get_unapproved_access_records()
+
+    system_filter = request.GET.get("system") or ""
+    dept_filter = request.GET.get("department") or ""
+    gap_type = request.GET.get("gap_type") or ""
+    search_query = request.GET.get("search") or ""
+
+    if system_filter:
+        qs = qs.filter(system_id=system_filter)
+    if dept_filter:
+        qs = qs.filter(user__department_id=dept_filter)
+    if gap_type == "no_it":
+        qs = qs.filter(approved_by__isnull=True)
+    elif gap_type == "no_owner":
+        qs = qs.filter(system_owner_approved=False)
+
+    if search_query:
+        qs = qs.filter(
+            Q(user__username__icontains=search_query)
+            | Q(user__first_name__icontains=search_query)
+            | Q(user__last_name__icontains=search_query)
+            | Q(system__name__icontains=search_query)
+            | Q(system__code__icontains=search_query)
+        )
+
+    export = request.GET.get("export")
+    ordered_qs = qs.order_by("system__name", "user__first_name", "user__last_name")
+    if export == "csv":
+        return _export_unapproved_to_csv(ordered_qs)
+    if export == "xlsx":
+        return _export_unapproved_to_excel(ordered_qs)
+
+    systems = System.objects.all().order_by("name")
+    departments = Department.objects.all().order_by("name")
+
+    query_params = request.GET.copy()
+    query_params.pop("export", None)
+    current_query = query_params.urlencode()
+
+    context = {
+        "assignments": ordered_qs,
+        "systems": systems,
+        "departments": departments,
+        "filters": {
+            "system": system_filter,
+            "department": dept_filter,
+            "gap_type": gap_type,
+            "search": search_query,
+        },
+        "current_query": current_query,
+    }
+    return render(request, "access_management/unapproved_access_list.html", context)
+
+
+@login_required
+def my_unapproved_access_gaps(request):
+    """
+    Unapproved access gaps scoped to systems owned by the current user.
+    """
+    user = request.user
+    # Systems where this user is the system owner; align with System model fields
+    owned_systems = System.objects.filter(system_owner=user)
+
+    qs = get_unapproved_access_records().filter(system__in=owned_systems)
+
+    assignments = qs.order_by("system__name", "user__first_name", "user__last_name")
+
+    context = {
+        "assignments": assignments,
+    }
+    return render(request, "access_management/my_unapproved_access_gaps.html", context)
+
+
 @login_required
 def access_assignment_detail(request, pk):
     """Detail view of an access assignment"""
