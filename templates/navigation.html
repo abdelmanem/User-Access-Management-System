@@ -59,7 +59,7 @@
                 </a>
             </div>
 
-            {% nav_active_class 'systems:system_*' 'systems:system_list' 'systems:system_detail' 'systems:system_update' 'systems:system_delete' 'systems:system_create' as systems_active %}
+            {% nav_active_class 'systems:system_*' 'systems:system_list' 'systems:system_detail' 'systems:system_update' 'systems:system_delete' 'systems:system_create' 'systems:system_type_management' as systems_active %}
             <button class="sidebar-link{{ systems_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarSystems" aria-expanded="{% if systems_active %}true{% else %}false{% endif %}" aria-controls="sidebarSystems">
                 <span><i class="fa-solid fa-server"></i> Systems</span>
                 <i class="fa-solid fa-angle-down collapse-arrow"></i>
@@ -72,6 +72,10 @@
                 {% nav_active_class 'systems:system_create' as system_create_active %}
                 <a class="sidebar-sublink{{ system_create_active }}" href="{% url 'systems:system_create' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-plus"></i> Add New System
+                </a>
+                {% nav_active_class 'systems:system_type_management' as system_type_mgmt_active %}
+                <a class="sidebar-sublink{{ system_type_mgmt_active }}" href="{% url 'systems:system_type_management' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-tags"></i> System Types
                 </a>
             </div>
 

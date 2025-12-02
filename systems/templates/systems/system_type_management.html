@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}System Type Management{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h3 class="card-title mb-0">System Type Management</h3>
+                        <a href="{% url 'systems:system_list' %}" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Systems
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">
+                            Below are the available system types defined in the application and how many systems
+                            currently use each type. To add or change a system\u2019s type, edit the individual system
+                            record from the system list.
+                        </p>
+                        <table class="table table-bordered table-striped align-middle">
+                            <thead>
+                                <tr>
+                                    <th style="width: 40%;">System Type</th>
+                                    <th style="width: 20%;">Assigned Systems</th>
+                                    <th style="width: 40%;">Quick Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for t in type_stats %}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-info text-dark">{{ t.label }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ t.count }}</span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'systems:system_list' %}?system_type={{ t.value|urlencode }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-filter"></i> View Systems of this Type
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">
+                                        No system types available.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        <div class="alert alert-info mt-3 mb-0">
+                            <strong>Need a new system type?</strong>
+                            <br>
+                            System types are currently defined by the application configuration
+                            (the choices on the <code>System.system_type</code> field). To add a new type,
+                            it must be added to that configuration by an administrator.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+

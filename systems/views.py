@@ -57,6 +57,28 @@ def system_list(request):
     }
     return render(request, 'systems/system_list.html', context)
 
+
+@login_required
+def system_type_management(request):
+    """
+    Simple management view for system types.
+    Uses the static SYSTEM_TYPE_CHOICES defined on the System model and shows
+    how many systems currently use each type, with quick links to filter.
+    """
+    type_stats = []
+    for value, label in System.SYSTEM_TYPE_CHOICES:
+        count = System.objects.filter(system_type=value).count()
+        type_stats.append({
+            "value": value,
+            "label": label,
+            "count": count,
+        })
+
+    context = {
+        "type_stats": type_stats,
+    }
+    return render(request, "systems/system_type_management.html", context)
+
 @login_required
 def system_detail(request, pk):
     system = get_object_or_404(

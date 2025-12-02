@@ -139,7 +139,6 @@ class DefaultAccountTemplateForm(forms.ModelForm):
             'notes',
         ]
         widgets = {
-            'system_type': forms.TextInput(attrs={'class': 'form-control'}),
             'account_name': forms.TextInput(attrs={'class': 'form-control'}),
             'account_type': forms.Select(attrs={'class': 'form-select'}),
             'removal_required': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -149,5 +148,14 @@ class DefaultAccountTemplateForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Allow selecting a concrete system type or "Any" for global templates.
+        system_type_choices = [('Any', 'Any (All system types)')] + list(System.SYSTEM_TYPE_CHOICES)
+        self.fields['system_type'].widget = forms.Select(
+            choices=system_type_choices,
+            attrs={'class': 'form-select'},
+        )
 
 
