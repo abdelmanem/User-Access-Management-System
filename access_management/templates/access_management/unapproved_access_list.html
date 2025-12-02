@@ -80,85 +80,110 @@
                         </div>
                     </form>
 
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>User</th>
-                                    <th>System</th>
-                                    <th>Status</th>
-                                    <th>Approval Gaps</th>
-                                    <th>Requested</th>
-                                    <th>Approved By</th>
-                                    <th>System Owner Approved</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for assignment in assignments %}
-                                <tr>
-                                    <td>
-                                        <div class="fw-semibold">{{ assignment.user.full_name }}</div>
-                                        <div class="text-muted small">{{ assignment.user.username }}</div>
-                                        {% if assignment.user.department %}
-                                        <div class="text-muted small">
-                                            {{ assignment.user.department.name }}
-                                        </div>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <div class="fw-semibold">{{ assignment.system.name }}</div>
-                                        <div class="text-muted small">{{ assignment.system.code }}</div>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-{{ assignment.get_status_color }}">
-                                            {{ assignment.status }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        {% if not assignment.approved_by %}
-                                            <span class="badge bg-danger mb-1">No IT approval</span><br>
-                                        {% endif %}
-                                        {% if not assignment.system_owner_approved %}
-                                            <span class="badge bg-warning text-dark mb-1">No owner approval</span><br>
-                                        {% endif %}
-                                        {% if assignment.approved_by and assignment.system_owner_approved %}
-                                            <span class="text-muted small">Configuration flag (date missing)</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ assignment.request_date|date:"Y-m-d" }}</td>
-                                    <td>
-                                        {% if assignment.approved_by %}
-                                            {{ assignment.approved_by.full_name }}
-                                        {% else %}
-                                            <span class="text-muted">—</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if assignment.system_owner_approved %}
-                                            <span class="badge bg-success">Yes</span>
-                                        {% else %}
-                                            <span class="badge bg-warning text-dark">No</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-end">
-                                        <a href="{% url 'access_management:access_assignment_detail' assignment.pk %}"
-                                           class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="8" class="text-center text-muted py-4">
-                                        <i class="fas fa-check-circle fa-3x mb-3 text-success"></i>
-                                        <p class="mb-0">No unapproved access records detected.</p>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <div class="d-flex flex-wrap gap-2">
+                                <button type="submit" name="bulk_action" value="it_approve" class="btn btn-sm btn-success">
+                                    <i class="fas fa-check-double me-1"></i> Bulk Approve (IT)
+                                </button>
+                                <button type="submit" name="bulk_action" value="owner_approve" class="btn btn-sm btn-warning">
+                                    <i class="fas fa-user-tie me-1"></i> Bulk Approve (Owner)
+                                </button>
+                            </div>
+                            <span class="text-muted small">
+                                Only fills in missing IT / System Owner approvals; access status is not changed.
+                            </span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width:32px;">
+                                            <input type="checkbox" id="select-all-unapproved">
+                                        </th>
+                                        <th>User</th>
+                                        <th>System</th>
+                                        <th>Status</th>
+                                        <th>Approval Gaps</th>
+                                        <th>Requested</th>
+                                        <th>Approved By</th>
+                                        <th>System Owner Approved</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for assignment in assignments %}
+                                    <tr>
+                                        <td>
+                                            <input type="checkbox"
+                                                   name="assignment_ids"
+                                                   value="{{ assignment.id }}"
+                                                   class="form-check-input select-row-unapproved">
+                                        </td>
+                                        <td>
+                                            <div class="fw-semibold">{{ assignment.user.full_name }}</div>
+                                            <div class="text-muted small">{{ assignment.user.username }}</div>
+                                            {% if assignment.user.department %}
+                                            <div class="text-muted small">
+                                                {{ assignment.user.department.name }}
+                                            </div>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="fw-semibold">{{ assignment.system.name }}</div>
+                                            <div class="text-muted small">{{ assignment.system.code }}</div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{{ assignment.get_status_color }}">
+                                                {{ assignment.status }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if not assignment.approved_by %}
+                                                <span class="badge bg-danger mb-1">No IT approval</span><br>
+                                            {% endif %}
+                                            {% if not assignment.system_owner_approved %}
+                                                <span class="badge bg-warning text-dark mb-1">No owner approval</span><br>
+                                            {% endif %}
+                                            {% if assignment.approved_by and assignment.system_owner_approved %}
+                                                <span class="text-muted small">Configuration flag (date missing)</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ assignment.request_date|date:"Y-m-d" }}</td>
+                                        <td>
+                                            {% if assignment.approved_by %}
+                                                {{ assignment.approved_by.full_name }}
+                                            {% else %}
+                                                <span class="text-muted">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if assignment.system_owner_approved %}
+                                                <span class="badge bg-success">Yes</span>
+                                            {% else %}
+                                                <span class="badge bg-warning text-dark">No</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end">
+                                            <a href="{% url 'access_management:access_assignment_detail' assignment.pk %}"
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="9" class="text-center text-muted py-4">
+                                            <i class="fas fa-check-circle fa-3x mb-3 text-success"></i>
+                                            <p class="mb-0">No unapproved access records detected.</p>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -166,4 +191,20 @@
 </div>
 {% endblock %}
 
+{% block extrajs %}
+<script>
+(function() {
+    const selectAll = document.getElementById('select-all-unapproved');
+    if (!selectAll) {
+        return;
+    }
+    const rowCheckboxes = document.querySelectorAll('.select-row-unapproved');
+    selectAll.addEventListener('change', function () {
+        rowCheckboxes.forEach(function (cb) {
+            cb.checked = selectAll.checked;
+        });
+    });
+})();
+</script>
+{% endblock %}
 

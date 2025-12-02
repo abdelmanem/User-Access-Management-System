@@ -1070,6 +1070,54 @@ def unapproved_access_list(request):
     """
     qs = get_unapproved_access_records()
 
+    # Bulk approval of selected records
+    if request.method == "POST":
+        selected_ids = request.POST.getlist("assignment_ids")
+        bulk_action = request.POST.get("bulk_action") or "it_approve"
+        if not selected_ids:
+            messages.warning(request, "No assignments selected for bulk approval.")
+            return redirect("access_management:unapproved_access_list")
+
+        to_update = qs.filter(id__in=selected_ids)
+        now = timezone.now()
+
+        if bulk_action == "owner_approve":
+            updated = 0
+            for assignment in to_update:
+                # Only mark missing system owner approval; do not change status
+                if not assignment.system_owner_approved:
+                    assignment.system_owner_approved = True
+                    assignment.system_owner_approval_date = now
+                    assignment.system_owner_approver = request.user
+                    assignment.save(update_fields=[
+                        "system_owner_approved",
+                        "system_owner_approval_date",
+                        "system_owner_approver",
+                    ])
+                    updated += 1
+            if updated:
+                messages.success(request, f"Bulk marked system owner approval for {updated} assignment(s).")
+            else:
+                messages.info(request, "Selected assignments already had system owner approval.")
+        else:
+            # Default: IT approval
+            updated = 0
+            for assignment in to_update:
+                # Only fill in missing IT approval; do not change status
+                if assignment.approved_by is None:
+                    assignment.approved_by = request.user
+                    if not assignment.approval_date:
+                        assignment.approval_date = now
+                    assignment.save(update_fields=["approved_by", "approval_date"])
+                    updated += 1
+
+            if updated:
+                messages.success(request, f"Bulk approved IT approval for {updated} assignment(s).")
+            else:
+                messages.info(request, "Selected assignments already had IT approval.")
+
+        return redirect("access_management:unapproved_access_list")
+
     system_filter = request.GET.get("system") or ""
     dept_filter = request.GET.get("department") or ""
     gap_type = request.GET.get("gap_type") or ""
