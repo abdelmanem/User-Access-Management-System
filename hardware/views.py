@@ -1,6 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import HardwareAssetForm
@@ -15,12 +15,38 @@ def hardware_list(request):
         .prefetch_related("assigned_users", "related_systems")
         .annotate(user_count=Count("assigned_users", distinct=True))
     )
+
+    # Simple search and filters
+    search_query = request.GET.get("q", "").strip()
+    filter_hardware_type = request.GET.get("hardware_type", "").strip()
+    filter_status = request.GET.get("status", "").strip()
+
+    if search_query:
+        assets = assets.filter(
+            Q(name__icontains=search_query)
+            | Q(asset_tag__icontains=search_query)
+            | Q(serial_number__icontains=search_query)
+            | Q(location__icontains=search_query)
+            | Q(ip_address__icontains=search_query)
+        )
+
+    if filter_hardware_type:
+        assets = assets.filter(hardware_type=filter_hardware_type)
+
+    if filter_status:
+        assets = assets.filter(status=filter_status)
+
     context = {
         "assets": assets,
         "total_assets": assets.count(),
         "active_assets": assets.filter(status="In Service").count(),
         "in_storage_assets": assets.filter(status="In Storage").count(),
         "retired_assets": assets.filter(status__in=["Retired", "Disposed"]).count(),
+        "search_query": search_query,
+        "filter_hardware_type": filter_hardware_type,
+        "filter_status": filter_status,
+        "hardware_type_choices": HardwareAsset.HARDWARE_TYPE_CHOICES,
+        "status_choices": HardwareAsset.STATUS_CHOICES,
     }
     return render(request, "hardware/hardware_list.html", context)
 

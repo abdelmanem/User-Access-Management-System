@@ -48,9 +48,56 @@
     </div>
 
     <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Assets</h5>
-            <small class="text-muted">Showing {{ assets|length }} asset{% if assets|length != 1 %}s{% endif %}</small>
+        <div class="card-header">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                <div>
+                    <h5 class="mb-0">Assets</h5>
+                    <small class="text-muted">Showing {{ assets|length }} asset{% if assets|length != 1 %}s{% endif %}</small>
+                </div>
+                <form method="get" class="w-100 w-md-auto">
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-4">
+                            <label for="id_q" class="form-label mb-1 small text-muted">Search</label>
+                            <input id="id_q"
+                                   type="text"
+                                   name="q"
+                                   value="{{ search_query }}"
+                                   class="form-control form-control-sm"
+                                   placeholder="Name, tag, serial, location, IP">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="id_hardware_type" class="form-label mb-1 small text-muted">Type</label>
+                            <select id="id_hardware_type"
+                                    name="hardware_type"
+                                    class="form-select form-select-sm">
+                                <option value="">All types</option>
+                                {% for value,label in hardware_type_choices %}
+                                    <option value="{{ value }}" {% if value == filter_hardware_type %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="id_status" class="form-label mb-1 small text-muted">Status</label>
+                            <select id="id_status"
+                                    name="status"
+                                    class="form-select form-select-sm">
+                                <option value="">All statuses</option>
+                                {% for value,label in status_choices %}
+                                    <option value="{{ value }}" {% if value == filter_status %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex gap-1">
+                            <button type="submit" class="btn btn-sm btn-primary w-100">
+                                <i class="fa-solid fa-magnifying-glass me-1"></i>Filter
+                            </button>
+                            <a href="{% url 'hardware:hardware_list' %}" class="btn btn-sm btn-outline-secondary" title="Clear filters">
+                                <i class="fa-solid fa-xmark"></i>
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">

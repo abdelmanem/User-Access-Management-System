@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.utils import timezone
 from .models import System
 from .forms import SystemForm, SystemUserAssignForm, SystemHardwareAssignForm
@@ -11,6 +11,33 @@ from accounts.models import CustomUser
 @login_required
 def system_list(request):
     systems = System.objects.all().annotate(user_count=Count('user_accesses', distinct=True))
+
+    # Search and filters
+    search_query = request.GET.get('q', '').strip()
+    filter_system_type = request.GET.get('system_type', '').strip()
+    filter_criticality = request.GET.get('criticality_level', '').strip()
+    filter_status = request.GET.get('status', '').strip()
+
+    if search_query:
+        systems = systems.filter(
+            Q(name__icontains=search_query) |
+            Q(code__icontains=search_query) |
+            Q(description__icontains=search_query) |
+            Q(url__icontains=search_query) |
+            Q(ip_address__icontains=search_query) |
+            Q(server_name__icontains=search_query)
+        )
+
+    if filter_system_type:
+        systems = systems.filter(system_type=filter_system_type)
+
+    if filter_criticality:
+        systems = systems.filter(criticality_level=filter_criticality)
+
+    if filter_status:
+        is_active_value = True if filter_status == 'active' else False
+        systems = systems.filter(is_active=is_active_value)
+
     total_count = systems.count()
     active_count = systems.filter(is_active=True).count()
     inactive_count = total_count - active_count
@@ -21,6 +48,12 @@ def system_list(request):
         'active_count': active_count,
         'inactive_count': inactive_count,
         'critical_count': critical_count,
+        'search_query': search_query,
+        'filter_system_type': filter_system_type,
+        'filter_criticality': filter_criticality,
+        'filter_status': filter_status,
+        'system_type_choices': System.SYSTEM_TYPE_CHOICES,
+        'criticality_choices': System.CRITICALITY_LEVEL_CHOICES,
     }
     return render(request, 'systems/system_list.html', context)
 
