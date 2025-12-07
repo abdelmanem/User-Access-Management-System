@@ -311,7 +311,7 @@ A requirement is marked **⚠️ Partial** when:
 ## Priority Recommendations
 
 ### High Priority (Critical for Audits):
-1. **4.2** - Add attestation workflow and rotation alerts
+1. **4.2** - Implement automated rotation notifications (attestation workflow already exists)
 2. **4.3** - Add IT Admin identification and admin account separation tracking
 3. **4.4** - Create change request system and System Owner authorization
 
