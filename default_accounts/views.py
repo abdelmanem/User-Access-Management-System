@@ -309,15 +309,36 @@ def seed_defaults_for_system(request, system_id):
 def default_account_template_list(request):
     ensure_default_account_templates_seeded()
     templates = DefaultAccountTemplate.objects.all().order_by('system_type', 'account_name')
+    
+    # Check if editing a specific template
+    edit_id = request.GET.get('edit')
+    editing_template = None
+    if edit_id:
+        try:
+            editing_template = DefaultAccountTemplate.objects.get(pk=edit_id)
+        except DefaultAccountTemplate.DoesNotExist:
+            pass
+    
     if request.method == 'POST':
-        form = DefaultAccountTemplateForm(request.POST)
+        template_id = request.POST.get('template_id')
+        if template_id:
+            # Editing existing template
+            template_instance = get_object_or_404(DefaultAccountTemplate, pk=template_id)
+            form = DefaultAccountTemplateForm(request.POST, instance=template_instance)
+        else:
+            # Creating new template
+            form = DefaultAccountTemplateForm(request.POST)
+        
         if form.is_valid():
             form.save()
             messages.success(request, 'Template saved. Future systems will inherit the updated registry.')
             return redirect('default_accounts:default_account_templates')
         messages.error(request, 'Please correct the errors below.')
     else:
-        form = DefaultAccountTemplateForm()
+        if editing_template:
+            form = DefaultAccountTemplateForm(instance=editing_template)
+        else:
+            form = DefaultAccountTemplateForm()
 
     template_stats = templates.aggregate(
         total=Count('id'),
@@ -331,5 +352,48 @@ def default_account_template_list(request):
             'templates': templates,
             'form': form,
             'template_stats': template_stats,
+            'editing_template': editing_template,
         },
     )
+
+
+@login_required
+def default_account_template_update(request, pk):
+    """Update an existing template."""
+    template = get_object_or_404(DefaultAccountTemplate, pk=pk)
+    if request.method == 'POST':
+        form = DefaultAccountTemplateForm(request.POST, instance=template)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Template updated. Future systems will inherit the updated registry.')
+            return redirect('default_accounts:default_account_templates')
+        messages.error(request, 'Please correct the errors below.')
+    else:
+        form = DefaultAccountTemplateForm(instance=template)
+    
+    return render(
+        request,
+        'default_accounts/default_account_templates.html',
+        {
+            'templates': DefaultAccountTemplate.objects.all().order_by('system_type', 'account_name'),
+            'form': form,
+            'editing_template': template,
+            'template_stats': DefaultAccountTemplate.objects.aggregate(
+                total=Count('id'),
+                rhg=Count('id', filter=Q(rhg_special_account=True)),
+                global_templates=Count('id', filter=Q(applies_to_all=True)),
+            ),
+        },
+    )
+
+
+@login_required
+def default_account_template_delete(request, pk):
+    """Delete a template."""
+    template = get_object_or_404(DefaultAccountTemplate, pk=pk)
+    if request.method == 'POST':
+        template_name = template.account_name
+        template.delete()
+        messages.success(request, f'Template "{template_name}" was deleted.')
+        return redirect('default_accounts:default_account_templates')
+    return render(request, 'default_accounts/default_account_template_confirm_delete.html', {'template': template})

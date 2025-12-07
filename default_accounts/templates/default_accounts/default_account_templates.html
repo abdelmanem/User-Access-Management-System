@@ -52,6 +52,7 @@
                             <th>Account Type</th>
                             <th>Removal Required</th>
                             <th>Status</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -78,10 +79,20 @@
                                     {% endif %}
                                 </td>
                                 <td>{{ template.get_default_status_display }}</td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <a href="{% url 'default_accounts:default_account_template_update' template.pk %}" class="btn btn-sm btn-outline-primary" title="Edit template">
+                                            <i class="fa-solid fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'default_accounts:default_account_template_delete' template.pk %}" class="btn btn-sm btn-outline-danger" title="Delete template">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
                             </tr>
                         {% empty %}
                             <tr>
-                                <td colspan="5" class="text-center py-4 text-muted">No templates defined.</td>
+                                <td colspan="6" class="text-center py-4 text-muted">No templates defined.</td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -92,10 +103,19 @@
     <div class="col-lg-5">
         <div class="card shadow-sm border-0">
             <div class="card-header">
-                <h5 class="mb-0">Add / Update Template</h5>
+                <h5 class="mb-0">
+                    {% if editing_template %}
+                        Edit Template: {{ editing_template.account_name }}
+                    {% else %}
+                        Add New Template
+                    {% endif %}
+                </h5>
             </div>
             <form method="post">
                 {% csrf_token %}
+                {% if editing_template %}
+                    <input type="hidden" name="template_id" value="{{ editing_template.pk }}">
+                {% endif %}
                 <div class="card-body">
                     {% if form.errors %}
                         <div class="alert alert-danger">Please correct the errors below.</div>
@@ -114,8 +134,11 @@
                     {% endfor %}
                 </div>
                 <div class="card-footer text-end">
+                    {% if editing_template %}
+                        <a href="{% url 'default_accounts:default_account_templates' %}" class="btn btn-outline-secondary me-2">Cancel</a>
+                    {% endif %}
                     <button type="submit" class="btn btn-primary">
-                        <i class="fa-solid fa-save me-2"></i>Save Template
+                        <i class="fa-solid fa-save me-2"></i>{% if editing_template %}Update{% else %}Save{% endif %} Template
                     </button>
                 </div>
             </form>
