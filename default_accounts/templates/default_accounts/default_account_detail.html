@@ -81,6 +81,20 @@
             <dt class="col-md-3">Account Type</dt>
             <dd class="col-md-9">{{ account.get_account_type_display }}</dd>
 
+            {% if account.template %}
+                <dt class="col-md-3">Source Template</dt>
+                <dd class="col-md-9">
+                    <a href="{% url 'default_accounts:default_account_templates' %}" class="text-decoration-none">
+                        {{ account.template.account_name }}
+                        {% if account.template.system %}
+                            <span class="badge bg-info-subtle text-info border border-info-subtle ms-1">{{ account.template.system.name }}</span>
+                        {% else %}
+                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle ms-1">Global Template</span>
+                        {% endif %}
+                    </a>
+                </dd>
+            {% endif %}
+
             <dt class="col-md-3">Removal Required</dt>
             <dd class="col-md-9">
                 {% if account.removal_required %}

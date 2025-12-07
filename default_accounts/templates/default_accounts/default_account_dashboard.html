@@ -150,7 +150,10 @@
                         <tr class="{% if account.requires_follow_up %}table-warning{% endif %}">
                             <td>
                                 <strong>{{ account.system.name }}</strong><br>
-                                <small class="text-muted">{{ account.system.system_type }}</small>
+                                <small class="text-muted">{{ account.system.get_system_type_display }}</small>
+                                {% if account.template %}
+                                    <br><small class="text-info"><i class="fa-solid fa-layer-group me-1"></i>From template</small>
+                                {% endif %}
                             </td>
                             <td>
                                 <div class="fw-semibold">{{ account.account_name }}</div>

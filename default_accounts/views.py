@@ -32,6 +32,8 @@ def default_account_dashboard(request):
     ensure_default_account_templates_seeded()
     accounts = DefaultAccount.objects.select_related(
         'system',
+        'template',
+        'template__system',
         'password_changed_by',
         'removal_confirmed_by',
         'installation_documented_by',
@@ -121,6 +123,8 @@ def default_account_detail(request, pk):
     account = get_object_or_404(
         DefaultAccount.objects.select_related(
             'system',
+            'template',
+            'template__system',
             'password_changed_by',
             'removal_confirmed_by',
             'installation_documented_by',
