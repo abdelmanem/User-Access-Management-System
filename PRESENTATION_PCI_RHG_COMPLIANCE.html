@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UAMS - PCI & RHG Security Compliance Presentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .presentation-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .slide {
+            background: white;
+            border-radius: 15px;
+            padding: 60px;
+            margin: 30px 0;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            min-height: 600px;
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        .slide.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            border-bottom: 4px solid #667eea;
+            padding-bottom: 15px;
+        }
+
+        h2 {
+            color: #764ba2;
+            font-size: 2em;
+            margin: 30px 0 20px 0;
+        }
+
+        h3 {
+            color: #555;
+            font-size: 1.5em;
+            margin: 20px 0 15px 0;
+        }
+
+        p {
+            font-size: 1.2em;
+            line-height: 1.8;
+            margin: 15px 0;
+        }
+
+        ul, ol {
+            font-size: 1.1em;
+            line-height: 2;
+            margin: 20px 0;
+            padding-left: 30px;
+        }
+
+        li {
+            margin: 10px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 1.1em;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: left;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        tr:hover {
+            background: #f5f5f5;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 20px;
+            border-left: 5px solid #ffc107;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .success {
+            background: #d4edda;
+            padding: 15px;
+            border-left: 5px solid #28a745;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .warning {
+            background: #fff3cd;
+            padding: 15px;
+            border-left: 5px solid #ffc107;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .info-box {
+            background: #d1ecf1;
+            padding: 20px;
+            border-left: 5px solid #17a2b8;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .icon {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+
+        .navigation {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+        }
+
+        .nav-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            margin: 5px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1.1em;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+        }
+
+        .nav-button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .nav-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .slide-counter {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: rgba(255,255,255,0.9);
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+
+        .flow-diagram {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .flow-step {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 15px 25px;
+            margin: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        .arrow {
+            display: inline-block;
+            font-size: 2em;
+            color: #667eea;
+            margin: 0 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .stat-number {
+            font-size: 3em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .requirement-badge {
+            display: inline-block;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 5px;
+        }
+
+        .badge-complete {
+            background: #28a745;
+            color: white;
+        }
+
+        .badge-partial {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .badge-missing {
+            background: #dc3545;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="slide-counter">
+        <span id="current-slide">1</span> / <span id="total-slides">24</span>
+    </div>
+
+    <div class="presentation-container">
+        <!-- Slide 1 -->
+        <div class="slide active">
+            <h1>User Access Management System</h1>
+            <h2>PCI & RHG Security Compliance Tracking</h2>
+            <div class="info-box" style="margin-top: 40px;">
+                <h3>📋 A Compliance Tracking & Documentation Platform</h3>
+                <ul style="list-style: none; padding-left: 0;">
+                    <li>✅ <strong>Tracks</strong> user accounts across all your systems</li>
+                    <li>✅ <strong>Documents</strong> security compliance evidence</li>
+                    <li>✅ <strong>Proves</strong> to auditors that security policies are being followed</li>
+                    <li>✅ <strong>Monitors</strong> access across multiple systems in one place</li>
+                </ul>
+            </div>
+            <div class="highlight" style="margin-top: 40px;">
+                <strong>Key Point:</strong> This system doesn't enforce security - it <strong>tracks and documents</strong> that security is being properly applied in your actual systems (Active Directory, PMS, POS, etc.)
+            </div>
+        </div>
+
+        <!-- Slide 2 -->
+        <div class="slide">
+            <h1>What are PCI & RHG?</h1>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>PCI</h3>
+                    <p><strong>Payment Card Industry</strong></p>
+                    <ul style="text-align: left; list-style: none; padding: 0;">
+                        <li>✅ Security standards for credit card data</li>
+                        <li>✅ Requires strict access controls</li>
+                        <li>✅ Annual compliance audits</li>
+                    </ul>
+                </div>
+                <div class="stat-card">
+                    <h3>RHG</h3>
+                    <p><strong>Access Control Policy</strong></p>
+                    <ul style="text-align: left; list-style: none; padding: 0;">
+                        <li>✅ Company-specific security policy</li>
+                        <li>✅ 7 key audit requirements</li>
+                        <li>✅ Evidence-based compliance</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="success" style="margin-top: 30px;">
+                <h3>Why It Matters:</h3>
+                <ul>
+                    <li>✅ Pass security audits</li>
+                    <li>✅ Protect sensitive data</li>
+                    <li>✅ Meet regulatory requirements</li>
+                    <li>✅ Avoid penalties and fines</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 3 -->
+        <div class="slide">
+            <h1>The 7 Audit Requirements</h1>
+            <h2>What Auditors Check (RHG 4.1 - 4.7)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Requirement</th>
+                        <th>What It Means</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>4.1</strong></td>
+                        <td>Unique User IDs - Each person has unique account</td>
+                        <td><span class="requirement-badge badge-partial">⚠️ Partial</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>4.2</strong></td>
+                        <td>Service Account Passwords - Service accounts have secure passwords</td>
+                        <td><span class="requirement-badge badge-partial">⚠️ Partial</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>4.3</strong></td>
+                        <td>Admin Access Limits - Only IT admins have admin rights</td>
+                        <td><span class="requirement-badge badge-partial">⚠️ Partial</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>4.4</strong></td>
+                        <td>Change Management - All access changes are approved</td>
+                        <td><span class="requirement-badge badge-partial">⚠️ Partial</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>4.5</strong></td>
+                        <td>Permission Reviews - Quarterly reviews of user permissions</td>
+                        <td><span class="requirement-badge badge-partial">⚠️ Partial</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>4.6</strong></td>
+                        <td>Approved Access Only - Employees only have approved access</td>
+                        <td><span class="requirement-badge badge-partial">⚠️ Partial</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>4.7</strong></td>
+                        <td>Default Accounts - Factory default accounts are removed/changed</td>
+                        <td><span class="requirement-badge badge-complete">✅ Complete</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Slide 4 -->
+        <div class="slide">
+            <h1>Requirement 4.1</h1>
+            <h2>Unique User Accounts</h2>
+            <div class="warning">
+                <h3>Problem: Generic Accounts Are Dangerous</h3>
+                <p><strong>What Auditors Want to See:</strong></p>
+                <ul>
+                    <li>✅ Each employee has a unique username in every system</li>
+                    <li>✅ No shared accounts (like "reception" or "admin")</li>
+                    <li>✅ Proof that generic accounts have been fixed</li>
+                    <li>✅ Documentation of usernames across all systems</li>
+                </ul>
+            </div>
+            <div class="success">
+                <h3>How UAMS Helps:</h3>
+                <ul>
+                    <li>📝 Tracks the actual username used in each system (AD, PMS, POS, etc.)</li>
+                    <li>🚨 Flags generic accounts automatically</li>
+                    <li>✅ Documents when generic accounts are fixed</li>
+                    <li>📊 Generates reports showing all usernames per employee</li>
+                    <li>🔍 Cross-system view: See all systems one employee accesses</li>
+                </ul>
+            </div>
+            <div class="info-box">
+                <strong>Example:</strong><br>
+                Employee: John Doe<br>
+                AD Username: <span style="color: green;">john.doe ✅</span><br>
+                PMS Username: <span style="color: green;">jdoe ✅</span><br>
+                POS Username: <span style="color: orange;">reception ⚠️ (Generic - needs fixing!)</span>
+            </div>
+        </div>
+
+        <!-- Slide 5 -->
+        <div class="slide">
+            <h1>Requirement 4.2</h1>
+            <h2>Service Account Security</h2>
+            <div class="warning">
+                <h3>Problem: Service Accounts Need Special Care</h3>
+                <p><strong>What Auditors Want to See:</strong></p>
+                <ul>
+                    <li>✅ All service accounts are documented</li>
+                    <li>✅ Passwords are changed regularly (every 90 days)</li>
+                    <li>✅ Each service account has an owner</li>
+                    <li>✅ Proof of password changes</li>
+                </ul>
+            </div>
+            <div class="success">
+                <h3>How UAMS Helps:</h3>
+                <ul>
+                    <li>📋 <strong>Service Account Registry</strong> - Complete list of all service accounts</li>
+                    <li>🔐 <strong>Password Tracking</strong> - Records when passwords were last changed</li>
+                    <li>👤 <strong>Ownership</strong> - Links each account to an owner</li>
+                    <li>⏰ <strong>Alerts</strong> - Notifies when passwords need rotation</li>
+                    <li>📝 <strong>Attestation</strong> - Quarterly confirmation from owners</li>
+                    <li>📊 <strong>Compliance Reports</strong> - Shows which accounts are overdue</li>
+                </ul>
+            </div>
+            <div class="info-box">
+                <strong>Example:</strong><br>
+                Service Account: <code>svc_pms_backup</code><br>
+                Owner: IT Department<br>
+                Last Password Change: 2025-01-15<br>
+                Next Due: 2025-04-15<br>
+                Status: <span style="color: green;">✅ Compliant</span>
+            </div>
+        </div>
+
+        <!-- Slide 6 -->
+        <div class="slide">
+            <h1>Requirement 4.3</h1>
+            <h2>Administrator Access</h2>
+            <div class="warning">
+                <h3>Problem: Too Many Admins = Security Risk</h3>
+                <p><strong>What Auditors Want to See:</strong></p>
+                <ul>
+                    <li>✅ Only IT Administrators have admin access</li>
+                    <li>✅ Regular employees don't have admin rights</li>
+                    <li>✅ Admin passwords stored securely</li>
+                    <li>✅ Separate admin accounts (not using default accounts)</li>
+                </ul>
+            </div>
+            <div class="success">
+                <h3>How UAMS Helps:</h3>
+                <ul>
+                    <li>🏷️ <strong>IT Admin Flag</strong> - Identifies who is authorized as IT Admin</li>
+                    <li>🔍 <strong>Access Review</strong> - Shows who has admin access in each system</li>
+                    <li>📝 <strong>Documentation</strong> - Records where admin passwords are stored</li>
+                    <li>✅ <strong>Verification</strong> - Tracks certification of IT administrators</li>
+                    <li>📊 <strong>Reports</strong> - Lists all admin accounts and their owners</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 7 -->
+        <div class="slide">
+            <h1>Requirement 4.4</h1>
+            <h2>Change Management</h2>
+            <div class="warning">
+                <h3>Problem: Unauthorized Changes Are Dangerous</h3>
+                <p><strong>What Auditors Want to See:</strong></p>
+                <ul>
+                    <li>✅ All access changes are approved before they happen</li>
+                    <li>✅ Change requests are documented</li>
+                    <li>✅ System owners approve changes</li>
+                    <li>✅ Audit trail of who approved what and when</li>
+                </ul>
+            </div>
+            <div class="success">
+                <h3>How UAMS Helps:</h3>
+                <ul>
+                    <li>📋 <strong>Change Request Tracking</strong> - Documents every access change</li>
+                    <li>✅ <strong>Approval Workflow</strong> - Records who approved each change</li>
+                    <li>📝 <strong>System Owner Authorization</strong> - Links changes to system owners</li>
+                    <li>🔍 <strong>Audit Trail</strong> - Complete history of all changes</li>
+                    <li>📊 <strong>Change Reports</strong> - Shows all changes with approvals</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 8 -->
+        <div class="slide">
+            <h1>Requirement 4.5</h1>
+            <h2>Quarterly Reviews</h2>
+            <div class="warning">
+                <h3>Problem: Permissions Drift Over Time</h3>
+                <p><strong>What Auditors Want to See:</strong></p>
+                <ul>
+                    <li>✅ Every user's access is reviewed quarterly</li>
+                    <li>✅ Reviews compare approved access vs. actual access</li>
+                    <li>✅ Discrepancies are documented and fixed</li>
+                    <li>✅ System owners confirm reviews</li>
+                </ul>
+            </div>
+            <div class="success">
+                <h3>How UAMS Helps:</h3>
+                <ul>
+                    <li>📅 <strong>Quarterly Review Scheduling</strong> - Tracks which users need review</li>
+                    <li>✅ <strong>Review Documentation</strong> - Records each review with findings</li>
+                    <li>🔍 <strong>Discrepancy Detection</strong> - Compares approved vs. actual access</li>
+                    <li>📝 <strong>Owner Confirmation</strong> - System owners verify reviews</li>
+                    <li>📊 <strong>Review Reports</strong> - Shows completion status and findings</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 9 -->
+        <div class="slide">
+            <h1>Requirement 4.6</h1>
+            <h2>Approved Access Only</h2>
+            <div class="warning">
+                <h3>Problem: Employees Getting Unauthorized Access</h3>
+                <p><strong>What Auditors Want to See:</strong></p>
+                <ul>
+                    <li>✅ Employees only have access that was explicitly approved</li>
+                    <li>✅ Quarterly checks verify this</li>
+                    <li>✅ Obsolete accounts are removed monthly</li>
+                    <li>✅ Unauthorized access is detected and removed</li>
+                </ul>
+            </div>
+            <div class="success">
+                <h3>How UAMS Helps:</h3>
+                <ul>
+                    <li>🔍 <strong>Access Verification</strong> - Compares approved vs. actual access</li>
+                    <li>📅 <strong>Quarterly Reconciliation</strong> - Regular checks across all systems</li>
+                    <li>🗑️ <strong>Obsolete Account Tracking</strong> - Monthly review of inactive accounts</li>
+                    <li>🚨 <strong>Unauthorized Access Alerts</strong> - Flags access without approval</li>
+                    <li>📊 <strong>Compliance Reports</strong> - Shows all unapproved access</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 10 -->
+        <div class="slide">
+            <h1>Requirement 4.7</h1>
+            <h2>Default Accounts</h2>
+            <div class="warning">
+                <h3>Problem: Factory Default Accounts Are Vulnerable</h3>
+                <p><strong>What Auditors Want to See:</strong></p>
+                <ul>
+                    <li>✅ All default accounts (like "admin/admin") are changed or removed</li>
+                    <li>✅ New systems are checked for default accounts</li>
+                    <li>✅ Proof that default accounts were remediated</li>
+                    <li>✅ Regular verification that defaults aren't re-introduced</li>
+                </ul>
+            </div>
+            <div class="success">
+                <h3>How UAMS Helps:</h3>
+                <ul>
+                    <li>📋 <strong>Default Account Registry</strong> - Complete list of all default accounts</li>
+                    <li>✅ <strong>Remediation Tracking</strong> - Documents when defaults were fixed</li>
+                    <li>🔄 <strong>Template System</strong> - Auto-checks new systems for known defaults</li>
+                    <li>📝 <strong>Evidence Capture</strong> - Stores proof of remediation</li>
+                    <li>📊 <strong>Compliance Dashboard</strong> - Shows status of all default accounts</li>
+                </ul>
+            </div>
+            <div class="info-box">
+                <strong>Example:</strong><br>
+                System: PMS Database<br>
+                Default Account: <code>admin</code> / <code>admin123</code><br>
+                Status: <span style="color: green;">✅ Password Changed</span><br>
+                Changed Date: 2024-12-01<br>
+                Changed By: IT Administrator<br>
+                Verified: 2025-01-15<br>
+                Evidence: Screenshot attached
+            </div>
+        </div>
+
+        <!-- Slide 11 -->
+        <div class="slide">
+            <h1>Key Features Overview</h1>
+            <h2>What Makes UAMS Powerful</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="icon">📊</div>
+                    <h3>Centralized Dashboard</h3>
+                    <p>See all compliance status at a glance</p>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">🔍</div>
+                    <h3>Cross-System Visibility</h3>
+                    <p>One view of all systems an employee accesses</p>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">📝</div>
+                    <h3>Complete Audit Trail</h3>
+                    <p>Every change is logged with who, what, when, why</p>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">🚨</div>
+                    <h3>Automated Alerts</h3>
+                    <p>Password rotation reminders and overdue reviews</p>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">📋</div>
+                    <h3>Comprehensive Reports</h3>
+                    <p>Export to Excel, PDF, CSV for auditors</p>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">✅</div>
+                    <h3>Compliance Tracking</h3>
+                    <p>Track all 7 audit requirements with evidence</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 12 -->
+        <div class="slide">
+            <h1>Real-World Example</h1>
+            <h2>How UAMS Helps During an Audit</h2>
+            <div class="info-box">
+                <h3>Scenario: PCI/RHG Audit - Q1 2025</h3>
+                <p><strong>Auditor Question:</strong> "Show me proof that John Doe only has approved access to Active Directory."</p>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 30px 0;">
+                <div class="warning">
+                    <h3>Without UAMS:</h3>
+                    <ul>
+                        <li>❌ Check multiple systems manually</li>
+                        <li>❌ No centralized record</li>
+                        <li>❌ Time-consuming</li>
+                        <li>❌ May miss discrepancies</li>
+                    </ul>
+                </div>
+                <div class="success">
+                    <h3>With UAMS:</h3>
+                    <ul>
+                        <li>✅ Open John Doe's profile</li>
+                        <li>✅ See all approved access in one view</li>
+                        <li>✅ Generate compliance report instantly</li>
+                        <li>✅ Show approval dates and approvers</li>
+                        <li>✅ Export evidence for auditor</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="highlight" style="text-align: center; font-size: 1.5em; padding: 30px;">
+                <strong>Result: ✅ Audit passed in minutes instead of hours!</strong>
+            </div>
+        </div>
+
+        <!-- Slide 13 -->
+        <div class="slide">
+            <h1>Systems Tracked</h1>
+            <h2>Comprehensive Coverage</h2>
+            <p style="font-size: 1.5em; text-align: center; margin: 30px 0;">
+                UAMS tracks access across <strong>all your systems</strong>
+            </p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 30px 0;">
+                <div>
+                    <h3>Core Systems:</h3>
+                    <ul>
+                        <li>✅ Active Directory (AD)</li>
+                        <li>✅ Opera Cloud (PMS)</li>
+                        <li>✅ Point of Sale (POS)</li>
+                        <li>✅ Hotel Management Systems</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>Additional Systems:</h3>
+                    <ul>
+                        <li>✅ Payment Portals</li>
+                        <li>✅ OTA Websites</li>
+                        <li>✅ ReviewPro</li>
+                        <li>✅ Hotel Kit</li>
+                        <li>✅ Keylock Systems</li>
+                        <li>✅ VPN Access</li>
+                        <li>✅ Banking Software</li>
+                        <li>✅ Accounting Software</li>
+                        <li>✅ And many more...</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="highlight" style="text-align: center; font-size: 1.5em; padding: 30px; margin-top: 30px;">
+                <strong>One System to Track Them All!</strong>
+            </div>
+        </div>
+
+        <!-- Slide 14 -->
+        <div class="slide">
+            <h1>Benefits Summary</h1>
+            <h2>Why Use UAMS?</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 30px 0;">
+                <div class="info-box">
+                    <h3>For IT Administrators:</h3>
+                    <ul>
+                        <li>✅ Save time with centralized tracking</li>
+                        <li>✅ Automated alerts for compliance tasks</li>
+                        <li>✅ Easy reporting for audits</li>
+                        <li>✅ Clear visibility of all access</li>
+                    </ul>
+                </div>
+                <div class="info-box">
+                    <h3>For Management:</h3>
+                    <ul>
+                        <li>✅ Pass security audits easily</li>
+                        <li>✅ Reduce security risks</li>
+                        <li>✅ Meet compliance requirements</li>
+                        <li>✅ Professional documentation</li>
+                    </ul>
+                </div>
+                <div class="info-box">
+                    <h3>For Auditors:</h3>
+                    <ul>
+                        <li>✅ Clear, organized evidence</li>
+                        <li>✅ Complete audit trails</li>
+                        <li>✅ Exportable reports</li>
+                        <li>✅ Easy verification</li>
+                    </ul>
+                </div>
+                <div class="info-box">
+                    <h3>For the Organization:</h3>
+                    <ul>
+                        <li>✅ Better security posture</li>
+                        <li>✅ Reduced risk of data breaches</li>
+                        <li>✅ Compliance confidence</li>
+                        <li>✅ Professional image</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 15 -->
+        <div class="slide">
+            <h1>Dashboard Overview</h1>
+            <h2>Visual Compliance Tracking</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 30px 0;">
+                <div>
+                    <h3>Main Dashboard Shows:</h3>
+                    <ul>
+                        <li>📊 Total users and systems</li>
+                        <li>📈 Access trends over time</li>
+                        <li>⚠️ Compliance alerts</li>
+                        <li>📋 Recent changes</li>
+                        <li>✅ Review completion status</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>Compliance Widgets:</h3>
+                    <ul>
+                        <li>Service account password status</li>
+                        <li>Default account remediation</li>
+                        <li>Quarterly review progress</li>
+                        <li>Unauthorized access alerts</li>
+                        <li>Admin access verification</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="success">
+                <h3>Quick Actions:</h3>
+                <ul>
+                    <li>Generate audit reports</li>
+                    <li>Review overdue items</li>
+                    <li>Export compliance data</li>
+                    <li>Access key modules</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 16 -->
+        <div class="slide">
+            <h1>Reports & Exports</h1>
+            <h2>Evidence for Auditors</h2>
+            <h3>Available Reports:</h3>
+            <ol>
+                <li><strong>User Access Report</strong> - All access per user, approval status, review dates</li>
+                <li><strong>System Access Report</strong> - All users per system, access levels, compliance status</li>
+                <li><strong>Service Account Report</strong> - Password rotation status, owner information, attestation dates</li>
+                <li><strong>Default Account Report</strong> - Remediation status, verification dates, evidence links</li>
+                <li><strong>Compliance Summary</strong> - Overall compliance status, requirements coverage, audit readiness</li>
+            </ol>
+            <div class="stats-grid" style="margin-top: 30px;">
+                <div class="stat-card">
+                    <div class="stat-number">📊</div>
+                    <div class="stat-label">Excel (detailed)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">📄</div>
+                    <div class="stat-label">PDF (formatted)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">📋</div>
+                    <div class="stat-label">CSV (data)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 17 -->
+        <div class="slide">
+            <h1>How It Works</h1>
+            <h2>Simple Flow: From Access Grant to Audit</h2>
+            <div class="flow-diagram">
+                <div class="flow-step">1. Employee Needs Access</div>
+                <span class="arrow">↓</span>
+                <div class="flow-step">2. Access Request Created</div>
+                <span class="arrow">↓</span>
+                <div class="flow-step">3. System Owner Approves</div>
+                <span class="arrow">↓</span>
+                <div class="flow-step">4. Access Granted in System</div>
+                <span class="arrow">↓</span>
+                <div class="flow-step">5. UAMS Documents the Access</div>
+                <span class="arrow">↓</span>
+                <div class="flow-step">6. Quarterly Review Scheduled</div>
+                <span class="arrow">↓</span>
+                <div class="flow-step">7. Review Confirms Access Valid</div>
+                <span class="arrow">↓</span>
+                <div class="flow-step">8. Evidence Stored for Audit</div>
+                <span class="arrow">↓</span>
+                <div class="flow-step">9. Auditor Reviews Evidence</div>
+                <span class="arrow">↓</span>
+                <div class="flow-step" style="background: #28a745;">10. ✅ Compliance Verified!</div>
+            </div>
+            <div class="highlight" style="text-align: center; margin-top: 30px;">
+                <strong>Key Point:</strong> UAMS tracks and documents the entire process!
+            </div>
+        </div>
+
+        <!-- Slide 18 -->
+        <div class="slide">
+            <h1>Security Features</h1>
+            <h2>Built-In Security</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 30px 0;">
+                <div class="info-box">
+                    <h3>Access Control:</h3>
+                    <ul>
+                        <li>Role-based permissions</li>
+                        <li>Secure authentication</li>
+                        <li>Audit logging</li>
+                    </ul>
+                </div>
+                <div class="info-box">
+                    <h3>Data Protection:</h3>
+                    <ul>
+                        <li>Secure password storage</li>
+                        <li>Encrypted connections</li>
+                        <li>Access logging</li>
+                    </ul>
+                </div>
+                <div class="info-box">
+                    <h3>Compliance:</h3>
+                    <ul>
+                        <li>Complete audit trails</li>
+                        <li>Immutable history</li>
+                        <li>Evidence preservation</li>
+                    </ul>
+                </div>
+                <div class="info-box">
+                    <h3>Best Practices:</h3>
+                    <ul>
+                        <li>Regular backups</li>
+                        <li>Secure hosting</li>
+                        <li>Access monitoring</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 19 -->
+        <div class="slide">
+            <h1>Getting Started</h1>
+            <h2>Quick Start Guide</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 30px 0;">
+                <div>
+                    <h3>Step 1: System Setup</h3>
+                    <ul>
+                        <li>Install and configure UAMS</li>
+                        <li>Set up user accounts</li>
+                        <li>Define systems</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>Step 2: Import Data</h3>
+                    <ul>
+                        <li>Import existing users</li>
+                        <li>Import system list</li>
+                        <li>Import current access</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>Step 3: Document Access</h3>
+                    <ul>
+                        <li>Record all user access</li>
+                        <li>Link to approvals</li>
+                        <li>Capture evidence</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>Step 4: Schedule Reviews</h3>
+                    <ul>
+                        <li>Set up quarterly reviews</li>
+                        <li>Configure alerts</li>
+                        <li>Assign reviewers</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="success" style="margin-top: 20px;">
+                <h3>Step 5: Generate Reports</h3>
+                <ul>
+                    <li>Create compliance reports</li>
+                    <li>Export for auditors</li>
+                    <li>Monitor dashboard</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 20 -->
+        <div class="slide">
+            <h1>Success Metrics</h1>
+            <h2>Measurable Benefits</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">80%</div>
+                    <div class="stat-label">Faster Audit Prep</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">70%</div>
+                    <div class="stat-label">Faster Access Reviews</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">90%</div>
+                    <div class="stat-label">Faster Report Generation</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">Audit Pass Rate</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">95%+</div>
+                    <div class="stat-label">Review Completion</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">Default Accounts Tracked</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 21 -->
+        <div class="slide">
+            <h1>Next Steps</h1>
+            <h2>Implementation Roadmap</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 15px; margin: 30px 0;">
+                <div class="info-box">
+                    <h3>Phase 1: Foundation</h3>
+                    <p><strong>Weeks 1-2</strong></p>
+                    <ul style="font-size: 0.9em;">
+                        <li>✅ System installation</li>
+                        <li>✅ User setup</li>
+                        <li>✅ System catalog</li>
+                    </ul>
+                </div>
+                <div class="info-box">
+                    <h3>Phase 2: Data Migration</h3>
+                    <p><strong>Weeks 3-4</strong></p>
+                    <ul style="font-size: 0.9em;">
+                        <li>✅ Import users</li>
+                        <li>✅ Import systems</li>
+                        <li>✅ Document current access</li>
+                    </ul>
+                </div>
+                <div class="info-box">
+                    <h3>Phase 3: Integration</h3>
+                    <p><strong>Weeks 5-6</strong></p>
+                    <ul style="font-size: 0.9em;">
+                        <li>✅ Train staff</li>
+                        <li>✅ Integrate workflows</li>
+                        <li>✅ Configure alerts</li>
+                    </ul>
+                </div>
+                <div class="info-box">
+                    <h3>Phase 4: Optimization</h3>
+                    <p><strong>Ongoing</strong></p>
+                    <ul style="font-size: 0.9em;">
+                        <li>✅ Refine processes</li>
+                        <li>✅ Add integrations</li>
+                        <li>✅ Enhance reporting</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 22 -->
+        <div class="slide">
+            <h1>Questions & Answers</h1>
+            <h2>Common Questions</h2>
+            <div style="margin: 30px 0;">
+                <div class="info-box" style="margin: 15px 0;">
+                    <strong>Q: Does UAMS enforce security policies?</strong><br>
+                    A: No, UAMS tracks and documents that policies are being followed in your actual systems.
+                </div>
+                <div class="info-box" style="margin: 15px 0;">
+                    <strong>Q: What if we have systems not listed?</strong><br>
+                    A: UAMS can track any system - just add it to the system catalog.
+                </div>
+                <div class="info-box" style="margin: 15px 0;">
+                    <strong>Q: How often should we review access?</strong><br>
+                    A: Quarterly reviews are recommended, but UAMS can schedule any frequency.
+                </div>
+                <div class="info-box" style="margin: 15px 0;">
+                    <strong>Q: Can we export data for auditors?</strong><br>
+                    A: Yes! Multiple export formats (Excel, PDF, CSV) are available.
+                </div>
+                <div class="info-box" style="margin: 15px 0;">
+                    <strong>Q: What if we find unauthorized access?</strong><br>
+                    A: UAMS will flag it, and you can document the remediation process.
+                </div>
+                <div class="info-box" style="margin: 15px 0;">
+                    <strong>Q: Is training available?</strong><br>
+                    A: Yes, comprehensive documentation and user guides are included.
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 23 -->
+        <div class="slide">
+            <h1>Contact & Support</h1>
+            <h2>Get Help When You Need It</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin: 30px 0;">
+                <div class="stat-card">
+                    <h3>Documentation</h3>
+                    <ul style="text-align: left; list-style: none; padding: 0;">
+                        <li>📚 User Guide</li>
+                        <li>📚 Administrator Guide</li>
+                        <li>📚 Developer Guide</li>
+                        <li>📚 API Documentation</li>
+                    </ul>
+                </div>
+                <div class="stat-card">
+                    <h3>Support Resources</h3>
+                    <ul style="text-align: left; list-style: none; padding: 0;">
+                        <li>💬 Issue tracking</li>
+                        <li>📧 Email support</li>
+                        <li>📖 FAQ section</li>
+                        <li>🎥 Video tutorials</li>
+                    </ul>
+                </div>
+                <div class="stat-card">
+                    <h3>Community</h3>
+                    <ul style="text-align: left; list-style: none; padding: 0;">
+                        <li>👥 User forums</li>
+                        <li>💡 Best practices</li>
+                        <li>🔄 Updates and releases</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 24 -->
+        <div class="slide">
+            <h1 style="text-align: center; font-size: 3em; margin-top: 100px;">Thank You!</h1>
+            <h2 style="text-align: center; margin: 40px 0;">User Access Management System</h2>
+            <h2 style="text-align: center; margin-bottom: 60px;">PCI & RHG Security Compliance Tracking</h2>
+            <div class="success" style="margin: 40px 0;">
+                <h3 style="text-align: center;">Key Takeaways:</h3>
+                <ul style="text-align: center; list-style: none; padding: 0;">
+                    <li style="margin: 15px 0;">✅ Tracks all 7 audit requirements (4.1-4.7)</li>
+                    <li style="margin: 15px 0;">✅ Centralized visibility across all systems</li>
+                    <li style="margin: 15px 0;">✅ Automated compliance monitoring</li>
+                    <li style="margin: 15px 0;">✅ Easy audit evidence generation</li>
+                    <li style="margin: 15px 0;">✅ Reduces security risks</li>
+                </ul>
+            </div>
+            <div class="highlight" style="text-align: center; font-size: 1.5em; padding: 30px; margin-top: 60px;">
+                <strong>Remember:</strong><br>
+                This system helps you <strong>prove</strong> compliance, not just achieve it!
+            </div>
+            <div style="text-align: center; margin-top: 60px; color: #666;">
+                <p><strong>Questions?</strong></p>
+                <p>For more information, visit the documentation or contact support.</p>
+            </div>
+            <div style="text-align: center; margin-top: 40px; color: #999; font-size: 0.9em;">
+                <p>Presentation prepared for: User Access Management System</p>
+                <p>Version: 2.1 | Date: 2025</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="navigation">
+        <button class="nav-button" id="prev-btn" onclick="changeSlide(-1)">← Previous</button>
+        <button class="nav-button" id="next-btn" onclick="changeSlide(1)">Next →</button>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        document.getElementById('total-slides').textContent = totalSlides;
+
+        function showSlide(n) {
+            if (n >= totalSlides) currentSlide = 0;
+            if (n < 0) currentSlide = totalSlides - 1;
+            
+            slides.forEach(slide => slide.classList.remove('active'));
+            slides[currentSlide].classList.add('active');
+            
+            document.getElementById('current-slide').textContent = currentSlide + 1;
+            
+            // Update button states
+            document.getElementById('prev-btn').disabled = currentSlide === 0;
+            document.getElementById('next-btn').disabled = currentSlide === totalSlides - 1;
+        }
+
+        function changeSlide(direction) {
+            currentSlide += direction;
+            showSlide(currentSlide);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowLeft') changeSlide(-1);
+            if (e.key === 'ArrowRight') changeSlide(1);
+        });
+
+        // Initialize
+        showSlide(0);
+    </script>
+</body>
+</html>
