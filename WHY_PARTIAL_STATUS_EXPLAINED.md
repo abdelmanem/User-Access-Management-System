@@ -40,32 +40,31 @@ All requirements for 4.1 have been implemented. The system provides complete tra
 - `ServiceAccountPasswordHistory` captures each password rotation
 - Compliance reports showing non-compliant accounts
 - CSV/Excel export functionality
+- **Attestation Workflow:** 
+  - `ServiceAccountAttestation` model for tracking quarterly attestations
+  - `service_account_attest()` view for capturing owner attestations
+  - `last_attested_at`, `last_attested_by`, `last_attestation_status`, `last_attestation_notes` fields on ServiceAccount
+  - `is_attestation_overdue` property (checks if >90 days or never attested)
+  - Attestation history tracking and display in detail view
+  - Attestation overdue filtering and reporting in list view
+- **Change/Incident Traceability:**
+  - `change_request_id` field to link to change tickets
+  - `sop_reference` field to link to Standard Operating Procedures
+  - `password_storage_location` field to document where passwords are stored (safe/vault)
+- **Privileged Account Governance:**
+  - `is_privileged` flag and `admin_user` linkage to administrator accounts (4.3)
 
 ### ⚠️ What's MISSING (Gaps):
 
-1. **Privileged Account Governance**
-   - ❌ No attestation workflow for account owners
-   - ❌ No quarterly owner approval/confirmation process
-   - ❌ No linkage back to administrator accounts (4.3) to prove privileged accounts are limited to IT
-   - **Impact:** Can't prove that privileged accounts are properly governed and limited to IT
-
-2. **Rotation Enforcement & Alerts**
+1. **Rotation Enforcement & Alerts**
    - ❌ No automated email reminders for upcoming password expirations
    - ❌ No scheduled jobs to check for overdue password changes
    - ❌ No escalation process for non-compliance
    - ❌ Compliance relies entirely on manual review
    - **Impact:** Passwords may expire without timely rotation, leading to compliance failures
 
-3. **Change/Incident Traceability**
-   - ❌ No `change_request_id` field to link to change tickets
-   - ❌ No `sop_reference` field to link to Standard Operating Procedures
-   - ❌ No `password_storage_location` field to document where passwords are stored (safe/vault)
-   - **Impact:** Can't trace service account changes to approved change requests or document password storage
-
 ### 📋 To Make It Complete:
-- Add quarterly attestation workflow for service account owners
-- Implement automated rotation notifications (emails, dashboard alerts)
-- Add fields for change ticket references, SOP links, and password storage locations
+- Implement automated rotation notifications (emails, dashboard alerts, scheduled jobs)
 
 ---
 
