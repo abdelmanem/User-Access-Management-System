@@ -103,9 +103,10 @@
 - 📋 **Service Account Registry** - Complete list of all service accounts
 - 🔐 **Password Tracking** - Records when passwords were last changed
 - 👤 **Ownership** - Links each account to an owner
-- ⏰ **Alerts** - Notifies when passwords need rotation
-- 📝 **Attestation** - Quarterly confirmation from owners
+- 📝 **Attestation Workflow** - Quarterly owner attestation with status, storage location, and notes
+- 🔗 **Change Traceability** - Links to change tickets, SOP references, and password storage locations
 - 📊 **Compliance Reports** - Shows which accounts are overdue
+- ⚠️ **Note:** Automated rotation alerts are still pending implementation
 
 **Example:**
 - Service Account: `svc_pms_backup`
