@@ -123,3 +123,11 @@ class DepartmentAdmin(admin.ModelAdmin):
             obj.created_by = request.user
         obj.updated_by = request.user
         super().save_model(request, obj, form, change)
+
+    def has_delete_permission(self, request, obj=None):
+        """
+        Disable deletes from the Django admin to ensure departments
+        are deleted via the application UI, where we enforce that
+        all users and sub-departments are unassigned first.
+        """
+        return False

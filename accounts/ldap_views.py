@@ -37,11 +37,42 @@ def ldap_configuration(request):
     test_login_form = LDAPTestLoginForm()
     bind_password_form = LDAPBindPasswordForm()
 
+    # Get user lookup query if provided
+    lookup_username = request.GET.get('lookup_user', '').strip()
+    lookup_user = None
+    if lookup_username:
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        try:
+            # Try multiple lookup methods
+            lookup_user = User.objects.get(username=lookup_username)
+        except User.DoesNotExist:
+            try:
+                # Try by email
+                lookup_user = User.objects.get(email=lookup_username)
+            except User.DoesNotExist:
+                try:
+                    # Try by ad_username
+                    lookup_user = User.objects.get(ad_username=lookup_username)
+                except User.DoesNotExist:
+                    # Try username without domain
+                    if '@' in lookup_username:
+                        base_username = lookup_username.split('@')[0]
+                        try:
+                            lookup_user = User.objects.get(username=base_username)
+                        except User.DoesNotExist:
+                            try:
+                                lookup_user = User.objects.get(ad_username=base_username)
+                            except User.DoesNotExist:
+                                pass
+
     return render(request, 'accounts/ldap_configuration.html', {
         'form': form,
         'ldap_config': ldap_config,
         'test_login_form': test_login_form,
         'bind_password_form': bind_password_form,
+        'lookup_user': lookup_user,
+        'lookup_username': lookup_username,
     })
 
 

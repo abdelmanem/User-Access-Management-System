@@ -181,8 +181,37 @@ def department_update(request, pk):
 @login_required
 def department_delete(request, pk):
     department = get_object_or_404(Department, pk=pk)
+    assigned_users = CustomUser.objects.filter(department=department).order_by('first_name', 'last_name', 'username')
+    sub_departments = department.sub_departments.all().order_by('name')
+
     if request.method == 'POST':
+        # Enforce that there are no assigned users or sub-departments before deletion
+        if assigned_users.exists() or sub_departments.exists():
+            messages.error(
+                request,
+                'This department cannot be deleted while it still has assigned users or sub-departments. '
+                'Please unassign or move them first.'
+            )
+            return render(
+                request,
+                'departments/department_confirm_delete.html',
+                {
+                    'department': department,
+                    'assigned_users': assigned_users,
+                    'sub_departments': sub_departments,
+                },
+            )
+
         department.delete()
         messages.success(request, 'Department deleted successfully.')
         return redirect('departments:department_list')
-    return render(request, 'departments/department_confirm_delete.html', {'department': department})
+
+    return render(
+        request,
+        'departments/department_confirm_delete.html',
+        {
+            'department': department,
+            'assigned_users': assigned_users,
+            'sub_departments': sub_departments,
+        },
+    )

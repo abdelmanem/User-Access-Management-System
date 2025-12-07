@@ -26,6 +26,284 @@
     </div>
     {% endif %}
 
+    <!-- Diagnostic & User Lookup Section -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-stethoscope"></i> LDAP Diagnostics & User Lookup</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <!-- Configuration Summary -->
+                <div class="col-md-6 mb-4">
+                    <h6><i class="fas fa-info-circle"></i> Configuration Summary</h6>
+                    {% if ldap_config %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <tbody>
+                                <tr>
+                                    <th width="40%">LDAP Server:</th>
+                                    <td>{{ ldap_config.ldap_server|default:"<em>Not set</em>" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Active Directory:</th>
+                                    <td>
+                                        {% if ldap_config.is_active_directory %}
+                                            <span class="badge bg-success">Yes</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">No</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% if ldap_config.is_active_directory %}
+                                <tr>
+                                    <th>AD Domain:</th>
+                                    <td>{{ ldap_config.ad_domain|default:"<em>Not set</em>" }}</td>
+                                </tr>
+                                {% endif %}
+                                <tr>
+                                    <th>Base DN:</th>
+                                    <td>{{ ldap_config.base_dn|default:"<em>Not set</em>" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Username Field:</th>
+                                    <td><code>{{ ldap_config.ldap_username_field|default:"samaccountname" }}</code></td>
+                                </tr>
+                                <tr>
+                                    <th>Bind Username:</th>
+                                    <td>{{ ldap_config.bind_username|default:"<em>Not set</em>" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Cache Passwords:</th>
+                                    <td>
+                                        {% if ldap_config.cache_passwords %}
+                                            <span class="badge bg-success">Enabled</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">Disabled</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Use TLS:</th>
+                                    <td>
+                                        {% if ldap_config.use_tls %}
+                                            <span class="badge bg-success">Yes</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">No</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> No LDAP configuration found. Please configure LDAP settings below.
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- User Lookup -->
+                <div class="col-md-6 mb-4">
+                    <h6><i class="fas fa-user-search"></i> User Lookup</h6>
+                    <p class="text-muted small">Search for a user in Django to check their account status and LDAP sync information.</p>
+                    
+                    <form method="get" action="{% url 'accounts:ldap_configuration' %}" class="mb-3">
+                        <div class="input-group">
+                            <input type="text" 
+                                   class="form-control" 
+                                   name="lookup_user" 
+                                   placeholder="Enter username, email, or UPN (e.g., Administrator@domain.com)" 
+                                   value="{{ lookup_username }}"
+                                   required>
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-search"></i> Lookup
+                            </button>
+                        </div>
+                        <small class="text-muted">You can search by username, email, or AD username</small>
+                    </form>
+
+                    {% if lookup_username %}
+                        {% if lookup_user %}
+                        <div class="card border-success">
+                            <div class="card-body">
+                                <h6 class="text-success"><i class="fas fa-check-circle"></i> User Found</h6>
+                                <table class="table table-sm table-bordered mb-0">
+                                    <tbody>
+                                        <tr>
+                                            <th width="40%">Username:</th>
+                                            <td><strong>{{ lookup_user.username }}</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Full Name:</th>
+                                            <td>{{ lookup_user.get_full_name|default:"<em>Not set</em>" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Email:</th>
+                                            <td>{{ lookup_user.email|default:"<em>Not set</em>" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Account Status:</th>
+                                            <td>
+                                                {% if lookup_user.is_active %}
+                                                    <span class="badge bg-success">Active</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">Inactive</span>
+                                                    <small class="text-danger d-block mt-1">User cannot login while inactive</small>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>LDAP Synced:</th>
+                                            <td>
+                                                {% if lookup_user.ad_synced %}
+                                                    <span class="badge bg-info">Yes</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">No</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% if lookup_user.ad_synced %}
+                                        <tr>
+                                            <th>AD Username:</th>
+                                            <td><code>{{ lookup_user.ad_username|default:"<em>Not set</em>" }}</code></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Last AD Sync:</th>
+                                            <td>{{ lookup_user.last_ad_sync|default:"<em>Never</em>" }}</td>
+                                        </tr>
+                                        {% endif %}
+                                        <tr>
+                                            <th>Staff Status:</th>
+                                            <td>
+                                                {% if lookup_user.is_staff %}
+                                                    <span class="badge bg-primary">Staff</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">Regular User</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div class="mt-2">
+                                    <a href="{% url 'accounts:user_detail' lookup_user.pk %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-user"></i> View Full Profile
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i> User "<strong>{{ lookup_username }}</strong>" not found in Django database.
+                            <ul class="mb-0 mt-2">
+                                <li>User may not be synced from LDAP yet</li>
+                                <li>Try syncing users from LDAP using the "Sync All Users" button below</li>
+                                <li>Or try searching with just the username part (without @domain.com)</li>
+                            </ul>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Configuration Validation -->
+            {% if ldap_config %}
+            <div class="row mt-3">
+                <div class="col-12">
+                    <h6><i class="fas fa-check-double"></i> Configuration Validation</h6>
+                    <div class="list-group">
+                        {% if ldap_config.ldap_enabled %}
+                            <div class="list-group-item list-group-item-success">
+                                <i class="fas fa-check-circle"></i> LDAP is enabled
+                            </div>
+                        {% else %}
+                            <div class="list-group-item list-group-item-warning">
+                                <i class="fas fa-exclamation-triangle"></i> LDAP is disabled - authentication will not work
+                            </div>
+                        {% endif %}
+
+                        {% if ldap_config.ldap_server %}
+                            <div class="list-group-item list-group-item-success">
+                                <i class="fas fa-check-circle"></i> LDAP server is configured: <code>{{ ldap_config.ldap_server }}</code>
+                            </div>
+                        {% else %}
+                            <div class="list-group-item list-group-item-danger">
+                                <i class="fas fa-times-circle"></i> LDAP server is not configured
+                            </div>
+                        {% endif %}
+
+                        {% if ldap_config.base_dn %}
+                            <div class="list-group-item list-group-item-success">
+                                <i class="fas fa-check-circle"></i> Base DN is configured: <code>{{ ldap_config.base_dn }}</code>
+                            </div>
+                        {% else %}
+                            <div class="list-group-item list-group-item-warning">
+                                <i class="fas fa-exclamation-triangle"></i> Base DN is not configured
+                            </div>
+                        {% endif %}
+
+                        {% if ldap_config.is_active_directory %}
+                            {% if ldap_config.ad_domain %}
+                                <div class="list-group-item list-group-item-success">
+                                    <i class="fas fa-check-circle"></i> AD Domain is configured: <code>{{ ldap_config.ad_domain }}</code>
+                                </div>
+                            {% else %}
+                                <div class="list-group-item list-group-item-warning">
+                                    <i class="fas fa-exclamation-triangle"></i> AD Domain is not configured (required for UPN format logins)
+                                </div>
+                            {% endif %}
+                        {% endif %}
+
+                        {% if ldap_config.bind_username %}
+                            <div class="list-group-item list-group-item-success">
+                                <i class="fas fa-check-circle"></i> Bind username is configured
+                            </div>
+                        {% else %}
+                            <div class="list-group-item list-group-item-warning">
+                                <i class="fas fa-exclamation-triangle"></i> Bind username is not configured (required for user sync)
+                            </div>
+                        {% endif %}
+
+                        {% if ldap_config.ldap_username_field %}
+                            <div class="list-group-item list-group-item-success">
+                                <i class="fas fa-check-circle"></i> Username field: <code>{{ ldap_config.ldap_username_field }}</code>
+                            </div>
+                        {% else %}
+                            <div class="list-group-item list-group-item-info">
+                                <i class="fas fa-info-circle"></i> Username field not set (will use default: samaccountname)
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Login Troubleshooting Tips -->
+            {% if ldap_config and ldap_config.ldap_enabled %}
+            <div class="row mt-3">
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-lightbulb"></i> Login Troubleshooting Tips:</h6>
+                        <ul class="mb-0">
+                            <li><strong>For UPN format (username@domain.com):</strong> The system will automatically handle this format. Make sure the domain matches your configured AD domain (<code>{{ ldap_config.ad_domain|default:"not configured" }}</code>).</li>
+                            <li><strong>For sAMAccountName format:</strong> Enter just the username (e.g., "Administrator" instead of "Administrator@domain.com").</li>
+                            <li><strong>If login fails:</strong>
+                                <ul>
+                                    <li>Check if the user exists in Django (use lookup above)</li>
+                                    <li>Verify the user's account is <strong>Active</strong></li>
+                                    <li>Try "Auto" authentication method first</li>
+                                    <li>Check Django logs for detailed error messages</li>
+                                    <li>Verify LDAP server is accessible</li>
+                                </ul>
+                            </li>
+                            <li><strong>If user is not found:</strong> The user may need to be synced from LDAP first. Use the "Sync All Users" feature below.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
     <!-- Configuration Form -->
     <div class="card mb-4">
         <div class="card-header bg-primary text-white">

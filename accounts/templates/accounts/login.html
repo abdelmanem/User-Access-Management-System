@@ -94,6 +94,37 @@
                         <div class="text-center mt-3">
                             <small class="text-muted">Forgot your password? Contact your administrator.</small>
                         </div>
+
+                        {% if ldap_enabled %}
+                        <div class="mt-3">
+                            <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" data-bs-toggle="collapse" data-bs-target="#loginHelp" aria-expanded="false" aria-controls="loginHelp">
+                                <i class="fa-solid fa-circle-question me-1"></i>Login Help & Troubleshooting
+                            </button>
+                            <div class="collapse mt-2" id="loginHelp">
+                                <div class="card card-body bg-light">
+                                    <h6 class="mb-2"><i class="fa-solid fa-info-circle"></i> Authentication Methods:</h6>
+                                    <ul class="small mb-2">
+                                        <li><strong>Auto:</strong> Tries LDAP first, then Django DB (recommended)</li>
+                                        <li><strong>LDAP/Active Directory:</strong> LDAP authentication only</li>
+                                        <li><strong>Django DB:</strong> Local database authentication only</li>
+                                    </ul>
+                                    <h6 class="mb-2"><i class="fa-solid fa-lightbulb"></i> Username Formats:</h6>
+                                    <ul class="small mb-2">
+                                        <li><strong>UPN format:</strong> <code>username@domain.com</code> (e.g., Administrator@caizh.radissonhotels.com)</li>
+                                        <li><strong>sAMAccountName:</strong> Just the username (e.g., Administrator)</li>
+                                        <li>Both formats are supported - try the format that matches how your account was synced</li>
+                                    </ul>
+                                    <h6 class="mb-2"><i class="fa-solid fa-triangle-exclamation"></i> If Login Fails:</h6>
+                                    <ul class="small mb-0">
+                                        <li>Check that your account exists and is active</li>
+                                        <li>Try different username formats (with/without domain)</li>
+                                        <li>Try "Auto" authentication method</li>
+                                        <li>Contact your administrator to verify LDAP configuration</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>

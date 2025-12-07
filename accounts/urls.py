@@ -39,28 +39,61 @@ class CustomLoginView(auth_views.LoginView):
         return context
     
     def form_valid(self, form):
+        import logging
+        logger = logging.getLogger(__name__)
+        
         username = form.cleaned_data.get('username')
         password = form.cleaned_data.get('password')
         auth_method = self.request.POST.get('auth_method', 'auto')  # 'auto', 'ldap', or 'django'
         remember_me = self.request.POST.get('remember_me') == 'on'
         
         user = None
+        error_message = 'Invalid username or password.'
         
         # Determine which backend to use
-        if auth_method == 'ldap':
-            # Try LDAP only
-            ldap_backend = LDAPAuthenticationBackend()
-            user = ldap_backend.authenticate(self.request, username=username, password=password)
-        elif auth_method == 'django':
-            # Try Django DB only
-            django_backend = ModelBackend()
-            user = django_backend.authenticate(self.request, username=username, password=password)
-        else:
-            # Auto: try both (default Django behavior)
-            user = authenticate(self.request, username=username, password=password)
+        try:
+            if auth_method == 'ldap':
+                # Try LDAP only
+                logger.info(f"Attempting LDAP authentication for user: {username}")
+                ldap_backend = LDAPAuthenticationBackend()
+                user = ldap_backend.authenticate(self.request, username=username, password=password)
+                if user is None:
+                    logger.warning(f"LDAP authentication failed for user: {username}")
+                    error_message = 'LDAP authentication failed. Please check your username and password, or try "Auto" authentication method.'
+                elif not user.is_active:
+                    logger.warning(f"LDAP user {username} is inactive")
+                    error_message = 'Your account is inactive. Please contact your administrator.'
+                    user = None
+            elif auth_method == 'django':
+                # Try Django DB only
+                logger.info(f"Attempting Django DB authentication for user: {username}")
+                django_backend = ModelBackend()
+                user = django_backend.authenticate(self.request, username=username, password=password)
+                if user is None:
+                    logger.warning(f"Django DB authentication failed for user: {username}")
+                    error_message = 'Django DB authentication failed. Please check your username and password.'
+                elif not user.is_active:
+                    logger.warning(f"Django user {username} is inactive")
+                    error_message = 'Your account is inactive. Please contact your administrator.'
+                    user = None
+            else:
+                # Auto: try both (default Django behavior)
+                logger.info(f"Attempting auto authentication for user: {username}")
+                user = authenticate(self.request, username=username, password=password)
+                if user is None:
+                    logger.warning(f"Auto authentication failed for user: {username}")
+                    error_message = 'Authentication failed. Please check your username and password.'
+                elif not user.is_active:
+                    logger.warning(f"User {username} is inactive")
+                    error_message = 'Your account is inactive. Please contact your administrator.'
+                    user = None
+        except Exception as e:
+            logger.error(f"Authentication error for user {username}: {str(e)}", exc_info=True)
+            error_message = f'An error occurred during authentication: {str(e)}'
         
         if user is not None:
             login(self.request, user)
+            logger.info(f"User {username} successfully logged in using {auth_method} method")
             
             # Handle remember me checkbox
             if remember_me:
@@ -80,7 +113,7 @@ class CustomLoginView(auth_views.LoginView):
             return HttpResponseRedirect(self.get_success_url())
         else:
             # Authentication failed
-            form.add_error(None, 'Invalid username or password.')
+            form.add_error(None, error_message)
             return self.form_invalid(form)
 
 urlpatterns = [

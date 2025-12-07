@@ -35,9 +35,12 @@ class LDAPAuthenticationBackend(ModelBackend):
         
         try:
             # Authenticate with LDAP
+            logger.info(f"Attempting LDAP authentication for: {username}")
             ldap_user_data = self._ldap_authenticate(username, password, ldap_config)
             if not ldap_user_data:
+                logger.warning(f"LDAP authentication failed for: {username} - no user data returned")
                 return None
+            logger.info(f"LDAP authentication successful for: {username}, retrieved user data")
             
             # Get or create user in Django
             user = self._get_or_create_user(username, ldap_user_data, ldap_config)
@@ -45,6 +48,10 @@ class LDAPAuthenticationBackend(ModelBackend):
             # Update user with LDAP data
             if user:
                 self._update_user_from_ldap(user, ldap_user_data, ldap_config, password)
+                # Check if user is active (consistent with ModelBackend behavior)
+                if not user.is_active:
+                    logger.warning(f"LDAP user {username} authenticated but account is inactive.")
+                    return None
             
             return user
             
@@ -80,23 +87,46 @@ class LDAPAuthenticationBackend(ModelBackend):
             bind_user = username
             if ldap_config.is_active_directory and ldap_config.ad_domain:
                 # For AD, prefer UPN format: user@domain
-                bind_user = f"{username}@{ldap_config.ad_domain}"
+                # But only add domain if username doesn't already contain @
+                if '@' not in username:
+                    bind_user = f"{username}@{ldap_config.ad_domain}"
+                else:
+                    # Username already in UPN format
+                    # Check if domain matches configured domain, if not try both
+                    entered_domain = username.split('@')[1] if '@' in username else None
+                    if entered_domain and entered_domain.lower() != ldap_config.ad_domain.lower():
+                        logger.debug(f"Domain mismatch: entered={entered_domain}, configured={ldap_config.ad_domain}. Will try entered format first.")
+                    # Use as-is first (will try configured domain format if this fails)
+                    bind_user = username
 
-            user_conn = Connection(
-                server,
-                user=bind_user,
-                password=password,
-                authentication=SIMPLE,
-                auto_bind=True
-            )
+            try:
+                user_conn = Connection(
+                    server,
+                    user=bind_user,
+                    password=password,
+                    authentication=SIMPLE,
+                    auto_bind=True
+                )
+                logger.debug(f"LDAP bind successful for: {bind_user}")
+            except LDAPBindError as bind_error:
+                logger.warning(f"LDAP bind failed for user {username} (bind_user: {bind_user}): {str(bind_error)}")
+                return None
+            except Exception as bind_error:
+                logger.error(f"Unexpected error during LDAP bind for user {username}: {str(bind_error)}")
+                return None
             
             # If we got here, authentication was successful.
             # Now retrieve user DN and attributes using the authenticated connection.
+            # Strip domain from username if present for DN search
+            search_username = username
+            if '@' in username:
+                search_username = username.split('@')[0]
+            
             user_dn = self._find_user_dn(
-                server, None, None, username, ldap_config, existing_connection=user_conn
+                server, None, None, search_username, ldap_config, existing_connection=user_conn
             )
             if not user_dn:
-                logger.warning(f"User {username} authenticated but DN could not be found in LDAP")
+                logger.warning(f"User {username} authenticated but DN could not be found in LDAP (searched as: {search_username})")
                 user_conn.unbind()
                 return None
 
@@ -111,7 +141,10 @@ class LDAPAuthenticationBackend(ModelBackend):
             logger.warning(f"LDAP bind failed for user {username}: {str(e)}")
             return None
         except LDAPException as e:
-            logger.error(f"LDAP error during authentication: {str(e)}")
+            logger.error(f"LDAP error during authentication for user {username}: {str(e)}")
+            return None
+        except Exception as e:
+            logger.error(f"Unexpected error during LDAP authentication for user {username}: {str(e)}", exc_info=True)
             return None
     
     def _find_user_dn(self, server, bind_user, bind_password, username, ldap_config, existing_connection=None):
@@ -137,9 +170,31 @@ class LDAPAuthenticationBackend(ModelBackend):
                 logger.error("No valid connection or bind credentials provided to _find_user_dn")
                 return None
             
-            # Build search filter
+            # Build search filter - try multiple approaches for UPN format
             username_field = ldap_config.ldap_username_field or 'sAMAccountName'
-            search_filter = f"(&{ldap_config.ldap_filter}({username_field}={username}))"
+            
+            # If username contains @, it's likely a UPN - try userPrincipalName first
+            if '@' in username:
+                # Try userPrincipalName first (for UPN format)
+                search_filter = f"(&{ldap_config.ldap_filter}(userPrincipalName={username}))"
+                conn.search(
+                    search_base=ldap_config.base_dn,
+                    search_filter=search_filter,
+                    search_scope=SUBTREE,
+                    attributes=['distinguishedName', 'dn']
+                )
+                if conn.entries:
+                    user_dn = conn.entries[0].entry_dn
+                    if not reuse_conn:
+                        conn.unbind()
+                    return user_dn
+                
+                # If UPN search failed, try with sAMAccountName (strip domain)
+                search_username = username.split('@')[0]
+                search_filter = f"(&{ldap_config.ldap_filter}({username_field}={search_username}))"
+            else:
+                # Regular username search
+                search_filter = f"(&{ldap_config.ldap_filter}({username_field}={username}))"
             
             # Search for user
             conn.search(
@@ -168,8 +223,11 @@ class LDAPAuthenticationBackend(ModelBackend):
         Retrieve user attributes from LDAP
         """
         # Build attribute list to retrieve
+        username_field = ldap_config.ldap_username_field or 'sAMAccountName'
         attributes = [
-            ldap_config.ldap_username_field or 'sAMAccountName',
+            username_field,
+            'userPrincipalName',  # Also get UPN for matching
+            'sAMAccountName',     # Also get sAMAccountName for matching
             ldap_config.ldap_firstname_field or 'givenName',
             ldap_config.ldap_lastname_field or 'sn',
             ldap_config.ldap_email_field or 'mail',
@@ -229,7 +287,15 @@ class LDAPAuthenticationBackend(ModelBackend):
         
         try:
             username_field = ldap_config.ldap_username_field or 'sAMAccountName'
-            ldap_username = get_field(ldap_user_data, username_field) or username
+            # Prioritize sAMAccountName for Django username (more reliable for synced users)
+            # But also check userPrincipalName if sAMAccountName is not available
+            ldap_username = (
+                get_field(ldap_user_data, 'sAMAccountName') or 
+                get_field(ldap_user_data, 'samaccountname') or
+                get_field(ldap_user_data, username_field) or 
+                username.split('@')[0] if '@' in username else username
+            )
+            logger.debug(f"Resolved LDAP username: {ldap_username} from input: {username}")
             
             # Try to find user by username or email
             email_field = ldap_config.ldap_email_field or 'mail'
@@ -241,6 +307,27 @@ class LDAPAuthenticationBackend(ModelBackend):
                 return user
             except User.DoesNotExist:
                 pass
+            
+            # Try ad_username for synced users (in case username format differs)
+            try:
+                user = User.objects.get(ad_username=ldap_username)
+                return user
+            except User.DoesNotExist:
+                pass
+            
+            # Try searching by username without domain (in case user entered UPN but was synced with sAMAccountName)
+            if '@' in username:
+                base_username = username.split('@')[0]
+                try:
+                    user = User.objects.get(username=base_username)
+                    return user
+                except User.DoesNotExist:
+                    pass
+                try:
+                    user = User.objects.get(ad_username=base_username)
+                    return user
+                except User.DoesNotExist:
+                    pass
             
             # Try email if available
             if email:
