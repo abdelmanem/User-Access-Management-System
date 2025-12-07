@@ -47,7 +47,7 @@
                 <table class="table table-striped mb-0 align-middle">
                     <thead class="table-light">
                         <tr>
-                            <th>System Type</th>
+                            <th>System</th>
                             <th>Account</th>
                             <th>Account Type</th>
                             <th>Removal Required</th>
@@ -59,7 +59,12 @@
                         {% for template in templates %}
                             <tr>
                                 <td>
-                                    <strong>{{ template.system_type }}</strong><br>
+                                    {% if template.system %}
+                                        <strong>{{ template.system.name }}</strong><br>
+                                        <small class="text-muted">{{ template.system.get_system_type_display }}</small>
+                                    {% else %}
+                                        <strong class="text-muted">All Systems</strong>
+                                    {% endif %}
                                     {% if template.applies_to_all %}
                                         <span class="badge bg-info-subtle text-info border border-info-subtle mt-1">Applies to all systems</span>
                                     {% endif %}

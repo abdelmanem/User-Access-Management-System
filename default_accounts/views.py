@@ -308,7 +308,7 @@ def seed_defaults_for_system(request, system_id):
 @login_required
 def default_account_template_list(request):
     ensure_default_account_templates_seeded()
-    templates = DefaultAccountTemplate.objects.all().order_by('system_type', 'account_name')
+    templates = DefaultAccountTemplate.objects.select_related('system').all().order_by('system__name', 'account_name')
     
     # Check if editing a specific template
     edit_id = request.GET.get('edit')
@@ -375,7 +375,7 @@ def default_account_template_update(request, pk):
         request,
         'default_accounts/default_account_templates.html',
         {
-            'templates': DefaultAccountTemplate.objects.all().order_by('system_type', 'account_name'),
+            'templates': DefaultAccountTemplate.objects.select_related('system').all().order_by('system__name', 'account_name'),
             'form': form,
             'editing_template': template,
             'template_stats': DefaultAccountTemplate.objects.aggregate(

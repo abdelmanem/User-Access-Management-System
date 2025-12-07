@@ -136,12 +136,12 @@ FALLBACK_TEMPLATE_DATA: Sequence[dict] = [
 def ensure_default_account_templates_seeded() -> None:
     """
     Ensures that baseline template entries exist so new systems get seeded defaults.
+    Note: With the new System-based structure, templates should be created manually
+    or through the admin interface. This function now just ensures the model is accessible.
     """
-    if DefaultAccountTemplate.objects.exists():
-        return
-
-    for data in FALLBACK_TEMPLATE_DATA:
-        DefaultAccountTemplate.objects.create(**data)
+    # Templates are now created manually via the Template Registry interface
+    # or can be seeded programmatically when systems are available
+    pass
 
 
 @dataclass
@@ -156,11 +156,11 @@ class DefaultAccountSeedResult:
 
 def get_templates_for_system(system) -> Iterable[DefaultAccountTemplate]:
     """
-    Returns template queryset for the given system (matches system_type or global).
+    Returns template queryset for the given system (matches specific system or global templates).
     """
     ensure_default_account_templates_seeded()
     qs = DefaultAccountTemplate.objects.filter(
-        Q(system_type=system.system_type) | Q(system_type__iexact='Any') | Q(applies_to_all=True)
+        Q(system=system) | Q(system__isnull=True, applies_to_all=True)
     )
     return qs.order_by('account_name')
 

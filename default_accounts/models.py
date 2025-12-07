@@ -32,14 +32,17 @@ ACTION_TYPE_CHOICES = [
 
 class DefaultAccountTemplate(models.Model):
     """
-    Defines reusable templates of known default accounts per system type.
+    Defines reusable templates of known default accounts per system.
     Used when new systems are created so that baseline accounts are tracked automatically.
     """
 
-    system_type = models.CharField(
-        max_length=50,
-        help_text="Matches the `system_type` field on `System` (use 'Any' for all systems).",
-        default='Any',
+    system = models.ForeignKey(
+        'systems.System',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='default_account_templates',
+        help_text="Specific system this template applies to. Leave blank and enable 'Applies to all' for global templates.",
     )
 
     account_name = models.CharField(
@@ -66,7 +69,7 @@ class DefaultAccountTemplate(models.Model):
 
     applies_to_all = models.BooleanField(
         default=False,
-        help_text="When enabled this template is instantiated for every new system automatically.",
+        help_text="When enabled this template is instantiated for every new system automatically. Use with system=None for global templates.",
     )
 
     rhg_special_account = models.BooleanField(
@@ -93,11 +96,11 @@ class DefaultAccountTemplate(models.Model):
     class Meta:
         verbose_name = "Default Account Template"
         verbose_name_plural = "Default Account Templates"
-        ordering = ['system_type', 'account_name']
-        unique_together = [('system_type', 'account_name')]
+        ordering = ['system', 'account_name']
+        unique_together = [('system', 'account_name')]
 
     def __str__(self) -> str:
-        target = self.system_type or 'Any'
+        target = self.system.name if self.system else 'All Systems'
         return f"{self.account_name} ({target})"
 
 

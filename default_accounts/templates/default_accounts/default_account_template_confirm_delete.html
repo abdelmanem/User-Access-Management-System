@@ -14,7 +14,7 @@
 
 <div class="card shadow-sm border-0">
     <div class="card-body">
-        <p>Are you sure you want to delete the template <strong>{{ template.account_name }}</strong> ({{ template.system_type }})?</p>
+        <p>Are you sure you want to delete the template <strong>{{ template.account_name }}</strong>{% if template.system %} for system <strong>{{ template.system.name }}</strong>{% else %} (Global Template){% endif %}?</p>
         <p class="text-muted small mb-4">
             This will remove the template from the registry. Note: This will not delete any existing default accounts that were created from this template.
         </p>

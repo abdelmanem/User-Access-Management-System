@@ -9,9 +9,9 @@ from .models import (
 
 @admin.register(DefaultAccountTemplate)
 class DefaultAccountTemplateAdmin(admin.ModelAdmin):
-    list_display = ('account_name', 'system_type', 'account_type', 'removal_required', 'applies_to_all')
-    search_fields = ('account_name', 'system_type', 'notes')
-    list_filter = ('system_type', 'account_type', 'removal_required', 'applies_to_all', 'rhg_special_account')
+    list_display = ('account_name', 'system', 'account_type', 'removal_required', 'applies_to_all')
+    search_fields = ('account_name', 'system__name', 'notes')
+    list_filter = ('system', 'account_type', 'removal_required', 'applies_to_all', 'rhg_special_account')
 
 
 class DefaultAccountActionInline(admin.TabularInline):
