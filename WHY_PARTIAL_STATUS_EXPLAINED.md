@@ -13,32 +13,26 @@ This document explains why each PCI/RHG audit requirement (4.1-4.6) is marked as
 - Generates reports showing all usernames per employee
 - Cross-system view of all systems one employee accesses
 - Generic Accounts Report with remediation workflow
+- **Uniqueness Verification:** System prevents duplicate assignments - notification shown when user already has assignment to a system
+- **Policy Drift Monitoring:** 
+  - Detects records missing external usernames (blank entries)
+  - Reports on overlapping usernames between users in the same system
+  - Alerting for usernames that haven't been reviewed recently (stale reviews)
+  - Policy Drift Monitoring dashboard with filtering and export capabilities
 
 ### ⚠️ What's MISSING (Gaps):
 
-1. **Password Policy Evidence per Account**
-   - ❌ No `password_last_changed` field to track when passwords were changed in external systems
-   - ❌ No `password_expires_on` field to track password expiration dates
-   - ❌ No `password_complies_with_policy` field to verify compliance
-   - ❌ No `password_policy_verified_date` or `password_policy_verified_by` fields
-   - **Impact:** Auditors can't verify that passwords in external systems comply with RHG policy
-
-2. **Uniqueness/Ownership Attestation**
-   - ❌ No field to record who verified that a username is unique
-   - ❌ No `username_verified_date` field
-   - ❌ No `verification_artifact` field to attach screenshots or ticket IDs as evidence
-   - **Impact:** Can't prove to auditors that uniqueness was verified and by whom
-
-3. **Policy Drift Monitoring**
-   - ❌ No alerting for usernames that haven't been reviewed recently
-   - ❌ No reporting on overlapping usernames between users
-   - ❌ No detection of records missing external usernames (blank entries)
-   - **Impact:** Can't proactively identify compliance issues before audits
+1. **System-Level Password Policy Compliance Verification**
+   - ❌ No system-level password policy verification workflow (e.g., checking AD GPO settings)
+   - ❌ No `password_policy_complies_with_rhg` field on System model
+   - ❌ No `password_policy_verified_date` or `password_policy_verified_by` fields on System model
+   - ❌ No documentation of system-level password policy settings (min length, complexity, expiration, etc.)
+   - ❌ No comparison between system password policy and RHG Access Control Policy requirements
+   - **Impact:** Auditors can't verify that password policies at the system level (like AD GPO) align with RHG policy
 
 ### 📋 To Make It Complete:
-- Add password compliance tracking fields to `UserSystemAccess` model
-- Add uniqueness verification workflow with evidence capture
-- Implement policy drift monitoring and alerting
+- Add system-level password policy compliance verification to `System` model (e.g., AD GPO verification)
+- Add fields to document password policy settings and RHG compliance verification
 
 ---
 

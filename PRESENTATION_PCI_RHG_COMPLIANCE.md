@@ -68,6 +68,7 @@
 - ✅ No shared accounts (like "reception" or "admin")
 - ✅ Proof that generic accounts have been fixed
 - ✅ Documentation of usernames across all systems
+- ✅ Password settings in external systems align with RHG Access Control Policy (system-level, e.g., AD GPO)
 
 **How UAMS Helps:**
 - 📝 Tracks the actual username used in each system (AD, PMS, POS, etc.)
@@ -75,12 +76,16 @@
 - ✅ Documents when generic accounts are fixed
 - 📊 Generates reports showing all usernames per employee
 - 🔍 Cross-system view: See all systems one employee accesses
+- 🔐 Documents system-level password policy compliance (e.g., AD Group Policy settings)
+- ✅ **Uniqueness Verification:** Prevents duplicate assignments - system notifies when user already has access
+- 📊 **Policy Drift Monitoring:** Detects missing usernames, overlapping usernames, and stale reviews
 
 **Example:**
 - Employee: John Doe
 - AD Username: `john.doe` ✅
 - PMS Username: `jdoe` ✅
 - POS Username: `reception` ⚠️ (Generic - needs fixing!)
+- AD Password Policy: Verified GPO settings align with RHG policy ✅
 
 ---
 
