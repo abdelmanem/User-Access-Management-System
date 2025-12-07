@@ -1,9 +1,16 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.backends import ModelBackend
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.utils.decorators import method_decorator
+from django.conf import settings
+from django.http import HttpResponseRedirect
+from django.utils.http import url_has_allowed_host_and_scheme
 from . import views, test_auth, ldap_views
+from .models import LDAPConfiguration
+from .ldap_backend import LDAPAuthenticationBackend
 
 app_name = 'accounts'
 
@@ -23,6 +30,58 @@ class CustomLoginView(auth_views.LoginView):
         response['Pragma'] = 'no-cache'
         response['Expires'] = '0'
         return response
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Check if LDAP is enabled
+        ldap_config = LDAPConfiguration.get_active_config()
+        context['ldap_enabled'] = ldap_config is not None and ldap_config.ldap_enabled
+        return context
+    
+    def form_valid(self, form):
+        username = form.cleaned_data.get('username')
+        password = form.cleaned_data.get('password')
+        auth_method = self.request.POST.get('auth_method', 'auto')  # 'auto', 'ldap', or 'django'
+        remember_me = self.request.POST.get('remember_me') == 'on'
+        
+        user = None
+        
+        # Determine which backend to use
+        if auth_method == 'ldap':
+            # Try LDAP only
+            ldap_backend = LDAPAuthenticationBackend()
+            user = ldap_backend.authenticate(self.request, username=username, password=password)
+        elif auth_method == 'django':
+            # Try Django DB only
+            django_backend = ModelBackend()
+            user = django_backend.authenticate(self.request, username=username, password=password)
+        else:
+            # Auto: try both (default Django behavior)
+            user = authenticate(self.request, username=username, password=password)
+        
+        if user is not None:
+            login(self.request, user)
+            
+            # Handle remember me checkbox
+            if remember_me:
+                # Set session to expire after a longer period (e.g., 2 weeks)
+                self.request.session.set_expiry(1209600)  # 2 weeks in seconds
+                # Also set session cookie to persist
+                self.request.session.modified = True
+            else:
+                # Use default session expiry (browser close or configured timeout)
+                self.request.session.set_expiry(None)
+            
+            redirect_to = self.request.POST.get('next', self.request.GET.get('next', ''))
+            if redirect_to:
+                # Security check
+                if url_has_allowed_host_and_scheme(redirect_to, allowed_hosts=self.request.get_host()):
+                    return HttpResponseRedirect(redirect_to)
+            return HttpResponseRedirect(self.get_success_url())
+        else:
+            # Authentication failed
+            form.add_error(None, 'Invalid username or password.')
+            return self.form_invalid(form)
 
 urlpatterns = [
     path('', CustomLoginView.as_view(), name='login'),
