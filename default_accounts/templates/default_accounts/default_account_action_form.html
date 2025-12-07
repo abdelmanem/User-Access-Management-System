@@ -13,6 +13,104 @@
     </div>
 </div>
 
+<!-- Account and System Information Card -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0"><i class="fa-solid fa-info-circle me-2"></i>Account & System Information</h5>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="border rounded p-3 bg-light">
+                    <h6 class="text-muted small mb-2">Account Details</h6>
+                    <div class="mb-2">
+                        <strong>Account Name:</strong><br>
+                        <span class="fs-5">{{ account.account_name }}</span>
+                        {% if account.is_rhg_special_account %}
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle ms-2">RHG Legacy</span>
+                        {% endif %}
+                    </div>
+                    <div class="mb-2">
+                        <strong>Account Type:</strong><br>
+                        {{ account.get_account_type_display }}
+                    </div>
+                    <div>
+                        <strong>Current Status:</strong><br>
+                        <span class="badge bg-{{ account.compliance_label }}">{{ account.get_status_display }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="border rounded p-3 bg-light">
+                    <h6 class="text-muted small mb-2">System Information</h6>
+                    <div class="mb-2">
+                        <strong>System Name:</strong><br>
+                        <span class="fs-5">{{ account.system.name }}</span>
+                    </div>
+                    <div class="mb-2">
+                        <strong>System Type:</strong><br>
+                        {{ account.system.get_system_type_display }}
+                    </div>
+                    {% if account.system.code %}
+                        <div class="mb-2">
+                            <strong>System Code:</strong><br>
+                            <code>{{ account.system.code }}</code>
+                        </div>
+                    {% endif %}
+                    {% if account.template %}
+                        <div>
+                            <strong>Source Template:</strong><br>
+                            <small class="text-muted">{{ account.template.account_name }}</small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Current Remediation Status -->
+        <div class="row g-3 mt-2">
+            <div class="col-md-4">
+                <div class="border rounded p-2">
+                    <small class="text-muted d-block mb-1">Password Changed</small>
+                    {% if account.password_changed_in_external_system %}
+                        <span class="badge bg-success">Yes</span>
+                        {% if account.password_changed_date %}
+                            <br><small class="text-muted">{{ account.password_changed_date|date:"Y-m-d" }}</small>
+                        {% endif %}
+                    {% else %}
+                        <span class="badge bg-warning text-dark">Pending</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="border rounded p-2">
+                    <small class="text-muted d-block mb-1">Removal Status</small>
+                    {% if account.removed_from_external_system %}
+                        <span class="badge bg-success">Removed</span>
+                        {% if account.removal_date %}
+                            <br><small class="text-muted">{{ account.removal_date|date:"Y-m-d" }}</small>
+                        {% endif %}
+                    {% elif account.removal_required %}
+                        <span class="badge bg-danger">Required</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Optional</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="border rounded p-2">
+                    <small class="text-muted d-block mb-1">Removal Required</small>
+                    {% if account.removal_required %}
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Yes</span>
+                    {% else %}
+                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">No</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <form method="post" class="card shadow-sm border-0">
     {% csrf_token %}
     <div class="card-body">

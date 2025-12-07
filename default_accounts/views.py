@@ -194,7 +194,15 @@ def default_account_delete(request, pk):
 
 @login_required
 def default_account_log_action(request, pk):
-    account = get_object_or_404(DefaultAccount, pk=pk)
+    account = get_object_or_404(
+        DefaultAccount.objects.select_related(
+            'system',
+            'template',
+            'password_changed_by',
+            'removal_confirmed_by',
+        ).prefetch_related('template__systems'),
+        pk=pk,
+    )
     if request.method == 'POST':
         form = DefaultAccountActionForm(request.POST)
         if form.is_valid():
