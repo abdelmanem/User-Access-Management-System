@@ -86,12 +86,16 @@
                 <dd class="col-md-9">
                     <a href="{% url 'default_accounts:default_account_templates' %}" class="text-decoration-none">
                         {{ account.template.account_name }}
-                        {% if account.template.system %}
-                            <span class="badge bg-info-subtle text-info border border-info-subtle ms-1">{{ account.template.system.name }}</span>
-                        {% else %}
-                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle ms-1">Global Template</span>
-                        {% endif %}
                     </a>
+                    <div class="mt-1">
+                        {% if account.template.systems.exists %}
+                            {% for system in account.template.systems.all %}
+                                <span class="badge bg-info-subtle text-info border border-info-subtle me-1">{{ system.name }}</span>
+                            {% endfor %}
+                        {% elif account.template.applies_to_all %}
+                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Global Template</span>
+                        {% endif %}
+                    </div>
                 </dd>
             {% endif %}
 

@@ -33,14 +33,13 @@ def default_account_dashboard(request):
     accounts = DefaultAccount.objects.select_related(
         'system',
         'template',
-        'template__system',
         'password_changed_by',
         'removal_confirmed_by',
         'installation_documented_by',
         'last_verified_by',
         'created_by',
         'updated_by',
-    )
+    ).prefetch_related('template__systems')
 
     search_query = request.GET.get('search', '').strip()
     if search_query:
@@ -124,14 +123,13 @@ def default_account_detail(request, pk):
         DefaultAccount.objects.select_related(
             'system',
             'template',
-            'template__system',
             'password_changed_by',
             'removal_confirmed_by',
             'installation_documented_by',
             'last_verified_by',
             'created_by',
             'updated_by',
-        ),
+        ).prefetch_related('template__systems'),
         pk=pk,
     )
     actions = account.actions.select_related('performed_by').order_by('-action_date')
@@ -312,7 +310,7 @@ def seed_defaults_for_system(request, system_id):
 @login_required
 def default_account_template_list(request):
     ensure_default_account_templates_seeded()
-    templates = DefaultAccountTemplate.objects.select_related('system').all().order_by('system__name', 'account_name')
+    templates = DefaultAccountTemplate.objects.prefetch_related('systems').all().order_by('account_name')
     
     # Check if editing a specific template
     edit_id = request.GET.get('edit')
@@ -364,7 +362,7 @@ def default_account_template_list(request):
 @login_required
 def default_account_template_update(request, pk):
     """Update an existing template."""
-    template = get_object_or_404(DefaultAccountTemplate, pk=pk)
+    template = get_object_or_404(DefaultAccountTemplate.objects.prefetch_related('systems'), pk=pk)
     if request.method == 'POST':
         form = DefaultAccountTemplateForm(request.POST, instance=template)
         if form.is_valid():
@@ -379,7 +377,7 @@ def default_account_template_update(request, pk):
         request,
         'default_accounts/default_account_templates.html',
         {
-            'templates': DefaultAccountTemplate.objects.select_related('system').all().order_by('system__name', 'account_name'),
+            'templates': DefaultAccountTemplate.objects.prefetch_related('systems').all().order_by('account_name'),
             'form': form,
             'editing_template': template,
             'template_stats': DefaultAccountTemplate.objects.aggregate(

@@ -128,7 +128,7 @@ class DefaultAccountTemplateForm(forms.ModelForm):
     class Meta:
         model = DefaultAccountTemplate
         fields = [
-            'system',
+            'systems',
             'account_name',
             'account_type',
             'removal_required',
@@ -139,7 +139,7 @@ class DefaultAccountTemplateForm(forms.ModelForm):
             'notes',
         ]
         widgets = {
-            'system': forms.Select(attrs={'class': 'form-select'}),
+            'systems': forms.SelectMultiple(attrs={'class': 'form-select', 'size': '8'}),
             'account_name': forms.TextInput(attrs={'class': 'form-control'}),
             'account_type': forms.Select(attrs={'class': 'form-select'}),
             'removal_required': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -152,10 +152,10 @@ class DefaultAccountTemplateForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Allow selecting a specific system or leave blank for global templates.
+        # Allow selecting multiple systems or leave empty for global templates.
         active_systems = System.objects.filter(is_active=True).order_by('name')
-        self.fields['system'].queryset = active_systems
-        self.fields['system'].required = False
-        self.fields['system'].empty_label = "All Systems (Global Template)"
+        self.fields['systems'].queryset = active_systems
+        self.fields['systems'].required = False
+        self.fields['systems'].help_text = "Select one or more systems. Leave empty and enable 'Applies to all' for global templates."
 
 

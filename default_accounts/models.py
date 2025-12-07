@@ -34,15 +34,14 @@ class DefaultAccountTemplate(models.Model):
     """
     Defines reusable templates of known default accounts per system.
     Used when new systems are created so that baseline accounts are tracked automatically.
+    Templates can be linked to multiple specific systems or set as global (applies to all).
     """
 
-    system = models.ForeignKey(
+    systems = models.ManyToManyField(
         'systems.System',
-        on_delete=models.CASCADE,
-        null=True,
         blank=True,
         related_name='default_account_templates',
-        help_text="Specific system this template applies to. Leave blank and enable 'Applies to all' for global templates.",
+        help_text="Specific systems this template applies to. Leave empty and enable 'Applies to all' for global templates.",
     )
 
     account_name = models.CharField(
@@ -69,7 +68,7 @@ class DefaultAccountTemplate(models.Model):
 
     applies_to_all = models.BooleanField(
         default=False,
-        help_text="When enabled this template is instantiated for every new system automatically. Use with system=None for global templates.",
+        help_text="When enabled this template is instantiated for every new system automatically. Use with no systems selected for global templates.",
     )
 
     rhg_special_account = models.BooleanField(
@@ -96,11 +95,18 @@ class DefaultAccountTemplate(models.Model):
     class Meta:
         verbose_name = "Default Account Template"
         verbose_name_plural = "Default Account Templates"
-        ordering = ['system', 'account_name']
-        unique_together = [('system', 'account_name')]
+        ordering = ['account_name']
+        # Note: unique_together removed since we now use ManyToMany
+        # Uniqueness is enforced at the application level if needed
 
     def __str__(self) -> str:
-        target = self.system.name if self.system else 'All Systems'
+        system_count = self.systems.count()
+        if system_count == 0:
+            target = 'All Systems' if self.applies_to_all else 'No Systems'
+        elif system_count == 1:
+            target = self.systems.first().name
+        else:
+            target = f"{system_count} Systems"
         return f"{self.account_name} ({target})"
 
 

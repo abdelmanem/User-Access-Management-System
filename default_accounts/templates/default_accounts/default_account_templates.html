@@ -9,7 +9,7 @@
             <i class="fa-solid fa-arrow-left me-1"></i> Back to Registry
         </a>
         <h1 class="h3 mb-0">Template Registry</h1>
-        <p class="mb-0 text-muted">Baseline list of default accounts automatically tracked whenever a new system is added.</p>
+        <p class="mb-0 text-muted">Baseline list of default accounts automatically tracked whenever a new system is added. Templates can be linked to multiple systems or set as global.</p>
     </div>
 </div>
 
@@ -47,7 +47,7 @@
                 <table class="table table-striped mb-0 align-middle">
                     <thead class="table-light">
                         <tr>
-                            <th>System</th>
+                            <th>Systems</th>
                             <th>Account</th>
                             <th>Account Type</th>
                             <th>Removal Required</th>
@@ -59,14 +59,18 @@
                         {% for template in templates %}
                             <tr>
                                 <td>
-                                    {% if template.system %}
-                                        <strong>{{ template.system.name }}</strong><br>
-                                        <small class="text-muted">{{ template.system.get_system_type_display }}</small>
-                                    {% else %}
+                                    {% if template.systems.exists %}
+                                        {% for system in template.systems.all %}
+                                            <div class="mb-1">
+                                                <strong>{{ system.name }}</strong><br>
+                                                <small class="text-muted">{{ system.get_system_type_display }}</small>
+                                            </div>
+                                        {% endfor %}
+                                    {% elif template.applies_to_all %}
                                         <strong class="text-muted">All Systems</strong>
-                                    {% endif %}
-                                    {% if template.applies_to_all %}
-                                        <span class="badge bg-info-subtle text-info border border-info-subtle mt-1">Applies to all systems</span>
+                                        <span class="badge bg-info-subtle text-info border border-info-subtle mt-1">Global Template</span>
+                                    {% else %}
+                                        <span class="text-muted">No systems assigned</span>
                                     {% endif %}
                                 </td>
                                 <td>

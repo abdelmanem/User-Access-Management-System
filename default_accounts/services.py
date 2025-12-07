@@ -156,12 +156,12 @@ class DefaultAccountSeedResult:
 
 def get_templates_for_system(system) -> Iterable[DefaultAccountTemplate]:
     """
-    Returns template queryset for the given system (matches specific system or global templates).
+    Returns template queryset for the given system (matches templates linked to this system or global templates).
     """
     ensure_default_account_templates_seeded()
     qs = DefaultAccountTemplate.objects.filter(
-        Q(system=system) | Q(system__isnull=True, applies_to_all=True)
-    )
+        Q(systems=system) | Q(systems__isnull=True, applies_to_all=True)
+    ).distinct()
     return qs.order_by('account_name')
 
 
