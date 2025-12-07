@@ -1,10 +1,10 @@
 # Why Requirements Are Marked as "Partial" - Detailed Explanation
 
-This document explains why each PCI/RHG audit requirement (4.1-4.6) is marked as **⚠️ Partial** instead of **✅ Complete**, and what specific gaps need to be addressed.
+This document explains the status of each PCI/RHG audit requirement (4.1-4.7). Requirements marked as **✅ Complete** have all features implemented, while those marked as **⚠️ Partial** still have gaps that need to be addressed.
 
 ---
 
-## 4.1 - Unique User IDs ⚠️ Partial
+## 4.1 - Unique User IDs ✅ Complete
 
 ### ✅ What IS Currently Covered:
 - Tracks actual usernames used in each external system (AD, PMS, POS, etc.)
@@ -19,20 +19,15 @@ This document explains why each PCI/RHG audit requirement (4.1-4.6) is marked as
   - Reports on overlapping usernames between users in the same system
   - Alerting for usernames that haven't been reviewed recently (stale reviews)
   - Policy Drift Monitoring dashboard with filtering and export capabilities
+- **System-Level Password Policy Compliance:** System-level password policy verification and documentation (e.g., AD GPO settings) is tracked and documented
 
-### ⚠️ What's MISSING (Gaps):
-
-1. **System-Level Password Policy Compliance Verification**
-   - ❌ No system-level password policy verification workflow (e.g., checking AD GPO settings)
-   - ❌ No `password_policy_complies_with_rhg` field on System model
-   - ❌ No `password_policy_verified_date` or `password_policy_verified_by` fields on System model
-   - ❌ No documentation of system-level password policy settings (min length, complexity, expiration, etc.)
-   - ❌ No comparison between system password policy and RHG Access Control Policy requirements
-   - **Impact:** Auditors can't verify that password policies at the system level (like AD GPO) align with RHG policy
-
-### 📋 To Make It Complete:
-- Add system-level password policy compliance verification to `System` model (e.g., AD GPO verification)
-- Add fields to document password policy settings and RHG compliance verification
+### ✅ Status: COMPLETE
+All requirements for 4.1 have been implemented. The system provides complete tracking and documentation of:
+- Unique user IDs across all systems
+- Generic account detection and remediation
+- Uniqueness verification
+- Policy drift monitoring
+- System-level password policy compliance
 
 ---
 
@@ -316,14 +311,17 @@ A requirement is marked **⚠️ Partial** when:
 ## Priority Recommendations
 
 ### High Priority (Critical for Audits):
-1. **4.1** - Add password compliance tracking and uniqueness verification
-2. **4.2** - Add attestation workflow and rotation alerts
-3. **4.3** - Add IT Admin identification and admin account separation tracking
-4. **4.4** - Create change request system and System Owner authorization
+1. **4.2** - Add attestation workflow and rotation alerts
+2. **4.3** - Add IT Admin identification and admin account separation tracking
+3. **4.4** - Create change request system and System Owner authorization
 
 ### Medium Priority (Important for Complete Evidence):
-5. **4.5** - Create quarterly review documentation model
-6. **4.6** - Add quarterly/monthly review models and unauthorized access detection
+4. **4.5** - Create quarterly review documentation model
+5. **4.6** - Add quarterly/monthly review models and unauthorized access detection
+
+### ✅ Completed Requirements:
+- **4.1** - Unique User IDs (All features implemented)
+- **4.7** - Default Account Management (Fully covered)
 
 ---
 
