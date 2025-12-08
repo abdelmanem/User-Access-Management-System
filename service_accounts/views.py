@@ -185,7 +185,7 @@ def service_account_detail(request, pk):
 def service_account_create(request):
     """Create a new service account"""
     if request.method == 'POST':
-        form = ServiceAccountForm(request.POST)
+        form = ServiceAccountForm(request.POST, request.FILES)
         if form.is_valid():
             service_account = form.save(commit=False)
             service_account.created_by = request.user
@@ -211,7 +211,7 @@ def service_account_update(request, pk):
     service_account = get_object_or_404(ServiceAccount, pk=pk)
     
     if request.method == 'POST':
-        form = ServiceAccountForm(request.POST, instance=service_account)
+        form = ServiceAccountForm(request.POST, request.FILES, instance=service_account)
         if form.is_valid():
             service_account = form.save(commit=False)
             service_account.updated_by = request.user

@@ -29,6 +29,7 @@ class ServiceAccountForm(forms.ModelForm):
             'password_policy_verified_by',
             'change_request_id',
             'sop_reference',
+            'sop_document',
             'password_storage_location',
             'is_active',
             'notes',
@@ -71,6 +72,9 @@ class ServiceAccountForm(forms.ModelForm):
             'sop_reference': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'SOP-ACCESS-001'
+            }),
+            'sop_document': forms.ClearableFileInput(attrs={
+                'class': 'form-control'
             }),
             'password_storage_location': forms.TextInput(attrs={
                 'class': 'form-control',

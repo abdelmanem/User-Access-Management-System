@@ -117,6 +117,13 @@ class ServiceAccount(models.Model):
         help_text="Referenced SOP covering this account's use/rotation"
     )
 
+    sop_document = models.FileField(
+        upload_to='service_accounts/sop_documents/',
+        null=True,
+        blank=True,
+        help_text="Upload SOP file for this account"
+    )
+
     password_storage_location = models.CharField(
         max_length=255,
         blank=True,
