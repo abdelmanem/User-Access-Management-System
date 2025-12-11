@@ -65,6 +65,45 @@
                                     </div>
                                 </div>
                                 <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="subscription_tier" class="form-label">
+                                                Subscription Tier (optional)
+                                            </label>
+                                            <select class="form-select" id="subscription_tier" name="subscription_tier">
+                                                <option value="">Select tier (auto-count seats)</option>
+                                                {% for tier in subscription_tiers %}
+                                                <option value="{{ tier.id }}"
+                                                        data-system="{{ tier.system_id }}"
+                                                        data-license="{{ tier.license_category }}"
+                                                        {% if selected_subscription_tier_id == tier.id|stringformat:"s" %}selected{% endif %}>
+                                                    {{ tier.system_name }} — {{ tier.name }} ({{ tier.license_category }})
+                                                    — {{ tier.unit_price }} {{ tier.currency }} / {{ tier.billing_frequency|capfirst }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                            <small class="form-text text-muted">
+                                                Pick the tier for subscription systems (e.g., RHG Email) so seats are counted from assignments.
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="license_category" class="form-label">
+                                                License Category / SKU
+                                            </label>
+                                            <input type="text" class="form-control"
+                                                   id="license_category"
+                                                   name="license_category"
+                                                   value="{{ license_category_value }}"
+                                                   placeholder="E1, Mailbox, etc.">
+                                            <small class="form-text text-muted">
+                                                Required for auto seat counting; defaults to the selected tier’s category.
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
                                     <div class="col-md-4">
                                         <div class="mb-3">
                                             <label for="access_type" class="form-label">
@@ -732,6 +771,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const systemSelect = document.querySelector('select[name="system"]');
     const accessEndDateInput = document.querySelector('input[name="access_end_date"]');
     const requestedDurationInput = document.querySelector('input[name="requested_access_duration"]');
+    const tierSelect = document.getElementById('subscription_tier');
+    const licenseInput = document.getElementById('license_category');
 
     // Auto-calculate end date based on duration
     if (requestedDurationInput && accessEndDateInput) {
@@ -838,6 +879,46 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         }
+
+        // Subscription tier filtering + auto-fill license category for subscription systems
+        function filterSubscriptionTiers() {
+            if (!tierSelect) return;
+            const systemId = systemSelect ? systemSelect.value : '';
+            let hasVisible = false;
+            Array.from(tierSelect.options).forEach((opt) => {
+                if (!opt.dataset.system) {
+                    return;
+                }
+                const isVisible = !systemId || opt.dataset.system === systemId;
+                opt.hidden = !isVisible;
+                if (opt.selected && !isVisible) {
+                    opt.selected = false;
+                }
+                if (isVisible) {
+                    hasVisible = true;
+                }
+            });
+            if (!hasVisible && tierSelect.value) {
+                tierSelect.value = '';
+            }
+        }
+
+        function applyTierLicense() {
+            if (!tierSelect || !licenseInput) return;
+            const selected = tierSelect.options[tierSelect.selectedIndex];
+            if (selected && selected.dataset.license) {
+                licenseInput.value = selected.dataset.license;
+            }
+        }
+
+        if (systemSelect) {
+            systemSelect.addEventListener('change', filterSubscriptionTiers);
+        }
+        if (tierSelect) {
+            tierSelect.addEventListener('change', applyTierLicense);
+        }
+        filterSubscriptionTiers();
+        applyTierLicense();
     }
 });
 </script>

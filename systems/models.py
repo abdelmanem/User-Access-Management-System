@@ -24,6 +24,7 @@ class System(models.Model):
         ('Third-party Service', 'Third-party Service'),
         ('Internal Tool', 'Internal Tool'),
         ('Legacy System', 'Legacy System'),
+        ('Email Subscription', 'Email Subscription'),
         ('Other', 'Other'),
     ]
     
@@ -723,6 +724,131 @@ class SystemContract(models.Model):
         null=True,
         help_text="Explicit yearly due amount (billing currency)"
     )
+
+
+class SystemSubscriptionTier(models.Model):
+    BILLING_FREQUENCY_CHOICES = [
+        ('monthly', 'Monthly'),
+        ('annual', 'Annual'),
+    ]
+
+    contract = models.ForeignKey(
+        SystemContract,
+        on_delete=models.CASCADE,
+        related_name='subscription_tiers'
+    )
+    name = models.CharField(max_length=100, help_text="License or SKU name (e.g., E1, E3)")
+    license_category = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text="Category key to match assigned users (e.g., E1, E3)"
+    )
+    billing_frequency = models.CharField(
+        max_length=10,
+        choices=BILLING_FREQUENCY_CHOICES,
+        default='monthly'
+    )
+    unit_price = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        help_text="Unit price per seat in billing currency"
+    )
+    discount_pct = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0,
+        help_text="Discount percentage for this tier"
+    )
+    seats_committed = models.PositiveIntegerField(
+        default=0,
+        help_text="Contracted seats"
+    )
+    seats_manual = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        help_text="Optional manual seats used override"
+    )
+    overage_unit_price = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        help_text="Overage price per extra seat (billing currency). Defaults to unit price if blank."
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Subscription Tier"
+        verbose_name_plural = "Subscription Tiers"
+
+    def __str__(self):
+        return f"{self.name} ({self.contract.system.name})"
+
+    @property
+    def seats_used_from_assignments(self):
+        if not self.license_category:
+            return None
+        from access_management.models import UserSystemAccess
+        return UserSystemAccess.objects.filter(
+            system=self.contract.system,
+            license_category__iexact=self.license_category
+        ).count()
+
+    @property
+    def seats_used_effective(self):
+        if self.seats_manual is not None:
+            return self.seats_manual
+        derived = self.seats_used_from_assignments
+        # If no assignments or license_category is not set, fall back to committed seats
+        if derived is None or derived == 0:
+            return self.seats_committed
+        return derived
+
+    def _effective_unit_price(self):
+        price = self.unit_price
+        if self.discount_pct:
+            price = price * (Decimal('1') - (self.discount_pct / Decimal('100')))
+        return price
+
+    def monthly_billing_amount(self):
+        seats = self.seats_used_effective
+        if seats <= 0:
+            return Decimal('0')
+
+        unit = self._effective_unit_price()
+        overage_price = self.overage_unit_price or unit
+        # Only charge overage when there is a committed seat baseline
+        overage_units = max(0, seats - self.seats_committed) if self.seats_committed > 0 else 0
+
+        if self.billing_frequency == 'monthly':
+            base = unit * seats
+            overage = overage_price * overage_units
+            return base + overage
+        # annual: spread across 12
+        yearly = unit * seats
+        overage_yearly = overage_price * overage_units
+        return (yearly + overage_yearly) / Decimal('12')
+
+    def yearly_billing_amount(self):
+        seats = self.seats_used_effective
+        if seats <= 0:
+            return Decimal('0')
+
+        unit = self._effective_unit_price()
+        overage_price = self.overage_unit_price or unit
+        # Only charge overage when there is a committed seat baseline
+        overage_units = max(0, seats - self.seats_committed) if self.seats_committed > 0 else 0
+
+        if self.billing_frequency == 'monthly':
+            monthly = unit * seats
+            overage = overage_price * overage_units
+            return (monthly + overage) * Decimal('12')
+        # annual
+        yearly = unit * seats
+        overage_yearly = overage_price * overage_units
+        return yearly + overage_yearly
 
     def renewal_status(self):
         """

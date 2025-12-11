@@ -283,6 +283,12 @@ class UserSystemAccess(models.Model):
         null=True,
         help_text="Link to external evidence (ticket, document, etc.) for username uniqueness verification"
     )
+    license_category = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text="License category/SKU for email subscription mapping (e.g., E1, E3)"
+    )
     
     # Generic account detection and documentation
     is_generic_account = models.BooleanField(

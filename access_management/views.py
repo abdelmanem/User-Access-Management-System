@@ -43,7 +43,7 @@ from .utils import (
     get_unapproved_access_records,
 )
 from accounts.models import CustomUser
-from systems.models import System
+from systems.models import System, SystemContract, SystemSubscriptionTier
 from departments.models import Department
 
 
@@ -73,6 +73,48 @@ def _parse_datetime_input(value):
     except (ValueError, TypeError):
         return None
     return parsed
+
+
+def _get_subscription_tier_options():
+    """
+    Provide a flat list of subscription tier metadata for assignment forms.
+    Used to drive dropdowns filtered per-system on the client.
+    """
+    contracts = SystemContract.objects.select_related("system").prefetch_related(
+        "subscription_tiers"
+    )
+    options = []
+    for contract in contracts:
+        currency = contract.contract_fee_currency or ""
+        for tier in contract.subscription_tiers.all():
+            options.append(
+                {
+                    "id": tier.id,
+                    "system_id": contract.system_id,
+                    "system_name": contract.system.name,
+                    "name": tier.name,
+                    "license_category": tier.license_category or tier.name,
+                    "unit_price": tier.unit_price,
+                    "billing_frequency": tier.billing_frequency,
+                    "currency": currency,
+                }
+            )
+    return options
+
+
+def _match_subscription_tier_for_system(system_id, license_category):
+    """
+    Find a subscription tier id for the given system that matches a license category.
+    """
+    if not license_category:
+        return None
+    return (
+        SystemSubscriptionTier.objects.filter(
+            contract__system_id=system_id, license_category__iexact=license_category
+        )
+        .values_list("id", flat=True)
+        .first()
+    )
 
 
 def export_access_assignments_to_excel(queryset):
@@ -1213,7 +1255,13 @@ def access_assignment_detail(request, pk):
 @login_required
 def access_assignment_create(request):
     """Create a new access assignment"""
-    
+    selected_subscription_tier_id = (
+        request.POST.get('subscription_tier', '') if request.method == 'POST' else ''
+    )
+    license_category_value = (
+        request.POST.get('license_category', '').strip() if request.method == 'POST' else ''
+    )
+
     if request.method == 'POST':
         user_id = request.POST.get('user')
         system_id = request.POST.get('system')
@@ -1239,7 +1287,21 @@ def access_assignment_create(request):
         try:
             user = CustomUser.objects.get(id=user_id)
             system = System.objects.get(id=system_id)
-            
+
+            # Resolve subscription tier / license category mapping for subscription-based systems
+            tiers_for_system = list(
+                SystemSubscriptionTier.objects.select_related('contract').filter(contract__system=system)
+            )
+            tier_lookup = {str(tier.id): tier for tier in tiers_for_system}
+            selected_tier_obj = (
+                tier_lookup.get(str(selected_subscription_tier_id)) if selected_subscription_tier_id else None
+            )
+            if not selected_tier_obj and not license_category_value and len(tiers_for_system) == 1:
+                selected_tier_obj = tiers_for_system[0]
+                selected_subscription_tier_id = str(selected_tier_obj.id)
+            if selected_tier_obj:
+                license_category_value = selected_tier_obj.license_category or selected_tier_obj.name
+
             # Check if access already exists
             if UserSystemAccess.objects.filter(user=user, system=system).exists():
                 messages.error(request, f'Access assignment for {user.full_name} to {system.name} already exists.')
@@ -1325,6 +1387,7 @@ def access_assignment_create(request):
                 system_owner_approved=system_owner_approved,
                 system_owner_approval_date=system_owner_approval_date,
                 system_owner_approver=system_owner_approver,
+                license_category=license_category_value or None,
                 username_verified_by=username_verified_by,
                 username_verified_date=username_verified_date,
                 username_verification_artifact=verification_artifact_file,
@@ -1394,6 +1457,9 @@ def access_assignment_create(request):
         'requested_access_duration_value': request.POST.get('requested_access_duration', ''),
         'access_start_date_value': request.POST.get('access_start_date', ''),
         'access_end_date_value': request.POST.get('access_end_date', ''),
+        'license_category_value': license_category_value,
+        'subscription_tiers': _get_subscription_tier_options(),
+        'selected_subscription_tier_id': str(selected_subscription_tier_id),
         'access_url_value': request.POST.get('access_url', ''),
         'granted_access_level_value': request.POST.get('granted_access_level', ''),
         'technical_requirements_value': request.POST.get('technical_requirements', ''),
@@ -1430,7 +1496,15 @@ def access_assignment_create(request):
 def access_assignment_update(request, pk):
     """Update an existing access assignment"""
     access_assignment = get_object_or_404(UserSystemAccess, pk=pk)
-    
+    selected_subscription_tier_id = (
+        request.POST.get('subscription_tier', '')
+        if request.method == 'POST'
+        else (_match_subscription_tier_for_system(access_assignment.system_id, access_assignment.license_category) or '')
+    )
+    license_category_value = (
+        request.POST.get('license_category', access_assignment.license_category or '').strip()
+    )
+
     if request.method == 'POST':
         access_type = request.POST.get('access_type')
         request_type = request.POST.get('request_type')
@@ -1481,6 +1555,23 @@ def access_assignment_update(request, pk):
         has_domain_admin = request.POST.get('has_domain_admin') == 'on'
         admin_password_storage_location = request.POST.get('admin_password_storage_location', '').strip()
         admin_password_stored_date_raw = request.POST.get('admin_password_stored_date')
+        manual_license_category = request.POST.get('license_category', '').strip()
+
+        # Resolve subscription tier mapping for subscription-based systems
+        tiers_for_system = list(
+            SystemSubscriptionTier.objects.select_related('contract').filter(contract__system=access_assignment.system)
+        )
+        tier_lookup = {str(tier.id): tier for tier in tiers_for_system}
+        selected_tier_obj = (
+            tier_lookup.get(str(selected_subscription_tier_id)) if selected_subscription_tier_id else None
+        )
+        if not selected_tier_obj and not manual_license_category and len(tiers_for_system) == 1:
+            selected_tier_obj = tiers_for_system[0]
+            selected_subscription_tier_id = str(selected_tier_obj.id)
+        if selected_tier_obj:
+            license_category_value = selected_tier_obj.license_category or selected_tier_obj.name
+        elif manual_license_category:
+            license_category_value = manual_license_category
         
         # If system_username is empty but access_username exists, use access_username
         # This helps migrate legacy data
@@ -1517,6 +1608,7 @@ def access_assignment_update(request, pk):
             access_assignment.review_frequency_days = int(review_frequency_days) if review_frequency_days else None
             access_assignment.special_instructions = special_instructions
             access_assignment.compliance_requirements = compliance_requirements
+            access_assignment.license_category = license_category_value or None
 
             # System Owner authorization metadata
             access_assignment.system_owner_approved = system_owner_approved
@@ -1628,6 +1720,9 @@ def access_assignment_update(request, pk):
         ),
         # Pre-populate system_username from effective_username if system_username is empty (for legacy data migration)
         'system_username_value': request.POST.get('system_username', access_assignment.effective_username or ''),
+        'license_category_value': license_category_value,
+        'subscription_tiers': _get_subscription_tier_options(),
+        'selected_subscription_tier_id': str(selected_subscription_tier_id),
         'access_url_value': request.POST.get('access_url', access_assignment.access_url or ''),
         'granted_access_level_value': request.POST.get('granted_access_level', access_assignment.granted_access_level or ''),
         'technical_requirements_value': request.POST.get('technical_requirements', access_assignment.technical_requirements or ''),

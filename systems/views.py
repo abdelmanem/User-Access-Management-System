@@ -18,6 +18,7 @@ from .forms import (
     SystemUserAssignForm,
     SystemHardwareAssignForm,
     SystemContractForm,
+    SystemSubscriptionTierFormSet,
 )
 from access_management.models import UserSystemAccess
 from accounts.models import CustomUser
@@ -296,20 +297,34 @@ def system_contract_edit(request, pk):
     """
     system = get_object_or_404(System, pk=pk)
     contract, _ = SystemContract.objects.get_or_create(system=system)
+    show_tiers = system.system_type == 'Email Subscription'
 
     if request.method == 'POST':
         form = SystemContractForm(request.POST, request.FILES, instance=contract)
-        if form.is_valid():
+        tier_formset = SystemSubscriptionTierFormSet(
+            request.POST,
+            instance=contract,
+            prefix='tiers'
+        ) if show_tiers else None
+        if form.is_valid() and (not show_tiers or tier_formset.is_valid()):
             form.save()
+            if show_tiers:
+                tier_formset.save()
             messages.success(request, 'Contract & renewal details updated.')
             return redirect('systems:system_detail', pk=system.pk)
         messages.error(request, 'Please correct the errors below.')
     else:
         form = SystemContractForm(instance=contract)
+        tier_formset = SystemSubscriptionTierFormSet(
+            instance=contract,
+            prefix='tiers'
+        ) if show_tiers else None
 
     context = {
         'system': system,
         'form': form,
+        'tier_formset': tier_formset,
+        'show_tiers': show_tiers,
     }
     return render(request, 'systems/contract_form.html', context)
 
@@ -349,9 +364,17 @@ def system_dues_notifications(request):
     def derive_billing_amounts(contract: SystemContract):
         """
         Derive monthly/yearly billing amounts if not explicitly provided.
-        Prefer due_amount_*; otherwise derive from contract_fee_amount and payment_frequency.
+        Prefer subscription tiers when present; else use due_amount_*; else derive from contract_fee_amount/payment_frequency.
         Uses VAT-inclusive fee if available.
         """
+        # 1) Sum tiers if available
+        tiers = list(contract.subscription_tiers.all())
+        if tiers:
+            monthly = sum([t.monthly_billing_amount() for t in tiers], Decimal('0'))
+            yearly = sum([t.yearly_billing_amount() for t in tiers], Decimal('0'))
+            return monthly, yearly
+
+        # 2) Use explicit dues
         monthly = contract.due_amount_monthly
         yearly = contract.due_amount_yearly
 

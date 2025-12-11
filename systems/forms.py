@@ -1,6 +1,7 @@
 from django import forms
 from django.utils.text import slugify
-from .models import System, SystemContract
+from django.forms import inlineformset_factory
+from .models import System, SystemContract, SystemSubscriptionTier
 from accounts.models import CustomUser
 from access_management.models import UserSystemAccess
 from hardware.models import HardwareAsset
@@ -126,6 +127,29 @@ class SystemContractForm(forms.ModelForm):
         self.fields['local_currency'].help_text = "Local/home currency for reporting (choose ISO code)"
         self.fields['exchange_rate_to_local'].help_text = "Local = billing * exchange rate"
         self.fields['renewal_copy'].help_text = "Upload renewal copy (PDF/Image/Doc)"
+
+
+SystemSubscriptionTierFormSet = inlineformset_factory(
+    SystemContract,
+    SystemSubscriptionTier,
+    fields=[
+        'name',
+        'license_category',
+        'billing_frequency',
+        'unit_price',
+        'discount_pct',
+        'seats_committed',
+        'seats_manual',
+        'overage_unit_price',
+    ],
+    extra=1,
+    can_delete=True,
+    widgets={
+        'unit_price': forms.NumberInput(attrs={'step': '0.01'}),
+        'discount_pct': forms.NumberInput(attrs={'step': '0.01'}),
+        'overage_unit_price': forms.NumberInput(attrs={'step': '0.01'}),
+    }
+)
 
 
 class SystemUserAssignForm(forms.Form):

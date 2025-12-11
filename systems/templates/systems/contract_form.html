@@ -149,6 +149,49 @@
                                     {{ form.due_amount_yearly|add_error_class:"is-invalid"|add_class:"form-control" }}
                                     {% if form.errors.due_amount_yearly %}<div class="invalid-feedback d-block">{{ form.errors.due_amount_yearly.0 }}</div>{% endif %}
                                 </div>
+                            {% if show_tiers %}
+                            <div class="col-12">
+                                <hr>
+                                <h6 class="fw-semibold">Subscription Tiers</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered align-middle">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>License Category</th>
+                                                <th>Billing</th>
+                                                <th>Unit Price</th>
+                                                <th>Discount %</th>
+                                                <th>Seats Commit</th>
+                                                <th>Seats Used (manual)</th>
+                                                <th>Overage Price</th>
+                                                <th>Delete</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {{ tier_formset.management_form }}
+                                            {% for tier_form in tier_formset %}
+                                            <tr>
+                                                <td>{{ tier_form.name|add_error_class:"is-invalid"|add_class:"form-control form-control-sm" }}</td>
+                                                <td>{{ tier_form.license_category|add_error_class:"is-invalid"|add_class:"form-control form-control-sm" }}</td>
+                                                <td>{{ tier_form.billing_frequency|add_error_class:"is-invalid"|add_class:"form-select form-select-sm" }}</td>
+                                                <td>{{ tier_form.unit_price|add_error_class:"is-invalid"|add_class:"form-control form-control-sm" }}</td>
+                                                <td>{{ tier_form.discount_pct|add_error_class:"is-invalid"|add_class:"form-control form-control-sm" }}</td>
+                                                <td>{{ tier_form.seats_committed|add_error_class:"is-invalid"|add_class:"form-control form-control-sm" }}</td>
+                                                <td>{{ tier_form.seats_manual|add_error_class:"is-invalid"|add_class:"form-control form-control-sm" }}</td>
+                                                <td>{{ tier_form.overage_unit_price|add_error_class:"is-invalid"|add_class:"form-control form-control-sm" }}</td>
+                                                <td class="text-center">
+                                                    {% if tier_form.instance.pk %}
+                                                        {{ tier_form.DELETE }}
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            {% endif %}
                                 <div class="col-md-3">
                                     <div class="form-check mt-4">
                                         {{ form.vat_included|add_error_class:"is-invalid"|add_class:"form-check-input" }}
