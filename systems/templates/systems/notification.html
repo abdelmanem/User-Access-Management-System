@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}System Renewal Notifications{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h3 class="card-title mb-0">
+                            <i class="fas fa-bell me-2"></i>System Renewal Notifications
+                        </h3>
+                        <form method="get" class="d-flex align-items-center gap-2">
+                            <label for="window" class="form-label mb-0">Window (days)</label>
+                            <input id="window" type="number" name="window" value="{{ window_days }}" min="1" max="365" class="form-control form-control-sm" style="width: 90px;">
+                            <button type="submit" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-sync-alt me-1"></i>Refresh
+                            </button>
+                        </form>
+                    </div>
+                    <div class="card-body">
+                        <div class="row row-cols-1 row-cols-md-4 g-3 mb-4">
+                            <div class="col">
+                                <div class="card border-danger h-100">
+                                    <div class="card-body text-danger">
+                                        <h6 class="card-subtitle text-uppercase fw-semibold mb-1">Overdue</h6>
+                                        <h3 class="card-title mb-0">{{ overdue|length }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="card border-warning h-100">
+                                    <div class="card-body text-warning">
+                                        <h6 class="card-subtitle text-uppercase fw-semibold mb-1">Due Soon (<= {{ window_days }}d)</h6>
+                                        <h3 class="card-title mb-0">{{ due_soon|length }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="card border-secondary h-100">
+                                    <div class="card-body text-secondary">
+                                        <h6 class="card-subtitle text-uppercase fw-semibold mb-1">Missing Renewal Date</h6>
+                                        <h3 class="card-title mb-0">{{ missing_total }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="card border-primary h-100">
+                                    <div class="card-body text-primary">
+                                        <h6 class="card-subtitle text-uppercase fw-semibold mb-1">Annualized Fees (incl. VAT)</h6>
+                                        <h3 class="card-title mb-0">
+                                            {% if total_annualized %}
+                                                {{ total_annualized|floatformat:2 }}
+                                            {% else %}
+                                                —
+                                            {% endif %}
+                                        </h3>
+                                        {% if monthly_equivalent %}
+                                            <small class="text-muted">~ {{ monthly_equivalent|floatformat:2 }} / month</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h5 class="mb-3">Upcoming & Overdue Renewals</h5>
+                        <div class="table-responsive mb-4">
+                            <table class="table table-bordered table-striped align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>System</th>
+                                        <th>Renewal Date</th>
+                                        <th>Status</th>
+                                        <th>Support Contact</th>
+                                        <th>Fee</th>
+                                        <th>Frequency</th>
+                                        <th>VAT</th>
+                                        <th>Payment Terms</th>
+                                        <th>Renewal Copy</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for contract in upcoming %}
+                                    <tr>
+                                        <td>
+                                            <a href="{% url 'systems:system_detail' contract.system.pk %}">
+                                                {{ contract.system.name }}
+                                            </a>
+                                        </td>
+                                        <td>{{ contract.renewal_date|default:"—" }}</td>
+                                        <td>
+                                            {% with status=contract.renewal_status %}
+                                                {% if status == 'overdue' %}
+                                                    <span class="badge bg-danger">Overdue</span>
+                                                {% elif status == 'due_soon' %}
+                                                    <span class="badge bg-warning text-dark">Due Soon</span>
+                                                {% else %}
+                                                    <span class="badge bg-success">Current</span>
+                                                {% endif %}
+                                            {% endwith %}
+                                        </td>
+                                        <td>
+                                            {% if contract.support_contact_name %}
+                                                {{ contract.support_contact_name }}
+                                                <div class="text-muted small">
+                                                    {{ contract.support_contact_role|default:"" }}
+                                                    {% if contract.support_contact_email %}<br>{{ contract.support_contact_email }}{% endif %}
+                                                    {% if contract.support_contact_phone %}<br>{{ contract.support_contact_phone }}{% endif %}
+                                                </div>
+                                            {% else %}
+                                                <span class="text-muted">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if contract.contract_fee_amount %}
+                                                {{ contract.contract_fee_amount }} {{ contract.contract_fee_currency }}
+                                                <div class="text-muted small">{{ contract.get_fee_type_display }}</div>
+                                            {% else %}
+                                                <span class="text-muted">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ contract.get_payment_frequency_display }}</td>
+                                        <td>
+                                            VAT {% if contract.vat_included %}included{% else %}excluded{% endif %}{% if contract.vat_rate %} ({{ contract.vat_rate }}%){% endif %}
+                                        </td>
+                                        <td>{{ contract.payment_terms|default:"—" }}</td>
+                                        <td>
+                                            {% if contract.renewal_copy %}
+                                                <a href="{{ contract.renewal_copy.url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                                    <i class="fas fa-download"></i>
+                                                </a>
+                                            {% else %}
+                                                <span class="text-muted">—</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="9" class="text-center text-muted">No renewals in the selected window.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h5 class="mb-3">Missing Renewal Data</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card border-secondary">
+                                    <div class="card-header bg-light fw-semibold">Contracts without renewal date</div>
+                                    <ul class="list-group list-group-flush">
+                                        {% for contract in missing %}
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <a href="{% url 'systems:system_detail' contract.system.pk %}">{{ contract.system.name }}</a>
+                                                <span class="badge bg-secondary">Add date</span>
+                                            </li>
+                                        {% empty %}
+                                            <li class="list-group-item text-muted">No records</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card border-secondary">
+                                    <div class="card-header bg-light fw-semibold">Systems without contracts</div>
+                                    <ul class="list-group list-group-flush">
+                                        {% for system in missing_for_systems %}
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <a href="{% url 'systems:system_detail' system.pk %}">{{ system.name }}</a>
+                                                <span class="badge bg-secondary">Create contract</span>
+                                            </li>
+                                        {% empty %}
+                                            <li class="list-group-item text-muted">All systems have contracts</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

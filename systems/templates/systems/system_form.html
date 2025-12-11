@@ -9,14 +9,21 @@
         <div class="row">
             <div class="col-12">
                 <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h3 class="card-title mb-0">
                             {% if form.instance.pk %}
                                 Edit System: {{ form.instance.name }}
                             {% else %}
                                 Create New System
                             {% endif %}
                         </h3>
+                        {% if form.instance.pk %}
+                        <a class="btn btn-sm btn-outline-primary" href="{% url 'systems:system_contract_edit' form.instance.pk %}">
+                            <i class="fas fa-file-contract me-1"></i>Contract & Renewal
+                        </a>
+                        {% else %}
+                        <span class="text-muted small">Contract & Renewal available after save</span>
+                        {% endif %}
                     </div>
                     <div class="card-body">
                         <form method="post" novalidate>

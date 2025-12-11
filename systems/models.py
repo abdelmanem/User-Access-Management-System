@@ -1,3 +1,6 @@
+from datetime import timedelta
+from decimal import Decimal
+
 from django.db import models
 from django.utils import timezone
 from django.core.validators import URLValidator
@@ -416,3 +419,314 @@ class System(models.Model):
             'Sandbox': 'light'
         }
         return colors.get(self.environment_type, 'secondary')
+
+
+class SystemContract(models.Model):
+    """
+    Commercial and renewal metadata for a system.
+    One-to-one with System to track renewal, fees, payment terms, and support contact.
+    """
+
+    DURATION_UNIT_CHOICES = [
+        ('months', 'Months'),
+        ('years', 'Years'),
+    ]
+
+    BILLING_FREQUENCY_CHOICES = [
+        ('monthly', 'Monthly'),
+        ('quarterly', 'Quarterly'),
+        ('yearly', 'Yearly'),
+        ('one_time', 'One-time'),
+    ]
+
+    FEE_TYPE_CHOICES = [
+        ('recurring', 'Recurring'),
+        ('one_time', 'One-time'),
+        ('hybrid', 'Hybrid / Mixed'),
+    ]
+
+    # ISO 4217 currency codes (broad set to cover most countries)
+    CURRENCY_CHOICES = [
+        ('USD', 'USD - US Dollar'),
+        ('EUR', 'EUR - Euro'),
+        ('GBP', 'GBP - British Pound'),
+        ('AUD', 'AUD - Australian Dollar'),
+        ('CAD', 'CAD - Canadian Dollar'),
+        ('NZD', 'NZD - New Zealand Dollar'),
+        ('JPY', 'JPY - Japanese Yen'),
+        ('CNY', 'CNY - Chinese Yuan'),
+        ('HKD', 'HKD - Hong Kong Dollar'),
+        ('SGD', 'SGD - Singapore Dollar'),
+        ('KRW', 'KRW - South Korean Won'),
+        ('INR', 'INR - Indian Rupee'),
+        ('AED', 'AED - UAE Dirham'),
+        ('SAR', 'SAR - Saudi Riyal'),
+        ('QAR', 'QAR - Qatari Riyal'),
+        ('OMR', 'OMR - Omani Rial'),
+        ('BHD', 'BHD - Bahraini Dinar'),
+        ('KWD', 'KWD - Kuwaiti Dinar'),
+        ('EGP', 'EGP - Egyptian Pound'),
+        ('ZAR', 'ZAR - South African Rand'),
+        ('NGN', 'NGN - Nigerian Naira'),
+        ('KES', 'KES - Kenyan Shilling'),
+        ('GHS', 'GHS - Ghanaian Cedi'),
+        ('CHF', 'CHF - Swiss Franc'),
+        ('SEK', 'SEK - Swedish Krona'),
+        ('NOK', 'NOK - Norwegian Krone'),
+        ('DKK', 'DKK - Danish Krone'),
+        ('PLN', 'PLN - Polish Zloty'),
+        ('CZK', 'CZK - Czech Koruna'),
+        ('HUF', 'HUF - Hungarian Forint'),
+        ('RON', 'RON - Romanian Leu'),
+        ('TRY', 'TRY - Turkish Lira'),
+        ('ILS', 'ILS - Israeli Shekel'),
+        ('PKR', 'PKR - Pakistani Rupee'),
+        ('BDT', 'BDT - Bangladeshi Taka'),
+        ('LKR', 'LKR - Sri Lankan Rupee'),
+        ('THB', 'THB - Thai Baht'),
+        ('MYR', 'MYR - Malaysian Ringgit'),
+        ('IDR', 'IDR - Indonesian Rupiah'),
+        ('PHP', 'PHP - Philippine Peso'),
+        ('VND', 'VND - Vietnamese Dong'),
+        ('BRL', 'BRL - Brazilian Real'),
+        ('ARS', 'ARS - Argentine Peso'),
+        ('CLP', 'CLP - Chilean Peso'),
+        ('COP', 'COP - Colombian Peso'),
+        ('PEN', 'PEN - Peruvian Sol'),
+        ('MXN', 'MXN - Mexican Peso'),
+        ('UYU', 'UYU - Uruguayan Peso'),
+        ('RUB', 'RUB - Russian Ruble'),
+        ('UAH', 'UAH - Ukrainian Hryvnia'),
+        ('MAD', 'MAD - Moroccan Dirham'),
+        ('TND', 'TND - Tunisian Dinar'),
+        ('DZD', 'DZD - Algerian Dinar'),
+        ('ETB', 'ETB - Ethiopian Birr'),
+        ('TZS', 'TZS - Tanzanian Shilling'),
+        ('UGX', 'UGX - Ugandan Shilling'),
+        ('XOF', 'XOF - West African CFA Franc'),
+        ('XAF', 'XAF - Central African CFA Franc'),
+    ]
+
+    system = models.OneToOneField(
+        System,
+        on_delete=models.CASCADE,
+        related_name='contract'
+    )
+    support_contact_name = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True,
+        help_text="Support contact full name"
+    )
+    support_contact_role = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text="Support contact role/title"
+    )
+    support_contact_phone = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        help_text="Support contact phone number"
+    )
+    support_contact_email = models.EmailField(
+        blank=True,
+        null=True,
+        help_text="Support contact email"
+    )
+    renewal_date = models.DateField(
+        blank=True,
+        null=True,
+        help_text="Contract renewal date"
+    )
+    renewal_duration_value = models.PositiveIntegerField(
+        default=1,
+        help_text="Duration value (e.g., 1 year)"
+    )
+    renewal_duration_unit = models.CharField(
+        max_length=10,
+        choices=DURATION_UNIT_CHOICES,
+        default='years',
+        help_text="Duration unit (months/years)"
+    )
+    contract_fee_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        help_text="Base contract fee amount"
+    )
+    contract_fee_currency = models.CharField(
+        max_length=10,
+        choices=CURRENCY_CHOICES,
+        default='USD',
+        help_text="Billing currency"
+    )
+    local_currency = models.CharField(
+        max_length=10,
+        choices=CURRENCY_CHOICES,
+        default='USD',
+        help_text="Local/home currency for reporting"
+    )
+    exchange_rate_to_local = models.DecimalField(
+        max_digits=18,
+        decimal_places=6,
+        blank=True,
+        null=True,
+        help_text="Rate to convert billing currency to local (local = billing * rate)"
+    )
+    fee_type = models.CharField(
+        max_length=10,
+        choices=FEE_TYPE_CHOICES,
+        default='recurring',
+        help_text="Recurring or one-time fee structure"
+    )
+    payment_frequency = models.CharField(
+        max_length=10,
+        choices=BILLING_FREQUENCY_CHOICES,
+        default='yearly',
+        help_text="Billing cadence for recurring fees"
+    )
+    payment_terms = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True,
+        help_text="Payment terms (e.g., Net 30, milestones)"
+    )
+    vat_included = models.BooleanField(
+        default=False,
+        help_text="Whether VAT is included in the fee amount"
+    )
+    vat_rate = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        help_text="VAT percentage (e.g., 5 for 5%)"
+    )
+    reminder_enabled = models.BooleanField(
+        default=True,
+        help_text="Enable in-app reminders for renewal"
+    )
+    reminder_days_before = models.PositiveIntegerField(
+        default=60,
+        help_text="Days before renewal to flag reminders"
+    )
+    renewal_copy = models.FileField(
+        upload_to='system_contracts/renewal_copies/',
+        blank=True,
+        null=True,
+        help_text="Upload renewal or contract copy"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'System Contract'
+        verbose_name_plural = 'System Contracts'
+        ordering = ['renewal_date']
+
+    def __str__(self):
+        return f"{self.system.name} contract"
+
+    def fee_amount_including_vat(self):
+        """
+        Return fee amount including VAT if VAT is excluded in the base amount.
+        """
+        if self.contract_fee_amount is None:
+            return None
+
+        amount = self.contract_fee_amount
+        if not self.vat_included and self.vat_rate:
+            amount = amount * (Decimal('1') + (self.vat_rate / Decimal('100')))
+        return amount
+
+    def fee_amount_local(self):
+        """
+        Convert base fee to local currency using the exchange rate (without VAT uplift).
+        """
+        if self.contract_fee_amount is None or not self.exchange_rate_to_local:
+            return None
+        return self.contract_fee_amount * self.exchange_rate_to_local
+
+    def vat_amount(self):
+        """
+        VAT component on base fee in billing currency.
+        """
+        if self.contract_fee_amount is None or not self.vat_rate:
+            return None
+
+        rate = self.vat_rate / Decimal('100')
+        if self.vat_included:
+            # VAT included: extract VAT part from gross
+            return self.contract_fee_amount - (self.contract_fee_amount / (Decimal('1') + rate))
+        # VAT excluded: apply on top
+        return self.contract_fee_amount * rate
+
+    def vat_amount_local(self):
+        """
+        VAT component converted to local currency if exchange rate present.
+        """
+        vat = self.vat_amount()
+        if vat is None or not self.exchange_rate_to_local:
+            return None
+        return vat * self.exchange_rate_to_local
+
+    def fee_amount_local_including_vat(self):
+        """
+        Return fee amount converted to local currency using exchange_rate_to_local.
+        """
+        amount = self.fee_amount_including_vat()
+        if amount is None or not self.exchange_rate_to_local:
+            return None
+        return amount * self.exchange_rate_to_local
+
+    def annualized_fee(self):
+        """
+        Estimate annualized fee based on payment frequency, useful for P&L alignment.
+        """
+        amount = self.fee_amount_including_vat()
+        if amount is None:
+            return None
+
+        multiplier_map = {
+            'monthly': Decimal('12'),
+            'quarterly': Decimal('4'),
+            'yearly': Decimal('1'),
+            'one_time': Decimal('1'),
+        }
+        multiplier = multiplier_map.get(self.payment_frequency, Decimal('1'))
+        return amount * multiplier
+
+    def annualized_fee_local(self):
+        """
+        Annualized fee converted to local currency, if exchange rate is provided.
+        """
+        base = self.annualized_fee()
+        if base is None or not self.exchange_rate_to_local:
+            return None
+        return base * self.exchange_rate_to_local
+
+    def renewal_status(self):
+        """
+        Returns a simple status string to drive UI badges.
+        """
+        if not self.renewal_date:
+            return 'missing'
+
+        today = timezone.now().date()
+        if self.renewal_date < today:
+            return 'overdue'
+
+        if self.reminder_enabled and self.renewal_date <= today + timedelta(days=self.reminder_days_before):
+            return 'due_soon'
+
+        return 'current'
+
+    def is_within_reminder_window(self):
+        if not self.renewal_date or not self.reminder_enabled:
+            return False
+
+        today = timezone.now().date()
+        return self.renewal_date <= today + timedelta(days=self.reminder_days_before)

@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+{% load static form_extras %}
+
+{% block title %}Contract & Renewal - {{ system.name }}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="card-title mb-0">
+                                <i class="fas fa-file-contract me-2"></i>Contract & Renewal
+                            </h3>
+                            <div class="text-muted small">System: {{ system.name }} ({{ system.code }})</div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a class="btn btn-outline-secondary btn-sm" href="{% url 'systems:system_detail' system.pk %}">
+                                <i class="fas fa-arrow-left me-1"></i>Back to system
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                <strong>Please correct the errors below.</strong>
+                            </div>
+                        {% endif %}
+                        <form method="post" enctype="multipart/form-data" novalidate>
+                            {% csrf_token %}
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Support Contact Name</label>
+                                    {{ form.support_contact_name|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                    {% if form.errors.support_contact_name %}<div class="invalid-feedback d-block">{{ form.errors.support_contact_name.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Role/Title</label>
+                                    {{ form.support_contact_role|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                    {% if form.errors.support_contact_role %}<div class="invalid-feedback d-block">{{ form.errors.support_contact_role.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Phone</label>
+                                    {{ form.support_contact_phone|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                    {% if form.errors.support_contact_phone %}<div class="invalid-feedback d-block">{{ form.errors.support_contact_phone.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Email</label>
+                                    {{ form.support_contact_email|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                    {% if form.errors.support_contact_email %}<div class="invalid-feedback d-block">{{ form.errors.support_contact_email.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Renewal Date</label>
+                                    {{ form.renewal_date|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                    {% if form.errors.renewal_date %}<div class="invalid-feedback d-block">{{ form.errors.renewal_date.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Duration</label>
+                                    {{ form.renewal_duration_value|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                    {% if form.errors.renewal_duration_value %}<div class="invalid-feedback d-block">{{ form.errors.renewal_duration_value.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Unit</label>
+                                    {{ form.renewal_duration_unit|add_error_class:"is-invalid"|add_class:"form-select" }}
+                                    {% if form.errors.renewal_duration_unit %}<div class="invalid-feedback d-block">{{ form.errors.renewal_duration_unit.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Contract Fee</label>
+                                    {{ form.contract_fee_amount|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                    {% if form.errors.contract_fee_amount %}<div class="invalid-feedback d-block">{{ form.errors.contract_fee_amount.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Currency</label>
+                                    {{ form.contract_fee_currency|add_error_class:"is-invalid"|add_class:"form-select" }}
+                                    {% if form.errors.contract_fee_currency %}<div class="invalid-feedback d-block">{{ form.errors.contract_fee_currency.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Local Currency</label>
+                                    {{ form.local_currency|add_error_class:"is-invalid"|add_class:"form-select" }}
+                                    {% if form.errors.local_currency %}<div class="invalid-feedback d-block">{{ form.errors.local_currency.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Exchange Rate (to Local)</label>
+                                    {{ form.exchange_rate_to_local|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                    {% if form.errors.exchange_rate_to_local %}<div class="invalid-feedback d-block">{{ form.errors.exchange_rate_to_local.0 }}</div>{% endif %}
+                                    <div class="form-text">Local = Billing x Rate</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="alert alert-secondary mt-4 mb-0 small">
+                                        <div class="fw-semibold mb-1">Calculated (read-only)</div>
+                                        <div class="fw-semibold">Billing currency</div>
+                                        <div>Base: 
+                                            {% if form.instance.contract_fee_amount %}
+                                                {{ form.instance.contract_fee_amount|floatformat:2 }} {{ form.instance.contract_fee_currency }}
+                                            {% else %}—{% endif %}
+                                        </div>
+                                        <div>VAT: 
+                                            {% if form.instance.vat_amount %}
+                                                {{ form.instance.vat_amount|floatformat:2 }} {{ form.instance.contract_fee_currency }}
+                                            {% else %}—{% endif %}
+                                        </div>
+                                        <div>Total: 
+                                            {% if form.instance.fee_amount_including_vat %}
+                                                {{ form.instance.fee_amount_including_vat|floatformat:2 }} {{ form.instance.contract_fee_currency }}
+                                            {% else %}—{% endif %}
+                                        </div>
+                                        <div class="fw-semibold mt-2">Local currency</div>
+                                        <div>Base: 
+                                            {% if form.instance.fee_amount_local %}
+                                                {{ form.instance.fee_amount_local|floatformat:2 }} {{ form.instance.local_currency }}
+                                            {% else %}—{% endif %}
+                                        </div>
+                                        <div>VAT: 
+                                            {% if form.instance.vat_amount_local %}
+                                                {{ form.instance.vat_amount_local|floatformat:2 }} {{ form.instance.local_currency }}
+                                            {% else %}—{% endif %}
+                                        </div>
+                                        <div>Total: 
+                                            {% if form.instance.fee_amount_local_including_vat %}
+                                                {{ form.instance.fee_amount_local_including_vat|floatformat:2 }} {{ form.instance.local_currency }}
+                                            {% else %}—{% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Fee Type</label>
+                                    {{ form.fee_type|add_error_class:"is-invalid"|add_class:"form-select" }}
+                                    {% if form.errors.fee_type %}<div class="invalid-feedback d-block">{{ form.errors.fee_type.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Payment Frequency</label>
+                                    {{ form.payment_frequency|add_error_class:"is-invalid"|add_class:"form-select" }}
+                                    {% if form.errors.payment_frequency %}<div class="invalid-feedback d-block">{{ form.errors.payment_frequency.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Payment Terms</label>
+                                    {{ form.payment_terms|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                    {% if form.errors.payment_terms %}<div class="invalid-feedback d-block">{{ form.errors.payment_terms.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check mt-4">
+                                        {{ form.vat_included|add_error_class:"is-invalid"|add_class:"form-check-input" }}
+                                        <label class="form-check-label">VAT Included</label>
+                                        {% if form.errors.vat_included %}<div class="invalid-feedback d-block">{{ form.errors.vat_included.0 }}</div>{% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">VAT %</label>
+                                    {{ form.vat_rate|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                    {% if form.errors.vat_rate %}<div class="invalid-feedback d-block">{{ form.errors.vat_rate.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check mt-4">
+                                        {{ form.reminder_enabled|add_error_class:"is-invalid"|add_class:"form-check-input" }}
+                                        <label class="form-check-label">Reminders</label>
+                                        {% if form.errors.reminder_enabled %}<div class="invalid-feedback d-block">{{ form.errors.reminder_enabled.0 }}</div>{% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Days Before</label>
+                                    {{ form.reminder_days_before|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                    {% if form.errors.reminder_days_before %}<div class="invalid-feedback d-block">{{ form.errors.reminder_days_before.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label">Renewal Copy</label>
+                                    {{ form.renewal_copy|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                    {% if form.errors.renewal_copy %}<div class="invalid-feedback d-block">{{ form.errors.renewal_copy.0 }}</div>{% endif %}
+                                    {% if system.contract and system.contract.renewal_copy %}
+                                        <div class="form-text">Current: <a href="{{ system.contract.renewal_copy.url }}" target="_blank">{{ system.contract.renewal_copy.name }}</a></div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-end mt-3 gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i>Save Contract
+                                </button>
+                                <a class="btn btn-outline-secondary" href="{% url 'systems:system_detail' system.pk %}">Cancel</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

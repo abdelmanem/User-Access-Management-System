@@ -1,10 +1,19 @@
+from datetime import timedelta
+from decimal import Decimal
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
 from django.utils import timezone
-from .models import System
-from .forms import SystemForm, SystemUserAssignForm, SystemHardwareAssignForm
+
+from .models import System, SystemContract
+from .forms import (
+    SystemForm,
+    SystemUserAssignForm,
+    SystemHardwareAssignForm,
+    SystemContractForm,
+)
 from access_management.models import UserSystemAccess
 from accounts.models import CustomUser
 
@@ -85,9 +94,11 @@ def system_detail(request, pk):
         System.objects.prefetch_related('hardware_assets'),
         pk=pk
     )
+    contract = getattr(system, 'contract', None)
     assignments = UserSystemAccess.objects.filter(system=system).select_related('user', 'approved_by').order_by(
         'user__first_name', 'user__last_name'
     )
+    contract_form = SystemContractForm(instance=contract)
 
     if request.method == 'POST':
         # Check which form was submitted
@@ -142,6 +153,7 @@ def system_detail(request, pk):
         elif 'manage_hardware' in request.POST:
             assign_form = SystemUserAssignForm(system=system)
             hardware_form = SystemHardwareAssignForm(request.POST, system=system)
+            contract_form = SystemContractForm(instance=contract)
             
             if hardware_form.is_valid():
                 selected_hardware = hardware_form.cleaned_data['hardware_assets']
@@ -154,18 +166,35 @@ def system_detail(request, pk):
                 return redirect('systems:system_detail', pk=system.pk)
             else:
                 messages.error(request, 'Please correct the errors below.')
+        elif 'manage_contract' in request.POST:
+            assign_form = SystemUserAssignForm(system=system)
+            hardware_form = SystemHardwareAssignForm(system=system)
+            contract_form = SystemContractForm(request.POST, request.FILES, instance=contract)
+
+            if contract_form.is_valid():
+                contract_obj = contract_form.save(commit=False)
+                contract_obj.system = system
+                contract_obj.save()
+                messages.success(request, 'Contract & renewal details saved.')
+                return redirect('systems:system_detail', pk=system.pk)
+            else:
+                messages.error(request, 'Please correct the contract errors below.')
         else:
             assign_form = SystemUserAssignForm(system=system)
             hardware_form = SystemHardwareAssignForm(system=system)
+            contract_form = SystemContractForm(instance=contract)
     else:
         assign_form = SystemUserAssignForm(system=system)
         hardware_form = SystemHardwareAssignForm(system=system)
+        contract_form = SystemContractForm(instance=contract)
 
     context = {
         'system': system,
         'assign_form': assign_form,
         'hardware_form': hardware_form,
         'assignments': assignments,
+        'contract': contract,
+        'contract_form': contract_form,
     }
     return render(request, 'systems/system_detail.html', context)
 
@@ -178,6 +207,7 @@ def system_create(request):
             sys_obj.created_by = request.user
             sys_obj.updated_by = request.user
             sys_obj.save()
+            SystemContract.objects.get_or_create(system=sys_obj)
             messages.success(request, 'System created successfully.')
             return redirect('systems:system_detail', pk=sys_obj.pk)
         messages.error(request, 'Please correct the errors below.')
@@ -209,3 +239,71 @@ def system_delete(request, pk):
         messages.success(request, 'System deleted successfully.')
         return redirect('systems:system_list')
     return render(request, 'systems/system_confirm_delete.html', {'system': system})
+
+
+@login_required
+def system_notifications(request):
+    """
+    In-app view for renewal reminders and contract visibility.
+    """
+    try:
+        window_days = int(request.GET.get('window', 60))
+        window_days = max(1, min(window_days, 365))
+    except (TypeError, ValueError):
+        window_days = 60
+
+    today = timezone.now().date()
+    cutoff = today + timedelta(days=window_days)
+
+    contracts = SystemContract.objects.select_related('system')
+    upcoming = contracts.filter(renewal_date__isnull=False, renewal_date__lte=cutoff).order_by('renewal_date')
+    overdue = upcoming.filter(renewal_date__lt=today)
+    due_soon = upcoming.filter(renewal_date__gte=today)
+    missing = contracts.filter(renewal_date__isnull=True)
+    missing_for_systems = System.objects.filter(contract__isnull=True)
+    missing_total = missing.count() + missing_for_systems.count()
+
+    total_annualized = Decimal('0')
+    for contract in contracts:
+        annual = contract.annualized_fee()
+        if annual:
+            total_annualized += annual
+
+    context = {
+        'window_days': window_days,
+        'today': today,
+        'upcoming': upcoming,
+        'overdue': overdue,
+        'due_soon': due_soon,
+        'missing': missing,
+        'missing_for_systems': missing_for_systems,
+        'missing_total': missing_total,
+        'total_annualized': total_annualized,
+        'monthly_equivalent': (total_annualized / Decimal('12')) if total_annualized else None,
+    }
+    return render(request, 'systems/notification.html', context)
+
+
+@login_required
+def system_contract_edit(request, pk):
+    """
+    Dedicated page to manage contract & renewal data for a system.
+    """
+    system = get_object_or_404(System, pk=pk)
+    contract, _ = SystemContract.objects.get_or_create(system=system)
+
+    if request.method == 'POST':
+        form = SystemContractForm(request.POST, request.FILES, instance=contract)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Contract & renewal details updated.')
+            return redirect('systems:system_detail', pk=system.pk)
+        messages.error(request, 'Please correct the errors below.')
+    else:
+        form = SystemContractForm(instance=contract)
+
+    context = {
+        'system': system,
+        'form': form,
+    }
+    return render(request, 'systems/contract_form.html', context)

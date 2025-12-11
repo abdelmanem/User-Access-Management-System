@@ -1,6 +1,6 @@
 from django import forms
 from django.utils.text import slugify
-from .models import System
+from .models import System, SystemContract
 from accounts.models import CustomUser
 from access_management.models import UserSystemAccess
 from hardware.models import HardwareAsset
@@ -88,6 +88,42 @@ class SystemForm(forms.ModelForm):
             code_candidate = f"{base[:50 - len(suffix)]}{suffix}"
             counter += 1
         return code_candidate
+
+
+class SystemContractForm(forms.ModelForm):
+    class Meta:
+        model = SystemContract
+        fields = [
+            'support_contact_name',
+            'support_contact_role',
+            'support_contact_phone',
+            'support_contact_email',
+            'renewal_date',
+            'renewal_duration_value',
+            'renewal_duration_unit',
+            'contract_fee_amount',
+            'contract_fee_currency',
+            'local_currency',
+            'exchange_rate_to_local',
+            'fee_type',
+            'payment_frequency',
+            'payment_terms',
+            'vat_included',
+            'vat_rate',
+            'reminder_enabled',
+            'reminder_days_before',
+            'renewal_copy',
+        ]
+        widgets = {
+            'renewal_date': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['contract_fee_currency'].help_text = "Billing currency (choose ISO code)"
+        self.fields['local_currency'].help_text = "Local/home currency for reporting (choose ISO code)"
+        self.fields['exchange_rate_to_local'].help_text = "Local = billing * exchange rate"
+        self.fields['renewal_copy'].help_text = "Upload renewal copy (PDF/Image/Doc)"
 
 
 class SystemUserAssignForm(forms.Form):

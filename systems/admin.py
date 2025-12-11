@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
-from .models import System
+from .models import System, SystemContract
 
 
 @admin.register(System)
@@ -168,3 +168,27 @@ class SystemAdmin(admin.ModelAdmin):
             obj.created_by = request.user
         obj.updated_by = request.user
         super().save_model(request, obj, form, change)
+
+
+@admin.register(SystemContract)
+class SystemContractAdmin(admin.ModelAdmin):
+    list_display = [
+        'system',
+        'renewal_date',
+        'payment_frequency',
+        'contract_fee_amount',
+        'contract_fee_currency',
+        'vat_included',
+        'reminder_enabled',
+    ]
+    search_fields = [
+        'system__name',
+        'support_contact_name',
+        'support_contact_email',
+    ]
+    list_filter = [
+        'payment_frequency',
+        'fee_type',
+        'vat_included',
+        'reminder_enabled',
+    ]

@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static form_extras %}
 
 {% block title %}{{ system.name }} - System Details{% endblock %}
 
@@ -158,6 +158,117 @@
                                         <td>{{ system.updated_at|date:"Y-m-d H:i" }}</td>
                                     </tr>
                                 </table>
+                            </div>
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                        <h4 class="card-title mb-0">
+                                            <i class="fas fa-file-contract me-2"></i>Contract & Renewal
+                                        </h4>
+                                        {% if contract %}
+                                            {% with status=contract.renewal_status %}
+                                                {% if status == 'overdue' %}
+                                                    <span class="badge bg-danger">Overdue</span>
+                                                {% elif status == 'due_soon' %}
+                                                    <span class="badge bg-warning text-dark">Due Soon</span>
+                                                {% elif status == 'current' %}
+                                                    <span class="badge bg-success">Current</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">Not Set</span>
+                                                {% endif %}
+                                            {% endwith %}
+                                        {% else %}
+                                            <span class="badge bg-secondary">Not Configured</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="card-body">
+                                        <h6 class="fw-semibold mb-3">Summary</h6>
+                                        {% if contract %}
+                                        <table class="table table-bordered">
+                                            <tr>
+                                                <th>Support Contact</th>
+                                                <td>
+                                                    {% if contract.support_contact_name %}
+                                                        <div class="fw-semibold">{{ contract.support_contact_name }}</div>
+                                                        <div class="text-muted small">
+                                                            {{ contract.support_contact_role|default:"" }}
+                                                            {% if contract.support_contact_email %}<br>{{ contract.support_contact_email }}{% endif %}
+                                                            {% if contract.support_contact_phone %}<br>{{ contract.support_contact_phone }}{% endif %}
+                                                        </div>
+                                                    {% else %}
+                                                        <span class="text-muted">—</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th>Renewal Date</th>
+                                                <td>{{ contract.renewal_date|default:"—" }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Duration</th>
+                                                <td>{{ contract.renewal_duration_value }} {{ contract.get_renewal_duration_unit_display|default:"" }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Fees</th>
+                                                <td>
+                                                    {% if contract.contract_fee_amount %}
+                                                        <div class="fw-semibold">Billing currency</div>
+                                                        <div class="text-muted small">
+                                                            Base: {{ contract.contract_fee_amount|floatformat:2 }} {{ contract.contract_fee_currency }}
+                                                            <br>VAT {% if contract.vat_included %}included{% else %}excluded{% endif %}{% if contract.vat_rate %} ({{ contract.vat_rate|floatformat:2 }}%){% endif %}{% if contract.vat_amount %}: {{ contract.vat_amount|floatformat:2 }} {{ contract.contract_fee_currency }}{% endif %}
+                                                            <br>Total: {% if contract.fee_amount_including_vat %}{{ contract.fee_amount_including_vat|floatformat:2 }} {{ contract.contract_fee_currency }}{% else %}—{% endif %}
+                                                        </div>
+                                                        <div class="fw-semibold mt-2">Local currency</div>
+                                                        <div class="text-muted small">
+                                                            Base: {% if contract.fee_amount_local %}{{ contract.fee_amount_local|floatformat:2 }} {{ contract.local_currency }}{% else %}—{% endif %}
+                                                            <br>VAT: {% if contract.vat_amount_local %}{{ contract.vat_amount_local|floatformat:2 }} {{ contract.local_currency }}{% elif contract.vat_amount %}~{{ contract.vat_amount|floatformat:2 }} {{ contract.contract_fee_currency }}{% else %}—{% endif %}
+                                                            <br>Total: {% if contract.fee_amount_local_including_vat %}{{ contract.fee_amount_local_including_vat|floatformat:2 }} {{ contract.local_currency }}{% else %}—{% endif %}
+                                                        </div>
+                                                    {% else %}
+                                                        <span class="text-muted">—</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th>Contract Fee (Local)</th>
+                                                <td>
+                                                    {% if contract.fee_amount_local %}
+                                                        {{ contract.fee_amount_local }} {{ contract.local_currency }}
+                                                        {% if contract.fee_amount_local_including_vat %}
+                                                            <div class="text-muted small">With VAT: {{ contract.fee_amount_local_including_vat }} {{ contract.local_currency }}</div>
+                                                        {% endif %}
+                                                    {% else %}
+                                                        <span class="text-muted">— (set exchange rate)</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th>Payment Terms</th>
+                                                <td>{{ contract.payment_terms|default:"—" }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Renewal Copy</th>
+                                                <td>
+                                                    {% if contract.renewal_copy %}
+                                                        <a href="{{ contract.renewal_copy.url }}" target="_blank">
+                                                            <i class="fas fa-download me-1"></i>Download current copy
+                                                        </a>
+                                                    {% else %}
+                                                        <span class="text-muted">No file uploaded</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        {% else %}
+                                            <div class="alert alert-info mb-0">
+                                                <i class="fas fa-info-circle me-2"></i>
+                                                No contract data captured yet. Use the button above to add details.
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         {% if assign_form %}
