@@ -6,6 +6,11 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
 from django.utils import timezone
+from django.template.loader import render_to_string
+from django.http import HttpResponse
+from datetime import date
+import csv
+from io import StringIO
 
 from .models import System, SystemContract
 from .forms import (
@@ -307,3 +312,154 @@ def system_contract_edit(request, pk):
         'form': form,
     }
     return render(request, 'systems/contract_form.html', context)
+
+
+@login_required
+def system_dues_notifications(request):
+    """
+    P&L-style view of monthly and yearly dues for all systems.
+    Shows billing currency amounts plus local equivalents (when exchange is provided).
+    """
+    contracts = SystemContract.objects.select_related('system')
+
+    # Filters
+    q = request.GET.get('q', '').strip()
+    billing_currency_filter = request.GET.get('billing_currency', '').strip()
+    local_currency_filter = request.GET.get('local_currency', '').strip()
+
+    if q:
+        contracts = contracts.filter(
+            Q(system__name__icontains=q) |
+            Q(system__code__icontains=q)
+        )
+    if billing_currency_filter:
+        contracts = contracts.filter(contract_fee_currency__iexact=billing_currency_filter)
+    if local_currency_filter:
+        contracts = contracts.filter(local_currency__iexact=local_currency_filter)
+
+    summary_rows = []
+    total_monthly_local = Decimal('0')
+    total_yearly_local = Decimal('0')
+
+    today = date.today()
+    current_month = today.strftime("%B %Y")
+    next_month = (today.replace(day=1) + timedelta(days=32)).strftime("%B %Y")
+    previous_month = (today.replace(day=1) - timedelta(days=1)).strftime("%B %Y")
+
+    def derive_billing_amounts(contract: SystemContract):
+        """
+        Derive monthly/yearly billing amounts if not explicitly provided.
+        Prefer due_amount_*; otherwise derive from contract_fee_amount and payment_frequency.
+        Uses VAT-inclusive fee if available.
+        """
+        monthly = contract.due_amount_monthly
+        yearly = contract.due_amount_yearly
+
+        base = contract.fee_amount_including_vat() or contract.contract_fee_amount or Decimal('0')
+        freq = (contract.payment_frequency or '').lower()
+
+        if monthly is None or yearly is None:
+            if freq == 'monthly':
+                monthly = monthly if monthly is not None else base
+                yearly = yearly if yearly is not None else (base * Decimal('12'))
+            elif freq == 'quarterly':
+                monthly = monthly if monthly is not None else (base / Decimal('3'))
+                yearly = yearly if yearly is not None else (base * Decimal('4'))
+            elif freq == 'yearly':
+                yearly = yearly if yearly is not None else base
+                monthly = monthly if monthly is not None else (yearly / Decimal('12'))
+            else:
+                # one_time or hybrid or unspecified: treat as yearly, spread across 12 for monthly view
+                yearly = yearly if yearly is not None else base
+                monthly = monthly if monthly is not None else (yearly / Decimal('12'))
+
+        return (
+            monthly or Decimal('0'),
+            yearly or Decimal('0'),
+        )
+
+    for contract in contracts:
+        system = contract.system
+        monthly_billing, yearly_billing = derive_billing_amounts(contract)
+
+        monthly_local = None
+        yearly_local = None
+        if contract.exchange_rate_to_local:
+            monthly_local = (monthly_billing * contract.exchange_rate_to_local).quantize(Decimal('0.01'))
+            yearly_local = (yearly_billing * contract.exchange_rate_to_local).quantize(Decimal('0.01'))
+            total_monthly_local += monthly_local
+            total_yearly_local += yearly_local
+
+        summary_rows.append({
+            "system": system,
+            "monthly_billing": monthly_billing.quantize(Decimal('0.01')),
+            "yearly_billing": yearly_billing.quantize(Decimal('0.01')),
+            "monthly_local": monthly_local,
+            "yearly_local": yearly_local,
+            "billing_currency": contract.contract_fee_currency,
+            "local_currency": contract.local_currency,
+        })
+
+    context = {
+        "rows": summary_rows,
+        "current_month": current_month,
+        "next_month": next_month,
+        "previous_month": previous_month,
+        "total_monthly_local": total_monthly_local if total_monthly_local else None,
+        "total_yearly_local": total_yearly_local if total_yearly_local else None,
+        "q": q,
+        "billing_currency_filter": billing_currency_filter,
+        "local_currency_filter": local_currency_filter,
+    }
+    export_fmt = request.GET.get('export', '').lower()
+    if export_fmt == 'csv':
+        return _export_dues_csv(summary_rows)
+    if export_fmt == 'pdf':
+        return _export_dues_pdf(context)
+
+    return render(request, 'systems/dues_notification.html', context)
+
+
+def _export_dues_csv(rows):
+    output = StringIO()
+    writer = csv.writer(output)
+    writer.writerow([
+        "System",
+        "Monthly (billing)",
+        "Yearly (billing)",
+        "Billing Currency",
+        "Monthly (local)",
+        "Yearly (local)",
+        "Local Currency",
+    ])
+    for row in rows:
+        writer.writerow([
+            row["system"].name,
+            f"{row['monthly_billing']:.2f}",
+            f"{row['yearly_billing']:.2f}",
+            row["billing_currency"],
+            f"{row['monthly_local']:.2f}" if row["monthly_local"] is not None else "",
+            f"{row['yearly_local']:.2f}" if row["yearly_local"] is not None else "",
+            row["local_currency"],
+        ])
+    response = HttpResponse(output.getvalue(), content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="system_dues.csv"'
+    return response
+
+
+def _export_dues_pdf(context):
+    """
+    Best-effort PDF export. If WeasyPrint is unavailable, falls back to an HTML download.
+    """
+    html = render_to_string("systems/dues_notification_export.html", context)
+    try:
+        from weasyprint import HTML  # type: ignore
+        pdf_file = HTML(string=html).write_pdf()
+        response = HttpResponse(pdf_file, content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="system_dues.pdf"'
+        return response
+    except Exception:
+        # Fallback to HTML download
+        response = HttpResponse(html, content_type='text/html')
+        response['Content-Disposition'] = 'attachment; filename="system_dues.html"'
+        return response

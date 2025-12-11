@@ -81,6 +81,10 @@
                 <a class="sidebar-sublink{{ system_notifications_active }}" href="{% url 'systems:system_notifications' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-bell"></i> Renewal Notifications
                 </a>
+                {% nav_active_class 'systems:system_dues_notifications' as system_dues_notifications_active %}
+                <a class="sidebar-sublink{{ system_dues_notifications_active }}" href="{% url 'systems:system_dues_notifications' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-receipt"></i> Payment Forecast
+                </a>
             </div>
 
             {% nav_active_class 'hardware:hardware_*' 'hardware:hardware_list' 'hardware:hardware_detail' 'hardware:hardware_update' 'hardware:hardware_delete' 'hardware:hardware_create' as hardware_active %}

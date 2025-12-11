@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>System Dues Export</title>
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 12px; }
+        h2 { margin-bottom: 4px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        th, td { border: 1px solid #444; padding: 6px; text-align: left; }
+        th { background: #eee; }
+    </style>
+</head>
+<body>
+    <h2>System Dues Export</h2>
+    <div>Previous: {{ previous_month }} | Current: {{ current_month }} | Next: {{ next_month }}</div>
+    <table>
+        <thead>
+            <tr>
+                <th>System</th>
+                <th>Monthly (billing)</th>
+                <th>Yearly (billing)</th>
+                <th>Billing Currency</th>
+                <th>Monthly (local)</th>
+                <th>Yearly (local)</th>
+                <th>Local Currency</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+            <tr>
+                <td>{{ row.system.name }}</td>
+                <td>{{ row.monthly_billing|floatformat:2 }}</td>
+                <td>{{ row.yearly_billing|floatformat:2 }}</td>
+                <td>{{ row.billing_currency }}</td>
+                <td>{% if row.monthly_local %}{{ row.monthly_local|floatformat:2 }}{% endif %}</td>
+                <td>{% if row.yearly_local %}{{ row.yearly_local|floatformat:2 }}{% endif %}</td>
+                <td>{{ row.local_currency }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7">No contract dues captured yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
+

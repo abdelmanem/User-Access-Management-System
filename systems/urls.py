@@ -8,6 +8,7 @@ urlpatterns = [
     path('create/', views.system_create, name='system_create'),
     path('types/', views.system_type_management, name='system_type_management'),
     path('notifications/', views.system_notifications, name='system_notifications'),
+    path('notifications/dues/', views.system_dues_notifications, name='system_dues_notifications'),
     path('<int:pk>/contract/', views.system_contract_edit, name='system_contract_edit'),
     path('<int:pk>/', views.system_detail, name='system_detail'),
     path('<int:pk>/update/', views.system_update, name='system_update'),

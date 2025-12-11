@@ -708,6 +708,22 @@ class SystemContract(models.Model):
             return None
         return base * self.exchange_rate_to_local
 
+    # Optional explicit due amounts
+    due_amount_monthly = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        help_text="Explicit monthly due amount (billing currency)"
+    )
+    due_amount_yearly = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        help_text="Explicit yearly due amount (billing currency)"
+    )
+
     def renewal_status(self):
         """
         Returns a simple status string to drive UI badges.

@@ -232,6 +232,17 @@
                                                 </td>
                                             </tr>
                                             <tr>
+                                                <th>Due Amounts</th>
+                                                <td>
+                                                    <div class="text-muted small mb-1">
+                                                        Monthly: {% if contract.due_amount_monthly %}{{ contract.due_amount_monthly|floatformat:2 }} {{ contract.contract_fee_currency }}{% else %}—{% endif %}
+                                                    </div>
+                                                    <div class="text-muted small">
+                                                        Yearly: {% if contract.due_amount_yearly %}{{ contract.due_amount_yearly|floatformat:2 }} {{ contract.contract_fee_currency }}{% else %}—{% endif %}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
                                                 <th>Contract Fee (Local)</th>
                                                 <td>
                                                     {% if contract.fee_amount_local %}

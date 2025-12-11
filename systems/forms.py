@@ -112,6 +112,8 @@ class SystemContractForm(forms.ModelForm):
             'vat_rate',
             'reminder_enabled',
             'reminder_days_before',
+            'due_amount_monthly',
+            'due_amount_yearly',
             'renewal_copy',
         ]
         widgets = {

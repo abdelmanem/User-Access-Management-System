@@ -140,6 +140,16 @@
                                     {% if form.errors.payment_terms %}<div class="invalid-feedback d-block">{{ form.errors.payment_terms.0 }}</div>{% endif %}
                                 </div>
                                 <div class="col-md-3">
+                                    <label class="form-label">Due Amount (Monthly)</label>
+                                    {{ form.due_amount_monthly|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                    {% if form.errors.due_amount_monthly %}<div class="invalid-feedback d-block">{{ form.errors.due_amount_monthly.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Due Amount (Yearly)</label>
+                                    {{ form.due_amount_yearly|add_error_class:"is-invalid"|add_class:"form-control" }}
+                                    {% if form.errors.due_amount_yearly %}<div class="invalid-feedback d-block">{{ form.errors.due_amount_yearly.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-3">
                                     <div class="form-check mt-4">
                                         {{ form.vat_included|add_error_class:"is-invalid"|add_class:"form-check-input" }}
                                         <label class="form-check-label">VAT Included</label>
