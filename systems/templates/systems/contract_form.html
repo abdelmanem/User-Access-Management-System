@@ -28,6 +28,11 @@
                                 <strong>Please correct the errors below.</strong>
                             </div>
                         {% endif %}
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for err in form.non_field_errors %}{{ err }}<br>{% endfor %}
+                            </div>
+                        {% endif %}
                         <form method="post" enctype="multipart/form-data" novalidate>
                             {% csrf_token %}
                             <div class="row g-3">
@@ -153,6 +158,11 @@
                             <div class="col-12">
                                 <hr>
                                 <h6 class="fw-semibold">Subscription Tiers</h6>
+                                {% if tier_formset.non_form_errors %}
+                                    <div class="alert alert-danger">
+                                        {% for err in tier_formset.non_form_errors %}{{ err }}<br>{% endfor %}
+                                    </div>
+                                {% endif %}
                                 <div class="table-responsive">
                                     <table class="table table-bordered align-middle">
                                         <thead>
@@ -172,7 +182,15 @@
                                             {{ tier_formset.management_form }}
                                             {% for tier_form in tier_formset %}
                                             <tr>
-                                                <td>{{ tier_form.name|add_error_class:"is-invalid"|add_class:"form-control form-control-sm" }}</td>
+                                                {{ tier_form.id }}
+                                                <td>
+                                                    {{ tier_form.name|add_error_class:"is-invalid"|add_class:"form-control form-control-sm" }}
+                                                    {% if tier_form.non_field_errors %}
+                                                        <div class="invalid-feedback d-block">
+                                                            {% for err in tier_form.non_field_errors %}{{ err }}<br>{% endfor %}
+                                                        </div>
+                                                    {% endif %}
+                                                </td>
                                                 <td>{{ tier_form.license_category|add_error_class:"is-invalid"|add_class:"form-control form-control-sm" }}</td>
                                                 <td>{{ tier_form.billing_frequency|add_error_class:"is-invalid"|add_class:"form-select form-select-sm" }}</td>
                                                 <td>{{ tier_form.unit_price|add_error_class:"is-invalid"|add_class:"form-control form-control-sm" }}</td>

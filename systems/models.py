@@ -2,6 +2,8 @@ from datetime import timedelta
 from decimal import Decimal
 
 from django.db import models
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
 from django.utils import timezone
 from django.core.validators import URLValidator
 
@@ -709,6 +711,24 @@ class SystemContract(models.Model):
             return None
         return base * self.exchange_rate_to_local
 
+    def recalc_dues_from_tiers(self, save=True):
+        """
+        Recalculate due amounts from subscription tiers.
+        Ensures monthly/yearly dues stay in sync when tier billing frequency or prices change.
+        """
+        tiers = list(self.subscription_tiers.all())
+        monthly = sum((t.monthly_billing_amount() or Decimal('0')) for t in tiers)
+        yearly = sum((t.yearly_billing_amount() or Decimal('0')) for t in tiers)
+
+        monthly = monthly.quantize(Decimal('0.01'))
+        yearly = yearly.quantize(Decimal('0.01'))
+
+        self.due_amount_monthly = monthly
+        self.due_amount_yearly = yearly
+
+        if save:
+            self.save(update_fields=["due_amount_monthly", "due_amount_yearly", "updated_at"])
+
     # Optional explicit due amounts
     due_amount_monthly = models.DecimalField(
         max_digits=12,
@@ -849,6 +869,19 @@ class SystemSubscriptionTier(models.Model):
         yearly = unit * seats
         overage_yearly = overage_price * overage_units
         return yearly + overage_yearly
+
+
+# Keep contract dues in sync with subscription tiers when tiers change
+@receiver(post_save, sender=SystemSubscriptionTier)
+def update_contract_dues_on_tier_save(sender, instance, **kwargs):
+    contract = instance.contract
+    contract.recalc_dues_from_tiers(save=True)
+
+
+@receiver(post_delete, sender=SystemSubscriptionTier)
+def update_contract_dues_on_tier_delete(sender, instance, **kwargs):
+    contract = instance.contract
+    contract.recalc_dues_from_tiers(save=True)
 
     def renewal_status(self):
         """

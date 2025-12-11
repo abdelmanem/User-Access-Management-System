@@ -312,7 +312,20 @@ def system_contract_edit(request, pk):
                 tier_formset.save()
             messages.success(request, 'Contract & renewal details updated.')
             return redirect('systems:system_detail', pk=system.pk)
-        messages.error(request, 'Please correct the errors below.')
+        # Surface detailed validation for debugging
+        error_blobs = []
+        if form.errors:
+            error_blobs.append(f"Contract: {form.errors.as_text()}")
+        if form.non_field_errors():
+            error_blobs.append(f"Contract (non-field): {form.non_field_errors().as_text()}")
+        if show_tiers and tier_formset:
+            if tier_formset.non_form_errors():
+                error_blobs.append(f"Tiers (non-form): {tier_formset.non_form_errors().as_text()}")
+            for idx, tf in enumerate(tier_formset.forms):
+                if tf.errors or tf.non_field_errors():
+                    error_blobs.append(f"Tier {idx + 1}: {tf.errors.as_text()} {tf.non_field_errors().as_text()}")
+        detail_msg = " | ".join(error_blobs) if error_blobs else ''
+        messages.error(request, f'Please correct the errors below. {detail_msg}')
     else:
         form = SystemContractForm(instance=contract)
         tier_formset = SystemSubscriptionTierFormSet(
