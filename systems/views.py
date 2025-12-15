@@ -1,5 +1,6 @@
-from datetime import timedelta
+from datetime import timedelta, date, datetime
 from decimal import Decimal
+from calendar import monthrange
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
@@ -8,7 +9,6 @@ from django.db.models import Count, Q
 from django.utils import timezone
 from django.template.loader import render_to_string
 from django.http import HttpResponse
-from datetime import date
 import csv
 from io import StringIO
 
@@ -307,6 +307,8 @@ def system_contract_edit(request, pk):
             prefix='tiers'
         ) if show_tiers else None
         if form.is_valid() and (not show_tiers or tier_formset.is_valid()):
+            # Set user on contract instance so save() can capture it for history
+            contract._current_user = request.user
             form.save()
             if show_tiers:
                 tier_formset.save()
@@ -333,11 +335,59 @@ def system_contract_edit(request, pk):
             prefix='tiers'
         ) if show_tiers else None
 
+    # Get historical data for comparison
+    from datetime import datetime, timedelta
+    from calendar import monthrange
+    
+    today = date.today()
+    
+    # Get previous month history
+    if today.month == 1:
+        prev_month_start = date(today.year - 1, 12, 1)
+        prev_month_end = date(today.year - 1, 12, 31)
+    else:
+        prev_month_start = date(today.year, today.month - 1, 1)
+        _, last_day = monthrange(today.year, today.month - 1)
+        prev_month_end = date(today.year, today.month - 1, last_day)
+    
+    # Get previous year history
+    prev_year_start = date(today.year - 1, 1, 1)
+    prev_year_end = date(today.year - 1, 12, 31)
+    
+    # Get history entries for comparison
+    # Handle case where history model might not exist yet (migrations not run)
+    prev_month_history = None
+    prev_year_history = None
+    latest_history = None
+    
+    try:
+        prev_month_history = contract.history.filter(
+            created_at__date__gte=prev_month_start,
+            created_at__date__lte=prev_month_end
+        ).order_by('-created_at').first()
+        
+        prev_year_history = contract.history.filter(
+            created_at__date__gte=prev_year_start,
+            created_at__date__lte=prev_year_end
+        ).order_by('-created_at').first()
+        
+        # Get most recent history entry (before current values)
+        latest_history = contract.history.order_by('-created_at').first()
+    except (AttributeError, Exception):
+        # History model doesn't exist yet or other error
+        pass
+    
     context = {
         'system': system,
         'form': form,
         'tier_formset': tier_formset,
         'show_tiers': show_tiers,
+        'contract': contract,
+        'prev_month_history': prev_month_history,
+        'prev_year_history': prev_year_history,
+        'latest_history': latest_history,
+        'previous_month_str': prev_month_start.strftime("%B %Y"),
+        'previous_year_str': str(today.year - 1),
     }
     return render(request, 'systems/contract_form.html', context)
 
@@ -354,6 +404,8 @@ def system_dues_notifications(request):
     q = request.GET.get('q', '').strip()
     billing_currency_filter = request.GET.get('billing_currency', '').strip()
     local_currency_filter = request.GET.get('local_currency', '').strip()
+    start_date_str = request.GET.get('start_date', '').strip()
+    end_date_str = request.GET.get('end_date', '').strip()
 
     if q:
         contracts = contracts.filter(
@@ -364,6 +416,37 @@ def system_dues_notifications(request):
         contracts = contracts.filter(contract_fee_currency__iexact=billing_currency_filter)
     if local_currency_filter:
         contracts = contracts.filter(local_currency__iexact=local_currency_filter)
+    
+    # Date range filter - filter by renewal_date, but include contracts without renewal_date
+    if start_date_str or end_date_str:
+        date_conditions = Q()
+        
+        if start_date_str and end_date_str:
+            try:
+                start_date = date.fromisoformat(start_date_str)
+                end_date = date.fromisoformat(end_date_str)
+                # Include contracts with renewal_date in range OR no renewal_date
+                date_conditions = (Q(renewal_date__gte=start_date) & Q(renewal_date__lte=end_date)) | Q(renewal_date__isnull=True)
+            except (ValueError, TypeError):
+                start_date_str = ''
+                end_date_str = ''
+        elif start_date_str:
+            try:
+                start_date = date.fromisoformat(start_date_str)
+                # Include contracts with renewal_date >= start_date OR no renewal_date
+                date_conditions = Q(renewal_date__gte=start_date) | Q(renewal_date__isnull=True)
+            except (ValueError, TypeError):
+                start_date_str = ''
+        elif end_date_str:
+            try:
+                end_date = date.fromisoformat(end_date_str)
+                # Include contracts with renewal_date <= end_date OR no renewal_date
+                date_conditions = Q(renewal_date__lte=end_date) | Q(renewal_date__isnull=True)
+            except (ValueError, TypeError):
+                end_date_str = ''
+        
+        if date_conditions:
+            contracts = contracts.filter(date_conditions)
 
     summary_rows = []
     total_monthly_local = Decimal('0')
@@ -373,6 +456,21 @@ def system_dues_notifications(request):
     current_month = today.strftime("%B %Y")
     next_month = (today.replace(day=1) + timedelta(days=32)).strftime("%B %Y")
     previous_month = (today.replace(day=1) - timedelta(days=1)).strftime("%B %Y")
+    
+    # Calculate previous month and previous year dates
+    if today.month == 1:
+        prev_month_start = date(today.year - 1, 12, 1)
+        prev_month_end = date(today.year - 1, 12, 31)
+    else:
+        prev_month_start = date(today.year, today.month - 1, 1)
+        _, last_day = monthrange(today.year, today.month - 1)
+        prev_month_end = date(today.year, today.month - 1, last_day)
+    
+    prev_year_start = date(today.year - 1, 1, 1)
+    prev_year_end = date(today.year - 1, 12, 31)
+    
+    previous_month_str = prev_month_start.strftime("%B %Y")
+    previous_year_str = f"{today.year - 1}"
 
     def derive_billing_amounts(contract: SystemContract):
         """
@@ -436,16 +534,82 @@ def system_dues_notifications(request):
             "local_currency": contract.local_currency,
         })
 
+    # Calculate previous month totals (contracts that existed in previous month)
+    prev_month_contracts = SystemContract.objects.select_related('system')
+    # Apply same filters but for previous month
+    if q:
+        prev_month_contracts = prev_month_contracts.filter(
+            Q(system__name__icontains=q) |
+            Q(system__code__icontains=q)
+        )
+    if billing_currency_filter:
+        prev_month_contracts = prev_month_contracts.filter(contract_fee_currency__iexact=billing_currency_filter)
+    if local_currency_filter:
+        prev_month_contracts = prev_month_contracts.filter(local_currency__iexact=local_currency_filter)
+    # Only include contracts created before or during previous month
+    prev_month_end_datetime = timezone.make_aware(datetime.combine(prev_month_end, datetime.min.time()))
+    prev_month_contracts = prev_month_contracts.filter(created_at__lte=prev_month_end_datetime)
+    
+    prev_month_total_monthly = Decimal('0')
+    prev_month_total_yearly = Decimal('0')
+    for contract in prev_month_contracts:
+        monthly_billing, yearly_billing = derive_billing_amounts(contract)
+        if contract.exchange_rate_to_local:
+            prev_month_total_monthly += (monthly_billing * contract.exchange_rate_to_local).quantize(Decimal('0.01'))
+            prev_month_total_yearly += (yearly_billing * contract.exchange_rate_to_local).quantize(Decimal('0.01'))
+    
+    # Calculate previous year totals
+    prev_year_contracts = SystemContract.objects.select_related('system')
+    if q:
+        prev_year_contracts = prev_year_contracts.filter(
+            Q(system__name__icontains=q) |
+            Q(system__code__icontains=q)
+        )
+    if billing_currency_filter:
+        prev_year_contracts = prev_year_contracts.filter(contract_fee_currency__iexact=billing_currency_filter)
+    if local_currency_filter:
+        prev_year_contracts = prev_year_contracts.filter(local_currency__iexact=local_currency_filter)
+    # Only include contracts created before or during previous year
+    prev_year_end_datetime = timezone.make_aware(datetime.combine(prev_year_end, datetime.max.time()))
+    prev_year_contracts = prev_year_contracts.filter(created_at__lte=prev_year_end_datetime)
+    
+    prev_year_total_monthly = Decimal('0')
+    prev_year_total_yearly = Decimal('0')
+    for contract in prev_year_contracts:
+        monthly_billing, yearly_billing = derive_billing_amounts(contract)
+        if contract.exchange_rate_to_local:
+            prev_year_total_monthly += (monthly_billing * contract.exchange_rate_to_local).quantize(Decimal('0.01'))
+            prev_year_total_yearly += (yearly_billing * contract.exchange_rate_to_local).quantize(Decimal('0.01'))
+    
+    # Calculate differences and percentages
+    monthly_diff = total_monthly_local - prev_month_total_monthly if total_monthly_local and prev_month_total_monthly else None
+    monthly_diff_pct = (monthly_diff / prev_month_total_monthly * Decimal('100')).quantize(Decimal('0.01')) if monthly_diff and prev_month_total_monthly else None
+    
+    yearly_diff = total_yearly_local - prev_year_total_yearly if total_yearly_local and prev_year_total_yearly else None
+    yearly_diff_pct = (yearly_diff / prev_year_total_yearly * Decimal('100')).quantize(Decimal('0.01')) if yearly_diff and prev_year_total_yearly else None
+
     context = {
         "rows": summary_rows,
         "current_month": current_month,
         "next_month": next_month,
         "previous_month": previous_month,
+        "previous_month_str": previous_month_str,
+        "previous_year_str": previous_year_str,
         "total_monthly_local": total_monthly_local if total_monthly_local else None,
         "total_yearly_local": total_yearly_local if total_yearly_local else None,
+        "prev_month_total_monthly": prev_month_total_monthly if prev_month_total_monthly else None,
+        "prev_month_total_yearly": prev_month_total_yearly if prev_month_total_yearly else None,
+        "prev_year_total_monthly": prev_year_total_monthly if prev_year_total_monthly else None,
+        "prev_year_total_yearly": prev_year_total_yearly if prev_year_total_yearly else None,
+        "monthly_diff": monthly_diff,
+        "monthly_diff_pct": monthly_diff_pct,
+        "yearly_diff": yearly_diff,
+        "yearly_diff_pct": yearly_diff_pct,
         "q": q,
         "billing_currency_filter": billing_currency_filter,
         "local_currency_filter": local_currency_filter,
+        "start_date": start_date_str,
+        "end_date": end_date_str,
     }
     export_fmt = request.GET.get('export', '').lower()
     if export_fmt == 'csv':

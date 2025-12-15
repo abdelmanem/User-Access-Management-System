@@ -711,6 +711,33 @@ class SystemContract(models.Model):
             return None
         return base * self.exchange_rate_to_local
 
+    def save(self, *args, **kwargs):
+        """
+        Override save to create history entry before saving changes.
+        """
+        # Only create history if this is an update (has pk) and not a new instance
+        if self.pk:
+            try:
+                old_instance = SystemContract.objects.get(pk=self.pk)
+                # Check if any financial fields changed
+                financial_fields = [
+                    'contract_fee_amount', 'contract_fee_currency', 'local_currency',
+                    'exchange_rate_to_local', 'due_amount_monthly', 'due_amount_yearly',
+                    'payment_frequency', 'vat_included', 'vat_rate', 'renewal_date'
+                ]
+                has_changes = any(
+                    getattr(old_instance, field) != getattr(self, field)
+                    for field in financial_fields
+                )
+                if has_changes:
+                    # Get user from request if available (will be None if not in request context)
+                    user = getattr(self, '_current_user', None)
+                    SystemContractHistory.create_from_contract(old_instance, user=user)
+            except SystemContract.DoesNotExist:
+                pass
+        
+        super().save(*args, **kwargs)
+
     def recalc_dues_from_tiers(self, save=True):
         """
         Recalculate due amounts from subscription tiers.
@@ -744,6 +771,144 @@ class SystemContract(models.Model):
         null=True,
         help_text="Explicit yearly due amount (billing currency)"
     )
+
+
+class SystemContractHistory(models.Model):
+    """
+    Historical snapshot of SystemContract for tracking changes over time.
+    Allows comparison of contract values between periods (month-over-month, year-over-year).
+    """
+    contract = models.ForeignKey(
+        SystemContract,
+        on_delete=models.CASCADE,
+        related_name='history',
+        help_text="The contract this history entry belongs to"
+    )
+    
+    # Financial fields snapshot
+    contract_fee_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        help_text="Base contract fee amount at time of snapshot"
+    )
+    contract_fee_currency = models.CharField(
+        max_length=10,
+        blank=True,
+        null=True,
+        help_text="Billing currency at time of snapshot"
+    )
+    local_currency = models.CharField(
+        max_length=10,
+        blank=True,
+        null=True,
+        help_text="Local currency at time of snapshot"
+    )
+    exchange_rate_to_local = models.DecimalField(
+        max_digits=18,
+        decimal_places=6,
+        blank=True,
+        null=True,
+        help_text="Exchange rate at time of snapshot"
+    )
+    due_amount_monthly = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        help_text="Monthly due amount at time of snapshot"
+    )
+    due_amount_yearly = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        help_text="Yearly due amount at time of snapshot"
+    )
+    payment_frequency = models.CharField(
+        max_length=10,
+        blank=True,
+        null=True,
+        help_text="Payment frequency at time of snapshot"
+    )
+    vat_included = models.BooleanField(
+        default=False,
+        help_text="Whether VAT was included at time of snapshot"
+    )
+    vat_rate = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        help_text="VAT rate at time of snapshot"
+    )
+    renewal_date = models.DateField(
+        blank=True,
+        null=True,
+        help_text="Renewal date at time of snapshot"
+    )
+    
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        'accounts.CustomUser',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text="User who made the change"
+    )
+    change_reason = models.CharField(
+        max_length=500,
+        blank=True,
+        null=True,
+        help_text="Optional reason for the change"
+    )
+    
+    class Meta:
+        verbose_name = 'Contract History'
+        verbose_name_plural = 'Contract Histories'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['contract', '-created_at']),
+            models.Index(fields=['created_at']),
+        ]
+    
+    def __str__(self):
+        return f"{self.contract.system.name} contract history - {self.created_at.strftime('%Y-%m-%d %H:%M')}"
+    
+    @classmethod
+    def create_from_contract(cls, contract, user=None, reason=None):
+        """
+        Create a history entry from a contract instance.
+        """
+        return cls.objects.create(
+            contract=contract,
+            contract_fee_amount=contract.contract_fee_amount,
+            contract_fee_currency=contract.contract_fee_currency,
+            local_currency=contract.local_currency,
+            exchange_rate_to_local=contract.exchange_rate_to_local,
+            due_amount_monthly=contract.due_amount_monthly,
+            due_amount_yearly=contract.due_amount_yearly,
+            payment_frequency=contract.payment_frequency,
+            vat_included=contract.vat_included,
+            vat_rate=contract.vat_rate,
+            renewal_date=contract.renewal_date,
+            created_by=user,
+            change_reason=reason,
+        )
+    
+    def calculate_monthly_local(self):
+        """Calculate monthly amount in local currency for this snapshot."""
+        if not self.due_amount_monthly or not self.exchange_rate_to_local:
+            return None
+        return (self.due_amount_monthly * self.exchange_rate_to_local).quantize(Decimal('0.01'))
+    
+    def calculate_yearly_local(self):
+        """Calculate yearly amount in local currency for this snapshot."""
+        if not self.due_amount_yearly or not self.exchange_rate_to_local:
+            return None
+        return (self.due_amount_yearly * self.exchange_rate_to_local).quantize(Decimal('0.01'))
 
 
 class SystemSubscriptionTier(models.Model):

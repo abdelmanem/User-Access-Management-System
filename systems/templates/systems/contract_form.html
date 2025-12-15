@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static form_extras %}
+{% load static form_extras math_extras %}
 
 {% block title %}Contract & Renewal - {{ system.name }}{% endblock %}
 
@@ -129,6 +129,129 @@
                                         </div>
                                     </div>
                                 </div>
+                                
+                                <div class="col-12">
+                                    <hr>
+                                    <h6 class="fw-semibold mb-3">
+                                        <i class="fas fa-history me-2"></i>Historical Comparison
+                                    </h6>
+                                    {% if prev_month_history or prev_year_history or latest_history %}
+                                    <div class="row g-3">
+                                        {% if latest_history %}
+                                        <div class="col-md-4">
+                                            <div class="card border-info">
+                                                <div class="card-header bg-info text-white">
+                                                    <small class="fw-semibold">Previous Value ({{ latest_history.created_at|date:"M d, Y" }})</small>
+                                                </div>
+                                                <div class="card-body small">
+                                                    <div><strong>Contract Fee:</strong> 
+                                                        {% if latest_history.contract_fee_amount %}
+                                                            {{ latest_history.contract_fee_amount|floatformat:2 }} {{ latest_history.contract_fee_currency }}
+                                                        {% else %}—{% endif %}
+                                                    </div>
+                                                    <div><strong>Monthly Due:</strong> 
+                                                        {% if latest_history.due_amount_monthly %}
+                                                            {{ latest_history.due_amount_monthly|floatformat:2 }} {{ latest_history.contract_fee_currency }}
+                                                        {% else %}—{% endif %}
+                                                    </div>
+                                                    <div><strong>Yearly Due:</strong> 
+                                                        {% if latest_history.due_amount_yearly %}
+                                                            {{ latest_history.due_amount_yearly|floatformat:2 }} {{ latest_history.contract_fee_currency }}
+                                                        {% else %}—{% endif %}
+                                                    </div>
+                                                    {% if latest_history.exchange_rate_to_local %}
+                                                    <div class="mt-2"><strong>Monthly (Local):</strong> 
+                                                        {{ latest_history.calculate_monthly_local|floatformat:2 }} {{ latest_history.local_currency }}
+                                                    </div>
+                                                    <div><strong>Yearly (Local):</strong> 
+                                                        {{ latest_history.calculate_yearly_local|floatformat:2 }} {{ latest_history.local_currency }}
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        {% if prev_month_history %}
+                                        <div class="col-md-4">
+                                            <div class="card border-warning">
+                                                <div class="card-header bg-warning text-dark">
+                                                    <small class="fw-semibold">Previous Month ({{ previous_month_str }})</small>
+                                                </div>
+                                                <div class="card-body small">
+                                                    <div><strong>Contract Fee:</strong> 
+                                                        {% if prev_month_history.contract_fee_amount %}
+                                                            {{ prev_month_history.contract_fee_amount|floatformat:2 }} {{ prev_month_history.contract_fee_currency }}
+                                                        {% else %}—{% endif %}
+                                                    </div>
+                                                    <div><strong>Monthly Due:</strong> 
+                                                        {% if prev_month_history.due_amount_monthly %}
+                                                            {{ prev_month_history.due_amount_monthly|floatformat:2 }} {{ prev_month_history.contract_fee_currency }}
+                                                        {% else %}—{% endif %}
+                                                    </div>
+                                                    <div><strong>Yearly Due:</strong> 
+                                                        {% if prev_month_history.due_amount_yearly %}
+                                                            {{ prev_month_history.due_amount_yearly|floatformat:2 }} {{ prev_month_history.contract_fee_currency }}
+                                                        {% else %}—{% endif %}
+                                                    </div>
+                                                    {% if prev_month_history.exchange_rate_to_local %}
+                                                    <div class="mt-2"><strong>Monthly (Local):</strong> 
+                                                        {{ prev_month_history.calculate_monthly_local|floatformat:2 }} {{ prev_month_history.local_currency }}
+                                                    </div>
+                                                    <div><strong>Yearly (Local):</strong> 
+                                                        {{ prev_month_history.calculate_yearly_local|floatformat:2 }} {{ prev_month_history.local_currency }}
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        {% if prev_year_history %}
+                                        <div class="col-md-4">
+                                            <div class="card border-success">
+                                                <div class="card-header bg-success text-white">
+                                                    <small class="fw-semibold">Previous Year ({{ previous_year_str }})</small>
+                                                </div>
+                                                <div class="card-body small">
+                                                    <div><strong>Contract Fee:</strong> 
+                                                        {% if prev_year_history.contract_fee_amount %}
+                                                            {{ prev_year_history.contract_fee_amount|floatformat:2 }} {{ prev_year_history.contract_fee_currency }}
+                                                        {% else %}—{% endif %}
+                                                    </div>
+                                                    <div><strong>Monthly Due:</strong> 
+                                                        {% if prev_year_history.due_amount_monthly %}
+                                                            {{ prev_year_history.due_amount_monthly|floatformat:2 }} {{ prev_year_history.contract_fee_currency }}
+                                                        {% else %}—{% endif %}
+                                                    </div>
+                                                    <div><strong>Yearly Due:</strong> 
+                                                        {% if prev_year_history.due_amount_yearly %}
+                                                            {{ prev_year_history.due_amount_yearly|floatformat:2 }} {{ prev_year_history.contract_fee_currency }}
+                                                        {% else %}—{% endif %}
+                                                    </div>
+                                                    {% if prev_year_history.exchange_rate_to_local %}
+                                                    <div class="mt-2"><strong>Monthly (Local):</strong> 
+                                                        {{ prev_year_history.calculate_monthly_local|floatformat:2 }} {{ prev_year_history.local_currency }}
+                                                    </div>
+                                                    <div><strong>Yearly (Local):</strong> 
+                                                        {{ prev_year_history.calculate_yearly_local|floatformat:2 }} {{ prev_year_history.local_currency }}
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% else %}
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        <strong>No historical data available yet.</strong> 
+                                        Historical comparison data will appear here after you make changes to the contract. 
+                                        Each time you update contract values, a snapshot will be saved for future comparison.
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
                                 <div class="col-md-3">
                                     <label class="form-label">Fee Type</label>
                                     {{ form.fee_type|add_error_class:"is-invalid"|add_class:"form-select" }}
@@ -148,11 +271,35 @@
                                     <label class="form-label">Due Amount (Monthly)</label>
                                     {{ form.due_amount_monthly|add_error_class:"is-invalid"|add_class:"form-control" }}
                                     {% if form.errors.due_amount_monthly %}<div class="invalid-feedback d-block">{{ form.errors.due_amount_monthly.0 }}</div>{% endif %}
+                                    {% if latest_history and latest_history.due_amount_monthly %}
+                                        <small class="text-muted">
+                                            Previous: {{ latest_history.due_amount_monthly|floatformat:2 }} {{ latest_history.contract_fee_currency }}
+                                            {% if contract.due_amount_monthly and latest_history.due_amount_monthly %}
+                                                {% with diff=contract.due_amount_monthly|sub:latest_history.due_amount_monthly %}
+                                                    <span class="{% if diff >= 0 %}text-danger{% else %}text-success{% endif %}">
+                                                        ({% if diff >= 0 %}+{% endif %}{{ diff|floatformat:2 }})
+                                                    </span>
+                                                {% endwith %}
+                                            {% endif %}
+                                        </small>
+                                    {% endif %}
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label">Due Amount (Yearly)</label>
                                     {{ form.due_amount_yearly|add_error_class:"is-invalid"|add_class:"form-control" }}
                                     {% if form.errors.due_amount_yearly %}<div class="invalid-feedback d-block">{{ form.errors.due_amount_yearly.0 }}</div>{% endif %}
+                                    {% if latest_history and latest_history.due_amount_yearly %}
+                                        <small class="text-muted">
+                                            Previous: {{ latest_history.due_amount_yearly|floatformat:2 }} {{ latest_history.contract_fee_currency }}
+                                            {% if contract.due_amount_yearly and latest_history.due_amount_yearly %}
+                                                {% with diff=contract.due_amount_yearly|sub:latest_history.due_amount_yearly %}
+                                                    <span class="{% if diff >= 0 %}text-danger{% else %}text-success{% endif %}">
+                                                        ({% if diff >= 0 %}+{% endif %}{{ diff|floatformat:2 }})
+                                                    </span>
+                                                {% endwith %}
+                                            {% endif %}
+                                        </small>
+                                    {% endif %}
                                 </div>
                             {% if show_tiers %}
                             <div class="col-12">
