@@ -12,7 +12,7 @@ from django.http import HttpResponse
 import csv
 from io import StringIO
 
-from .models import System, SystemContract
+from .models import System, SystemContract, SystemContractHistory
 from .forms import (
     SystemForm,
     SystemUserAssignForm,
@@ -299,6 +299,98 @@ def system_contract_edit(request, pk):
     contract, _ = SystemContract.objects.get_or_create(system=system)
     show_tiers = system.system_type == 'Email Subscription'
 
+    # Manual history snapshot creation (for previous years/months)
+    history_action = request.POST.get('history_action') if request.method == 'POST' else None
+
+    # Delete history entry
+    if request.method == 'POST' and history_action == 'delete_history':
+        history_id = request.POST.get('history_id')
+        if history_id:
+            try:
+                entry = contract.history.get(pk=history_id)
+                entry.delete()
+                messages.success(request, 'History entry deleted.')
+            except Exception:
+                messages.error(request, 'Could not delete history entry.')
+        return redirect('systems:system_contract_edit', pk=system.pk)
+
+    # Edit history entry
+    if request.method == 'POST' and history_action == 'edit_history':
+        def _to_decimal(val):
+            try:
+                return Decimal(str(val)) if val not in (None, '',) else None
+            except (ArithmeticError, ValueError):
+                return None
+        history_id = request.POST.get('history_id')
+        if history_id:
+            try:
+                entry = contract.history.get(pk=history_id)
+                entry.contract_fee_amount = _to_decimal(request.POST.get('edit_contract_fee_amount'))
+                entry.due_amount_monthly = _to_decimal(request.POST.get('edit_due_amount_monthly'))
+                entry.due_amount_yearly = _to_decimal(request.POST.get('edit_due_amount_yearly'))
+                entry.exchange_rate_to_local = _to_decimal(request.POST.get('edit_exchange_rate_to_local'))
+                entry.contract_fee_currency = (request.POST.get('edit_contract_fee_currency') or '').strip() or entry.contract_fee_currency
+                entry.local_currency = (request.POST.get('edit_local_currency') or '').strip() or entry.local_currency
+                entry.payment_frequency = (request.POST.get('edit_payment_frequency') or '').strip() or entry.payment_frequency
+                date_str = request.POST.get('edit_date') or ''
+                try:
+                    date_val = date.fromisoformat(date_str) if date_str else None
+                except Exception:
+                    date_val = None
+                if date_val:
+                    entry.created_at = datetime.combine(date_val, datetime.min.time(), tzinfo=timezone.get_current_timezone())
+                entry.change_reason = request.POST.get('edit_change_reason') or entry.change_reason
+                entry.created_by = request.user
+                entry.save()
+                messages.success(request, 'History entry updated.')
+            except Exception:
+                messages.error(request, 'Could not update history entry.')
+        return redirect('systems:system_contract_edit', pk=system.pk)
+
+    # Manual history snapshot creation (for previous years/months)
+    if request.method == 'POST' and history_action == 'add_history':
+        def _to_decimal(val):
+            try:
+                return Decimal(str(val)) if val not in (None, '',) else None
+            except (ArithmeticError, ValueError):
+                return None
+
+        history_date_str = request.POST.get('history_date') or ''
+        try:
+            history_date = date.fromisoformat(history_date_str)
+        except Exception:
+            history_date = None
+
+        contract_fee_amount = _to_decimal(request.POST.get('history_contract_fee_amount'))
+        due_amount_monthly = _to_decimal(request.POST.get('history_due_amount_monthly'))
+        due_amount_yearly = _to_decimal(request.POST.get('history_due_amount_yearly'))
+        exchange_rate_to_local = _to_decimal(request.POST.get('history_exchange_rate_to_local'))
+        contract_fee_currency = (request.POST.get('history_contract_fee_currency') or '').strip() or contract.contract_fee_currency
+        local_currency = (request.POST.get('history_local_currency') or '').strip() or contract.local_currency
+        payment_frequency = (request.POST.get('history_payment_frequency') or '').strip() or contract.payment_frequency
+
+        SystemContractHistory.create_from_contract(
+            contract,
+            user=request.user,
+            reason=f"Manual snapshot {history_date.strftime('%Y-%m-%d') if history_date else 'manual entry'}"
+        )
+        # Update the freshly created entry with provided overrides
+        latest_entry = contract.history.order_by('-created_at').first()
+        if latest_entry:
+            latest_entry.contract_fee_amount = contract_fee_amount
+            latest_entry.due_amount_monthly = due_amount_monthly
+            latest_entry.due_amount_yearly = due_amount_yearly
+            latest_entry.exchange_rate_to_local = exchange_rate_to_local
+            latest_entry.contract_fee_currency = contract_fee_currency or latest_entry.contract_fee_currency
+            latest_entry.local_currency = local_currency or latest_entry.local_currency
+            latest_entry.payment_frequency = payment_frequency or latest_entry.payment_frequency
+            if history_date:
+                latest_entry.created_at = datetime.combine(history_date, datetime.min.time(), tzinfo=timezone.get_current_timezone())
+            latest_entry.save()
+
+        messages.success(request, 'Manual history snapshot added.')
+        return redirect('systems:system_contract_edit', pk=system.pk)
+
     if request.method == 'POST':
         form = SystemContractForm(request.POST, request.FILES, instance=contract)
         tier_formset = SystemSubscriptionTierFormSet(
@@ -336,7 +428,6 @@ def system_contract_edit(request, pk):
         ) if show_tiers else None
 
     # Get historical data for comparison
-    from datetime import datetime, timedelta
     from calendar import monthrange
     
     today = date.today()
@@ -377,6 +468,9 @@ def system_contract_edit(request, pk):
         # History model doesn't exist yet or other error
         pass
     
+    # History log (latest first)
+    history_entries = contract.history.order_by('-created_at')[:50] if hasattr(contract, 'history') else []
+
     context = {
         'system': system,
         'form': form,
@@ -388,6 +482,7 @@ def system_contract_edit(request, pk):
         'latest_history': latest_history,
         'previous_month_str': prev_month_start.strftime("%B %Y"),
         'previous_year_str': str(today.year - 1),
+        'history_entries': history_entries,
     }
     return render(request, 'systems/contract_form.html', context)
 
