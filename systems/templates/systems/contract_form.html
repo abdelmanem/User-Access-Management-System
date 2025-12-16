@@ -401,36 +401,36 @@
                                             <div class="row g-3">
                                                 <div class="col-sm-4 col-md-3">
                                                     <label class="form-label">Snapshot Date</label>
-                                                    <input type="date" name="history_date" class="form-control form-control-sm">
+                                                    <input type="date" name="history_date" class="form-control form-control-sm" value="{{ contract.renewal_date|date:'Y-m-d' }}">
                                                     <div class="form-text">e.g. last year's renewal date</div>
                                                 </div>
                                                 <div class="col-sm-4 col-md-3">
                                                     <label class="form-label">Contract Fee</label>
-                                                    <input type="number" step="0.01" name="history_contract_fee_amount" class="form-control form-control-sm" placeholder="e.g. 12000">
+                                                    <input type="number" step="0.01" name="history_contract_fee_amount" class="form-control form-control-sm" value="{{ contract.contract_fee_amount }}" placeholder="e.g. 12000">
                                                 </div>
                                                 <div class="col-sm-4 col-md-3">
                                                     <label class="form-label">Monthly Due</label>
-                                                    <input type="number" step="0.01" name="history_due_amount_monthly" class="form-control form-control-sm" placeholder="e.g. 1000">
+                                                    <input type="number" step="0.01" name="history_due_amount_monthly" class="form-control form-control-sm" value="{{ contract.due_amount_monthly }}" placeholder="e.g. 1000">
                                                 </div>
                                                 <div class="col-sm-4 col-md-3">
                                                     <label class="form-label">Yearly Due</label>
-                                                    <input type="number" step="0.01" name="history_due_amount_yearly" class="form-control form-control-sm" placeholder="e.g. 12000">
+                                                    <input type="number" step="0.01" name="history_due_amount_yearly" class="form-control form-control-sm" value="{{ contract.due_amount_yearly }}" placeholder="e.g. 12000">
                                                 </div>
                                                 <div class="col-sm-4 col-md-3">
                                                     <label class="form-label">Billing Currency</label>
-                                                    <input type="text" name="history_contract_fee_currency" class="form-control form-control-sm" placeholder="{{ contract.contract_fee_currency }}">
+                                                    <input type="text" name="history_contract_fee_currency" class="form-control form-control-sm" value="{{ contract.contract_fee_currency }}" placeholder="{{ contract.contract_fee_currency }}">
                                                 </div>
                                                 <div class="col-sm-4 col-md-3">
                                                     <label class="form-label">Local Currency</label>
-                                                    <input type="text" name="history_local_currency" class="form-control form-control-sm" placeholder="{{ contract.local_currency }}">
+                                                    <input type="text" name="history_local_currency" class="form-control form-control-sm" value="{{ contract.local_currency }}" placeholder="{{ contract.local_currency }}">
                                                 </div>
                                                 <div class="col-sm-4 col-md-3">
                                                     <label class="form-label">Exchange Rate to Local</label>
-                                                    <input type="number" step="0.000001" name="history_exchange_rate_to_local" class="form-control form-control-sm" placeholder="{{ contract.exchange_rate_to_local }}">
+                                                    <input type="number" step="0.000001" name="history_exchange_rate_to_local" class="form-control form-control-sm" value="{{ contract.exchange_rate_to_local }}" placeholder="{{ contract.exchange_rate_to_local }}">
                                                 </div>
                                                 <div class="col-sm-4 col-md-3">
                                                     <label class="form-label">Payment Frequency</label>
-                                                    <input type="text" name="history_payment_frequency" class="form-control form-control-sm" placeholder="{{ contract.payment_frequency }}">
+                                                    <input type="text" name="history_payment_frequency" class="form-control form-control-sm" value="{{ contract.payment_frequency }}" placeholder="{{ contract.payment_frequency }}">
                                                 </div>
                                             </div>
                                             <div class="d-flex justify-content-end mt-3">

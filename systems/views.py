@@ -299,6 +299,11 @@ def system_contract_edit(request, pk):
     contract, _ = SystemContract.objects.get_or_create(system=system)
     show_tiers = system.system_type == 'Email Subscription'
 
+    # Ensure dues are auto-derived for existing contracts so fields are not blank
+    if contract.due_amount_monthly is None or contract.due_amount_yearly is None:
+        contract._current_user = getattr(request, 'user', None)
+        contract.save()
+
     # Manual history snapshot creation (for previous years/months)
     history_action = request.POST.get('history_action') if request.method == 'POST' else None
 

@@ -735,7 +735,39 @@ class SystemContract(models.Model):
                     SystemContractHistory.create_from_contract(old_instance, user=user)
             except SystemContract.DoesNotExist:
                 pass
-        
+
+        # Auto-calculate dues if not explicitly provided
+        if self.due_amount_monthly is None or self.due_amount_yearly is None:
+            # Prefer subscription tiers if present
+            tiers = list(getattr(self, 'subscription_tiers', []).all()) if hasattr(self, 'subscription_tiers') else []
+            if tiers:
+                monthly = sum((t.monthly_billing_amount() or Decimal('0')) for t in tiers)
+                yearly = sum((t.yearly_billing_amount() or Decimal('0')) for t in tiers)
+            else:
+                base = self.fee_amount_including_vat() or self.contract_fee_amount or Decimal('0')
+                freq = (self.payment_frequency or '').lower()
+                monthly = self.due_amount_monthly
+                yearly = self.due_amount_yearly
+
+                if monthly is None or yearly is None:
+                    if freq == 'monthly':
+                        monthly = monthly if monthly is not None else base
+                        yearly = yearly if yearly is not None else (base * Decimal('12'))
+                    elif freq == 'quarterly':
+                        monthly = monthly if monthly is not None else (base / Decimal('3'))
+                        yearly = yearly if yearly is not None else (base * Decimal('4'))
+                    elif freq == 'yearly':
+                        yearly = yearly if yearly is not None else base
+                        monthly = monthly if monthly is not None else (yearly / Decimal('12'))
+                    else:
+                        # one_time or unspecified: treat as yearly, spread across 12 for monthly
+                        yearly = yearly if yearly is not None else base
+                        monthly = monthly if monthly is not None else (yearly / Decimal('12'))
+
+            if monthly is not None and yearly is not None:
+                self.due_amount_monthly = monthly.quantize(Decimal('0.01'))
+                self.due_amount_yearly = yearly.quantize(Decimal('0.01'))
+
         super().save(*args, **kwargs)
 
     def recalc_dues_from_tiers(self, save=True):

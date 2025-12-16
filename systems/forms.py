@@ -128,6 +128,28 @@ class SystemContractForm(forms.ModelForm):
         self.fields['exchange_rate_to_local'].help_text = "Local = billing * exchange rate"
         self.fields['renewal_copy'].help_text = "Upload renewal copy (PDF/Image/Doc)"
 
+        # Make Payment Terms a dropdown
+        PAYMENT_TERM_CHOICES = [
+            ('', '---------'),
+            ('monthly', 'Monthly (M) – billed every month'),
+            ('quarterly', 'Quarterly (Q) – billed every 3 months'),
+            ('semi_annual', 'Semi-annual (SA) – billed every 6 months'),
+            ('annual_upfront', 'Annual upfront (AU) – full year paid in advance'),
+            ('net_30', 'Net 30 (N30) – due 30 days after invoice'),
+            ('net_45', 'Net 45 (N45) – due 45 days after invoice'),
+            ('net_60', 'Net 60 (N60) – due 60 days after invoice'),
+            ('net_90', 'Net 90 (N90) – due 90 days after invoice'),
+            ('milestone', 'Milestone-based (MS) – tied to project milestones'),
+            ('other', 'Other / Custom'),
+        ]
+        current_value = (self.instance.payment_terms or '').strip()
+        self.fields['payment_terms'] = forms.ChoiceField(
+            choices=PAYMENT_TERM_CHOICES,
+            required=False,
+            initial=current_value if current_value in dict(PAYMENT_TERM_CHOICES) else '',
+            help_text="Standard payment term for this contract"
+        )
+
 
 SystemSubscriptionTierFormSet = inlineformset_factory(
     SystemContract,
