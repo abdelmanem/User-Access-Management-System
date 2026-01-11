@@ -62,12 +62,15 @@
                         </div>
                     </div>
 
-                    <!-- Filters -->
+                    <!-- Filters (Collapsible) -->
                     <div class="card mb-4">
-                        <div class="card-header">
+                        <div class="card-header d-flex justify-content-between align-items-center" style="cursor: pointer;" id="filtersToggle">
                             <h5 class="mb-0"><i class="fas fa-filter"></i> Filters</h5>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="filtersCollapseBtn" title="Collapse Filters">
+                                <i class="fas fa-chevron-up"></i>
+                            </button>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body" id="filtersContent">
                             <form method="get" class="row g-3">
                                 <div class="col-md-3">
                                     <label for="search" class="form-label">Search</label>
@@ -119,8 +122,11 @@
                         </div>
                     </div>
 
+                    <!-- Resize Handle -->
+                    <div id="resizeHandle" style="height: 8px; background: linear-gradient(to bottom, #e0e0e0, #f0f0f0); cursor: row-resize; margin: 8px 0; border-radius: 4px; user-select: none;" title="Drag to resize filter and table areas"></div>
+
                     <!-- Account Mapping Matrix -->
-                    <div class="card">
+                    <div class="card" id="tableCard">
                         <div class="card-header">
                             <h5 class="mb-0">
                                 <i class="fas fa-table"></i> Account Mapping Matrix
@@ -129,18 +135,27 @@
                         </div>
                         <div class="card-body">
                             {% if page_obj %}
-                            <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
-                                <table class="table table-bordered table-hover table-sm" style="font-size: 0.9rem;">
-                                    <thead class="table-light sticky-top">
+                            <div class="table-responsive" style="max-height: 600px; overflow-y: auto; position: relative;">
+                                <table class="table table-bordered table-hover table-sm sortable-table" style="font-size: 0.9rem;">
+                                    <thead class="table-light" style="position: sticky; top: 0; z-index: 10; background-color: #f8f9fa;">
                                         <tr>
-                                            <th rowspan="2" class="align-middle text-center" style="min-width: 200px;">
-                                                <i class="fas fa-user"></i> Employee
+                                            <th rowspan="2" class="align-middle text-center resizable-col" style="min-width: 200px; user-select: none;">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <span><i class="fas fa-user"></i> Employee</span>
+                                                    <div class="resize-handle" style="width: 4px; height: 20px; background: #ccc; cursor: col-resize; margin-left: 4px;"></div>
+                                                </div>
                                             </th>
-                                            <th rowspan="2" class="align-middle text-center" style="min-width: 120px;">
-                                                <i class="fas fa-id-badge"></i> Employee ID
+                                            <th rowspan="2" class="align-middle text-center resizable-col" style="min-width: 120px; user-select: none;">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <span><i class="fas fa-id-badge"></i> Employee ID</span>
+                                                    <div class="resize-handle" style="width: 4px; height: 20px; background: #ccc; cursor: col-resize; margin-left: 4px;"></div>
+                                                </div>
                                             </th>
-                                            <th rowspan="2" class="align-middle text-center" style="min-width: 150px;">
-                                                <i class="fas fa-building"></i> Department
+                                            <th rowspan="2" class="align-middle text-center resizable-col" style="min-width: 150px; user-select: none;">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <span><i class="fas fa-building"></i> Department</span>
+                                                    <div class="resize-handle" style="width: 4px; height: 20px; background: #ccc; cursor: col-resize; margin-left: 4px;"></div>
+                                                </div>
                                             </th>
                                             {% for system in systems %}
                                             <th class="text-center" style="min-width: 150px; writing-mode: vertical-rl; text-orientation: mixed;">
@@ -296,26 +311,176 @@
 {% endblock %}
 
 {% block extrajs %}
+<style>
+  .resizable-col {
+    position: relative;
+    user-select: none;
+  }
+  .resize-handle {
+    cursor: col-resize;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .resizable-col:hover .resize-handle {
+    opacity: 1;
+  }
+  th.sortable {
+    cursor: pointer;
+    user-select: none;
+  }
+  th.sortable:hover {
+    background-color: #e9ecef !important;
+  }
+  th.sort-asc::after {
+    content: " ↑";
+    font-size: 0.8em;
+    color: #0d6efd;
+  }
+  th.sort-desc::after {
+    content: " ↓";
+    font-size: 0.8em;
+    color: #0d6efd;
+  }
+</style>
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Collapsible Filters
+  const filtersToggle = document.getElementById('filtersToggle');
+  const filtersContent = document.getElementById('filtersContent');
+  const filtersCollapseBtn = document.getElementById('filtersCollapseBtn');
+  let filtersCollapsed = false;
+
+  if (filtersToggle && filtersContent) {
+    filtersToggle.addEventListener('click', function() {
+      filtersCollapsed = !filtersCollapsed;
+      if (filtersCollapsed) {
+        filtersContent.style.display = 'none';
+        filtersCollapseBtn.innerHTML = '<i class="fas fa-chevron-down"></i>';
+        localStorage.setItem('csm-filters-collapsed', 'true');
+      } else {
+        filtersContent.style.display = 'block';
+        filtersCollapseBtn.innerHTML = '<i class="fas fa-chevron-up"></i>';
+        localStorage.setItem('csm-filters-collapsed', 'false');
+      }
+    });
+
+    // Restore previous state
+    if (localStorage.getItem('csm-filters-collapsed') === 'true') {
+      filtersContent.style.display = 'none';
+      filtersCollapseBtn.innerHTML = '<i class="fas fa-chevron-down"></i>';
+      filtersCollapsed = true;
+    }
+  }
+
+  // Resizable Columns
+  const resizeHandles = document.querySelectorAll('.resize-handle');
+  resizeHandles.forEach(handle => {
+    handle.addEventListener('mousedown', startColResize);
+  });
+
+  function startColResize(e) {
+    e.preventDefault();
+    const th = e.target.closest('th');
+    const table = th.closest('table');
+    const startX = e.clientX;
+    const startWidth = th.offsetWidth;
+
+    function doResize(e) {
+      const delta = e.clientX - startX;
+      th.style.minWidth = (startWidth + delta) + 'px';
+    }
+
+    function stopResize() {
+      document.removeEventListener('mousemove', doResize);
+      document.removeEventListener('mouseup', stopResize);
+    }
+
+    document.addEventListener('mousemove', doResize);
+    document.addEventListener('mouseup', stopResize);
+  }
+
+  // Vertical Resize Handle (filters vs table)
+  const resizeHandle = document.getElementById('resizeHandle');
+  const filtersCard = document.querySelector('.card:has(> .card-header #filtersToggle)');
+  const tableCard = document.getElementById('tableCard');
+
+  if (resizeHandle && filtersCard && tableCard) {
+    let isResizing = false;
+    const containerHeight = filtersCard.parentElement.offsetHeight;
+
+    resizeHandle.addEventListener('mousedown', function(e) {
+      e.preventDefault();
+      isResizing = true;
+      document.body.style.cursor = 'row-resize';
+      document.body.style.userSelect = 'none';
+
+      function doResize(e) {
+        if (!isResizing) return;
+        const containerRect = resizeHandle.parentElement.getBoundingClientRect();
+        const newFilterHeight = e.clientY - containerRect.top - 4;
+        if (newFilterHeight > 100) {
+          filtersCard.style.maxHeight = (newFilterHeight - 50) + 'px';
+          filtersCard.style.overflowY = 'auto';
+        }
+      }
+
+      function stopResize() {
+        isResizing = false;
+        document.body.style.cursor = 'auto';
+        document.body.style.userSelect = 'auto';
+        document.removeEventListener('mousemove', doResize);
+        document.removeEventListener('mouseup', stopResize);
+      }
+
+      document.addEventListener('mousemove', doResize);
+      document.addEventListener('mouseup', stopResize);
+    });
+  }
+
+  // Sortable Table Headers
+  const sortableTable = document.querySelector('.sortable-table');
+  if (sortableTable) {
+    const headers = sortableTable.querySelectorAll('thead th');
+    headers.forEach((header, idx) => {
+      // Skip system columns (they're complex) - only make first 3 sortable
+      if (idx < 3) {
+        header.classList.add('sortable');
+        header.style.cursor = 'pointer';
+        header.addEventListener('click', function() {
+          sortTable(sortableTable, idx);
+        });
+      }
+    });
+  }
+
+  function sortTable(table, columnIdx) {
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    const header = table.querySelector(`thead th:nth-child(${columnIdx + 1})`);
+    
+    const isAsc = !header.classList.contains('sort-asc');
+    
+    // Remove sort indicators from all headers
+    table.querySelectorAll('thead th').forEach(h => {
+      h.classList.remove('sort-asc', 'sort-desc');
+    });
+
+    rows.sort((a, b) => {
+      const aVal = a.children[columnIdx].textContent.trim().toLowerCase();
+      const bVal = b.children[columnIdx].textContent.trim().toLowerCase();
+      return isAsc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+    });
+
+    header.classList.add(isAsc ? 'sort-asc' : 'sort-desc');
+    rows.forEach(row => tbody.appendChild(row));
+  }
+});
+
 function exportMapping(format = 'csv') {
-    // Get current filter parameters
     const params = new URLSearchParams(window.location.search);
     params.set('export', format || 'csv');
     window.location.href = '?' + params.toString();
 }
-
-// Make table header sticky on scroll
-document.addEventListener('DOMContentLoaded', function() {
-    const table = document.querySelector('.table-responsive');
-    if (table) {
-        table.addEventListener('scroll', function() {
-            const thead = this.querySelector('thead');
-            if (thead) {
-                thead.style.transform = `translateY(${this.scrollTop}px)`;
-            }
-        });
-    }
-});
 </script>
 {% endblock %}
 

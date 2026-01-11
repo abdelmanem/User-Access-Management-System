@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Accounts Assignment Status{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'access_management/css/accounts_status.css' %}">
+<div class="accounts-status container">
+  <h1>Accounts Assignment Status</h1>
+
+  <section class="panel unassigned">
+    <h2>Unassigned Accounts <span class="count">({{ unassigned_accounts|length }})</span></h2>
+    {% if unassigned_accounts %}
+      <table class="accounts-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Username</th>
+            <th>System</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for acct in unassigned_accounts %}
+          <tr>
+            <td>{% if acct.display_name %}{{ acct.display_name }}{% else %}{{ acct.username }}{% endif %}</td>
+            <td>{{ acct.username }}</td>
+            <td>{{ acct.system.name }}</td>
+            <td><a class="btn" href="#">View</a></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="empty">No unassigned accounts.</p>
+    {% endif %}
+  </section>
+
+  <section class="panel assigned">
+    <h2>Assigned Accounts <span class="count">({{ assigned_accounts|length }})</span></h2>
+    {% if assigned_accounts %}
+      <table class="accounts-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Username</th>
+            <th>Assigned To</th>
+            <th>System</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for acct in assigned_accounts %}
+          <tr>
+            <td>{% if acct.display_name %}{{ acct.display_name }}{% else %}{{ acct.username }}{% endif %}</td>
+            <td>{{ acct.username }}</td>
+            <td>{% if acct.assigned_to %}{{ acct.assigned_to }}{% else %}&mdash;{% endif %}</td>
+            <td>{{ acct.system.name }}</td>
+            <td><a class="btn" href="#">View</a></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="empty">No assigned accounts.</p>
+    {% endif %}
+  </section>
+
+</div>
+{% endblock %}

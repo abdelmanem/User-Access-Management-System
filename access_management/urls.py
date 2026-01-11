@@ -51,4 +51,5 @@ urlpatterns = [
     # Cross-System Account Mapping
     path('cross-system-mapping/', views.cross_system_account_mapping, name='cross_system_account_mapping'),
     path('users/<int:user_id>/cross-system-accounts/', views.user_cross_system_accounts, name='user_cross_system_accounts'),
+    path('accounts/status/', views.accounts_status, name='accounts_status'),
 ]

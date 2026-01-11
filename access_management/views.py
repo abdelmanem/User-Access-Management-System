@@ -125,6 +125,8 @@ def export_access_assignments_to_excel(queryset):
     headers = [
         "User",
         "Username",
+        "Account Status",
+        "Employment Status",
         "Department",
         "System",
         "System Code",
@@ -149,6 +151,8 @@ def export_access_assignments_to_excel(queryset):
         worksheet.append([
             user.get_full_name() if user else '',
             user.username if user else '',
+            "Active" if user and user.is_active else "Inactive" if user else '',
+            user.employment_status if user else '',
             user.department.name if user and user.department else '',
             system.name if system else '',
             system.code if system else '',
@@ -189,6 +193,8 @@ def export_access_assignments_to_pdf(queryset):
 
     headers = [
         "User",
+        "Account Status",
+        "Employment Status",
         "System",
         "Access Type",
         "Access Level",
@@ -212,6 +218,8 @@ def export_access_assignments_to_pdf(queryset):
 
         data.append([
             f"{user.get_full_name()} ({user.username})" if user else '',
+            "Active" if user and user.is_active else "Inactive" if user else '',
+            user.employment_status if user else '',
             f"{system.name} ({system.code})" if system else '',
             assignment.access_type or '',
             assignment.granted_access_level or '',
@@ -859,6 +867,8 @@ def access_assignment_list(request):
     access_type_filter = request.GET.get('access_type', '')
     system_filter = request.GET.get('system', '')
     user_filter = request.GET.get('user', '')
+    employment_status_filter = request.GET.get('employment_status', '')
+    user_active_filter = request.GET.get('user_active', '')
     search_query = request.GET.get('search', '')
     
     # Base queryset
@@ -875,6 +885,12 @@ def access_assignment_list(request):
         queryset = queryset.filter(system_id=system_filter)
     if user_filter:
         queryset = queryset.filter(user_id=user_filter)
+    if employment_status_filter:
+        queryset = queryset.filter(user__employment_status=employment_status_filter)
+    if user_active_filter == 'active':
+        queryset = queryset.filter(user__is_active=True)
+    elif user_active_filter == 'inactive':
+        queryset = queryset.filter(user__is_active=False)
     if search_query:
         queryset = queryset.filter(
             Q(user__username__icontains=search_query) |
@@ -923,6 +939,7 @@ def access_assignment_list(request):
         'status_choices': UserSystemAccess.STATUS_CHOICES,
         'priority_choices': UserSystemAccess.PRIORITY_CHOICES,
         'access_type_choices': UserSystemAccess.ACCESS_TYPE_CHOICES,
+        'employment_status_choices': CustomUser.EMPLOYMENT_STATUS_CHOICES,
         'systems': systems,
         'users': users,
         'filters': {
@@ -931,6 +948,8 @@ def access_assignment_list(request):
             'access_type': access_type_filter,
             'system': system_filter,
             'user': user_filter,
+            'employment_status': employment_status_filter,
+            'user_active': user_active_filter,
             'search': search_query,
         },
         'current_query': current_query,
@@ -3156,3 +3175,46 @@ def user_cross_system_accounts(request, user_id):
     }
     
     return render(request, 'access_management/user_cross_system_accounts.html', context)
+
+
+@login_required
+def accounts_status(request):
+    """Show service accounts split by assignment status (assigned vs unassigned).
+
+    This view prepares simple dicts to match the `accounts_status.html` template
+    so the template does not depend on a specific model API.
+    """
+    from service_accounts.models import ServiceAccount
+    assigned_qs = ServiceAccount.objects.filter(
+        Q(owner__isnull=False) | Q(admin_user__isnull=False)
+    ).select_related('system', 'owner', 'admin_user').order_by('system__name', 'account_name')
+    unassigned_qs = ServiceAccount.objects.filter(
+        owner__isnull=True, admin_user__isnull=True
+    ).select_related('system').order_by('system__name', 'account_name')
+
+    assigned_accounts = []
+    for s in assigned_qs:
+        assigned_accounts.append({
+            'display_name': s.account_name,
+            'username': s.account_name,
+            'system': s.system,
+            'assigned_to': s.owner.get_full_name() if s.owner else (s.admin_user.get_full_name() if s.admin_user else None),
+            'id': s.id,
+        })
+
+    unassigned_accounts = []
+    for s in unassigned_qs:
+        unassigned_accounts.append({
+            'display_name': s.account_name,
+            'username': s.account_name,
+            'system': s.system,
+            'assigned_to': None,
+            'id': s.id,
+        })
+
+    context = {
+        'assigned_accounts': assigned_accounts,
+        'unassigned_accounts': unassigned_accounts,
+    }
+
+    return render(request, 'access_management/accounts_status.html', context)

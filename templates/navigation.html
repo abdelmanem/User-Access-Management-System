@@ -121,6 +121,10 @@
                 <a class="sidebar-sublink{{ svc_report_active }}" href="{% url 'service_accounts:service_account_compliance_report' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-chart-bar"></i> Compliance Report
                 </a>
+                {% nav_active_class 'access_management:accounts_status' as accounts_status_active %}
+                <a class="sidebar-sublink{{ accounts_status_active }}" href="{% url 'access_management:accounts_status' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-layer-group"></i> Accounts Status
+                </a>
             </div>
 
             {% nav_active_class 'accounts:user_deactivation_audit_*' 'accounts:user_archive_*' 'accounts:user_deactivation_audit_list' 'accounts:user_deactivation_audit_detail' 'accounts:user_archive_list' 'accounts:user_archive_detail' as audit_active %}

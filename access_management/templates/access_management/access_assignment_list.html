@@ -84,6 +84,14 @@
                     <form method="get" class="mb-4">
                         <div class="row">
                             <div class="col-md-2">
+                                <label for="user_active" class="form-label">Account Status</label>
+                                <select name="user_active" id="user_active" class="form-select">
+                                    <option value="">All Accounts</option>
+                                    <option value="active" {% if filters.user_active == 'active' %}selected{% endif %}>Active</option>
+                                    <option value="inactive" {% if filters.user_active == 'inactive' %}selected{% endif %}>Inactive</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
                                 <label for="status" class="form-label">Status</label>
                                 <select name="status" id="status" class="form-select">
                                     <option value="">All Statuses</option>
@@ -98,6 +106,15 @@
                                     <option value="">All Priorities</option>
                                     {% for value, label in priority_choices %}
                                         <option value="{{ value }}" {% if filters.priority == value %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="employment_status" class="form-label">Employment Status</label>
+                                <select name="employment_status" id="employment_status" class="form-select">
+                                    <option value="">All Employment Status</option>
+                                    {% for value, label in employment_status_choices %}
+                                        <option value="{{ value }}" {% if filters.employment_status == value %}selected{% endif %}>{{ label }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -119,7 +136,9 @@
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="col-md-2">
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-6">
                                 <label for="user" class="form-label">User</label>
                                 <select name="user" id="user" class="form-select">
                                     <option value="">All Users</option>
@@ -128,15 +147,15 @@
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-md-6">
                                 <label for="search" class="form-label">Search</label>
-                                <input type="text" name="search" id="search" class="form-control" value="{{ filters.search }}" placeholder="Search...">
-                            </div>
-                        </div>
-                        <div class="row mt-2">
-                            <div class="col-12">
-                                <button type="submit" class="btn btn-primary">Filter</button>
-                                <a href="{% url 'access_management:access_assignment_list' %}" class="btn btn-secondary">Clear</a>
+                                <div class="input-group">
+                                    <input type="text" name="search" id="search" class="form-control" value="{{ filters.search }}" placeholder="Search by username, name, system, or justification...">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-search"></i> Filter
+                                    </button>
+                                    <a href="{% url 'access_management:access_assignment_list' %}" class="btn btn-secondary">Clear</a>
+                                </div>
                             </div>
                         </div>
                     </form>
@@ -147,6 +166,7 @@
                             <thead class="table-dark">
                                 <tr>
                                     <th>User / System</th>
+                                    <th>User Status</th>
                                     <th>Access Username</th>
                                     <th>Access Type</th>
                                     <th>Status</th>
@@ -160,7 +180,7 @@
                                 {% regroup access_assignments.object_list by user as user_groups %}
                                 {% for group in user_groups %}
                                 <tr class="table-primary">
-                                    <td colspan="8">
+                                    <td colspan="9">
                                         <div class="d-flex align-items-center justify-content-between">
                                             <div class="d-flex align-items-center gap-2">
                                                 <button class="btn btn-sm btn-outline-light"
@@ -184,6 +204,29 @@
                                     <td>
                                         <div class="fw-bold">{{ assignment.system.name }}</div>
                                         <small class="text-muted">{{ assignment.system.code }}</small>
+                                    </td>
+                                    <td>
+                                        {% if not assignment.user.is_active %}
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-times-circle"></i> Inactive
+                                            </span>
+                                        {% elif assignment.user.employment_status == 'Terminated' %}
+                                            <span class="badge bg-dark">
+                                                <i class="fas fa-ban"></i> Terminated
+                                            </span>
+                                        {% elif assignment.user.employment_status == 'Suspended' %}
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-pause-circle"></i> Suspended
+                                            </span>
+                                        {% elif assignment.user.employment_status == 'On Leave' %}
+                                            <span class="badge bg-info">
+                                                <i class="fas fa-calendar-alt"></i> On Leave
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle"></i> Active
+                                            </span>
+                                        {% endif %}
                                     </td>
                                     <td>
                                         {% if assignment.effective_username %}
@@ -240,7 +283,7 @@
                                 {% endfor %}
                                 {% empty %}
                                 <tr>
-                                    <td colspan="8" class="text-center text-muted">
+                                    <td colspan="9" class="text-center text-muted">
                                         <i class="fas fa-key fa-3x mb-3"></i>
                                         <p>No access assignments found.</p>
                                     </td>
