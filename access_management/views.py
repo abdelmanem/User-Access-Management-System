@@ -1856,9 +1856,12 @@ def user_access_assignments(request, user_id):
     # Get filter parameters
     status_filter = request.GET.get('status', '')
     system_filter = request.GET.get('system', '')
+    next_url = request.GET.get('next', '')
     
-    # Base queryset
-    queryset = UserSystemAccess.objects.select_related('system').filter(user=user)
+    # Base queryset - optimized with select_related for efficiency
+    queryset = UserSystemAccess.objects.select_related(
+        'system', 'approved_by', 'requested_by', 'updated_by'
+    ).filter(user=user)
     
     # Apply filters
     if status_filter and status_filter.lower() != 'all':
@@ -1933,21 +1936,30 @@ def user_access_assignments(request, user_id):
         messages.error(request, 'Unsupported bulk action.')
         return redirect(request.get_full_path())
     
-    # Pagination
-    paginator = Paginator(queryset.order_by('-created_at'), 25)
+    # Pagination - order by system for accordion grouping in template
+    queryset_ordered = queryset.order_by('system__name', '-request_date', 'pk')
+    paginator = Paginator(queryset_ordered, 25)
     page_number = request.GET.get('page')
     access_assignments = paginator.get_page(page_number)
     
     # Summary metrics
     total_assignments = queryset.count()
-    active_assignments = queryset.filter(status='Active').count()
+    active_assignments = queryset.filter(status__in=['Active', 'Approved']).count()
     pending_assignments = queryset.filter(status='Pending').count()
+    expired_assignments = queryset.filter(status='Expired').count()
     unique_systems = queryset.values('system_id').distinct().count()
     
     # Get user's systems for filter
     user_systems = System.objects.filter(
         user_accesses__user=user
     ).distinct().order_by('name')
+    
+    # Fallback next_url to access_assignment_list if not provided
+    if not next_url:
+        next_url = request.META.get('HTTP_REFERER', '')
+        if 'user/' in next_url and f'/users/{user_id}/' in next_url:
+            # Avoid redirect loop back to same page
+            next_url = ''
     
     context = {
         'user': user,
@@ -1960,9 +1972,11 @@ def user_access_assignments(request, user_id):
             'status': status_filter,
             'system': system_filter,
         },
+        'next_url': next_url,
         'total_assignments': total_assignments,
         'active_assignments': active_assignments,
         'pending_assignments': pending_assignments,
+        'expired_assignments': expired_assignments,
         'unique_systems': unique_systems,
         'is_paginated': access_assignments.has_other_pages(),
         'page_obj': access_assignments,

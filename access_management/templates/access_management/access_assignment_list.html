@@ -196,6 +196,7 @@
                                                     <small class="text-muted">{{ group.grouper.username }}</small>
                                                 </div>
                                             </div>
+                                            <span class="badge bg-info">{{ group.list|length }} Assignments</span>
                                         </div>
                                     </td>
                                 </tr>
@@ -260,7 +261,7 @@
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <a href="{% url 'access_management:access_assignment_detail' assignment.pk %}" class="btn btn-sm btn-outline-primary" title="View">
+                                            <a href="{% url 'access_management:user_access_assignments' assignment.user.id %}?next={{ request.get_full_path|urlencode }}" class="btn btn-sm btn-outline-primary" title="View User Access">
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                             <a href="{% url 'access_management:access_assignment_update' assignment.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit">
