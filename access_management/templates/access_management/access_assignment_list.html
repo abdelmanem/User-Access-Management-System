@@ -3,376 +3,839 @@
 
 {% block title %}Access Assignments - User Access Management{% endblock %}
 
+{% block extracss %}
+<style>
+    /* Card hover effects */
+    .assignment-card {
+        transition: all 0.3s ease;
+        border-left: 4px solid transparent;
+    }
+    
+    .assignment-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    /* Priority border colors */
+    .priority-critical { border-left-color: #dc3545 !important; }
+    .priority-high { border-left-color: #fd7e14 !important; }
+    .priority-medium { border-left-color: #ffc107 !important; }
+    .priority-low { border-left-color: #6c757d !important; }
+    
+    /* Status-specific card backgrounds */
+    .status-expired { background-color: rgba(248, 215, 218, 0.3); }
+    .status-pending { background-color: rgba(255, 243, 205, 0.3); }
+    
+    /* Bulk actions bar animation */
+    #bulkActionsBar {
+        animation: slideDown 0.3s ease;
+    }
+    
+    @keyframes slideDown {
+        from { transform: translateY(-20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+    
+    /* Quick filter chips */
+    .filter-chip {
+        transition: all 0.2s ease;
+    }
+    
+    .filter-chip:hover {
+        transform: scale(1.05);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    
+    /* Loading overlay */
+    #loadingOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+    
+    /* Mobile responsiveness */
+    @media (max-width: 768px) {
+        .hide-mobile { display: none !important; }
+        .assignment-card .btn-group { flex-direction: column; }
+        .assignment-card .btn-group .btn { width: 100%; margin-bottom: 0.25rem; }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h3 class="card-title mb-0">
-                            <i class="fas fa-key"></i> Access Assignments
-                        </h3>
-                        <div class="d-flex flex-wrap gap-2 justify-content-end">
-                            <a href="?{% if current_query %}{{ current_query }}&{% endif %}export=xlsx" class="btn btn-outline-success">
-                                <i class="fas fa-file-excel"></i> Export Excel
-                            </a>
-                            <a href="?{% if current_query %}{{ current_query }}&{% endif %}export=pdf" class="btn btn-outline-danger">
-                                <i class="fas fa-file-pdf"></i> Export PDF
-                            </a>
-                            <a href="{% url 'access_management:access_assignment_create' %}" class="btn btn-primary">
-                                <i class="fas fa-plus"></i> New Assignment
-                            </a>
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-key text-primary"></i> Access Assignments
+            </h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                    <li class="breadcrumb-item active">Access Management</li>
+                    <li class="breadcrumb-item active">Assignments</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="?{% if current_query %}{{ current_query }}&{% endif %}export=xlsx" 
+               class="btn btn-outline-success">
+                <i class="fas fa-file-excel"></i> Excel
+            </a>
+            <a href="?{% if current_query %}{{ current_query }}&{% endif %}export=pdf" 
+               class="btn btn-outline-danger">
+                <i class="fas fa-file-pdf"></i> PDF
+            </a>
+            <a href="{% url 'access_management:access_assignment_create' %}" 
+               class="btn btn-primary">
+                <i class="fas fa-plus"></i> New Assignment
+            </a>
+        </div>
+    </div>
+
+    <!-- Alert Cards for Critical Items -->
+    {% if quick_filter_counts.expiring_soon > 0 or quick_filter_counts.pending_over_7_days > 0 %}
+    <div class="row g-3 mb-4">
+        {% if quick_filter_counts.expiring_soon > 0 %}
+        <div class="col-md-6">
+            <div class="alert alert-warning mb-0 d-flex align-items-center shadow-sm" role="alert">
+                <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
+                <div class="flex-grow-1">
+                    <h6 class="alert-heading mb-1 fw-bold">Expiring Soon</h6>
+                    <p class="mb-0">{{ quick_filter_counts.expiring_soon }} assignment{{ quick_filter_counts.expiring_soon|pluralize }} expire within 30 days</p>
+                </div>
+                <a href="?days_to_expiry=30" class="btn btn-warning">
+                    <i class="fas fa-search"></i> Review
+                </a>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if quick_filter_counts.pending_over_7_days > 0 %}
+        <div class="col-md-6">
+            <div class="alert alert-danger mb-0 d-flex align-items-center shadow-sm" role="alert">
+                <i class="fas fa-clock fa-2x me-3"></i>
+                <div class="flex-grow-1">
+                    <h6 class="alert-heading mb-1 fw-bold">Overdue Approvals</h6>
+                    <p class="mb-0">{{ quick_filter_counts.pending_over_7_days }} assignment{{ quick_filter_counts.pending_over_7_days|pluralize }} pending over 7 days</p>
+                </div>
+                <a href="?status=Pending&days_pending=7" class="btn btn-danger">
+                    <i class="fas fa-search"></i> Review
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Main Card -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <!-- Summary Metrics -->
+            {% if summary_metrics %}
+            <div class="row row-cols-2 row-cols-md-3 row-cols-xl-6 g-3 mb-4">
+                <div class="col">
+                    <div class="card border-primary h-100 shadow-sm">
+                        <div class="card-body text-primary">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="card-subtitle text-uppercase fw-semibold mb-1 small">Total</h6>
+                                    <h3 class="card-title mb-0">{{ summary_metrics.total }}</h3>
+                                </div>
+                                <i class="fas fa-list fa-2x opacity-50"></i>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="card-body">
-                    {% if summary_metrics %}
-                    <div class="row row-cols-1 row-cols-md-3 row-cols-xl-6 g-3 mb-4">
-                        <div class="col">
-                            <div class="card border-primary h-100">
-                                <div class="card-body text-primary">
-                                    <h6 class="card-subtitle text-uppercase fw-semibold mb-1 small">Total Assignments</h6>
-                                    <h3 class="card-title mb-0">{{ summary_metrics.total }}</h3>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="card border-success h-100">
-                                <div class="card-body text-success">
+                <div class="col">
+                    <div class="card border-success h-100 shadow-sm">
+                        <div class="card-body text-success">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
                                     <h6 class="card-subtitle text-uppercase fw-semibold mb-1 small">Active</h6>
                                     <h3 class="card-title mb-0">{{ summary_metrics.active }}</h3>
                                 </div>
+                                <i class="fas fa-check-circle fa-2x opacity-50"></i>
+                            </div>
+                            <div class="mt-2">
+                                <a href="?status=Active" class="small text-decoration-none">
+                                    View <i class="fas fa-arrow-right"></i>
+                                </a>
                             </div>
                         </div>
-                        <div class="col">
-                            <div class="card border-warning h-100">
-                                <div class="card-body text-warning">
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card border-warning h-100 shadow-sm">
+                        <div class="card-body text-warning">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
                                     <h6 class="card-subtitle text-uppercase fw-semibold mb-1 small">Pending</h6>
                                     <h3 class="card-title mb-0">{{ summary_metrics.pending }}</h3>
                                 </div>
+                                <i class="fas fa-clock fa-2x opacity-50"></i>
+                            </div>
+                            <div class="mt-2">
+                                <a href="?status=Pending" class="small text-decoration-none">
+                                    View <i class="fas fa-arrow-right"></i>
+                                </a>
                             </div>
                         </div>
-                        <div class="col">
-                            <div class="card border-danger h-100">
-                                <div class="card-body text-danger">
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card border-danger h-100 shadow-sm">
+                        <div class="card-body text-danger">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
                                     <h6 class="card-subtitle text-uppercase fw-semibold mb-1 small">Expired</h6>
                                     <h3 class="card-title mb-0">{{ summary_metrics.expired }}</h3>
                                 </div>
+                                <i class="fas fa-times-circle fa-2x opacity-50"></i>
+                            </div>
+                            <div class="mt-2">
+                                <a href="?status=Expired" class="small text-decoration-none">
+                                    View <i class="fas fa-arrow-right"></i>
+                                </a>
                             </div>
                         </div>
-                        <div class="col">
-                            <div class="card border-info h-100">
-                                <div class="card-body text-info">
-                                    <h6 class="card-subtitle text-uppercase fw-semibold mb-1 small">Unique Users</h6>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card border-info h-100 shadow-sm">
+                        <div class="card-body text-info">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="card-subtitle text-uppercase fw-semibold mb-1 small">Users</h6>
                                     <h3 class="card-title mb-0">{{ summary_metrics.unique_users }}</h3>
                                 </div>
+                                <i class="fas fa-users fa-2x opacity-50"></i>
                             </div>
                         </div>
-                        <div class="col">
-                            <div class="card border-secondary h-100">
-                                <div class="card-body text-secondary">
-                                    <h6 class="card-subtitle text-uppercase fw-semibold mb-1 small">Unique Systems</h6>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card border-secondary h-100 shadow-sm">
+                        <div class="card-body text-secondary">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="card-subtitle text-uppercase fw-semibold mb-1 small">Systems</h6>
                                     <h3 class="card-title mb-0">{{ summary_metrics.unique_systems }}</h3>
                                 </div>
+                                <i class="fas fa-server fa-2x opacity-50"></i>
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Quick Filter Chips -->
+            <div class="mb-3">
+                <div class="d-flex gap-2 flex-wrap align-items-center">
+                    <span class="text-muted small fw-semibold">Quick Filters:</span>
+                    {% if request.user.is_authenticated %}
+                    <a href="?status=Pending" 
+                       class="badge bg-primary-subtle text-primary p-2 text-decoration-none filter-chip">
+                        <i class="fas fa-clock"></i> My Pending 
+                        {% if quick_filter_counts.my_pending > 0 %}
+                            <span class="badge bg-primary ms-1">{{ quick_filter_counts.my_pending }}</span>
+                        {% endif %}
+                    </a>
                     {% endif %}
-
-                    <!-- Filters -->
-                    <form method="get" class="mb-4">
-                        <div class="row">
-                            <div class="col-md-2">
-                                <label for="user_active" class="form-label">Account Status</label>
-                                <select name="user_active" id="user_active" class="form-select">
-                                    <option value="">All Accounts</option>
-                                    <option value="active" {% if filters.user_active == 'active' %}selected{% endif %}>Active</option>
-                                    <option value="inactive" {% if filters.user_active == 'inactive' %}selected{% endif %}>Inactive</option>
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <label for="status" class="form-label">Status</label>
-                                <select name="status" id="status" class="form-select">
-                                    <option value="">All Statuses</option>
-                                    {% for value, label in status_choices %}
-                                        <option value="{{ value }}" {% if filters.status == value %}selected{% endif %}>{{ label }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <label for="priority" class="form-label">Priority</label>
-                                <select name="priority" id="priority" class="form-select">
-                                    <option value="">All Priorities</option>
-                                    {% for value, label in priority_choices %}
-                                        <option value="{{ value }}" {% if filters.priority == value %}selected{% endif %}>{{ label }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <label for="employment_status" class="form-label">Employment Status</label>
-                                <select name="employment_status" id="employment_status" class="form-select">
-                                    <option value="">All Employment Status</option>
-                                    {% for value, label in employment_status_choices %}
-                                        <option value="{{ value }}" {% if filters.employment_status == value %}selected{% endif %}>{{ label }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <label for="access_type" class="form-label">Access Type</label>
-                                <select name="access_type" id="access_type" class="form-select">
-                                    <option value="">All Types</option>
-                                    {% for value, label in access_type_choices %}
-                                        <option value="{{ value }}" {% if filters.access_type == value %}selected{% endif %}>{{ label }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <label for="system" class="form-label">System</label>
-                                <select name="system" id="system" class="form-select">
-                                    <option value="">All Systems</option>
-                                    {% for system in systems %}
-                                        <option value="{{ system.id }}" {% if filters.system == system.id|stringformat:"s" %}selected{% endif %}>{{ system.name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-                        <div class="row mt-2">
-                            <div class="col-md-6">
-                                <label for="user" class="form-label">User</label>
-                                <select name="user" id="user" class="form-select">
-                                    <option value="">All Users</option>
-                                    {% for user in users %}
-                                        <option value="{{ user.id }}" {% if filters.user == user.id|stringformat:"s" %}selected{% endif %}>{{ user.full_name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="search" class="form-label">Search</label>
-                                <div class="input-group">
-                                    <input type="text" name="search" id="search" class="form-control" value="{{ filters.search }}" placeholder="Search by username, name, system, or justification...">
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-search"></i> Filter
-                                    </button>
-                                    <a href="{% url 'access_management:access_assignment_list' %}" class="btn btn-secondary">Clear</a>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-
-                    <!-- Access Assignments Table -->
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover align-middle">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>User / System</th>
-                                    <th>User Status</th>
-                                    <th>Access Username</th>
-                                    <th>Access Type</th>
-                                    <th>Status</th>
-                                    <th>Priority</th>
-                                    <th>Request Date</th>
-                                    <th>Approved By</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% regroup access_assignments.object_list by user as user_groups %}
-                                {% for group in user_groups %}
-                                <tr class="table-primary">
-                                    <td colspan="9">
-                                        <div class="d-flex align-items-center justify-content-between">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <button class="btn btn-sm btn-outline-light"
-                                                        type="button"
-                                                        data-bs-toggle="collapse"
-                                                        data-bs-target=".user-group-{{ group.grouper.id }}"
-                                                        aria-expanded="true"
-                                                        aria-controls="user-group-{{ group.grouper.id }}">
-                                                    <i class="fas fa-chevron-down"></i>
-                                                </button>
-                                                <div>
-                                                    <div class="fw-bold">{{ group.grouper.full_name }}</div>
-                                                    <small class="text-muted">{{ group.grouper.username }}</small>
-                                                </div>
-                                            </div>
-                                            <span class="badge bg-info">{{ group.list|length }} Assignments</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% for assignment in group.list %}
-                                <tr class="collapse show user-group-{{ group.grouper.id }}">
-                                    <td>
-                                        <div class="fw-bold">{{ assignment.system.name }}</div>
-                                        <small class="text-muted">{{ assignment.system.code }}</small>
-                                    </td>
-                                    <td>
-                                        {% if not assignment.user.is_active %}
-                                            <span class="badge bg-danger">
-                                                <i class="fas fa-times-circle"></i> Inactive
-                                            </span>
-                                        {% elif assignment.user.employment_status == 'Terminated' %}
-                                            <span class="badge bg-dark">
-                                                <i class="fas fa-ban"></i> Terminated
-                                            </span>
-                                        {% elif assignment.user.employment_status == 'Suspended' %}
-                                            <span class="badge bg-warning">
-                                                <i class="fas fa-pause-circle"></i> Suspended
-                                            </span>
-                                        {% elif assignment.user.employment_status == 'On Leave' %}
-                                            <span class="badge bg-info">
-                                                <i class="fas fa-calendar-alt"></i> On Leave
-                                            </span>
-                                        {% else %}
-                                            <span class="badge bg-success">
-                                                <i class="fas fa-check-circle"></i> Active
-                                            </span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if assignment.effective_username %}
-                                            <code>{{ assignment.effective_username }}</code>
-                                        {% else %}
-                                            <span class="text-muted">-</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ assignment.access_type }}</td>
-                                    <td>
-                                        <span class="badge bg-{{ assignment.get_status_color }}">
-                                            {{ assignment.status }}
-                                        </span>
-                                        {% if assignment.is_expired %}
-                                            <span class="badge bg-dark">Expired</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-{{ assignment.get_priority_color }}">
-                                            {{ assignment.priority }}
-                                        </span>
-                                    </td>
-                                    <td>{{ assignment.request_date|date:"Y-m-d H:i" }}</td>
-                                    <td>
-                                        {% if assignment.approved_by %}
-                                            {{ assignment.approved_by.full_name }}
-                                            <br><small class="text-muted">{{ assignment.approval_date|date:"Y-m-d" }}</small>
-                                        {% else %}
-                                            <span class="text-muted">Not approved</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <div class="btn-group" role="group">
-                                            <a href="{% url 'access_management:user_access_assignments' assignment.user.id %}?next={{ request.get_full_path|urlencode }}" class="btn btn-sm btn-outline-primary" title="View User Access">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a href="{% url 'access_management:access_assignment_update' assignment.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            {% if assignment.status == 'Pending' %}
-                                                <button type="button" class="btn btn-sm btn-outline-success" onclick="approveAccess({{ assignment.pk }})" title="Approve">
-                                                    <i class="fas fa-check"></i>
-                                                </button>
-                                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="rejectAccess({{ assignment.pk }})" title="Reject">
-                                                    <i class="fas fa-times"></i>
-                                                </button>
-                                            {% endif %}
-                                            <a href="{% url 'access_management:access_assignment_delete' assignment.pk %}" class="btn btn-sm btn-outline-danger" title="Delete">
-                                                <i class="fas fa-trash"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                                {% empty %}
-                                <tr>
-                                    <td colspan="9" class="text-center text-muted">
-                                        <i class="fas fa-key fa-3x mb-3"></i>
-                                        <p>No access assignments found.</p>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Pagination -->
-                    {% if access_assignments.has_other_pages %}
-                    <nav aria-label="Page navigation">
-                        <ul class="pagination justify-content-center">
-                            {% if access_assignments.has_previous %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ access_assignments.previous_page_number }}{% for key, value in filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Previous</a>
-                                </li>
-                            {% endif %}
-                            
-                            {% for num in access_assignments.paginator.page_range %}
-                                {% if access_assignments.number == num %}
-                                    <li class="page-item active">
-                                        <span class="page-link">{{ num }}</span>
-                                    </li>
-                                {% elif num > access_assignments.number|add:'-3' and num < access_assignments.number|add:'3' %}
-                                    <li class="page-item">
-                                        <a class="page-link" href="?page={{ num }}{% for key, value in filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
-                                    </li>
-                                {% endif %}
-                            {% endfor %}
-                            
-                            {% if access_assignments.has_next %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ access_assignments.next_page_number }}{% for key, value in filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Next</a>
-                                </li>
-                            {% endif %}
-                        </ul>
-                    </nav>
+                    <a href="?days_to_expiry=30" 
+                       class="badge bg-warning-subtle text-warning p-2 text-decoration-none filter-chip">
+                        <i class="fas fa-exclamation-triangle"></i> Expiring Soon 
+                        {% if quick_filter_counts.expiring_soon > 0 %}
+                            <span class="badge bg-warning ms-1">{{ quick_filter_counts.expiring_soon }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="?priority=High&priority=Critical" 
+                       class="badge bg-danger-subtle text-danger p-2 text-decoration-none filter-chip">
+                        <i class="fas fa-flag"></i> High Priority 
+                        {% if quick_filter_counts.high_priority > 0 %}
+                            <span class="badge bg-danger ms-1">{{ quick_filter_counts.high_priority }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="?status=Active" 
+                       class="badge bg-success-subtle text-success p-2 text-decoration-none filter-chip">
+                        <i class="fas fa-check"></i> Active Only
+                    </a>
+                    {% if filters.status or filters.system or filters.user or filters.priority %}
+                    <a href="?" class="badge bg-secondary-subtle text-secondary p-2 text-decoration-none filter-chip">
+                        <i class="fas fa-times"></i> Clear Filters
+                    </a>
                     {% endif %}
                 </div>
             </div>
+
+            <!-- Search Bar -->
+            <div class="mb-4">
+                <form method="get" class="row g-2">
+                    <div class="col-md-10">
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-white">
+                                <i class="fas fa-search text-muted"></i>
+                            </span>
+                            <input type="text" 
+                                   class="form-control border-start-0" 
+                                   name="search"
+                                   placeholder="Search by user name, username, system, or justification..."
+                                   value="{{ filters.search }}"
+                                   style="box-shadow: none;">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Advanced Filters (Collapsible) -->
+            <div class="card mb-4 border">
+                <div class="card-header bg-light p-2">
+                    <button class="btn btn-link text-decoration-none w-100 text-start p-2" 
+                            type="button" 
+                            data-bs-toggle="collapse" 
+                            data-bs-target="#filterPanel"
+                            aria-expanded="false">
+                        <i class="fas fa-filter"></i> 
+                        <strong>Advanced Filters</strong>
+                        <span class="badge bg-secondary ms-2" id="activeFilterCount">
+                            {% if filters.status or filters.priority or filters.access_type or filters.system or filters.user or filters.employment_status or filters.user_active %}
+                                {% with count=0 %}
+                                {% if filters.status %}{% with count=count|add:1 %}{% endwith %}{% endif %}
+                                {% if filters.priority %}{% with count=count|add:1 %}{% endwith %}{% endif %}
+                                {% if filters.access_type %}{% with count=count|add:1 %}{% endwith %}{% endif %}
+                                {% if filters.system %}{% with count=count|add:1 %}{% endwith %}{% endif %}
+                                {% if filters.user %}{% with count=count|add:1 %}{% endwith %}{% endif %}
+                                {% if filters.employment_status %}{% with count=count|add:1 %}{% endwith %}{% endif %}
+                                {% if filters.user_active %}{% with count=count|add:1 %}{% endwith %}{% endif %}
+                                {{ count }} active
+                                {% endwith %}
+                            {% else %}
+                                0 active
+                            {% endif %}
+                        </span>
+                        <i class="fas fa-chevron-down float-end mt-1"></i>
+                    </button>
+                </div>
+                <div class="collapse" id="filterPanel">
+                    <div class="card-body">
+                        <form method="get" id="filterForm">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label for="status" class="form-label fw-semibold">Status</label>
+                                    <select name="status" id="status" class="form-select">
+                                        <option value="">All Statuses</option>
+                                        {% for value, label in status_choices %}
+                                            <option value="{{ value }}" {% if filters.status == value %}selected{% endif %}>
+                                                {{ label }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="priority" class="form-label fw-semibold">Priority</label>
+                                    <select name="priority" id="priority" class="form-select">
+                                        <option value="">All Priorities</option>
+                                        {% for value, label in priority_choices %}
+                                            <option value="{{ value }}" {% if filters.priority == value %}selected{% endif %}>
+                                                {{ label }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="system" class="form-label fw-semibold">System</label>
+                                    <select name="system" id="system" class="form-select">
+                                        <option value="">All Systems</option>
+                                        {% for system in systems %}
+                                            <option value="{{ system.id }}" {% if filters.system == system.id|stringformat:"s" %}selected{% endif %}>
+                                                {{ system.name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="access_type" class="form-label fw-semibold">Access Type</label>
+                                    <select name="access_type" id="access_type" class="form-select">
+                                        <option value="">All Types</option>
+                                        {% for value, label in access_type_choices %}
+                                            <option value="{{ value }}" {% if filters.access_type == value %}selected{% endif %}>
+                                                {{ label }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="user" class="form-label fw-semibold">User</label>
+                                    <select name="user" id="user" class="form-select">
+                                        <option value="">All Users</option>
+                                        {% for user in users %}
+                                            <option value="{{ user.id }}" {% if filters.user == user.id|stringformat:"s" %}selected{% endif %}>
+                                                {{ user.get_full_name }} ({{ user.username }})
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="employment_status" class="form-label fw-semibold">Employment Status</label>
+                                    <select name="employment_status" id="employment_status" class="form-select">
+                                        <option value="">All Employment Status</option>
+                                        {% for value, label in employment_status_choices %}
+                                            <option value="{{ value }}" {% if filters.employment_status == value %}selected{% endif %}>
+                                                {{ label }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="user_active" class="form-label fw-semibold">Account Status</label>
+                                    <select name="user_active" id="user_active" class="form-select">
+                                        <option value="">All Accounts</option>
+                                        <option value="active" {% if filters.user_active == 'active' %}selected{% endif %}>Active</option>
+                                        <option value="inactive" {% if filters.user_active == 'inactive' %}selected{% endif %}>Inactive</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-3 d-flex gap-2 flex-wrap">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-check"></i> Apply Filters
+                                </button>
+                                <a href="?" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times"></i> Clear All
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bulk Actions Bar (Hidden by default) -->
+            <div id="bulkActionsBar" class="alert alert-primary d-none mb-3" role="alert">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <div>
+                        <i class="fas fa-check-square"></i>
+                        <strong><span id="selectedCount">0</span> items selected</strong>
+                    </div>
+                    <div class="btn-group" role="group">
+                        {% if perms.access_management.can_approve %}
+                        <button type="button" class="btn btn-sm btn-success" onclick="bulkApprove()">
+                            <i class="fas fa-check"></i> Approve Selected
+                        </button>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="bulkReject()">
+                            <i class="fas fa-times"></i> Reject Selected
+                        </button>
+                        {% endif %}
+                        <button type="button" class="btn btn-sm btn-info" onclick="bulkExport()">
+                            <i class="fas fa-download"></i> Export Selected
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearSelection()">
+                            <i class="fas fa-times-circle"></i> Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Info & Select All -->
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="form-check">
+                        <input type="checkbox" id="selectAll" class="form-check-input">
+                        <label for="selectAll" class="form-check-label">Select All</label>
+                    </div>
+                    <span class="text-muted">
+                        Showing {{ access_assignments.start_index }}-{{ access_assignments.end_index }} 
+                        of {{ access_assignments.paginator.count }} results
+                    </span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <label class="text-muted small mb-0">Per page:</label>
+                    <select class="form-select form-select-sm" style="width: auto;" onchange="changePageSize(this.value)">
+                        <option value="10" {% if page_size == 10 %}selected{% endif %}>10</option>
+                        <option value="25" {% if page_size == 25 %}selected{% endif %}>25</option>
+                        <option value="50" {% if page_size == 50 %}selected{% endif %}>50</option>
+                        <option value="100" {% if page_size == 100 %}selected{% endif %}>100</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Assignment Cards List -->
+            <div class="row" id="assignmentsList">
+                {% for assignment in access_assignments %}
+                <div class="col-12 mb-3">
+                    <div class="card assignment-card shadow-sm h-100 
+                                priority-{{ assignment.priority|lower }}
+                                {% if assignment.status == 'Expired' %}status-expired{% elif assignment.status == 'Pending' %}status-pending{% endif %}">
+                        <div class="card-body">
+                            <div class="row align-items-center g-3">
+                                <!-- Checkbox & User Info -->
+                                <div class="col-lg-3">
+                                    <div class="d-flex align-items-start gap-2">
+                                        <input type="checkbox" 
+                                               class="form-check-input mt-1 bulk-select" 
+                                               value="{{ assignment.id }}"
+                                               data-assignment-id="{{ assignment.id }}">
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1">
+                                                <a href="{% url 'access_management:access_assignment_detail' assignment.id %}"
+                                                   class="text-decoration-none fw-bold">
+                                                    {{ assignment.user.get_full_name }}
+                                                </a>
+                                            </h6>
+                                            <div class="small text-muted">
+                                                <i class="fas fa-user"></i> {{ assignment.user.username }}
+                                            </div>
+                                            <div class="small text-muted">
+                                                <i class="fas fa-building"></i> 
+                                                {{ assignment.user.department.name|default:"No Department" }}
+                                            </div>
+                                            {% if not assignment.user.is_active %}
+                                                <span class="badge bg-danger-subtle text-danger mt-1">
+                                                    <i class="fas fa-user-slash"></i> Inactive Account
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- System & Access Info -->
+                                <div class="col-lg-3">
+                                    <div>
+                                        <strong class="d-block mb-1">
+                                            <i class="fas fa-server text-muted"></i> 
+                                            {{ assignment.system.name }}
+                                        </strong>
+                                        <div class="d-flex flex-wrap gap-1">
+                                            <span class="badge bg-info-subtle text-info">
+                                                {{ assignment.get_access_type_display }}
+                                            </span>
+                                            {% if assignment.subscription_tier %}
+                                                <span class="badge bg-secondary-subtle text-secondary">
+                                                    {{ assignment.subscription_tier.name }}
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Status & Dates -->
+                                <div class="col-lg-3">
+                                    <div>
+                                        <!-- Status Badge -->
+                                        {% if assignment.status == 'Active' %}
+                                            <span class="badge bg-success mb-2">
+                                                <i class="fas fa-check-circle"></i> Active
+                                            </span>
+                                        {% elif assignment.status == 'Pending' %}
+                                            <span class="badge bg-warning text-dark mb-2">
+                                                <i class="fas fa-clock"></i> Pending
+                                                {% if assignment.pending_days > 7 %}
+                                                    <span class="badge bg-danger ms-1">{{ assignment.pending_days }}d</span>
+                                                {% endif %}
+                                            </span>
+                                        {% elif assignment.status == 'Expired' %}
+                                            <span class="badge bg-danger mb-2">
+                                                <i class="fas fa-times-circle"></i> Expired
+                                            </span>
+                                        {% elif assignment.status == 'Revoked' %}
+                                            <span class="badge bg-secondary mb-2">
+                                                <i class="fas fa-ban"></i> Revoked
+                                            </span>
+                                        {% elif assignment.status == 'Approved' %}
+                                            <span class="badge bg-info mb-2">
+                                                <i class="fas fa-thumbs-up"></i> Approved
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-light text-dark mb-2">
+                                                {{ assignment.status }}
+                                            </span>
+                                        {% endif %}
+                                        
+                                        <!-- Dates -->
+                                        <div class="small text-muted">
+                                            <i class="fas fa-calendar-plus"></i> 
+                                            Requested: {{ assignment.request_date|date:"M d, Y" }}
+                                        </div>
+                                        {% if assignment.expiry_date %}
+                                            <div class="small {% if assignment.is_expiring_soon %}text-danger fw-bold{% else %}text-muted{% endif %}">
+                                                <i class="fas fa-hourglass-end"></i> 
+                                                Expires: {{ assignment.expiry_date|date:"M d, Y" }}
+                                                {% if assignment.days_until_expiry <= 30 and assignment.days_until_expiry >= 0 %}
+                                                    <span class="badge bg-warning ms-1">
+                                                        {{ assignment.days_until_expiry }} days
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Actions -->
+                                <div class="col-lg-3 text-lg-end">
+                                    <div class="btn-group mb-2" role="group">
+                                        <a href="{% url 'access_management:access_assignment_detail' assignment.id %}" 
+                                           class="btn btn-sm btn-outline-primary"
+                                           title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        
+                                        {% if assignment.status == 'Pending' and perms.access_management.can_approve %}
+                                            <button onclick="approveAccess({{ assignment.id }})" 
+                                                    class="btn btn-sm btn-outline-success"
+                                                    title="Approve">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button onclick="rejectAccess({{ assignment.id }})" 
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    title="Reject">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        {% endif %}
+                                        
+                                        {% if assignment.can_edit %}
+                                            <a href="{% url 'access_management:access_assignment_update' assignment.id %}" 
+                                               class="btn btn-sm btn-outline-secondary"
+                                               title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Priority Badge -->
+                                    {% if assignment.priority in 'High,Critical' %}
+                                        <div>
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-exclamation-circle"></i> {{ assignment.priority }}
+                                            </span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Expandable Details -->
+                            <div class="mt-3">
+                                <button class="btn btn-link btn-sm p-0 text-decoration-none" 
+                                        type="button" 
+                                        data-bs-toggle="collapse" 
+                                        data-bs-target="#details-{{ assignment.id }}"
+                                        aria-expanded="false">
+                                    <i class="fas fa-chevron-right"></i> More Details
+                                </button>
+                            </div>
+                            
+                            <div class="collapse mt-2" id="details-{{ assignment.id }}">
+                                <div class="border-top pt-3">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <small class="text-muted d-block fw-semibold">Business Justification:</small>
+                                            <small>{{ assignment.business_justification|default:"Not provided" }}</small>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <small class="text-muted d-block fw-semibold">Employment Status:</small>
+                                            <small>{{ assignment.user.get_employment_status_display }}</small>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <small class="text-muted d-block fw-semibold">Approved By:</small>
+                                            <small>
+                                                {% if assignment.approved_by %}
+                                                    {{ assignment.approved_by.get_full_name }}
+                                                {% else %}
+                                                    <span class="text-muted">Pending</span>
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <!-- Empty State -->
+                <div class="col-12">
+                    <div class="text-center py-5">
+                        <i class="fas fa-inbox fa-5x text-muted mb-3"></i>
+                        <h4>No Access Assignments Found</h4>
+                        <p class="text-muted">Try adjusting your filters or create a new assignment</p>
+                        <div class="mt-4">
+                            {% if filters.status or filters.system or filters.user or filters.search %}
+                                <a href="?" class="btn btn-outline-primary me-2">
+                                    <i class="fas fa-times"></i> Clear Filters
+                                </a>
+                            {% endif %}
+                            <a href="{% url 'access_management:access_assignment_create' %}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Create New Assignment
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if access_assignments.has_other_pages %}
+            <div class="d-flex justify-content-between align-items-center mt-4 flex-wrap gap-3">
+                <!-- Page Info -->
+                <div class="text-muted small">
+                    Page {{ access_assignments.number }} of {{ access_assignments.paginator.num_pages }}
+                </div>
+                
+                <!-- Pagination Controls -->
+                <nav aria-label="Page navigation">
+                    <ul class="pagination mb-0">
+                        {% if access_assignments.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% for key, value in filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}&page_size={{ page_size }}">
+                                    <i class="fas fa-angle-double-left"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ access_assignments.previous_page_number }}{% for key, value in filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}&page_size={{ page_size }}">
+                                    <i class="fas fa-angle-left"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for num in access_assignments.paginator.page_range %}
+                            {% if num == access_assignments.number %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num == 1 or num == access_assignments.paginator.num_pages or num >= access_assignments.number|add:'-2' and num <= access_assignments.number|add:'2' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}{% for key, value in filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}&page_size={{ page_size }}">{{ num }}</a>
+                                </li>
+                            {% elif num == 2 or num == access_assignments.paginator.num_pages|add:'-1' %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if access_assignments.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ access_assignments.next_page_number }}{% for key, value in filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}&page_size={{ page_size }}">
+                                    <i class="fas fa-angle-right"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ access_assignments.paginator.num_pages }}{% for key, value in filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}&page_size={{ page_size }}">
+                                    <i class="fas fa-angle-double-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                
+                <!-- Jump to Page -->
+                <div class="d-flex align-items-center gap-2">
+                    <label class="text-muted small mb-0">Jump to:</label>
+                    <input type="number" 
+                           class="form-control form-control-sm" 
+                           style="width: 70px;" 
+                           min="1" 
+                           max="{{ access_assignments.paginator.num_pages }}"
+                           placeholder="Page"
+                           id="jumpToPageInput">
+                    <button class="btn btn-sm btn-outline-secondary" onclick="jumpToPage()">Go</button>
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
 
-<!-- Approve/Reject Modals -->
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="d-none">
+    <div class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+</div>
+
+<!-- Approve Modal -->
 <div class="modal fade" id="approveModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <form id="approveForm" method="post">
                 {% csrf_token %}
-                <div class="modal-header">
-                    <h5 class="modal-title">Approve Access Assignment</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-check-circle"></i> Approve Access Assignment
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="approval_comments" class="form-label">Approval Comments (Optional)</label>
-                        <textarea class="form-control" id="approval_comments" name="approval_comments" rows="3"></textarea>
+                        <textarea class="form-control" 
+                                  id="approval_comments" 
+                                  name="approval_comments" 
+                                  rows="3"
+                                  placeholder="Add any comments or notes..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-success">Approve</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check"></i> Approve
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
+<!-- Reject Modal -->
 <div class="modal fade" id="rejectModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <form id="rejectForm" method="post">
                 {% csrf_token %}
-                <div class="modal-header">
-                    <h5 class="modal-title">Reject Access Assignment</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-times-circle"></i> Reject Access Assignment
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Important:</strong> Please provide a clear reason for rejection.
+                    </div>
                     <div class="mb-3">
-                        <label for="rejection_reason" class="form-label">Rejection Reason <span class="text-danger">*</span></label>
-                        <textarea class="form-control" id="rejection_reason" name="rejection_reason" rows="3" required></textarea>
+                        <label for="rejection_reason" class="form-label">
+                            Rejection Reason <span class="text-danger">*</span>
+                        </label>
+                        <textarea class="form-control" 
+                                  id="rejection_reason" 
+                                  name="rejection_reason" 
+                                  rows="4" 
+                                  required
+                                  placeholder="Explain why this access request is being rejected..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-danger">Reject</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-ban"></i> Reject
+                    </button>
                 </div>
             </form>
         </div>
@@ -382,50 +845,117 @@
 
 {% block extrajs %}
 <script>
+// Approve Access
 function approveAccess(assignmentId) {
     const form = document.getElementById('approveForm');
     form.action = `/access-management/assignments/${assignmentId}/approve/`;
-    new bootstrap.Modal(document.getElementById('approveModal')).show();
+    const modal = new bootstrap.Modal(document.getElementById('approveModal'));
+    modal.show();
 }
 
+// Reject Access
 function rejectAccess(assignmentId) {
     const form = document.getElementById('rejectForm');
     form.action = `/access-management/assignments/${assignmentId}/reject/`;
-    new bootstrap.Modal(document.getElementById('rejectModal')).show();
+    const modal = new bootstrap.Modal(document.getElementById('rejectModal'));
+    modal.show();
 }
 
+// Bulk Selection
+document.getElementById('selectAll').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('.bulk-select');
+    checkboxes.forEach(cb => cb.checked = this.checked);
+    updateBulkActionsBar();
+});
+
+document.querySelectorAll('.bulk-select').forEach(cb => {
+    cb.addEventListener('change', updateBulkActionsBar);
+});
+
+function updateBulkActionsBar() {
+    const selected = document.querySelectorAll('.bulk-select:checked');
+    const bar = document.getElementById('bulkActionsBar');
+    const count = document.getElementById('selectedCount');
+    
+    if (selected.length > 0) {
+        bar.classList.remove('d-none');
+        count.textContent = selected.length;
+    } else {
+        bar.classList.add('d-none');
+    }
+}
+
+function clearSelection() {
+    document.querySelectorAll('.bulk-select:checked').forEach(cb => cb.checked = false);
+    document.getElementById('selectAll').checked = false;
+    updateBulkActionsBar();
+}
+
+function bulkApprove() {
+    const ids = Array.from(document.querySelectorAll('.bulk-select:checked')).map(cb => cb.value);
+    if (confirm(`Are you sure you want to approve ${ids.length} assignment(s)?`)) {
+        // Implement bulk approve logic here
+        console.log('Bulk approving:', ids);
+    }
+}
+
+function bulkReject() {
+    const ids = Array.from(document.querySelectorAll('.bulk-select:checked')).map(cb => cb.value);
+    if (confirm(`Are you sure you want to reject ${ids.length} assignment(s)?`)) {
+        // Implement bulk reject logic here
+        console.log('Bulk rejecting:', ids);
+    }
+}
+
+function bulkExport() {
+    const ids = Array.from(document.querySelectorAll('.bulk-select:checked')).map(cb => cb.value);
+    window.location.href = `?export=xlsx&ids=${ids.join(',')}`;
+}
+
+// Page Size Change
+function changePageSize(size) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('page_size', size);
+    url.searchParams.set('page', '1'); // Reset to first page
+    window.location.href = url.toString();
+}
+
+// Jump to Page
+function jumpToPage() {
+    const pageNum = document.getElementById('jumpToPageInput').value;
+    if (pageNum) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('page', pageNum);
+        window.location.href = url.toString();
+    }
+}
+
+// Collapse icon toggle
 document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(function (btn) {
-        const icon = btn.querySelector('i');
-        if (!icon) {
-            return;
-        }
+        const icon = btn.querySelector('i.fa-chevron-down, i.fa-chevron-right');
+        if (!icon) return;
+        
         const targetSelector = btn.getAttribute('data-bs-target');
         const targets = document.querySelectorAll(targetSelector);
-
-        const setIcon = function (expanded) {
-            if (expanded) {
-                icon.classList.remove('fa-chevron-right');
-                icon.classList.add('fa-chevron-down');
-            } else {
-                icon.classList.remove('fa-chevron-down');
-                icon.classList.add('fa-chevron-right');
-            }
-        };
-
-        const anyShown = Array.from(targets).some(function (target) {
-            return target.classList.contains('show');
-        });
-        setIcon(anyShown);
-
+        
         targets.forEach(function (target) {
             target.addEventListener('show.bs.collapse', function () {
-                setIcon(true);
+                icon.classList.remove('fa-chevron-right');
+                icon.classList.add('fa-chevron-down');
             });
             target.addEventListener('hide.bs.collapse', function () {
-                setIcon(false);
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-right');
             });
         });
+    });
+});
+
+// Show loading overlay on form submit
+document.querySelectorAll('form').forEach(form => {
+    form.addEventListener('submit', function() {
+        document.getElementById('loadingOverlay').classList.remove('d-none');
     });
 });
 </script>

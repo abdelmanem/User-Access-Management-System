@@ -857,9 +857,115 @@ def export_admin_accounts_to_csv(queryset):
     return response
 
 
+#@login_required
+# def access_assignment_list(request):
+#     """List all access assignments with filtering and search"""
+    
+#     # Get filter parameters
+#     status_filter = request.GET.get('status', '')
+#     priority_filter = request.GET.get('priority', '')
+#     access_type_filter = request.GET.get('access_type', '')
+#     system_filter = request.GET.get('system', '')
+#     user_filter = request.GET.get('user', '')
+#     employment_status_filter = request.GET.get('employment_status', '')
+#     user_active_filter = request.GET.get('user_active', '')
+#     search_query = request.GET.get('search', '')
+    
+#     # Base queryset
+#     queryset = UserSystemAccess.objects.select_related('user', 'system', 'approved_by').all()
+    
+#     # Apply filters
+#     if status_filter:
+#         queryset = queryset.filter(status=status_filter)
+#     if priority_filter:
+#         queryset = queryset.filter(priority=priority_filter)
+#     if access_type_filter:
+#         queryset = queryset.filter(access_type=access_type_filter)
+#     if system_filter:
+#         queryset = queryset.filter(system_id=system_filter)
+#     if user_filter:
+#         queryset = queryset.filter(user_id=user_filter)
+#     if employment_status_filter:
+#         queryset = queryset.filter(user__employment_status=employment_status_filter)
+#     if user_active_filter == 'active':
+#         queryset = queryset.filter(user__is_active=True)
+#     elif user_active_filter == 'inactive':
+#         queryset = queryset.filter(user__is_active=False)
+#     if search_query:
+#         queryset = queryset.filter(
+#             Q(user__username__icontains=search_query) |
+#             Q(user__first_name__icontains=search_query) |
+#             Q(user__last_name__icontains=search_query) |
+#             Q(system__name__icontains=search_query) |
+#             Q(business_justification__icontains=search_query)
+#         )
+    
+#     metrics_queryset = queryset
+
+#     summary_metrics = {
+#         'total': metrics_queryset.count(),
+#         'active': metrics_queryset.filter(status='Active').count(),
+#         'pending': metrics_queryset.filter(status='Pending').count(),
+#         'expired': metrics_queryset.filter(status='Expired').count(),
+#         'unique_users': metrics_queryset.values('user_id').distinct().count(),
+#         'unique_systems': metrics_queryset.values('system_id').distinct().count(),
+#     }
+
+#     export_format = request.GET.get('export')
+#     if export_format in {'xlsx', 'pdf'}:
+#         export_queryset = queryset.order_by('user__first_name', 'user__last_name', '-request_date', 'system__name')
+#         if export_format == 'xlsx':
+#             return export_access_assignments_to_excel(export_queryset)
+#         return export_access_assignments_to_pdf(export_queryset)
+    
+#     # Pagination
+#     queryset = queryset.order_by('user__first_name', 'user__last_name', '-request_date', 'system__name')
+
+#     paginator = Paginator(queryset, 25)
+#     page_number = request.GET.get('page')
+#     access_assignments = paginator.get_page(page_number)
+    
+#     # Get filter options
+#     systems = System.objects.all().order_by('name')
+#     users = CustomUser.objects.all().order_by('first_name', 'last_name')
+
+#     query_params = request.GET.copy()
+#     query_params.pop('page', None)
+#     query_params.pop('export', None)
+#     current_query = query_params.urlencode()
+
+#     context = {
+#         'access_assignments': access_assignments,
+#         'status_choices': UserSystemAccess.STATUS_CHOICES,
+#         'priority_choices': UserSystemAccess.PRIORITY_CHOICES,
+#         'access_type_choices': UserSystemAccess.ACCESS_TYPE_CHOICES,
+#         'employment_status_choices': CustomUser.EMPLOYMENT_STATUS_CHOICES,
+#         'systems': systems,
+#         'users': users,
+#         'filters': {
+#             'status': status_filter,
+#             'priority': priority_filter,
+#             'access_type': access_type_filter,
+#             'system': system_filter,
+#             'user': user_filter,
+#             'employment_status': employment_status_filter,
+#             'user_active': user_active_filter,
+#             'search': search_query,
+#         },
+#         'current_query': current_query,
+#         'summary_metrics': summary_metrics,
+#     }
+    
+#     return render(request, 'access_management/access_assignment_list.html', context)
+# Enhanced access_assignment_list view with additional features
+# Replace your existing access_assignment_list function with this corrected version
+# This fixes the syntax error and adds all necessary features
+
 @login_required
 def access_assignment_list(request):
-    """List all access assignments with filtering and search"""
+    """
+    Enhanced list view for access assignments with filtering, search, and metrics
+    """
     
     # Get filter parameters
     status_filter = request.GET.get('status', '')
@@ -871,10 +977,20 @@ def access_assignment_list(request):
     user_active_filter = request.GET.get('user_active', '')
     search_query = request.GET.get('search', '')
     
-    # Base queryset
-    queryset = UserSystemAccess.objects.select_related('user', 'system', 'approved_by').all()
+    # NEW: Additional filters
+    days_to_expiry = request.GET.get('days_to_expiry', '')
+    days_pending = request.GET.get('days_pending', '')
+    page_size = request.GET.get('page_size', '25')
     
-    # Apply filters
+    # Base queryset with optimized select_related
+    queryset = UserSystemAccess.objects.select_related(
+        'user',
+        'user__department', 
+        'system', 
+        'approved_by',
+    ).all()
+    
+    # Apply existing filters
     if status_filter:
         queryset = queryset.filter(status=status_filter)
     if priority_filter:
@@ -896,12 +1012,41 @@ def access_assignment_list(request):
             Q(user__username__icontains=search_query) |
             Q(user__first_name__icontains=search_query) |
             Q(user__last_name__icontains=search_query) |
+            Q(user__email__icontains=search_query) |
             Q(system__name__icontains=search_query) |
+            Q(system__code__icontains=search_query) |
             Q(business_justification__icontains=search_query)
         )
     
+    # NEW: Expiry filter - find assignments expiring within X days
+    if days_to_expiry:
+        try:
+            days = int(days_to_expiry)
+            expiry_threshold = timezone.now().date() + timedelta(days=days)
+            queryset = queryset.filter(
+                expiry_date__lte=expiry_threshold,
+                expiry_date__gte=timezone.now().date(),
+                status='Active'
+            )
+        except ValueError:
+            pass
+    
+    # NEW: Pending duration filter - find assignments pending for more than X days
+    if days_pending:
+        try:
+            days = int(days_pending)
+            pending_threshold = timezone.now() - timedelta(days=days)
+            queryset = queryset.filter(
+                status='Pending',
+                request_date__lte=pending_threshold
+            )
+        except ValueError:
+            pass
+    
+    # Store queryset for metrics before pagination
     metrics_queryset = queryset
-
+    
+    # Calculate summary metrics
     summary_metrics = {
         'total': metrics_queryset.count(),
         'active': metrics_queryset.filter(status='Active').count(),
@@ -910,30 +1055,135 @@ def access_assignment_list(request):
         'unique_users': metrics_queryset.values('user_id').distinct().count(),
         'unique_systems': metrics_queryset.values('system_id').distinct().count(),
     }
-
+    
+    # NEW: Calculate quick filter counts for the chips
+    now = timezone.now()
+    expiring_threshold = now.date() + timedelta(days=30)
+    pending_threshold = now - timedelta(days=7)
+    
+    # Quick filter counts with safe calculations
+    quick_filter_counts = {
+        'my_pending': 0,
+        'expiring_soon': 0,
+        'high_priority': 0,
+        'pending_over_7_days': 0,
+    }
+    
+    # Calculate expiring soon count
+    try:
+        quick_filter_counts['expiring_soon'] = metrics_queryset.filter(
+            expiry_date__lte=expiring_threshold,
+            expiry_date__gte=now.date(),
+            status='Active'
+        ).count()
+    except Exception:
+        pass
+    
+    # Calculate high priority count
+    try:
+        quick_filter_counts['high_priority'] = metrics_queryset.filter(
+            priority__in=['High', 'Critical']
+        ).count()
+    except Exception:
+        pass
+    
+    # Calculate pending over 7 days count
+    try:
+        quick_filter_counts['pending_over_7_days'] = metrics_queryset.filter(
+            status='Pending',
+            request_date__lte=pending_threshold
+        ).count()
+    except Exception:
+        pass
+    
+    # Calculate my pending approvals count if user is authenticated
+    if request.user.is_authenticated:
+        try:
+            quick_filter_counts['my_pending'] = metrics_queryset.filter(
+                status='Pending'
+            ).filter(
+                Q(approved_by=request.user) | Q(system_owner_approver=request.user)
+            ).count()
+        except Exception:
+            pass
+    
+    # Handle export requests
     export_format = request.GET.get('export')
     if export_format in {'xlsx', 'pdf'}:
-        export_queryset = queryset.order_by('user__first_name', 'user__last_name', '-request_date', 'system__name')
+        export_queryset = queryset.order_by(
+            'user__first_name', 
+            'user__last_name', 
+            '-request_date', 
+            'system__name'
+        )
         if export_format == 'xlsx':
             return export_access_assignments_to_excel(export_queryset)
         return export_access_assignments_to_pdf(export_queryset)
     
+    # NEW: Dynamic page size with validation
+    try:
+        page_size = int(page_size)
+        if page_size not in [10, 25, 50, 100]:
+            page_size = 25
+    except (ValueError, TypeError):
+        page_size = 25
+    
+    # Order queryset
+    queryset = queryset.order_by(
+        'user__first_name', 
+        'user__last_name', 
+        '-request_date', 
+        'system__name'
+    )
+    
     # Pagination
-    queryset = queryset.order_by('user__first_name', 'user__last_name', '-request_date', 'system__name')
-
-    paginator = Paginator(queryset, 25)
+    paginator = Paginator(queryset, page_size)
     page_number = request.GET.get('page')
     access_assignments = paginator.get_page(page_number)
     
-    # Get filter options
+    # NEW: Annotate assignments with computed fields for better UX
+    for assignment in access_assignments:
+        # Calculate days until expiry
+        if assignment.expiry_date:
+            try:
+                delta = assignment.expiry_date - now.date()
+                assignment.days_until_expiry = delta.days
+                assignment.is_expiring_soon = 0 <= assignment.days_until_expiry <= 30
+            except Exception:
+                assignment.days_until_expiry = None
+                assignment.is_expiring_soon = False
+        else:
+            assignment.days_until_expiry = None
+            assignment.is_expiring_soon = False
+        
+        # Calculate pending days for pending assignments
+        if assignment.status == 'Pending' and assignment.request_date:
+            try:
+                delta = now - assignment.request_date
+                assignment.pending_days = delta.days
+            except Exception:
+                assignment.pending_days = 0
+        else:
+            assignment.pending_days = 0
+        
+        # Check if current user can edit this assignment
+        assignment.can_edit = (
+            request.user.is_superuser or 
+            request.user == assignment.user or
+            request.user.has_perm('access_management.change_usersystemaccess')
+        )
+    
+    # Get filter options for dropdowns
     systems = System.objects.all().order_by('name')
-    users = CustomUser.objects.all().order_by('first_name', 'last_name')
-
+    users = CustomUser.objects.filter(is_active=True).order_by('first_name', 'last_name')
+    
+    # Build current query string for pagination links
     query_params = request.GET.copy()
     query_params.pop('page', None)
     query_params.pop('export', None)
     current_query = query_params.urlencode()
-
+    
+    # Build context
     context = {
         'access_assignments': access_assignments,
         'status_choices': UserSystemAccess.STATUS_CHOICES,
@@ -951,13 +1201,148 @@ def access_assignment_list(request):
             'employment_status': employment_status_filter,
             'user_active': user_active_filter,
             'search': search_query,
+            'days_to_expiry': days_to_expiry,
+            'days_pending': days_pending,
         },
         'current_query': current_query,
         'summary_metrics': summary_metrics,
+        'quick_filter_counts': quick_filter_counts,
+        'page_size': page_size,
     }
     
     return render(request, 'access_management/access_assignment_list.html', context)
 
+# Optional: Add this helper view for AJAX live search
+@login_required
+def access_assignment_search_ajax(request):
+    """
+    AJAX endpoint for live search autocomplete
+    Returns JSON with matching assignments
+    """
+    query = request.GET.get('q', '')
+    if len(query) < 2:
+        return JsonResponse({'results': []})
+    
+    assignments = UserSystemAccess.objects.select_related(
+        'user', 'system'
+    ).filter(
+        Q(user__username__icontains=query) |
+        Q(user__first_name__icontains=query) |
+        Q(user__last_name__icontains=query) |
+        Q(system__name__icontains=query)
+    )[:10]
+    
+    results = [{
+        'id': a.id,
+        'user': a.user.get_full_name(),
+        'username': a.user.username,
+        'system': a.system.name,
+        'status': a.status,
+        'url': f'/access-management/assignments/{a.id}/'
+    } for a in assignments]
+    
+    return JsonResponse({'results': results})
+
+
+# Optional: Add bulk approval endpoint
+@login_required
+@require_http_methods(["POST"])
+def bulk_approve_assignments(request):
+    """
+    Bulk approve multiple assignments at once
+    """
+    if not request.user.has_perm('access_management.can_approve'):
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    assignment_ids = request.POST.getlist('assignment_ids[]')
+    comments = request.POST.get('comments', '')
+    
+    approved_count = 0
+    errors = []
+    
+    for assignment_id in assignment_ids:
+        try:
+            assignment = UserSystemAccess.objects.get(id=assignment_id, status='Pending')
+            
+            # Perform approval logic
+            assignment.status = 'Approved'
+            assignment.approved_by = request.user
+            assignment.approval_date = timezone.now()
+            assignment.approval_comments = comments
+            assignment.save()
+            
+            # Log history
+            AccessHistory.objects.create(
+                access_assignment=assignment,
+                action='Approved',
+                performed_by=request.user,
+                comments=comments
+            )
+            
+            approved_count += 1
+            
+        except UserSystemAccess.DoesNotExist:
+            errors.append(f'Assignment {assignment_id} not found or not pending')
+        except Exception as e:
+            errors.append(f'Error approving {assignment_id}: {str(e)}')
+    
+    return JsonResponse({
+        'success': True,
+        'approved_count': approved_count,
+        'errors': errors
+    })
+
+
+# Optional: Add bulk rejection endpoint
+@login_required
+@require_http_methods(["POST"])
+def bulk_reject_assignments(request):
+    """
+    Bulk reject multiple assignments at once
+    """
+    if not request.user.has_perm('access_management.can_approve'):
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    assignment_ids = request.POST.getlist('assignment_ids[]')
+    reason = request.POST.get('reason', '')
+    
+    if not reason:
+        return JsonResponse({'error': 'Rejection reason is required'}, status=400)
+    
+    rejected_count = 0
+    errors = []
+    
+    for assignment_id in assignment_ids:
+        try:
+            assignment = UserSystemAccess.objects.get(id=assignment_id, status='Pending')
+            
+            # Perform rejection logic
+            assignment.status = 'Rejected'
+            assignment.approved_by = request.user
+            assignment.approval_date = timezone.now()
+            assignment.rejection_reason = reason
+            assignment.save()
+            
+            # Log history
+            AccessHistory.objects.create(
+                access_assignment=assignment,
+                action='Rejected',
+                performed_by=request.user,
+                comments=reason
+            )
+            
+            rejected_count += 1
+            
+        except UserSystemAccess.DoesNotExist:
+            errors.append(f'Assignment {assignment_id} not found or not pending')
+        except Exception as e:
+            errors.append(f'Error rejecting {assignment_id}: {str(e)}')
+    
+    return JsonResponse({
+        'success': True,
+        'rejected_count': rejected_count,
+        'errors': errors
+    })
 
 @login_required
 def my_pending_approvals(request):
