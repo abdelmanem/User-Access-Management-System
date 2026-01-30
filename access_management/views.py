@@ -1049,7 +1049,7 @@ def access_assignment_list(request):
     # Calculate summary metrics
     summary_metrics = {
         'total': metrics_queryset.count(),
-        'active': metrics_queryset.filter(status='Active').count(),
+        'active': metrics_queryset.filter(status__in=['Active', 'Approved']).count(),
         'pending': metrics_queryset.filter(status='Pending').count(),
         'expired': metrics_queryset.filter(status='Expired').count(),
         'unique_users': metrics_queryset.values('user_id').distinct().count(),
@@ -1059,7 +1059,7 @@ def access_assignment_list(request):
     all_qs = UserSystemAccess.objects.all()
     overall_metrics = {
         'total': all_qs.count(),
-        'active': all_qs.filter(status='Active').count(),
+        'active': all_qs.filter(status__in=['Active', 'Approved']).count(),
         'pending': all_qs.filter(status='Pending').count(),
         'expired': all_qs.filter(status='Expired').count(),
         'unique_users': all_qs.values('user_id').distinct().count(),
