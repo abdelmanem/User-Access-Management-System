@@ -1024,8 +1024,8 @@ def access_assignment_list(request):
             days = int(days_to_expiry)
             expiry_threshold = timezone.now().date() + timedelta(days=days)
             queryset = queryset.filter(
-                expiry_date__lte=expiry_threshold,
-                expiry_date__gte=timezone.now().date(),
+                access_end_date__lte=expiry_threshold,
+                access_end_date__gte=timezone.now().date(),
                 status='Active'
             )
         except ValueError:
@@ -1055,6 +1055,16 @@ def access_assignment_list(request):
         'unique_users': metrics_queryset.values('user_id').distinct().count(),
         'unique_systems': metrics_queryset.values('system_id').distinct().count(),
     }
+    # Also compute overall metrics (unfiltered) for comparison
+    all_qs = UserSystemAccess.objects.all()
+    overall_metrics = {
+        'total': all_qs.count(),
+        'active': all_qs.filter(status='Active').count(),
+        'pending': all_qs.filter(status='Pending').count(),
+        'expired': all_qs.filter(status='Expired').count(),
+        'unique_users': all_qs.values('user_id').distinct().count(),
+        'unique_systems': all_qs.values('system_id').distinct().count(),
+    }
     
     # NEW: Calculate quick filter counts for the chips
     now = timezone.now()
@@ -1072,8 +1082,8 @@ def access_assignment_list(request):
     # Calculate expiring soon count
     try:
         quick_filter_counts['expiring_soon'] = metrics_queryset.filter(
-            expiry_date__lte=expiring_threshold,
-            expiry_date__gte=now.date(),
+            access_end_date__lte=expiring_threshold,
+            access_end_date__gte=now.date(),
             status='Active'
         ).count()
     except Exception:
@@ -1143,10 +1153,12 @@ def access_assignment_list(request):
     
     # NEW: Annotate assignments with computed fields for better UX
     for assignment in access_assignments:
-        # Calculate days until expiry
-        if assignment.expiry_date:
+        # Calculate days until expiry (use model's access_end_date)
+        if getattr(assignment, 'access_end_date', None):
             try:
-                delta = assignment.expiry_date - now.date()
+                end_date = assignment.access_end_date
+                # use date arithmetic to avoid timezone-aware/datetime mix-ups
+                delta = end_date.date() - now.date()
                 assignment.days_until_expiry = delta.days
                 assignment.is_expiring_soon = 0 <= assignment.days_until_expiry <= 30
             except Exception:
@@ -1206,6 +1218,7 @@ def access_assignment_list(request):
         },
         'current_query': current_query,
         'summary_metrics': summary_metrics,
+        'overall_metrics': overall_metrics,
         'quick_filter_counts': quick_filter_counts,
         'page_size': page_size,
     }

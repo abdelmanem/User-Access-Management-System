@@ -739,7 +739,8 @@ class SystemContract(models.Model):
         # Auto-calculate dues if not explicitly provided
         if self.due_amount_monthly is None or self.due_amount_yearly is None:
             # Prefer subscription tiers if present
-            tiers = list(getattr(self, 'subscription_tiers', []).all()) if hasattr(self, 'subscription_tiers') else []
+            # Only access subscription_tiers if the object has been saved (has pk)
+            tiers = list(self.subscription_tiers.all()) if self.pk and hasattr(self, 'subscription_tiers') else []
             if tiers:
                 monthly = sum((t.monthly_billing_amount() or Decimal('0')) for t in tiers)
                 yearly = sum((t.yearly_billing_amount() or Decimal('0')) for t in tiers)

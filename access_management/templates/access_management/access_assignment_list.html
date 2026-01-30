@@ -149,6 +149,7 @@
                                 <div>
                                     <h6 class="card-subtitle text-uppercase fw-semibold mb-1 small">Total</h6>
                                     <h3 class="card-title mb-0">{{ summary_metrics.total }}</h3>
+                                    <div class="small text-muted">All: {{ overall_metrics.total }}</div>
                                 </div>
                                 <i class="fas fa-list fa-2x opacity-50"></i>
                             </div>
@@ -162,6 +163,7 @@
                                 <div>
                                     <h6 class="card-subtitle text-uppercase fw-semibold mb-1 small">Active</h6>
                                     <h3 class="card-title mb-0">{{ summary_metrics.active }}</h3>
+                                    <div class="small text-muted">All: {{ overall_metrics.active }}</div>
                                 </div>
                                 <i class="fas fa-check-circle fa-2x opacity-50"></i>
                             </div>
@@ -180,6 +182,7 @@
                                 <div>
                                     <h6 class="card-subtitle text-uppercase fw-semibold mb-1 small">Pending</h6>
                                     <h3 class="card-title mb-0">{{ summary_metrics.pending }}</h3>
+                                    <div class="small text-muted">All: {{ overall_metrics.pending }}</div>
                                 </div>
                                 <i class="fas fa-clock fa-2x opacity-50"></i>
                             </div>
@@ -198,6 +201,7 @@
                                 <div>
                                     <h6 class="card-subtitle text-uppercase fw-semibold mb-1 small">Expired</h6>
                                     <h3 class="card-title mb-0">{{ summary_metrics.expired }}</h3>
+                                    <div class="small text-muted">All: {{ overall_metrics.expired }}</div>
                                 </div>
                                 <i class="fas fa-times-circle fa-2x opacity-50"></i>
                             </div>
@@ -216,6 +220,7 @@
                                 <div>
                                     <h6 class="card-subtitle text-uppercase fw-semibold mb-1 small">Users</h6>
                                     <h3 class="card-title mb-0">{{ summary_metrics.unique_users }}</h3>
+                                    <div class="small text-muted">All: {{ overall_metrics.unique_users }}</div>
                                 </div>
                                 <i class="fas fa-users fa-2x opacity-50"></i>
                             </div>
@@ -229,6 +234,7 @@
                                 <div>
                                     <h6 class="card-subtitle text-uppercase fw-semibold mb-1 small">Systems</h6>
                                     <h3 class="card-title mb-0">{{ summary_metrics.unique_systems }}</h3>
+                                    <div class="small text-muted">All: {{ overall_metrics.unique_systems }}</div>
                                 </div>
                                 <i class="fas fa-server fa-2x opacity-50"></i>
                             </div>
@@ -569,10 +575,10 @@
                                             <i class="fas fa-calendar-plus"></i> 
                                             Requested: {{ assignment.request_date|date:"M d, Y" }}
                                         </div>
-                                        {% if assignment.expiry_date %}
+                                            {% if assignment.access_end_date %}
                                             <div class="small {% if assignment.is_expiring_soon %}text-danger fw-bold{% else %}text-muted{% endif %}">
-                                                <i class="fas fa-hourglass-end"></i> 
-                                                Expires: {{ assignment.expiry_date|date:"M d, Y" }}
+                                                <i class="fas fa-hourglass-end"></i>
+                                                Expires: {{ assignment.access_end_date|date:"M d, Y" }}
                                                 {% if assignment.days_until_expiry <= 30 and assignment.days_until_expiry >= 0 %}
                                                     <span class="badge bg-warning ms-1">
                                                         {{ assignment.days_until_expiry }} days
