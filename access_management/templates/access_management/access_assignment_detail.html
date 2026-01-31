@@ -33,6 +33,24 @@
                             </a>
                         </div>
                     </div>
+                    <!-- New Workflow Actions -->
+                    <div class="mt-3 pt-3 border-top">
+                        <h6 class="mb-3"><i class="fas fa-tasks"></i> Governance Actions</h6>
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'access_management:upload_evidence' access_assignment.pk %}" class="btn btn-sm btn-info" title="Upload evidence artifacts">
+                                <i class="fas fa-file-upload"></i> Upload Evidence
+                            </a>
+                            <a href="{% url 'access_management:evidence_gallery' access_assignment.pk %}" class="btn btn-sm btn-info" title="View uploaded evidence">
+                                <i class="fas fa-images"></i> Evidence Gallery
+                            </a>
+                            <a href="{% url 'access_management:attest_access' access_assignment.pk %}" class="btn btn-sm btn-warning" title="Attest to this access">
+                                <i class="fas fa-certificate"></i> Attest Access
+                            </a>
+                            <a href="{% url 'access_management:revoke_access' access_assignment.pk %}" class="btn btn-sm btn-danger" title="Revoke this access">
+                                <i class="fas fa-ban"></i> Revoke Access
+                            </a>
+                        </div>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="row">

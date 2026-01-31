@@ -133,7 +133,7 @@ def upload_evidence(request, access_id):
                 created_by=request.user
             )
             
-            return redirect('access_assignment_detail', pk=access_id)
+            return redirect('access_management:access_assignment_detail', pk=access_id)
     else:
         form = EvidenceArtifactForm()
     
@@ -192,7 +192,7 @@ def attest_access(request, access_id):
                 created_by=request.user
             )
             
-            return redirect('access_assignment_detail', pk=access_id)
+            return redirect('access_management:access_assignment_detail', pk=access_id)
     else:
         form = AttestationForm(statement_text=statement)
     

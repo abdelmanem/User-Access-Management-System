@@ -101,11 +101,11 @@
                             {% endif %}
                         </div>
                         <div class="col-md-3 text-end">
-                            <a href="{% url 'approve_access_request' workflow.pk step.pk %}" class="btn btn-sm btn-primary">
+                               <a href="{% url 'access_management:approve_access_request' workflow.pk step.pk %}" class="btn btn-sm btn-primary">
                                 <i class="fas fa-check"></i> Review & Approve
                             </a>
-                            <a href="{% url 'access_assignment_detail' access.pk %}" class="btn btn-sm btn-outline-secondary">
-                                <i class="fas fa-eye"></i> Details
+                                <a href="{% url 'access_management:access_assignment_detail' access.pk %}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-eye"></i> Details
                             </a>
                         </div>
                     </div>
