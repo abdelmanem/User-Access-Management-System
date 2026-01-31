@@ -244,6 +244,26 @@ def revoke_access_view(request, access_id):
 
 
 @login_required
+def revoke_access_confirm(request, access_id):
+    """Show a confirmation page before revoking an access assignment."""
+
+    access = get_object_or_404(UserSystemAccess, pk=access_id)
+
+    # Permission: owner, staff/superuser, or has revoke permission
+    if not (
+        request.user.is_staff
+        or request.user.is_superuser
+        or request.user.has_perm('access_management.can_revoke_any')
+        or access.user == request.user
+    ):
+        return HttpResponseForbidden('You do not have permission to revoke this access.')
+
+    return render(request, 'access_management/revoke_confirm.html', {
+        'access': access
+    })
+
+
+@login_required
 def evidence_gallery(request, access_id):
     """Display all evidence artifacts for an access assignment."""
     

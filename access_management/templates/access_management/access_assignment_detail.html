@@ -48,7 +48,7 @@
                                 <i class="fas fa-certificate"></i> Attest Access
                             </a>
                             {% endif %}
-                            <a href="{% url 'access_management:revoke_access' access_assignment.pk %}" class="btn btn-sm btn-danger" title="Revoke this access">
+                            <a href="{% url 'access_management:revoke_access_confirm' access_assignment.pk %}" class="btn btn-sm btn-danger">
                                 <i class="fas fa-ban"></i> Revoke Access
                             </a>
                         </div>
