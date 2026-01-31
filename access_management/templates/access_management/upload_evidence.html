@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Upload Evidence - Access Management{% endblock %}
+
+{% block extracss %}
+<style>
+    .upload-zone {
+        border: 2px dashed #007bff;
+        border-radius: 0.5rem;
+        padding: 2rem;
+        text-align: center;
+        background-color: #f8f9fa;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .upload-zone:hover {
+        background-color: #e7f1ff;
+        border-color: #0056b3;
+    }
+    .upload-zone.dragover {
+        background-color: #d1ecf1;
+        border-color: #0c5460;
+    }
+    .evidence-item {
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background-color: #f8f9fa;
+        border-radius: 0.5rem;
+        border-left: 4px solid #28a745;
+    }
+    .badge-artifact {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        background-color: #e7f1ff;
+        border-radius: 0.25rem;
+        font-size: 0.85rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0">
+                <i class="fas fa-file-upload"></i> Upload Evidence
+            </h1>
+            <p class="text-muted">Attach supporting documents for {{ access.user.full_name }} → {{ access.system.name }}</p>
+        </div>
+    </div>
+
+    {% if messages %}
+    <div class="row mb-4">
+        <div class="col-12">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Upload Form -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">New Evidence</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                        {% csrf_token %}
+
+                        <div class="form-group mb-3">
+                            <label for="{{ form.artifact_type.id_for_label }}" class="form-label">
+                                Artifact Type <span class="text-danger">*</span>
+                            </label>
+                            {{ form.artifact_type }}
+                            {% if form.artifact_type.errors %}
+                            <div class="invalid-feedback d-block">{{ form.artifact_type.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="{{ form.file_artifact.id_for_label }}" class="form-label">
+                                File <span class="text-danger">*</span> <small class="text-muted">(Max 50MB)</small>
+                            </label>
+                            
+                            <!-- Drag & Drop Zone -->
+                            <div class="upload-zone" id="uploadZone">
+                                <div class="mb-2">
+                                    <i class="fas fa-cloud-upload-alt fa-2x text-primary"></i>
+                                </div>
+                                <p class="mb-1"><strong>Drag and drop your file here</strong></p>
+                                <p class="text-muted small mb-2">or click to select</p>
+                                <p class="text-muted small">PDF, PNG, JPG, DOC, XLS accepted</p>
+                                {{ form.file_artifact }}
+                            </div>
+                            
+                            <!-- File Name Display -->
+                            <div id="fileName" class="small text-muted mt-2" style="display: none;">
+                                Selected: <strong id="fileNameText"></strong>
+                            </div>
+
+                            {% if form.file_artifact.errors %}
+                            <div class="invalid-feedback d-block">{{ form.file_artifact.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check"></i> Upload Evidence
+                        </button>
+                        <a href="{% url 'access_assignment_detail' access.pk %}" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Existing Evidence -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-check-circle"></i> 
+                        Uploaded Evidence ({{ access.evidence_artifacts.count }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if access.evidence_artifacts.all %}
+                    <div class="list-group">
+                        {% for artifact in access.evidence_artifacts.all %}
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">
+                                    <span class="badge-artifact">{{ artifact.artifact_type }}</span>
+                                </h6>
+                                <small class="text-muted">{{ artifact.created_at|date:"M d, Y" }}</small>
+                            </div>
+                            {% if artifact.file_artifact %}
+                            <small class="text-muted d-block">
+                                <i class="fas fa-file"></i> {{ artifact.file_artifact.name|truncatechars:40 }}
+                            </small>
+                            {% endif %}
+                            <small class="text-muted">By {{ artifact.created_by.full_name }}</small>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center py-4 mb-0">
+                        <i class="fas fa-inbox"></i><br>
+                        No evidence uploaded yet
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Drag & Drop Handler
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput = document.querySelector('input[type="file"]');
+    const fileNameDiv = document.getElementById('fileName');
+    const fileNameText = document.getElementById('fileNameText');
+
+    // Prevent default drag behaviors
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadZone.addEventListener(eventName, preventDefaults, false);
+        document.body.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    // Highlight drop zone when item is dragged over it
+    ['dragenter', 'dragover'].forEach(eventName => {
+        uploadZone.addEventListener(eventName, () => {
+            uploadZone.classList.add('dragover');
+        });
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        uploadZone.addEventListener(eventName, () => {
+            uploadZone.classList.remove('dragover');
+        });
+    });
+
+    // Handle dropped files
+    uploadZone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        fileInput.files = files;
+        updateFileName();
+    });
+
+    // Click to select
+    uploadZone.addEventListener('click', () => {
+        fileInput.click();
+    });
+
+    // Update file name display
+    fileInput.addEventListener('change', updateFileName);
+
+    function updateFileName() {
+        if (fileInput.files && fileInput.files[0]) {
+            fileNameText.textContent = fileInput.files[0].name;
+            fileNameDiv.style.display = 'block';
+        }
+    }
+
+    // Form validation
+    (function() {
+        'use strict';
+        window.addEventListener('load', function() {
+            var form = document.querySelector('.needs-validation');
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })();
+</script>
+{% endblock %}

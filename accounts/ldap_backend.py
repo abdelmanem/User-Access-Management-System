@@ -6,8 +6,15 @@ import logging
 from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from ldap3 import Server, Connection, ALL, NTLM, SIMPLE, Tls, SUBTREE
-from ldap3.core.exceptions import LDAPException, LDAPBindError
+try:
+    from ldap3 import Server, Connection, ALL, NTLM, SIMPLE, Tls, SUBTREE
+    from ldap3.core.exceptions import LDAPException, LDAPBindError
+    LDAP_AVAILABLE = True
+except ImportError:
+    # ldap3 not installed; LDAP features will be unavailable
+    Server = Connection = ALL = NTLM = SIMPLE = Tls = SUBTREE = None
+    LDAPException = LDAPBindError = Exception
+    LDAP_AVAILABLE = False
 import ssl
 from .models import LDAPConfiguration
 

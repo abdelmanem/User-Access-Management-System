@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views
+from . import views, views_new
 
 app_name = 'access_management'
 
@@ -52,4 +52,20 @@ urlpatterns = [
     path('cross-system-mapping/', views.cross_system_account_mapping, name='cross_system_account_mapping'),
     path('users/<int:user_id>/cross-system-accounts/', views.user_cross_system_accounts, name='user_cross_system_accounts'),
     path('accounts/status/', views.accounts_status, name='accounts_status'),
+    
+    # ===== NEW: IAM GOVERNANCE WORKFLOWS (Gaps 1-10) =====
+    
+    # Approval Workflow Routes - Gap 7 & 9
+    path('approvals/', views_new.approval_dashboard, name='approval_dashboard'),
+    path('approvals/<int:workflow_id>/step/<int:step_id>/', views_new.approve_access_request, name='approve_access_request'),
+    
+    # Evidence Repository Routes - Gap 6
+    path('assignments/<int:access_id>/evidence/upload/', views_new.upload_evidence, name='upload_evidence'),
+    path('assignments/<int:access_id>/evidence/gallery/', views_new.evidence_gallery, name='evidence_gallery'),
+    
+    # Attestation Routes - Gap 10
+    path('assignments/<int:access_id>/attest/', views_new.attest_access, name='attest_access'),
+    
+    # Access Revocation Routes - Gap 5
+    path('assignments/<int:access_id>/revoke/', views_new.revoke_access_view, name='revoke_access'),
 ]
