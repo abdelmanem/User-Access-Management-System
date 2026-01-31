@@ -4,463 +4,1037 @@
 
 {% block title %}Cross-System Account Mapping{% endblock %}
 
-{% block content %}
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h3 class="card-title mb-0">
-                            <i class="fas fa-network-wired"></i> Cross-System Account Mapping
-                        </h3>
-                        <div class="btn-group">
-                            <a href="{% url 'access_management:access_assignment_list' %}" class="btn btn-outline-secondary">
-                                <i class="fas fa-arrow-left"></i> Back to Assignments
-                            </a>
-                            <button type="button" class="btn btn-outline-primary" onclick="exportMapping('csv')">
-                                <i class="fas fa-file-csv"></i> Export CSV
-                            </button>
-                            <button type="button" class="btn btn-outline-success" onclick="exportMapping('xlsx')">
-                                <i class="fas fa-file-excel"></i> Export Excel
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <!-- Statistics -->
-                    <div class="row mb-4">
-                        <div class="col-md-4">
-                            <div class="card bg-primary text-white">
-                                <div class="card-body">
-                                    <h5 class="card-title">
-                                        <i class="fas fa-users"></i> Total Users
-                                    </h5>
-                                    <h2 class="mb-0">{{ total_users }}</h2>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card bg-success text-white">
-                                <div class="card-body">
-                                    <h5 class="card-title">
-                                        <i class="fas fa-check-circle"></i> Users with Access
-                                    </h5>
-                                    <h2 class="mb-0">{{ users_with_access }}</h2>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card bg-info text-white">
-                                <div class="card-body">
-                                    <h5 class="card-title">
-                                        <i class="fas fa-server"></i> Total Systems
-                                    </h5>
-                                    <h2 class="mb-0">{{ total_systems }}</h2>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Filters (Collapsible) -->
-                    <div class="card mb-4">
-                        <div class="card-header d-flex justify-content-between align-items-center" style="cursor: pointer;" id="filtersToggle">
-                            <h5 class="mb-0"><i class="fas fa-filter"></i> Filters</h5>
-                            <button type="button" class="btn btn-sm btn-outline-secondary" id="filtersCollapseBtn" title="Collapse Filters">
-                                <i class="fas fa-chevron-up"></i>
-                            </button>
-                        </div>
-                        <div class="card-body" id="filtersContent">
-                            <form method="get" class="row g-3">
-                                <div class="col-md-3">
-                                    <label for="search" class="form-label">Search</label>
-                                    <input type="text" class="form-control" id="search" name="search" 
-                                           value="{{ search }}" placeholder="Name, Username, Employee ID">
-                                </div>
-                                <div class="col-md-3">
-                                    <label for="department" class="form-label">Department</label>
-                                    <select class="form-select" id="department" name="department">
-                                        <option value="">All Departments</option>
-                                        {% for dept in departments %}
-                                        <option value="{{ dept.pk }}" {% if selected_department_id == dept.pk|stringformat:"s" %}selected{% endif %}>
-                                            {{ dept.name }}
-                                        </option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label for="system" class="form-label">System</label>
-                                    <select class="form-select" id="system" name="system">
-                                        <option value="">All Systems</option>
-                                        {% for sys in systems %}
-                                        <option value="{{ sys.pk }}" {% if selected_system_id == sys.pk|stringformat:"s" %}selected{% endif %}>
-                                            {{ sys.name }}
-                                        </option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">&nbsp;</label>
-                                    <div class="form-check mt-2">
-                                        <input class="form-check-input" type="checkbox" id="show_only_with_access" 
-                                               name="show_only_with_access" value="true" 
-                                               {% if show_only_with_access %}checked{% endif %}>
-                                        <label class="form-check-label" for="show_only_with_access">
-                                            Show Only Users with Access
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="col-12">
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-search"></i> Apply Filters
-                                    </button>
-                                    <a href="{% url 'access_management:cross_system_account_mapping' %}" class="btn btn-outline-secondary">
-                                        <i class="fas fa-times"></i> Clear
-                                    </a>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-
-                    <!-- Resize Handle -->
-                    <div id="resizeHandle" style="height: 8px; background: linear-gradient(to bottom, #e0e0e0, #f0f0f0); cursor: row-resize; margin: 8px 0; border-radius: 4px; user-select: none;" title="Drag to resize filter and table areas"></div>
-
-                    <!-- Account Mapping Matrix -->
-                    <div class="card" id="tableCard">
-                        <div class="card-header">
-                            <h5 class="mb-0">
-                                <i class="fas fa-table"></i> Account Mapping Matrix
-                                <small class="text-muted">(Employee → System Usernames)</small>
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            {% if page_obj %}
-                            <div class="table-responsive" style="max-height: 600px; overflow-y: auto; position: relative;">
-                                <table class="table table-bordered table-hover table-sm sortable-table" style="font-size: 0.9rem;">
-                                    <thead class="table-light" style="position: sticky; top: 0; z-index: 10; background-color: #f8f9fa;">
-                                        <tr>
-                                            <th rowspan="2" class="align-middle text-center resizable-col" style="min-width: 200px; user-select: none;">
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    <span><i class="fas fa-user"></i> Employee</span>
-                                                    <div class="resize-handle" style="width: 4px; height: 20px; background: #ccc; cursor: col-resize; margin-left: 4px;"></div>
-                                                </div>
-                                            </th>
-                                            <th rowspan="2" class="align-middle text-center resizable-col" style="min-width: 120px; user-select: none;">
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    <span><i class="fas fa-id-badge"></i> Employee ID</span>
-                                                    <div class="resize-handle" style="width: 4px; height: 20px; background: #ccc; cursor: col-resize; margin-left: 4px;"></div>
-                                                </div>
-                                            </th>
-                                            <th rowspan="2" class="align-middle text-center resizable-col" style="min-width: 150px; user-select: none;">
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    <span><i class="fas fa-building"></i> Department</span>
-                                                    <div class="resize-handle" style="width: 4px; height: 20px; background: #ccc; cursor: col-resize; margin-left: 4px;"></div>
-                                                </div>
-                                            </th>
-                                            {% for system in systems %}
-                                            <th class="text-center" style="min-width: 150px; writing-mode: vertical-rl; text-orientation: mixed;">
-                                                <div class="d-flex flex-column align-items-center">
-                                                    <strong>{{ system.name }}</strong>
-                                                    <small class="text-muted">({{ system.code }})</small>
-                                                </div>
-                                            </th>
-                                            {% endfor %}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for user in page_obj %}
-                                        <tr>
-                                            <td>
-                                                <strong>{{ user.full_name }}</strong>
-                                                <br><small class="text-muted">{{ user.username }}</small>
-                                            </td>
-                                            <td>
-                                                <code>{{ user.employee_id }}</code>
-                                            </td>
-                                            <td>
-                                                {% if user.department %}
-                                                {{ user.department.name }}
-                                                {% else %}
-                                                <span class="text-muted">N/A</span>
-                                                {% endif %}
-                                            </td>
-                                            {% for system in systems %}
-                                            <td class="text-center">
-                                                {% with user_dict=user_system_mapping|get_item:user.id %}
-                                                    {% if user_dict %}
-                                                        {% with account=user_dict|get_item:system.id %}
-                                                            {% if account %}
-                                                            <div class="d-flex flex-column align-items-center text-break">
-                                                                <code class="mb-1">{{ account.username }}</code>
-                                                                <small class="badge bg-secondary">
-                                                                    {{ account.access_type }}
-                                                                </small>
-                                                                {% if account.is_generic %}
-                                                                <small class="badge bg-danger mt-1">
-                                                                    <i class="fas fa-exclamation-triangle"></i> Generic
-                                                                </small>
-                                                                {% endif %}
-                                                                {% if account.system_owner_approved %}
-                                                                <small class="badge bg-success mt-1">
-                                                                    <i class="fas fa-user-tie"></i> Owner Approved
-                                                                </small>
-                                                                {% else %}
-                                                                <small class="badge bg-warning text-dark mt-1">
-                                                                    <i class="fas fa-user-clock"></i> Owner Approval Missing
-                                                                </small>
-                                                                {% endif %}
-                                                                {% if account.has_verification %}
-                                                                <small class="text-success mt-1 text-center">
-                                                                    <i class="fas fa-user-check"></i>
-                                                                    {% if account.verified_by %}{{ account.verified_by }}{% endif %}
-                                                                    {% if account.verified_date %}
-                                                                    <br><span class="text-muted">{{ account.verified_date|date:"Y-m-d" }}</span>
-                                                                    {% endif %}
-                                                                </small>
-                                                                {% else %}
-                                                                <small class="text-muted mt-1">
-                                                                    <i class="fas fa-user-clock"></i> Not verified
-                                                                </small>
-                                                                {% endif %}
-                                                                {% if account.artifact_file_url %}
-                                                                <a href="{{ account.artifact_file_url }}" target="_blank" class="small mt-1">
-                                                                    <i class="fas fa-paperclip"></i> Attachment
-                                                                </a>
-                                                                {% endif %}
-                                                                {% if account.artifact_external_url %}
-                                                                <a href="{{ account.artifact_external_url }}" target="_blank" class="small">
-                                                                    <i class="fas fa-external-link-alt"></i> Evidence
-                                                                </a>
-                                                                {% endif %}
-                                                                {% if account.legitimate_business_need %}
-                                                                <small class="text-muted mt-1 text-center">
-                                                                    <i class="fas fa-file-alt"></i>
-                                                                    {{ account.legitimate_business_need|truncatechars:60 }}
-                                                                </small>
-                                                                {% endif %}
-                                                                <a href="{% url 'access_management:access_assignment_detail' account.access_id %}" 
-                                                                   class="btn btn-sm btn-outline-primary mt-1" title="View Details">
-                                                                    <i class="fas fa-eye"></i>
-                                                                </a>
-                                                            </div>
-                                                            {% else %}
-                                                            <span class="text-muted">-</span>
-                                                            {% endif %}
-                                                        {% endwith %}
-                                                    {% else %}
-                                                    <span class="text-muted">-</span>
-                                                    {% endif %}
-                                                {% endwith %}
-                                            </td>
-                                            {% endfor %}
-                                        </tr>
-                                        {% empty %}
-                                        <tr>
-                                            <td colspan="{{ systems|length|add:3 }}" class="text-center text-muted py-4">
-                                                <i class="fas fa-info-circle fa-2x mb-2"></i>
-                                                <p>No users found matching your filters.</p>
-                                            </td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <!-- Pagination -->
-                            {% if page_obj.has_other_pages %}
-                            <nav aria-label="Page navigation" class="mt-4">
-                                <ul class="pagination justify-content-center">
-                                    {% if page_obj.has_previous %}
-                                    <li class="page-item">
-                                        <a class="page-link" href="?page=1{% if selected_user_id %}&user={{ selected_user_id }}{% endif %}{% if selected_system_id %}&system={{ selected_system_id }}{% endif %}{% if selected_department_id %}&department={{ selected_department_id }}{% endif %}{% if search %}&search={{ search }}{% endif %}{% if show_only_with_access %}&show_only_with_access=true{% endif %}">First</a>
-                                    </li>
-                                    <li class="page-item">
-                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if selected_user_id %}&user={{ selected_user_id }}{% endif %}{% if selected_system_id %}&system={{ selected_system_id }}{% endif %}{% if selected_department_id %}&department={{ selected_department_id }}{% endif %}{% if search %}&search={{ search }}{% endif %}{% if show_only_with_access %}&show_only_with_access=true{% endif %}">Previous</a>
-                                    </li>
-                                    {% endif %}
-                                    
-                                    <li class="page-item active">
-                                        <span class="page-link">
-                                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
-                                        </span>
-                                    </li>
-                                    
-                                    {% if page_obj.has_next %}
-                                    <li class="page-item">
-                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if selected_user_id %}&user={{ selected_user_id }}{% endif %}{% if selected_system_id %}&system={{ selected_system_id }}{% endif %}{% if selected_department_id %}&department={{ selected_department_id }}{% endif %}{% if search %}&search={{ search }}{% endif %}{% if show_only_with_access %}&show_only_with_access=true{% endif %}">Next</a>
-                                    </li>
-                                    <li class="page-item">
-                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if selected_user_id %}&user={{ selected_user_id }}{% endif %}{% if selected_system_id %}&system={{ selected_system_id }}{% endif %}{% if selected_department_id %}&department={{ selected_department_id }}{% endif %}{% if search %}&search={{ search }}{% endif %}{% if show_only_with_access %}&show_only_with_access=true{% endif %}">Last</a>
-                                    </li>
-                                    {% endif %}
-                                </ul>
-                            </nav>
-                            {% endif %}
-                            {% else %}
-                            <div class="alert alert-info">
-                                <i class="fas fa-info-circle"></i> No users found.
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block extrajs %}
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  .resizable-col {
+  :root {
+    --primary-color: #2563eb;
+    --primary-hover: #1d4ed8;
+    --success-color: #10b981;
+    --danger-color: #ef4444;
+    --warning-color: #f59e0b;
+    --info-color: #06b6d4;
+    --background-light: #f8fafc;
+    --surface-white: #ffffff;
+    --border-color: #e2e8f0;
+    --text-primary: #0f172a;
+    --text-secondary: #64748b;
+    --text-muted: #94a3b8;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 1rem;
+  }
+
+  * {
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  body {
+    background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
+    color: var(--text-primary);
+  }
+
+  .page-header {
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+    color: white;
+    padding: 2.5rem 0;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-lg);
+    border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+    animation: slideDown 0.6s ease-out;
+  }
+
+  @keyframes slideDown {
+    from {
+      transform: translateY(-30px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes fadeInUp {
+    from {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .page-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .page-header .subtitle {
+    font-size: 0.95rem;
+    opacity: 0.9;
+    margin-top: 0.5rem;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .stat-card {
+    background: var(--surface-white);
+    border-radius: var(--radius-lg);
+    padding: 1.75rem;
+    box-shadow: var(--shadow-md);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
+    overflow: hidden;
+    animation: fadeInUp 0.6s ease-out backwards;
+  }
+
+  .stat-card:nth-child(1) { animation-delay: 0.1s; }
+  .stat-card:nth-child(2) { animation-delay: 0.2s; }
+  .stat-card:nth-child(3) { animation-delay: 0.3s; }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    transition: width 0.3s ease;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+  }
+
+  .stat-card:hover::before {
+    width: 100%;
+    opacity: 0.05;
+  }
+
+  .stat-card.primary::before { background: var(--primary-color); }
+  .stat-card.success::before { background: var(--success-color); }
+  .stat-card.info::before { background: var(--info-color); }
+
+  .stat-card .icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .stat-card.primary .icon {
+    background: rgba(37, 99, 235, 0.1);
+    color: var(--primary-color);
+  }
+
+  .stat-card.success .icon {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success-color);
+  }
+
+  .stat-card.info .icon {
+    background: rgba(6, 182, 212, 0.1);
+    color: var(--info-color);
+  }
+
+  .stat-card .label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .stat-card .value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-top: 0.5rem;
+    background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .main-card {
+    background: var(--surface-white);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    animation: fadeInUp 0.6s ease-out 0.4s backwards;
+  }
+
+  .filters-section {
+    padding: 1.5rem;
+    background: linear-gradient(to bottom, #f8fafc 0%, white 100%);
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .filters-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    padding: 0.75rem;
+    border-radius: var(--radius-md);
+    transition: background 0.2s ease;
+  }
+
+  .filters-header:hover {
+    background: rgba(0, 0, 0, 0.02);
+  }
+
+  .filters-header h5 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--text-primary);
+  }
+
+  .toggle-btn {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    color: var(--text-secondary);
+  }
+
+  .toggle-btn:hover {
+    background: var(--background-light);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+  }
+
+  .toggle-btn i {
+    transition: transform 0.3s ease;
+  }
+
+  .toggle-btn.collapsed i {
+    transform: rotate(180deg);
+  }
+
+  .filters-content {
+    margin-top: 1.5rem;
+    transition: all 0.3s ease;
+    overflow: hidden;
+  }
+
+  .filters-content.collapsed {
+    max-height: 0;
+    margin-top: 0;
+    opacity: 0;
+  }
+
+  .form-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+
+  .form-control, .form-select {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 0.625rem 0.875rem;
+    font-size: 0.9375rem;
+    transition: all 0.2s ease;
+    background: white;
+  }
+
+  .form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    outline: none;
+  }
+
+  .custom-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: var(--radius-md);
+    transition: background 0.2s ease;
+    cursor: pointer;
+  }
+
+  .custom-checkbox:hover {
+    background: var(--background-light);
+  }
+
+  .custom-checkbox input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--primary-color);
+  }
+
+  .custom-checkbox label {
+    margin: 0;
+    cursor: pointer;
+    font-size: 0.9375rem;
+    font-weight: 500;
+  }
+
+  .btn {
+    padding: 0.625rem 1.25rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 0.9375rem;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #1d4ed8 100%);
+    color: white;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .btn-outline-secondary {
+    background: white;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+  }
+
+  .btn-outline-secondary:hover {
+    background: var(--background-light);
+    border-color: var(--text-secondary);
+  }
+
+  .btn-outline-primary {
+    background: white;
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+  }
+
+  .btn-outline-primary:hover {
+    background: var(--primary-color);
+    color: white;
+  }
+
+  .btn-outline-success {
+    background: white;
+    color: var(--success-color);
+    border: 1px solid var(--success-color);
+  }
+
+  .btn-outline-success:hover {
+    background: var(--success-color);
+    color: white;
+  }
+
+  .table-section {
+    padding: 1.5rem;
+  }
+
+  .table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--border-color);
+  }
+
+  .table-header h5 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .table-info {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
+
+  .table-container {
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+  }
+
+  .table-responsive {
+    max-height: 600px;
+    overflow: auto;
+    position: relative;
+  }
+
+  /* Custom scrollbar */
+  .table-responsive::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  .table-responsive::-webkit-scrollbar-track {
+    background: var(--background-light);
+  }
+
+  .table-responsive::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 5px;
+  }
+
+  .table-responsive::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.875rem;
+  }
+
+  .data-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: linear-gradient(to bottom, #f1f5f9 0%, #e2e8f0 100%);
+  }
+
+  .data-table thead th {
+    padding: 1rem 0.875rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--border-color);
+    white-space: nowrap;
     user-select: none;
   }
+
+  .data-table thead th.sortable {
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .data-table thead th.sortable:hover {
+    background: rgba(37, 99, 235, 0.05);
+  }
+
+  .data-table thead th.sort-asc::after {
+    content: " ↑";
+    color: var(--primary-color);
+    font-weight: bold;
+  }
+
+  .data-table thead th.sort-desc::after {
+    content: " ↓";
+    color: var(--primary-color);
+    font-weight: bold;
+  }
+
+  .data-table thead th.resizable {
+    position: relative;
+  }
+
   .resize-handle {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 60%;
+    background: var(--border-color);
     cursor: col-resize;
     opacity: 0;
-    transition: opacity 0.2s;
+    transition: opacity 0.2s ease;
+    border-radius: 2px;
   }
-  .resizable-col:hover .resize-handle {
+
+  .data-table thead th:hover .resize-handle {
     opacity: 1;
   }
-  th.sortable {
-    cursor: pointer;
-    user-select: none;
+
+  .resize-handle:hover {
+    background: var(--primary-color);
   }
-  th.sortable:hover {
-    background-color: #e9ecef !important;
+
+  .data-table tbody tr {
+    transition: all 0.2s ease;
+    border-bottom: 1px solid var(--border-color);
   }
-  th.sort-asc::after {
-    content: " ↑";
-    font-size: 0.8em;
-    color: #0d6efd;
+
+  .data-table tbody tr:hover {
+    background: linear-gradient(to right, rgba(37, 99, 235, 0.03) 0%, rgba(37, 99, 235, 0.01) 100%);
   }
-  th.sort-desc::after {
-    content: " ↓";
-    font-size: 0.8em;
-    color: #0d6efd;
+
+  .data-table tbody td {
+    padding: 0.875rem;
+    vertical-align: middle;
+  }
+
+  .user-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color) 0%, #3b82f6 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.875rem;
+    flex-shrink: 0;
+  }
+
+  .user-info .name {
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .user-info .meta {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+  }
+
+  .badge {
+    padding: 0.25rem 0.625rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .badge-success {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success-color);
+  }
+
+  .badge-warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning-color);
+  }
+
+  .badge-info {
+    background: rgba(6, 182, 212, 0.1);
+    color: var(--info-color);
+  }
+
+  .badge-generic {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger-color);
+  }
+
+  .username-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .username {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .username-meta {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+
+  .verification-icon {
+    color: var(--success-color);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: var(--text-muted);
+  }
+
+  .empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.3;
+  }
+
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+  }
+
+  .pagination .page-link {
+    padding: 0.5rem 0.875rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    background: white;
+  }
+
+  .pagination .page-link:hover {
+    background: var(--background-light);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+  }
+
+  .pagination .page-link.active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+  }
+
+  .pagination .page-link.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .tooltip-wrapper {
+    position: relative;
+    display: inline-block;
+  }
+
+  .tooltip-text {
+    visibility: hidden;
+    background-color: var(--text-primary);
+    color: white;
+    text-align: center;
+    border-radius: var(--radius-sm);
+    padding: 0.5rem 0.75rem;
+    position: absolute;
+    z-index: 1000;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 0.8125rem;
+  }
+
+  .tooltip-wrapper:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  @media (max-width: 768px) {
+    .page-header {
+      padding: 1.5rem 0;
+    }
+
+    .page-header h1 {
+      font-size: 1.5rem;
+    }
+
+    .stats-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    .stat-card .value {
+      font-size: 2rem;
+    }
+
+    .filters-content .row {
+      flex-direction: column;
+    }
+
+    .action-buttons {
+      flex-direction: column;
+    }
+  }
+
+  /* Loading skeleton */
+  @keyframes shimmer {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
+  }
+
+  .skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite;
+    border-radius: var(--radius-sm);
   }
 </style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+  <div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div>
+        <h1>
+          <i class="fas fa-network-wired"></i>
+          Cross-System Account Mapping
+        </h1>
+        <div class="subtitle">View and manage user accounts across all systems</div>
+      </div>
+      <div class="action-buttons">
+        <a href="{% url 'access_management:access_assignment_list' %}" class="btn btn-outline-secondary" style="border-color: rgba(255, 255, 255, 0.3); color: white;">
+          <i class="fas fa-arrow-left"></i> Back to Assignments
+        </a>
+        <button type="button" class="btn btn-outline-primary" onclick="exportMapping('csv')" style="border-color: rgba(255, 255, 255, 0.3); color: white;">
+          <i class="fas fa-file-csv"></i> Export CSV
+        </button>
+        <button type="button" class="btn btn-outline-success" onclick="exportMapping('xlsx')" style="border-color: rgba(255, 255, 255, 0.3); color: white;">
+          <i class="fas fa-file-excel"></i> Export Excel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container-fluid">
+  <!-- Statistics Cards -->
+  <div class="stats-grid">
+    <div class="stat-card primary">
+      <div class="icon">
+        <i class="fas fa-users"></i>
+      </div>
+      <div class="label">Total Users</div>
+      <div class="value">{{ total_users }}</div>
+    </div>
+    <div class="stat-card success">
+      <div class="icon">
+        <i class="fas fa-check-circle"></i>
+      </div>
+      <div class="label">Users with Access</div>
+      <div class="value">{{ users_with_access }}</div>
+    </div>
+    <div class="stat-card info">
+      <div class="icon">
+        <i class="fas fa-server"></i>
+      </div>
+      <div class="label">Total Systems</div>
+      <div class="value">{{ total_systems }}</div>
+    </div>
+  </div>
+
+  <!-- Main Card -->
+  <div class="main-card">
+    <!-- Filters Section -->
+    <div class="filters-section">
+      <div class="filters-header" id="filtersToggle">
+        <h5>
+          <i class="fas fa-sliders-h"></i>
+          Filters & Search
+        </h5>
+        <button type="button" class="toggle-btn" id="filtersCollapseBtn">
+          <i class="fas fa-chevron-up"></i>
+        </button>
+      </div>
+      <div class="filters-content" id="filtersContent">
+        <form method="get" class="row g-3">
+          <div class="col-md-3">
+            <label for="search" class="form-label">
+              <i class="fas fa-search"></i> Search
+            </label>
+            <input 
+              type="text" 
+              class="form-control" 
+              id="search" 
+              name="search" 
+              value="{{ search }}" 
+              placeholder="Name, Username, Employee ID...">
+          </div>
+          <div class="col-md-3">
+            <label for="department" class="form-label">
+              <i class="fas fa-building"></i> Department
+            </label>
+            <select class="form-select" id="department" name="department">
+              <option value="">All Departments</option>
+              {% for dept in departments %}
+              <option value="{{ dept.pk }}" {% if selected_department_id == dept.pk|stringformat:"s" %}selected{% endif %}>
+                {{ dept.name }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label for="system" class="form-label">
+              <i class="fas fa-server"></i> System
+            </label>
+            <select class="form-select" id="system" name="system">
+              <option value="">All Systems</option>
+              {% for sys in systems %}
+              <option value="{{ sys.pk }}" {% if selected_system_id == sys.pk|stringformat:"s" %}selected{% endif %}>
+                {{ sys.name }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">&nbsp;</label>
+            <div class="custom-checkbox">
+              <input 
+                class="form-check-input" 
+                type="checkbox" 
+                id="show_only_with_access" 
+                name="show_only_with_access" 
+                value="true" 
+                {% if show_only_with_access %}checked{% endif %}>
+              <label class="form-check-label" for="show_only_with_access">
+                Only users with access
+              </label>
+            </div>
+          </div>
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-search"></i> Apply Filters
+            </button>
+            <a href="{% url 'access_management:cross_system_account_mapping' %}" class="btn btn-outline-secondary">
+              <i class="fas fa-times"></i> Clear Filters
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Table Section -->
+    <div class="table-section">
+      <div class="table-header">
+        <h5>
+          <i class="fas fa-table"></i>
+          Account Mapping Matrix
+        </h5>
+        <div class="table-info">
+          Showing {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ page_obj.paginator.count }} users
+        </div>
+      </div>
+
+      {% if page_obj %}
+      <div class="table-container">
+        <div class="table-responsive">
+          <table class="data-table sortable-table">
+            <thead>
+              <tr>
+                <th rowspan="2" class="sortable resizable" style="min-width: 220px;">
+                  <i class="fas fa-user"></i> Employee
+                  <div class="resize-handle"></div>
+                </th>
+                <th rowspan="2" class="sortable resizable" style="min-width: 140px;">
+                  <i class="fas fa-id-badge"></i> Employee ID
+                  <div class="resize-handle"></div>
+                </th>
+                <th rowspan="2" class="sortable resizable" style="min-width: 160px;">
+                  <i class="fas fa-building"></i> Department
+                  <div class="resize-handle"></div>
+                </th>
+                <th colspan="{{ systems.count }}" class="text-center" style="border-left: 2px solid var(--border-color);">
+                  <i class="fas fa-server"></i> System Accounts
+                </th>
+              </tr>
+              <tr>
+                {% for system in systems %}
+                <th class="text-center resizable" style="min-width: 180px; border-left: 1px solid var(--border-color);">
+                  {{ system.name }}
+                  <div class="resize-handle"></div>
+                </th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for user in page_obj %}
+              <tr>
+                <td>
+                  <div class="user-cell">
+                    <div class="user-avatar">
+                      {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+                    </div>
+                    <div class="user-info">
+                      <div class="name">{{ user.full_name }}</div>
+                      <div class="meta">{{ user.email }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span class="badge badge-info">{{ user.employee_id|default:"-" }}</span>
+                </td>
+                <td>{{ user.department.name|default:"-" }}</td>
+                {% for system in systems %}
+                <td class="text-center" style="border-left: 1px solid var(--border-color);">
+                  {% with access=user_system_mapping|get_item:user.id|get_item:system.id %}
+                  {% if access %}
+                    <div class="username-cell">
+                      <div class="username">{{ access.username }}</div>
+                      <div class="username-meta">
+                        {% if access.is_generic %}
+                        <span class="badge badge-generic">
+                          <i class="fas fa-exclamation-triangle"></i> Generic
+                        </span>
+                        {% endif %}
+                        {% if access.has_verification %}
+                        <span class="tooltip-wrapper">
+                          <i class="fas fa-check-circle verification-icon"></i>
+                          <span class="tooltip-text">Verified by {{ access.verified_by }}</span>
+                        </span>
+                        {% endif %}
+                        <span class="badge badge-{{ access.status|lower }}">{{ access.access_type }}</span>
+                      </div>
+                    </div>
+                  {% else %}
+                    <span style="color: var(--text-muted); font-size: 0.875rem;">—</span>
+                  {% endif %}
+                  {% endwith %}
+                </td>
+                {% endfor %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      {% if page_obj.has_other_pages %}
+      <div class="pagination">
+        {% if page_obj.has_previous %}
+        <a href="?page=1{% if search %}&search={{ search }}{% endif %}{% if selected_department_id %}&department={{ selected_department_id }}{% endif %}{% if selected_system_id %}&system={{ selected_system_id }}{% endif %}{% if show_only_with_access %}&show_only_with_access=true{% endif %}" class="page-link">
+          <i class="fas fa-angle-double-left"></i>
+        </a>
+        <a href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if selected_department_id %}&department={{ selected_department_id }}{% endif %}{% if selected_system_id %}&system={{ selected_system_id }}{% endif %}{% if show_only_with_access %}&show_only_with_access=true{% endif %}" class="page-link">
+          <i class="fas fa-angle-left"></i>
+        </a>
+        {% else %}
+        <span class="page-link disabled"><i class="fas fa-angle-double-left"></i></span>
+        <span class="page-link disabled"><i class="fas fa-angle-left"></i></span>
+        {% endif %}
+
+        <span class="page-link active">
+          Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if selected_department_id %}&department={{ selected_department_id }}{% endif %}{% if selected_system_id %}&system={{ selected_system_id }}{% endif %}{% if show_only_with_access %}&show_only_with_access=true{% endif %}" class="page-link">
+          <i class="fas fa-angle-right"></i>
+        </a>
+        <a href="?page={{ page_obj.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if selected_department_id %}&department={{ selected_department_id }}{% endif %}{% if selected_system_id %}&system={{ selected_system_id }}{% endif %}{% if show_only_with_access %}&show_only_with_access=true{% endif %}" class="page-link">
+          <i class="fas fa-angle-double-right"></i>
+        </a>
+        {% else %}
+        <span class="page-link disabled"><i class="fas fa-angle-right"></i></span>
+        <span class="page-link disabled"><i class="fas fa-angle-double-right"></i></span>
+        {% endif %}
+      </div>
+      {% endif %}
+      {% else %}
+      <div class="empty-state">
+        <i class="fas fa-inbox"></i>
+        <h5>No data available</h5>
+        <p>Try adjusting your filters or search criteria.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Collapsible Filters
+  // Filter Toggle
   const filtersToggle = document.getElementById('filtersToggle');
   const filtersContent = document.getElementById('filtersContent');
   const filtersCollapseBtn = document.getElementById('filtersCollapseBtn');
-  let filtersCollapsed = false;
 
   if (filtersToggle && filtersContent) {
+    // Restore saved state
+    const isCollapsed = localStorage.getItem('csm-filters-collapsed') === 'true';
+    if (isCollapsed) {
+      filtersContent.classList.add('collapsed');
+      filtersCollapseBtn.classList.add('collapsed');
+    }
+
     filtersToggle.addEventListener('click', function() {
-      filtersCollapsed = !filtersCollapsed;
-      if (filtersCollapsed) {
-        filtersContent.style.display = 'none';
-        filtersCollapseBtn.innerHTML = '<i class="fas fa-chevron-down"></i>';
-        localStorage.setItem('csm-filters-collapsed', 'true');
+      const willCollapse = !filtersContent.classList.contains('collapsed');
+      
+      if (willCollapse) {
+        filtersContent.classList.add('collapsed');
+        filtersCollapseBtn.classList.add('collapsed');
       } else {
-        filtersContent.style.display = 'block';
-        filtersCollapseBtn.innerHTML = '<i class="fas fa-chevron-up"></i>';
-        localStorage.setItem('csm-filters-collapsed', 'false');
+        filtersContent.classList.remove('collapsed');
+        filtersCollapseBtn.classList.remove('collapsed');
       }
-    });
-
-    // Restore previous state
-    if (localStorage.getItem('csm-filters-collapsed') === 'true') {
-      filtersContent.style.display = 'none';
-      filtersCollapseBtn.innerHTML = '<i class="fas fa-chevron-down"></i>';
-      filtersCollapsed = true;
-    }
-  }
-
-  // Resizable Columns
-  const resizeHandles = document.querySelectorAll('.resize-handle');
-  resizeHandles.forEach(handle => {
-    handle.addEventListener('mousedown', startColResize);
-  });
-
-  function startColResize(e) {
-    e.preventDefault();
-    const th = e.target.closest('th');
-    const table = th.closest('table');
-    const startX = e.clientX;
-    const startWidth = th.offsetWidth;
-
-    function doResize(e) {
-      const delta = e.clientX - startX;
-      th.style.minWidth = (startWidth + delta) + 'px';
-    }
-
-    function stopResize() {
-      document.removeEventListener('mousemove', doResize);
-      document.removeEventListener('mouseup', stopResize);
-    }
-
-    document.addEventListener('mousemove', doResize);
-    document.addEventListener('mouseup', stopResize);
-  }
-
-  // Vertical Resize Handle (filters vs table)
-  const resizeHandle = document.getElementById('resizeHandle');
-  const filtersCard = document.querySelector('.card:has(> .card-header #filtersToggle)');
-  const tableCard = document.getElementById('tableCard');
-
-  if (resizeHandle && filtersCard && tableCard) {
-    let isResizing = false;
-    const containerHeight = filtersCard.parentElement.offsetHeight;
-
-    resizeHandle.addEventListener('mousedown', function(e) {
-      e.preventDefault();
-      isResizing = true;
-      document.body.style.cursor = 'row-resize';
-      document.body.style.userSelect = 'none';
-
-      function doResize(e) {
-        if (!isResizing) return;
-        const containerRect = resizeHandle.parentElement.getBoundingClientRect();
-        const newFilterHeight = e.clientY - containerRect.top - 4;
-        if (newFilterHeight > 100) {
-          filtersCard.style.maxHeight = (newFilterHeight - 50) + 'px';
-          filtersCard.style.overflowY = 'auto';
-        }
-      }
-
-      function stopResize() {
-        isResizing = false;
-        document.body.style.cursor = 'auto';
-        document.body.style.userSelect = 'auto';
-        document.removeEventListener('mousemove', doResize);
-        document.removeEventListener('mouseup', stopResize);
-      }
-
-      document.addEventListener('mousemove', doResize);
-      document.addEventListener('mouseup', stopResize);
+      
+      localStorage.setItem('csm-filters-collapsed', willCollapse);
     });
   }
 
-  // Sortable Table Headers
+  // Sortable Table
   const sortableTable = document.querySelector('.sortable-table');
   if (sortableTable) {
-    const headers = sortableTable.querySelectorAll('thead th');
+    const headers = sortableTable.querySelectorAll('thead th.sortable');
     headers.forEach((header, idx) => {
-      // Skip system columns (they're complex) - only make first 3 sortable
-      if (idx < 3) {
-        header.classList.add('sortable');
-        header.style.cursor = 'pointer';
-        header.addEventListener('click', function() {
-          sortTable(sortableTable, idx);
-        });
-      }
+      header.addEventListener('click', function() {
+        sortTable(sortableTable, idx);
+      });
     });
   }
 
   function sortTable(table, columnIdx) {
     const tbody = table.querySelector('tbody');
     const rows = Array.from(tbody.querySelectorAll('tr'));
-    const header = table.querySelector(`thead th:nth-child(${columnIdx + 1})`);
+    const header = table.querySelectorAll('thead th.sortable')[columnIdx];
     
     const isAsc = !header.classList.contains('sort-asc');
     
-    // Remove sort indicators from all headers
+    // Remove all sort indicators
     table.querySelectorAll('thead th').forEach(h => {
       h.classList.remove('sort-asc', 'sort-desc');
     });
@@ -474,13 +1048,46 @@ document.addEventListener('DOMContentLoaded', function() {
     header.classList.add(isAsc ? 'sort-asc' : 'sort-desc');
     rows.forEach(row => tbody.appendChild(row));
   }
+
+  // Resizable Columns
+  const resizeHandles = document.querySelectorAll('.resize-handle');
+  resizeHandles.forEach(handle => {
+    handle.addEventListener('mousedown', startResize);
+  });
+
+  function startResize(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const th = e.target.closest('th');
+    const startX = e.clientX;
+    const startWidth = th.offsetWidth;
+
+    function doResize(e) {
+      const delta = e.clientX - startX;
+      const newWidth = Math.max(100, startWidth + delta);
+      th.style.minWidth = newWidth + 'px';
+      th.style.width = newWidth + 'px';
+    }
+
+    function stopResize() {
+      document.removeEventListener('mousemove', doResize);
+      document.removeEventListener('mouseup', stopResize);
+      document.body.style.cursor = 'auto';
+      document.body.style.userSelect = 'auto';
+    }
+
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    document.addEventListener('mousemove', doResize);
+    document.addEventListener('mouseup', stopResize);
+  }
 });
 
-function exportMapping(format = 'csv') {
-    const params = new URLSearchParams(window.location.search);
-    params.set('export', format || 'csv');
-    window.location.href = '?' + params.toString();
+function exportMapping(format) {
+  const params = new URLSearchParams(window.location.search);
+  params.set('export', format || 'csv');
+  window.location.href = '?' + params.toString();
 }
 </script>
 {% endblock %}
-
