@@ -13,8 +13,9 @@ import json
 
 from .models import (
     UserSystemAccess, ApprovalWorkflow, Approval, ApprovalStep,
-    EvidenceArtifact, Attestation, AuditEventLog, RiskScorer
+    EvidenceArtifact, Attestation, AuditEventLog
 )
+from .risk import RiskScorer
 from .forms_new import (
     ApprovalForm, EvidenceArtifactForm, AttestationForm,
     AccessApproveForm, RevokeAccessForm
