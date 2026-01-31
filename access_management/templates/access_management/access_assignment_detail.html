@@ -43,9 +43,11 @@
                             <a href="{% url 'access_management:evidence_gallery' access_assignment.pk %}" class="btn btn-sm btn-info" title="View uploaded evidence">
                                 <i class="fas fa-images"></i> Evidence Gallery
                             </a>
+                            {% if access_assignment.user == user or user.is_staff or user.is_superuser or perms.access_management.can_attest_any %}
                             <a href="{% url 'access_management:attest_access' access_assignment.pk %}" class="btn btn-sm btn-warning" title="Attest to this access">
                                 <i class="fas fa-certificate"></i> Attest Access
                             </a>
+                            {% endif %}
                             <a href="{% url 'access_management:revoke_access' access_assignment.pk %}" class="btn btn-sm btn-danger" title="Revoke this access">
                                 <i class="fas fa-ban"></i> Revoke Access
                             </a>

@@ -149,8 +149,13 @@ def attest_access(request, access_id):
     
     access = get_object_or_404(UserSystemAccess, pk=access_id)
     
-    # Only the user with access can attest
-    if access.user != request.user:
+    # Allow the owner, staff/superusers, or users with explicit permission
+    if not (
+        access.user == request.user
+        or request.user.is_staff
+        or request.user.is_superuser
+        or request.user.has_perm('access_management.can_attest_any')
+    ):
         return HttpResponseForbidden('You can only attest for your own access.')
     
     # Build standard attestation statement

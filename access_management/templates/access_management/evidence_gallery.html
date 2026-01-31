@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Evidence Gallery{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="fas fa-images"></i> Evidence Gallery</h5>
+          <div>
+            <a href="{% url 'access_management:access_assignment_detail' access.pk %}" class="btn btn-sm btn-outline-secondary">
+              <i class="fas fa-arrow-left"></i> Back
+            </a>
+            <a href="{% url 'access_management:upload_evidence' access.pk %}" class="btn btn-sm btn-primary">
+              <i class="fas fa-file-upload"></i> Upload Evidence
+            </a>
+          </div>
+        </div>
+        <div class="card-body">
+          {% if artifacts %}
+            <div class="row g-3">
+              {% for art in artifacts %}
+              <div class="col-md-4">
+                <div class="card h-100">
+                  {% if art.file %}
+                  <a href="{{ art.file.url }}" target="_blank">
+                    <img src="{{ art.file.url }}" class="card-img-top" alt="{{ art.filename }}">
+                  </a>
+                  {% endif %}
+                  <div class="card-body">
+                    <h6 class="card-title">{{ art.artifact_type|default:'File' }}</h6>
+                    <p class="mb-1 small text-muted">Uploaded: {{ art.created_at }}</p>
+                    <p class="mb-0">{{ art.description|default:'No description' }}</p>
+                  </div>
+                  <div class="card-footer bg-transparent">
+                    <a href="{{ art.file.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Download</a>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="alert alert-info">No evidence artifacts uploaded for this assignment yet.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
