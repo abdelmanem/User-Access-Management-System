@@ -153,13 +153,22 @@
                 <a class="sidebar-sublink{{ access_assignments_active }}" href="{% url 'access_management:access_assignment_list' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-list"></i> Access Assignments
                 </a>
-                {% nav_active_class 'access_management:my_pending_approvals' as my_pending_active %}
-                <a class="sidebar-sublink{{ my_pending_active }}" href="{% url 'access_management:my_pending_approvals' %}" data-sidebar-close="true">
-                    <i class="fa-solid fa-inbox"></i> My Pending Approvals
+                {% nav_active_class 'access_management:my_pending_approvals' 'access_management:approval_dashboard' as my_pending_active %}
+                <a class="sidebar-sublink{{ my_pending_active }}" href="{% url 'access_management:approval_dashboard' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-inbox"></i> Approval Dashboard
                 </a>
                 {% nav_active_class 'access_management:access_assignment_create' as access_create_active %}
                 <a class="sidebar-sublink{{ access_create_active }}" href="{% url 'access_management:access_assignment_create' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-plus"></i> New Assignment
+                </a>
+                <div class="sidebar-submenu-divider" role="separator"></div>
+                {% nav_active_class 'access_management:upload_evidence' 'access_management:evidence_gallery' as evidence_active %}
+                <a class="sidebar-sublink{{ evidence_active }}" href="{% url 'access_management:upload_evidence' access_id=0 %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-file-upload"></i> Upload Evidence
+                </a>
+                {% nav_active_class 'access_management:attest_access' as attestation_active %}
+                <a class="sidebar-sublink{{ attestation_active }}" href="{% url 'access_management:attest_access' access_id=0 %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-certificate"></i> Attestation
                 </a>
                 {% nav_active_class 'access_management:cross_system_account_mapping' 'access_management:user_cross_system_accounts' as access_mapping_active %}
                 <a class="sidebar-sublink{{ access_mapping_active }}" href="{% url 'access_management:cross_system_account_mapping' %}" data-sidebar-close="true">
