@@ -3,465 +3,791 @@
 
 {% block title %}User Management{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Modern Color Palette */
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        --danger-gradient: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+        --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --card-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        --card-shadow-hover: 0 8px 24px rgba(0,0,0,0.12);
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Page Header */
+    .page-header {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        box-shadow: var(--card-shadow);
+    }
+
+    .page-header h3 {
+        margin: 0;
+        font-weight: 600;
+        font-size: 1.75rem;
+    }
+
+    .btn-export {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        transition: var(--transition);
+        backdrop-filter: blur(10px);
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-export:hover {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.5);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    /* KPI Cards */
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .kpi-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: var(--card-shadow);
+        transition: var(--transition);
+        cursor: pointer;
+        border: 2px solid transparent;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .kpi-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--primary-gradient);
+        transform: scaleX(0);
+        transition: var(--transition);
+    }
+
+    .kpi-card:hover::before,
+    .kpi-card.active::before {
+        transform: scaleX(1);
+    }
+
+    .kpi-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--card-shadow-hover);
+        border-color: rgba(102, 126, 234, 0.2);
+    }
+
+    .kpi-card.active {
+        border-color: #667eea;
+        background: linear-gradient(to bottom, rgba(102, 126, 234, 0.05), white);
+    }
+
+    .kpi-label {
+        font-size: 0.875rem;
+        color: #6c757d;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .kpi-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2d3748;
+        margin-bottom: 0.25rem;
+    }
+
+    .kpi-description {
+        font-size: 0.813rem;
+        color: #718096;
+    }
+
+    /* Filter Section */
+    .filter-section {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--card-shadow);
+    }
+
+    .filter-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #f1f3f5;
+    }
+
+    .filter-header h6 {
+        margin: 0;
+        font-weight: 600;
+        color: #2d3748;
+    }
+
+    .form-label {
+        font-weight: 500;
+        color: #4a5568;
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .form-control,
+    .form-select {
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 0.625rem 0.875rem;
+        transition: var(--transition);
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    /* Enhanced Buttons */
+    .btn {
+        border-radius: 8px;
+        font-weight: 500;
+        padding: 0.625rem 1.25rem;
+        transition: var(--transition);
+    }
+
+    .btn-primary {
+        background: var(--primary-gradient);
+        border: none;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-success {
+        background: var(--success-gradient);
+        border: none;
+        color: white;
+    }
+
+    .btn-danger {
+        background: var(--danger-gradient);
+        border: none;
+        color: white;
+    }
+
+    .btn-outline-secondary {
+        border: 2px solid #e2e8f0;
+        color: #4a5568;
+        background: white;
+    }
+
+    .btn-outline-secondary:hover {
+        background: #f7fafc;
+        border-color: #cbd5e0;
+    }
+
+    /* Bulk Actions */
+    .bulk-actions-section {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 2px dashed #dee2e6;
+    }
+
+    .selection-count {
+        background: #667eea;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.813rem;
+        font-weight: 600;
+        margin-left: 0.5rem;
+        display: none;
+    }
+
+    .selection-count.active {
+        display: inline-block;
+    }
+
+    /* Table */
+    .table-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+    }
+
+    .table thead {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+
+    .table thead th {
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+        color: #2d3748;
+        text-transform: uppercase;
+        font-size: 0.813rem;
+        padding: 1rem 0.75rem;
+    }
+
+    .table thead th a {
+        color: #2d3748;
+        text-decoration: none;
+        transition: var(--transition);
+    }
+
+    .table thead th a:hover {
+        color: #667eea;
+    }
+
+    .table tbody tr {
+        transition: var(--transition);
+    }
+
+    .table tbody tr:hover {
+        background: rgba(102, 126, 234, 0.02);
+    }
+
+    .table tbody td {
+        padding: 1rem 0.75rem;
+        vertical-align: middle;
+    }
+
+    /* Badges */
+    .badge {
+        padding: 0.375rem 0.75rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.75rem;
+    }
+
+    .badge.bg-success {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+    }
+
+    .badge.bg-danger {
+        background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%) !important;
+    }
+
+    .badge.bg-warning {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
+    }
+
+    /* Pagination */
+    .stats-bar {
+        background: white;
+        border-radius: 8px;
+        padding: 1rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1rem;
+        box-shadow: var(--card-shadow);
+    }
+
+    .pagination .page-link {
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        color: #4a5568;
+        padding: 0.5rem 1rem;
+        margin: 0 0.25rem;
+        transition: var(--transition);
+    }
+
+    .pagination .page-link:hover {
+        background: #667eea;
+        border-color: #667eea;
+        color: white;
+    }
+
+    /* Checkboxes */
+    .form-check-input {
+        width: 1.25rem;
+        height: 1.25rem;
+        border: 2px solid #cbd5e0;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .form-check-input:checked {
+        background-color: #667eea;
+        border-color: #667eea;
+    }
+
+    /* Active Filters */
+    .active-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .filter-tag {
+        background: rgba(102, 126, 234, 0.1);
+        color: #667eea;
+        padding: 0.375rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.813rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .filter-tag .remove-filter {
+        cursor: pointer;
+        font-weight: bold;
+        opacity: 0.7;
+    }
+
+    .filter-tag .remove-filter:hover {
+        opacity: 1;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .kpi-grid {
+            grid-template-columns: 1fr;
+        }
+        .page-header {
+            padding: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div id="content-main">
     <div class="container-fluid">
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">User Management</h3>
-                        <div class="card-tools d-flex gap-2">
-                            <a href="{% url 'accounts:user_export_excel' %}?{% if base_query %}{{ base_query }}&{% endif %}sort={{ current_sort }}&dir={{ current_dir }}" class="btn btn-success btn-sm">
-                                <i class="fas fa-file-excel"></i> Export Excel
-                            </a>
-                            <a href="{% url 'accounts:user_export_pdf' %}?{% if base_query %}{{ base_query }}&{% endif %}sort={{ current_sort }}&dir={{ current_dir }}" class="btn btn-danger btn-sm">
-                                <i class="fas fa-file-pdf"></i> Export PDF
-                            </a>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="card shadow-sm border-0 mb-4">
-                            <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                                <h6 class="m-0 fw-bold text-primary">User KPI Snapshot</h6>
-                                <span class="text-muted small">Reflects current filters</span>
-                            </div>
-                            <div class="card-body p-0">
-                                {% if user_kpis %}
-                                <div class="table-responsive">
-                                    <table class="table table-striped align-middle mb-0">
-                                        <tbody>
-                                            {% for kpi in user_kpis %}
-                                            <tr class="kpi-row{% if kpi.filter_params %} clickable-kpi{% endif %}{% if kpi.is_active %} table-active{% endif %}" {% if kpi.filter_params %}data-filter-params="{{ kpi.filter_params }}" style="cursor: pointer;" title="Click to apply filter"{% endif %}>
-                                                <th scope="row" class="text-nowrap">{{ kpi.label }}</th>
-                                                <td class="text-end">
-                                                    <span class="badge bg-{{ kpi.badge }}-subtle text-{{ kpi.badge }} fs-6">{{ kpi.value }}</span>
-                                                </td>
-                                                <td class="text-muted small">{{ kpi.description }}</td>
-                                            </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                                {% else %}
-                                <p class="text-muted mb-0 p-3">No KPI data available.</p>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <form method="get" class="mb-3">
-                            <input type="hidden" name="sort" value="{{ current_sort }}">
-                            <input type="hidden" name="dir" value="{{ current_dir|default:'asc' }}">
-                            <div class="row g-2 align-items-end">
-                                <div class="col-md-4">
-                                    <label for="q" class="form-label">Search</label>
-                                    <input type="text" id="q" name="q" value="{{ q }}" class="form-control" placeholder="Username, name, email, employee ID">
-                                </div>
-                                <div class="col-md-3">
-                                    <label for="status" class="form-label">Status</label>
-                                    <select id="status" name="status" class="form-select">
-                                        <option value="">All</option>
-                                        <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
-                                        <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Inactive</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label for="follow_up" class="form-label">Follow-up flag</label>
-                                    <select id="follow_up" name="follow_up" class="form-select">
-                                        <option value="">All</option>
-                                        <option value="flagged" {% if follow_up == 'flagged' %}selected{% endif %}>Flagged</option>
-                                        <option value="unflagged" {% if follow_up == 'unflagged' %}selected{% endif %}>Not flagged</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label for="metrics" class="form-label">Metric visibility</label>
-                                    <select id="metrics" name="metrics" class="form-select">
-                                        <option value="" {% if not metrics %}selected{% endif %}>All users</option>
-                                        <option value="included" {% if metrics == 'included' %}selected{% endif %}>Reportable only</option>
-                                        <option value="excluded" {% if metrics == 'excluded' %}selected{% endif %}>Excluded only</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label for="department" class="form-label">Department</label>
-                                    <select id="department" name="department" class="form-select">
-                                        <option value="">All</option>
-                                        {% for dept in departments %}
-                                            <option value="{{ dept.id }}" {% if department_selected|default:'' == dept.id|stringformat:'s' %}selected{% endif %}>{{ dept.name }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                <div class="col-md-2">
-                                    <label for="page_size" class="form-label">Per page</label>
-                                    <select id="page_size" name="page_size" class="form-select">
-                                        <option value="25" {% if page_size == 25 %}selected{% endif %}>25</option>
-                                        <option value="50" {% if page_size == 50 %}selected{% endif %}>50</option>
-                                        <option value="100" {% if page_size == 100 %}selected{% endif %}>100</option>
-                                        <option value="all" {% if page_size == 'all' %}selected{% endif %}>All</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-2">
-                                    <button type="submit" class="btn btn-secondary w-100">Filter</button>
-                                </div>
-                                <div class="col-md-2">
-                                    <a href="{% url 'accounts:user_list' %}{% if current_sort or current_dir %}?sort={{ current_sort }}&dir={{ current_dir }}{% endif %}" class="btn btn-outline-secondary w-100">
-                                        <i class="fas fa-times"></i> Clear Filters
-                                    </a>
-                                </div>
-                            </div>
-                        </form>
-                        <form id="bulk-action-form" method="post" action="{% url 'accounts:user_bulk_action' %}" class="mb-3">
-                            {% csrf_token %}
-                            <input type="hidden" name="q" value="{{ q }}">
-                            <input type="hidden" name="status" value="{{ status }}">
-                            <input type="hidden" name="department" value="{{ department_selected }}">
-                            <input type="hidden" name="follow_up" value="{{ follow_up }}">
-                            <input type="hidden" name="metrics" value="{{ metrics }}">
-                            <input type="hidden" name="page_size" value="{{ page_size }}">
-                            <input type="hidden" name="sort" value="{{ current_sort }}">
-                            <input type="hidden" name="dir" value="{{ current_dir }}">
-                            <div class="row g-2 align-items-end">
-                                <div class="col-md-4">
-                                    <label class="form-label" for="bulk-action">Bulk action</label>
-                                    <div class="input-group">
-                                        <select id="bulk-action" name="action" class="form-select">
-                                            <option value="">Choose...</option>
-                                            <option value="activate">Activate</option>
-                                            <option value="deactivate">Deactivate</option>
-                                            {% if perms.accounts.delete_customuser %}
-                                            <option value="delete">Delete</option>
-                                            {% endif %}
-                                            <option value="assign_department">Assign to department</option>
-                                            <option value="clear_email">Clear work email</option>
-                                            <option value="flag_follow_up">Mark for follow-up</option>
-                                            <option value="clear_follow_up">Clear follow-up flag</option>
-                                        </select>
-                                        <button type="submit" class="btn btn-outline-primary">Apply</button>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label" for="bulk-department">Department for assignment</label>
-                                    <select id="bulk-department" name="bulk_department_id" class="form-select">
-                                        <option value="">No department (clear assignment)</option>
-                                        {% for dept in departments %}
-                                            <option value="{{ dept.id }}">{{ dept.name }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                <div class="col-md-4 text-muted small">
-                                    Tips: Assign departments or clear work emails from selected users, then apply.
-                                </div>
-                            </div>
-                        </form>
-                        <table class="table table-bordered table-striped align-middle">
-                            <thead>
-                                <tr>
-                                    <th style="width:32px;">
-                                        <input type="checkbox" id="select-all" class="form-check-input">
-                                    </th>
-                                    <th>
-                                        <a href="?{% if base_query %}{{ base_query }}&{% endif %}sort=id&dir={% if current_sort == 'id' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
-                                            ID
-                                            {% if current_sort == 'id' %}
-                                                <span class="ms-1">{% if current_dir == 'asc' %}▲{% else %}▼{% endif %}</span>
-                                            {% endif %}
-                                        </a>
-                                    </th>
-                                    <th>
-                                        <a href="?{% if base_query %}{{ base_query }}&{% endif %}sort=username&dir={% if current_sort == 'username' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
-                                            Username
-                                            {% if current_sort == 'username' %}
-                                                <span class="ms-1">{% if current_dir == 'asc' %}▲{% else %}▼{% endif %}</span>
-                                            {% endif %}
-                                        </a>
-                                    </th>
-                                    <th>
-                                        <a href="?{% if base_query %}{{ base_query }}&{% endif %}sort=full_name&dir={% if current_sort == 'full_name' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
-                                            Full Name
-                                            {% if current_sort == 'full_name' %}
-                                                <span class="ms-1">{% if current_dir == 'asc' %}▲{% else %}▼{% endif %}</span>
-                                            {% endif %}
-                                        </a>
-                                    </th>
-                                    <th>
-                                        <a href="?{% if base_query %}{{ base_query }}&{% endif %}sort=email&dir={% if current_sort == 'email' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
-                                            Email
-                                            {% if current_sort == 'email' %}
-                                                <span class="ms-1">{% if current_dir == 'asc' %}▲{% else %}▼{% endif %}</span>
-                                            {% endif %}
-                                        </a>
-                                    </th>
-                                    <th>
-                                        <a href="?{% if base_query %}{{ base_query }}&{% endif %}sort=department&dir={% if current_sort == 'department' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
-                                            Department
-                                            {% if current_sort == 'department' %}
-                                                <span class="ms-1">{% if current_dir == 'asc' %}▲{% else %}▼{% endif %}</span>
-                                            {% endif %}
-                                        </a>
-                                    </th>
-                                    <th>
-                                        <a href="?{% if base_query %}{{ base_query }}&{% endif %}sort=position&dir={% if current_sort == 'position' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
-                                            Position
-                                            {% if current_sort == 'position' %}
-                                                <span class="ms-1">{% if current_dir == 'asc' %}▲{% else %}▼{% endif %}</span>
-                                            {% endif %}
-                                        </a>
-                                    </th>
-                                    <th>
-                                        <a href="?{% if base_query %}{{ base_query }}&{% endif %}sort=description&dir={% if current_sort == 'description' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
-                                            Description
-                                            {% if current_sort == 'description' %}
-                                                <span class="ms-1">{% if current_dir == 'asc' %}▲{% else %}▼{% endif %}</span>
-                                            {% endif %}
-                                        </a>
-                                    </th>
-                                    <th>
-                                        <a href="?{% if base_query %}{{ base_query }}&{% endif %}sort=follow_up&dir={% if current_sort == 'follow_up' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
-                                            Follow-up
-                                            {% if current_sort == 'follow_up' %}
-                                                <span class="ms-1">{% if current_dir == 'asc' %}▲{% else %}▼{% endif %}</span>
-                                            {% endif %}
-                                        </a>
-                                    </th>
-                                    <th>
-                                        <a href="?{% if base_query %}{{ base_query }}&{% endif %}sort=metrics&dir={% if current_sort == 'metrics' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
-                                            Metrics
-                                            {% if current_sort == 'metrics' %}
-                                                <span class="ms-1">{% if current_dir == 'asc' %}▲{% else %}▼{% endif %}</span>
-                                            {% endif %}
-                                        </a>
-                                    </th>
-                                    <th>
-                                        <a href="?{% if base_query %}{{ base_query }}&{% endif %}sort=status&dir={% if current_sort == 'status' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
-                                            Status
-                                            {% if current_sort == 'status' %}
-                                                <span class="ms-1">{% if current_dir == 'asc' %}▲{% else %}▼{% endif %}</span>
-                                            {% endif %}
-                                        </a>
-                                    </th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for user in users %}
-                                <tr>
-                                    <td>
-                                        <input type="checkbox" form="bulk-action-form" name="selected" value="{{ user.id }}" class="form-check-input row-checkbox">
-                                    </td>
-                                    <td>{{ user.id }}</td>
-                                    <td>{{ user.username }}</td>
-                                    <td>{{ user.get_full_name }}</td>
-                                    <td>{{ user.email }}</td>
-                                    <td>{{ user.department.name|default:"N/A" }}</td>
-                                    <td>{{ user.position|default:"N/A" }}</td>
-                                    <td>
-                                        {% if user.description %}
-                                            <span title="{{ user.description }}">{{ user.description|truncatewords:10|default:"N/A" }}</span>
-                                        {% else %}
-                                            N/A
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if user.flag_for_follow_up %}
-                                            <span class="badge bg-warning text-dark"><i class="fas fa-flag"></i> Follow-up</span>
-                                        {% else %}
-                                            <span class="text-muted">&mdash;</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if user.exclude_from_metrics %}
-                                            <span class="badge bg-secondary">Excluded</span>
-                                        {% else %}
-                                            <span class="badge bg-success">Reportable</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if user.is_active %}
-                                            <span class="badge bg-success">Active</span>
-                                        {% else %}
-                                            <span class="badge bg-danger">Inactive</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if perms.accounts.change_customuser %}
-                                        <form action="{% url 'accounts:user_assign_department' user.id %}" method="post" class="d-flex flex-wrap gap-2 align-items-center mb-2">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                                            <select name="department_id" class="form-select form-select-sm">
-                                                <option value="">No department</option>
-                                                {% for dept in departments %}
-                                                    <option value="{{ dept.id }}" {% if user.department_id == dept.id %}selected{% endif %}>{{ dept.name }}</option>
-                                                {% endfor %}
-                                            </select>
-                                            <button type="submit" class="btn btn-outline-primary btn-sm">Assign</button>
-                                        </form>
-                                        {% endif %}
-                                        <div class="btn-group btn-group-sm mb-2" role="group">
-                                            <a href="{% url 'accounts:user_detail' user.id %}" class="btn btn-info">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a href="{% url 'accounts:user_update' user.id %}" class="btn btn-warning">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            {% if perms.accounts.change_customuser %}
-                                            <a href="{% url 'accounts:user_reset_password' user.id %}" class="btn btn-secondary">
-                                                <i class="fas fa-key"></i>
-                                            </a>
-                                            {% endif %}
-                                            <a href="{% url 'accounts:user_delete' user.id %}" class="btn btn-danger">
-                                                <i class="fas fa-trash"></i>
-                                            </a>
-                                        </div>
-                                        {% if perms.accounts.change_customuser %}
-                                        <form action="{% url 'accounts:user_toggle_active' user.id %}" method="post" class="d-inline">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                                            {% if user.is_active %}
-                                            <button type="submit" class="btn btn-outline-danger btn-sm">
-                                                <i class="fas fa-user-slash"></i> Deactivate
-                                            </button>
-                                            {% else %}
-                                            <button type="submit" class="btn btn-outline-success btn-sm">
-                                                <i class="fas fa-user-check"></i> Activate
-                                            </button>
-                                            {% endif %}
-                                        </form>
-                                        <form action="{% url 'accounts:user_toggle_follow_up' user.id %}" method="post" class="d-inline ms-1">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                                            {% if user.flag_for_follow_up %}
-                                            <button type="submit" class="btn btn-warning btn-sm text-dark">
-                                                <i class="fas fa-flag"></i> Clear follow-up
-                                            </button>
-                                            {% else %}
-                                            <button type="submit" class="btn btn-outline-warning btn-sm">
-                                                <i class="fas fa-flag"></i> Flag follow-up
-                                            </button>
-                                            {% endif %}
-                                        </form>
-                                        <form action="{% url 'accounts:user_toggle_metrics' user.id %}" method="post" class="d-inline ms-1">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                                            {% if user.exclude_from_metrics %}
-                                            <button type="submit" class="btn btn-outline-secondary btn-sm">
-                                                <i class="fas fa-chart-line"></i> Include in metrics
-                                            </button>
-                                            {% else %}
-                                            <button type="submit" class="btn btn-secondary btn-sm">
-                                                <i class="fas fa-chart-line"></i> Exclude from metrics
-                                            </button>
-                                            {% endif %}
-                                        </form>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                        <div class="d-flex justify-content-between align-items-center mt-2">
-                            <div>
-                                Showing {{ users|length }} of {{ total_count }} users
-                            </div>
-                        </div>
-                        {% if page_obj %}
-                        <nav aria-label="User pagination" class="mt-3">
-                            <ul class="pagination">
-                                {% if page_obj.has_previous %}
-                                    <li class="page-item">
-                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ q }}&status={{ status }}&department={{ department_selected }}&follow_up={{ follow_up }}&page_size={{ page_size }}">Previous</a>
-                                    </li>
-                                {% else %}
-                                    <li class="page-item disabled"><span class="page-link">Previous</span></li>
-                                {% endif %}
-                                <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
-                                {% if page_obj.has_next %}
-                                    <li class="page-item">
-                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ q }}&status={{ status }}&department={{ department_selected }}&follow_up={{ follow_up }}&page_size={{ page_size }}">Next</a>
-                                    </li>
-                                {% else %}
-                                    <li class="page-item disabled"><span class="page-link">Next</span></li>
-                                {% endif %}
-                            </ul>
-                        </nav>
-                        {% endif %}
-                    </div>
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h3><i class="fas fa-users me-2"></i>User Management</h3>
+                    <p class="mb-0 mt-2 opacity-75">Manage system users, permissions, and access</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'accounts:user_export_excel' %}?{% if base_query %}{{ base_query }}&{% endif %}sort={{ current_sort }}&dir={{ current_dir }}" 
+                       class="btn-export">
+                        <i class="fas fa-file-excel"></i> Export Excel
+                    </a>
+                    <a href="{% url 'accounts:user_export_pdf' %}?{% if base_query %}{{ base_query }}&{% endif %}sort={{ current_sort }}&dir={{ current_dir }}" 
+                       class="btn-export">
+                        <i class="fas fa-file-pdf"></i> Export PDF
+                    </a>
                 </div>
             </div>
         </div>
-    </div>
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  const selectAll = document.getElementById('select-all');
-  const rowCbs = document.querySelectorAll('.row-checkbox');
-  if (selectAll) {
-    selectAll.addEventListener('change', function () {
-      rowCbs.forEach(cb => { cb.checked = selectAll.checked; });
-    });
-  }
 
-  // Make KPI rows clickable to apply filters
-  const kpiRows = document.querySelectorAll('.clickable-kpi');
-  // Define all filter-related parameters that should be cleared
-  const allFilterParams = ['status', 'metrics', 'department', 'follow_up', 'q'];
-  // Parameters to preserve (not filters)
-  const preserveParams = ['sort', 'dir', 'page_size'];
-  
-  kpiRows.forEach(function(row) {
-    row.addEventListener('click', function() {
-      const filterParams = this.getAttribute('data-filter-params');
-      if (!filterParams) return;
-      
-      try {
-        const params = JSON.parse(filterParams);
-        const urlParams = new URLSearchParams(window.location.search);
-        
-        // Store parameters to preserve
-        const preserved = {};
-        preserveParams.forEach(key => {
-          if (urlParams.has(key)) {
-            preserved[key] = urlParams.get(key);
-          }
-        });
-        
-        // Clear ALL existing filter params first (to ensure clean state)
-        allFilterParams.forEach(key => {
-          urlParams.delete(key);
-        });
-        
-        // Also clear preserved params temporarily
-        preserveParams.forEach(key => {
-          urlParams.delete(key);
-        });
-        
-        // Set new filter params from the clicked KPI
-        Object.keys(params).forEach(key => {
-          if (params[key]) {
-            urlParams.set(key, params[key]);
-          }
-        });
-        
-        // Restore preserved parameters
-        Object.keys(preserved).forEach(key => {
-          urlParams.set(key, preserved[key]);
-        });
-        
-        // Reset to page 1 when applying filter
-        urlParams.delete('page');
-        
-        // Navigate to filtered URL
-        window.location.href = window.location.pathname + '?' + urlParams.toString();
-      } catch (e) {
-        console.error('Error parsing filter params:', e);
-      }
+        <!-- KPI Section -->
+        <div class="kpi-grid">
+            {% for kpi in user_kpis %}
+            <div class="kpi-card {% if kpi.filter_params %}clickable-kpi{% endif %} {% if kpi.is_active %}active{% endif %}"
+                 {% if kpi.filter_params %}data-filter-params="{{ kpi.filter_params }}"{% endif %}>
+                <div class="kpi-label">{{ kpi.label }}</div>
+                <div class="kpi-value">{{ kpi.value }}</div>
+                <div class="kpi-description">{{ kpi.description }}</div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <div class="filter-header">
+                <h6><i class="fas fa-filter me-2"></i>Filter Users</h6>
+            </div>
+            <form method="get" id="filterForm">
+                <input type="hidden" name="sort" value="{{ current_sort }}">
+                <input type="hidden" name="dir" value="{{ current_dir|default:'asc' }}">
+                <div class="row g-3">
+                    <div class="col-md-6 col-lg-4">
+                        <label for="q" class="form-label">
+                            <i class="fas fa-search text-muted me-1"></i> Search
+                        </label>
+                        <input type="text" id="q" name="q" value="{{ q }}" class="form-control" 
+                               placeholder="Username, name, email, employee ID">
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <label for="status" class="form-label">
+                            <i class="fas fa-toggle-on text-muted me-1"></i> Status
+                        </label>
+                        <select id="status" name="status" class="form-select">
+                            <option value="">All Status</option>
+                            <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
+                            <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Inactive</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <label for="follow_up" class="form-label">
+                            <i class="fas fa-flag text-muted me-1"></i> Follow-up
+                        </label>
+                        <select id="follow_up" name="follow_up" class="form-select">
+                            <option value="">All</option>
+                            <option value="flagged" {% if follow_up == 'flagged' %}selected{% endif %}>Flagged</option>
+                            <option value="unflagged" {% if follow_up == 'unflagged' %}selected{% endif %}>Not Flagged</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 col-lg-2">
+                        <label for="page_size" class="form-label">
+                            <i class="fas fa-list-ol text-muted me-1"></i> Per Page
+                        </label>
+                        <select id="page_size" name="page_size" class="form-select">
+                            <option value="25" {% if page_size == 25 %}selected{% endif %}>25</option>
+                            <option value="50" {% if page_size == 50 %}selected{% endif %}>50</option>
+                            <option value="100" {% if page_size == 100 %}selected{% endif %}>100</option>
+                            <option value="all" {% if page_size == 'all' %}selected{% endif %}>All</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row g-3 mt-2">
+                    <div class="col-md-6 col-lg-4">
+                        <label for="metrics" class="form-label">
+                            <i class="fas fa-chart-line text-muted me-1"></i> Metrics
+                        </label>
+                        <select id="metrics" name="metrics" class="form-select">
+                            <option value="" {% if not metrics %}selected{% endif %}>All Users</option>
+                            <option value="included" {% if metrics == 'included' %}selected{% endif %}>Reportable</option>
+                            <option value="excluded" {% if metrics == 'excluded' %}selected{% endif %}>Excluded</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <label for="department" class="form-label">
+                            <i class="fas fa-building text-muted me-1"></i> Department
+                        </label>
+                        <select id="department" name="department" class="form-select">
+                            <option value="">All Departments</option>
+                            {% for dept in departments %}
+                                <option value="{{ dept.id }}" {% if department_selected|default:'' == dept.id|stringformat:'s' %}selected{% endif %}>
+                                    {{ dept.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-12 col-lg-4 d-flex align-items-end gap-2">
+                        <button type="submit" class="btn btn-primary flex-fill">
+                            <i class="fas fa-search me-2"></i> Apply
+                        </button>
+                        <a href="{% url 'accounts:user_list' %}{% if current_sort or current_dir %}?sort={{ current_sort }}&dir={{ current_dir }}{% endif %}" 
+                           class="btn btn-outline-secondary flex-fill">
+                            <i class="fas fa-times me-2"></i> Clear
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Active Filters -->
+                {% if q or status or department_selected or follow_up or metrics %}
+                <div class="active-filters">
+                    {% if q %}
+                    <span class="filter-tag">
+                        Search: "{{ q }}" <span class="remove-filter" onclick="removeFilter('q')">×</span>
+                    </span>
+                    {% endif %}
+                    {% if status %}
+                    <span class="filter-tag">
+                        Status: {{ status|title }} <span class="remove-filter" onclick="removeFilter('status')">×</span>
+                    </span>
+                    {% endif %}
+                    {% if department_selected %}
+                    <span class="filter-tag">
+                        Department <span class="remove-filter" onclick="removeFilter('department')">×</span>
+                    </span>
+                    {% endif %}
+                    {% if follow_up %}
+                    <span class="filter-tag">
+                        Follow-up: {{ follow_up|title }} <span class="remove-filter" onclick="removeFilter('follow_up')">×</span>
+                    </span>
+                    {% endif %}
+                    {% if metrics %}
+                    <span class="filter-tag">
+                        Metrics: {{ metrics|title }} <span class="remove-filter" onclick="removeFilter('metrics')">×</span>
+                    </span>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </form>
+        </div>
+
+        <!-- Bulk Actions -->
+        <div class="bulk-actions-section">
+            <form id="bulk-action-form" method="post" action="{% url 'accounts:user_bulk_action' %}">
+                {% csrf_token %}
+                <input type="hidden" name="q" value="{{ q }}">
+                <input type="hidden" name="status" value="{{ status }}">
+                <input type="hidden" name="department" value="{{ department_selected }}">
+                <input type="hidden" name="follow_up" value="{{ follow_up }}">
+                <input type="hidden" name="metrics" value="{{ metrics }}">
+                <input type="hidden" name="page_size" value="{{ page_size }}">
+                <input type="hidden" name="sort" value="{{ current_sort }}">
+                <input type="hidden" name="dir" value="{{ current_dir }}">
+                
+                <div class="mb-3">
+                    <strong><i class="fas fa-tasks me-2"></i>Bulk Actions</strong>
+                    <span class="selection-count" id="selectionCount">0 selected</span>
+                </div>
+                
+                <div class="row g-3">
+                    <div class="col-md-6 col-lg-4">
+                        <label class="form-label" for="bulk-action">Select Action</label>
+                        <div class="input-group">
+                            <select id="bulk-action" name="action" class="form-select">
+                                <option value="">Choose...</option>
+                                <option value="activate">Activate</option>
+                                <option value="deactivate">Deactivate</option>
+                                {% if perms.accounts.delete_customuser %}
+                                <option value="delete">Delete</option>
+                                {% endif %}
+                                <option value="assign_department">Assign Department</option>
+                                <option value="clear_email">Clear Email</option>
+                                <option value="flag_follow_up">Flag Follow-up</option>
+                                <option value="clear_follow_up">Clear Follow-up</option>
+                            </select>
+                            <button type="submit" class="btn btn-primary" id="applyBulk" disabled>
+                                Apply
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <label class="form-label" for="bulk-department">Department</label>
+                        <select id="bulk-department" name="bulk_department_id" class="form-select">
+                            <option value="">No department</option>
+                            {% for dept in departments %}
+                                <option value="{{ dept.id }}">{{ dept.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Table -->
+        <div class="table-container">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">
+                                <input type="checkbox" id="select-all" class="form-check-input">
+                            </th>
+                            <th>
+                                <a href="?{% if base_query %}{{ base_query }}&{% endif %}sort=id&dir={% if current_sort == 'id' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
+                                    ID {% if current_sort == 'id' %}<i class="fas fa-sort-{% if current_dir == 'asc' %}up{% else %}down{% endif %}"></i>{% endif %}
+                                </a>
+                            </th>
+                            <th>
+                                <a href="?{% if base_query %}{{ base_query }}&{% endif %}sort=username&dir={% if current_sort == 'username' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
+                                    Username {% if current_sort == 'username' %}<i class="fas fa-sort-{% if current_dir == 'asc' %}up{% else %}down{% endif %}"></i>{% endif %}
+                                </a>
+                            </th>
+                            <th>
+                                <a href="?{% if base_query %}{{ base_query }}&{% endif %}sort=full_name&dir={% if current_sort == 'full_name' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
+                                    Full Name {% if current_sort == 'full_name' %}<i class="fas fa-sort-{% if current_dir == 'asc' %}up{% else %}down{% endif %}"></i>{% endif %}
+                                </a>
+                            </th>
+                            <th>Email</th>
+                            <th>Department</th>
+                            <th>Position</th>
+                            <th>Follow-up</th>
+                            <th>Metrics</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>
+                                <input type="checkbox" form="bulk-action-form" name="selected" value="{{ user.id }}" class="form-check-input row-checkbox">
+                            </td>
+                            <td>#{{ user.id }}</td>
+                            <td><strong>{{ user.username }}</strong></td>
+                            <td>{{ user.get_full_name }}</td>
+                            <td>{{ user.email|default:"—" }}</td>
+                            <td>{{ user.department.name|default:"N/A" }}</td>
+                            <td>{{ user.position|default:"—" }}</td>
+                            <td>
+                                {% if user.flag_for_follow_up %}
+                                    <span class="badge bg-warning text-dark"><i class="fas fa-flag"></i> Yes</span>
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user.exclude_from_metrics %}
+                                    <span class="badge bg-secondary">Excluded</span>
+                                {% else %}
+                                    <span class="badge bg-success">Reportable</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user.is_active %}
+                                    <span class="badge bg-success"><i class="fas fa-check"></i> Active</span>
+                                {% else %}
+                                    <span class="badge bg-danger"><i class="fas fa-times"></i> Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{% url 'accounts:user_detail' user.id %}" class="btn btn-info btn-sm" title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'accounts:user_update' user.id %}" class="btn btn-warning btn-sm" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    {% if perms.accounts.change_customuser %}
+                                    <a href="{% url 'accounts:user_reset_password' user.id %}" class="btn btn-secondary btn-sm" title="Reset Password">
+                                        <i class="fas fa-key"></i>
+                                    </a>
+                                    {% endif %}
+                                    <a href="{% url 'accounts:user_delete' user.id %}" class="btn btn-danger btn-sm" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="11" class="text-center py-5">
+                                <i class="fas fa-users-slash fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">No Users Found</h5>
+                                <p class="text-muted">Try adjusting your filters</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Stats and Pagination -->
+        <div class="stats-bar">
+            <div>
+                <i class="fas fa-users text-muted me-2"></i>
+                Showing <strong>{{ users|length }}</strong> of <strong>{{ total_count }}</strong> users
+            </div>
+            
+            {% if page_obj %}
+            <nav>
+                <ul class="pagination mb-0">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ q }}&status={{ status }}&department={{ department_selected }}&follow_up={{ follow_up }}&metrics={{ metrics }}&page_size={{ page_size }}">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="fas fa-chevron-left"></i></span>
+                        </li>
+                    {% endif %}
+                    
+                    <li class="page-item disabled">
+                        <span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+                    </li>
+                    
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ q }}&status={{ status }}&department={{ department_selected }}&follow_up={{ follow_up }}&metrics={{ metrics }}&page_size={{ page_size }}">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="fas fa-chevron-right"></i></span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Select All
+    const selectAll = document.getElementById('select-all');
+    const checkboxes = document.querySelectorAll('.row-checkbox');
+    const countEl = document.getElementById('selectionCount');
+    const applyBtn = document.getElementById('applyBulk');
+    
+    function updateCount() {
+        const count = document.querySelectorAll('.row-checkbox:checked').length;
+        countEl.textContent = `${count} selected`;
+        countEl.classList.toggle('active', count > 0);
+        applyBtn.disabled = count === 0;
+    }
+    
+    selectAll?.addEventListener('change', () => {
+        checkboxes.forEach(cb => cb.checked = selectAll.checked);
+        updateCount();
     });
     
-    // Add hover effect
-    row.addEventListener('mouseenter', function() {
-      this.style.backgroundColor = 'rgba(0, 123, 255, 0.1)';
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', updateCount);
     });
-    row.addEventListener('mouseleave', function() {
-      this.style.backgroundColor = '';
+    
+    // KPI Click
+    document.querySelectorAll('.clickable-kpi').forEach(card => {
+        card.addEventListener('click', function() {
+            const params = this.getAttribute('data-filter-params');
+            if (!params) return;
+            
+            try {
+                const filters = JSON.parse(params);
+                const url = new URLSearchParams(window.location.search);
+                
+                // Clear filters
+                ['status', 'metrics', 'department', 'follow_up', 'q'].forEach(k => url.delete(k));
+                
+                // Set new filters
+                Object.entries(filters).forEach(([k, v]) => url.set(k, v));
+                
+                // Keep sort/dir
+                const sort = new URLSearchParams(window.location.search).get('sort');
+                const dir = new URLSearchParams(window.location.search).get('dir');
+                if (sort) url.set('sort', sort);
+                if (dir) url.set('dir', dir);
+                
+                window.location.href = '?' + url.toString();
+            } catch(e) {
+                console.error(e);
+            }
+        });
     });
-  });
 });
+
+function removeFilter(name) {
+    const url = new URLSearchParams(window.location.search);
+    url.delete(name);
+    url.delete('page');
+    window.location.href = '?' + url.toString();
+}
 </script>
-</div>
 {% endblock %}
