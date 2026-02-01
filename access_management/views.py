@@ -965,6 +965,7 @@ def export_admin_accounts_to_csv(queryset):
 def access_assignment_list(request):
     """
     Enhanced list view for access assignments with filtering, search, and metrics
+    Supports both system-grouped and user-grouped views
     """
     
     # Get filter parameters
@@ -977,6 +978,9 @@ def access_assignment_list(request):
     user_active_filter = request.GET.get('user_active', '')
     search_query = request.GET.get('search', '')
     
+    # NEW: View mode parameter
+    view_mode = request.GET.get('view_mode', 'system')  # 'system' or 'user'
+    
     # NEW: Additional filters
     days_to_expiry = request.GET.get('days_to_expiry', '')
     days_pending = request.GET.get('days_pending', '')
@@ -988,7 +992,7 @@ def access_assignment_list(request):
         'user__department', 
         'system', 
         'approved_by',
-    ).all()
+    ).exclude(system__isnull=True).exclude(user__isnull=True).exclude(system__id__lte=0).all()
     
     # Apply existing filters
     if status_filter:
@@ -1121,10 +1125,10 @@ def access_assignment_list(request):
     export_format = request.GET.get('export')
     if export_format in {'xlsx', 'pdf'}:
         export_queryset = queryset.order_by(
+            'system__name',
             'user__first_name', 
             'user__last_name', 
-            '-request_date', 
-            'system__name'
+            '-request_date'
         )
         if export_format == 'xlsx':
             return export_access_assignments_to_excel(export_queryset)
@@ -1138,52 +1142,131 @@ def access_assignment_list(request):
     except (ValueError, TypeError):
         page_size = 25
     
-    # Order queryset
-    queryset = queryset.order_by(
-        'user__first_name', 
-        'user__last_name', 
-        '-request_date', 
-        'system__name'
-    )
+    # Group assignments based on view mode
+    from collections import defaultdict
     
-    # Pagination
-    paginator = Paginator(queryset, page_size)
-    page_number = request.GET.get('page')
-    access_assignments = paginator.get_page(page_number)
-    
-    # NEW: Annotate assignments with computed fields for better UX
-    for assignment in access_assignments:
-        # Calculate days until expiry (use model's access_end_date)
-        if getattr(assignment, 'access_end_date', None):
+    if view_mode == 'user':
+        # Group by user
+        user_assignments = defaultdict(list)
+        
+        # Order assignments by user name, then system name
+        ordered_assignments = queryset.order_by(
+            'user__first_name',
+            'user__last_name',
+            'system__name',
+            '-request_date'
+        )
+        
+        # Group assignments by user
+        for assignment in ordered_assignments:
+            user_assignments[assignment.user].append(assignment)
+        
+        # Convert to list of users with their assignments for pagination
+        grouped_data = []
+        for user, assignments in user_assignments.items():
+            # Skip users with invalid IDs
             try:
-                end_date = assignment.access_end_date
-                # use date arithmetic to avoid timezone-aware/datetime mix-ups
-                delta = end_date.date() - now.date()
-                assignment.days_until_expiry = delta.days
-                assignment.is_expiring_soon = 0 <= assignment.days_until_expiry <= 30
-            except Exception:
+                user_id = int(user.id) if user and user.id else None
+                if not user or not user_id or user_id <= 0:
+                    continue
+            except (ValueError, TypeError):
+                continue
+            grouped_data.append({
+                'user': user,
+                'assignments': assignments,
+                'assignment_count': len(assignments),
+                'active_count': len([a for a in assignments if a.status in ['Active', 'Approved']]),
+                'pending_count': len([a for a in assignments if a.status == 'Pending']),
+                'expired_count': len([a for a in assignments if a.status == 'Expired']),
+            })
+        
+        # Sort users by name
+        grouped_data.sort(key=lambda x: (x['user'].last_name or '', x['user'].first_name or ''))
+        
+        group_type = 'user'
+        grouped_page_name = 'users_page'
+        
+    else:  # view_mode == 'system' (default)
+        # Group by system
+        system_assignments = defaultdict(list)
+        
+        # Order assignments by system name, then user name
+        ordered_assignments = queryset.order_by(
+            'system__name',
+            'user__first_name', 
+            'user__last_name', 
+            '-request_date'
+        )
+        
+        # Group assignments by system
+        for assignment in ordered_assignments:
+            system_assignments[assignment.system].append(assignment)
+        
+        # Convert to list of systems with their assignments for pagination
+        grouped_data = []
+        for system, assignments in system_assignments.items():
+            # Skip systems with invalid IDs
+            try:
+                system_id = int(system.id) if system and system.id else None
+                if not system or not system_id or system_id <= 0:
+                    continue
+            except (ValueError, TypeError):
+                continue
+            grouped_data.append({
+                'system': system,
+                'assignments': assignments,
+                'assignment_count': len(assignments),
+                'active_count': len([a for a in assignments if a.status in ['Active', 'Approved']]),
+                'pending_count': len([a for a in assignments if a.status == 'Pending']),
+                'expired_count': len([a for a in assignments if a.status == 'Expired']),
+            })
+        
+        # Sort systems by name
+        grouped_data.sort(key=lambda x: x['system'].name)
+        
+        group_type = 'system'
+        grouped_page_name = 'systems_page'
+    
+    # Pagination on grouped data
+    paginator = Paginator(grouped_data, page_size)
+    page_number = request.GET.get('page')
+    grouped_page = paginator.get_page(page_number)
+    
+    # Annotate assignments with computed fields for better UX
+    now = timezone.now()
+    for group_data in grouped_page:
+        for assignment in group_data['assignments']:
+            # Calculate days until expiry (use model's access_end_date)
+            if getattr(assignment, 'access_end_date', None):
+                try:
+                    end_date = assignment.access_end_date
+                    # use date arithmetic to avoid timezone-aware/datetime mix-ups
+                    delta = end_date.date() - now.date()
+                    assignment.days_until_expiry = delta.days
+                    assignment.is_expiring_soon = 0 <= assignment.days_until_expiry <= 30
+                except Exception:
+                    assignment.days_until_expiry = None
+                    assignment.is_expiring_soon = False
+            else:
                 assignment.days_until_expiry = None
                 assignment.is_expiring_soon = False
-        else:
-            assignment.days_until_expiry = None
-            assignment.is_expiring_soon = False
-        
-        # Calculate pending days for pending assignments
-        if assignment.status == 'Pending' and assignment.request_date:
-            try:
-                delta = now - assignment.request_date
-                assignment.pending_days = delta.days
-            except Exception:
+            
+            # Calculate pending days for pending assignments
+            if assignment.status == 'Pending' and assignment.request_date:
+                try:
+                    delta = now - assignment.request_date
+                    assignment.pending_days = delta.days
+                except Exception:
+                    assignment.pending_days = 0
+            else:
                 assignment.pending_days = 0
-        else:
-            assignment.pending_days = 0
-        
-        # Check if current user can edit this assignment
-        assignment.can_edit = (
-            request.user.is_superuser or 
-            request.user == assignment.user or
-            request.user.has_perm('access_management.change_usersystemaccess')
-        )
+            
+            # Check if current user can edit this assignment
+            assignment.can_edit = (
+                request.user.is_superuser or 
+                request.user == assignment.user or
+                request.user.has_perm('access_management.change_usersystemaccess')
+            )
     
     # Get filter options for dropdowns
     systems = System.objects.all().order_by('name')
@@ -1197,7 +1280,9 @@ def access_assignment_list(request):
     
     # Build context
     context = {
-        'access_assignments': access_assignments,
+        'grouped_page': grouped_page,
+        'group_type': group_type,
+        'view_mode': view_mode,
         'status_choices': UserSystemAccess.STATUS_CHOICES,
         'priority_choices': UserSystemAccess.PRIORITY_CHOICES,
         'access_type_choices': UserSystemAccess.ACCESS_TYPE_CHOICES,

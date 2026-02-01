@@ -17,13 +17,32 @@
 
           <form method="post" action="{% url 'access_management:revoke_access' access.pk %}">
             {% csrf_token %}
+            {% if form.errors %}
+              <div class="alert alert-danger">
+                <strong>Please correct the following errors:</strong>
+                {{ form.errors }}
+              </div>
+            {% endif %}
             <div class="mb-3">
-              <label for="id_reason" class="form-label">Reason</label>
-              <input type="text" name="reason" id="id_reason" class="form-control" required placeholder="e.g. No longer required">
+              {{ form.reason.label_tag }}
+              {{ form.reason }}
+              {% if form.reason.errors %}
+                <div class="text-danger">{{ form.reason.errors }}</div>
+              {% endif %}
             </div>
             <div class="mb-3">
-              <label for="id_details" class="form-label">Details (optional)</label>
-              <textarea name="details" id="id_details" class="form-control" rows="3"></textarea>
+              {{ form.details.label_tag }}
+              {{ form.details }}
+              {% if form.details.errors %}
+                <div class="text-danger">{{ form.details.errors }}</div>
+              {% endif %}
+            </div>
+            <div class="mb-3 form-check">
+              {{ form.verified_removal }}
+              {{ form.verified_removal.label_tag }}
+              {% if form.verified_removal.errors %}
+                <div class="text-danger">{{ form.verified_removal.errors }}</div>
+              {% endif %}
             </div>
             <div class="d-flex gap-2">
               <button type="submit" class="btn btn-danger">Revoke Access</button>

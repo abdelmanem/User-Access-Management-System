@@ -661,25 +661,20 @@ class UserSystemAccess(models.Model):
             pass
     
     @transition(field='status', source=['Active','Suspended','Approved'], target='Revoked')
+    @transition(field='status', source=['Active', 'Suspended', 'Approved'], target='Revoked')
     def revoke_access(self, reason=None):
         """Revoke access"""
         if self.status not in ['Active', 'Suspended', 'Approved']:
             raise ValueError("Cannot revoke access in current status")
+        original_status = self.status
         if reason:
             self.approval_comments = f"Revoked: {reason}"
+        self.status = 'Revoked'  # Manually set status since django-fsm may not be available
         self.status_changed_at = timezone.now()
         self.lifecycle_timeline = (self.lifecycle_timeline or []) + [{
-            'from': self.status, 'to': 'Revoked', 'at': timezone.now().isoformat(), 'reason': reason
+            'from': original_status, 'to': 'Revoked', 'at': timezone.now().isoformat(), 'reason': reason
         }]
         self.save()
-        try:
-            AuditEventLog.objects.create(
-                event_type='AccessRevoked',
-                event_data={'access_id': self.pk, 'reason': reason},
-                created_by=self.approved_by
-            )
-        except Exception:
-            pass
     
     @transition(field='status', source='Active', target='Expired')
     def expire_access(self):

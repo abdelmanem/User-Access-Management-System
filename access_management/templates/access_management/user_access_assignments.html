@@ -3,6 +3,17 @@
 
 {% block title %}{{ user.get_full_name }}'s Access Profile - User Access Management{% endblock %}
 
+{% block extracss %}
+<style>
+    .table-secondary {
+        background-color: rgba(108, 117, 125, 0.1) !important;
+    }
+    .opacity-75 {
+        opacity: 0.75;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
     <!-- Breadcrumb Navigation -->
@@ -241,13 +252,16 @@
                                 </thead>
                                 <tbody>
                                     {% for assignment in system_group.list %}
-                                    <tr>
+                                    <tr class="{% if assignment.status == 'Revoked' %}table-secondary opacity-75{% endif %}">
                                         <td>
                                             <span class="badge bg-secondary">{{ assignment.access_type }}</span>
+                                            {% if assignment.status == 'Revoked' %}
+                                                <br><small class="text-muted"><i class="fas fa-ban"></i> Revoked</small>
+                                            {% endif %}
                                         </td>
                                         <td>
                                             {% if assignment.effective_username %}
-                                                <code>{{ assignment.effective_username }}</code>
+                                                <code{% if assignment.status == 'Revoked' %} class="text-decoration-line-through"{% endif %}>{{ assignment.effective_username }}</code>
                                             {% else %}
                                                 <span class="text-muted fst-italic">-</span>
                                             {% endif %}
@@ -281,24 +295,28 @@
                                                 <a href="{% url 'access_management:access_assignment_detail' assignment.pk %}" class="btn btn-outline-primary" title="View Assignment Details" data-bs-toggle="tooltip">
                                                     <i class="fas fa-file-alt"></i>
                                                 </a>
-                                                <a href="{% url 'access_management:access_assignment_update' assignment.pk %}" class="btn btn-outline-secondary" title="Edit" data-bs-toggle="tooltip">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                                {% if assignment.status == 'Pending' %}
-                                                    <button type="button" class="btn btn-outline-success" onclick="approveAccess({{ assignment.pk }})" title="Approve" data-bs-toggle="tooltip">
-                                                        <i class="fas fa-check"></i>
-                                                    </button>
-                                                    <button type="button" class="btn btn-outline-danger" onclick="rejectAccess({{ assignment.pk }})" title="Reject" data-bs-toggle="tooltip">
-                                                        <i class="fas fa-times"></i>
-                                                    </button>
+                                                {% if assignment.status != 'Revoked' %}
+                                                    <a href="{% url 'access_management:access_assignment_update' assignment.pk %}" class="btn btn-outline-secondary" title="Edit" data-bs-toggle="tooltip">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    {% if assignment.status == 'Pending' %}
+                                                        <button type="button" class="btn btn-outline-success" onclick="approveAccess({{ assignment.pk }})" title="Approve" data-bs-toggle="tooltip">
+                                                            <i class="fas fa-check"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-danger" onclick="rejectAccess({{ assignment.pk }})" title="Reject" data-bs-toggle="tooltip">
+                                                            <i class="fas fa-times"></i>
+                                                        </button>
+                                                    {% endif %}
                                                 {% endif %}
                                                 <a href="{% url 'access_management:access_assignment_delete' assignment.pk %}" class="btn btn-outline-danger" title="Delete" data-bs-toggle="tooltip">
                                                     <i class="fas fa-trash"></i>
                                                 </a>
-                                                <input type="checkbox" name="selected_assignments" value="{{ assignment.pk }}" class="btn-check" id="assignment-{{ assignment.pk }}" form="bulkActionsForm">
-                                                <label class="btn btn-outline-secondary" for="assignment-{{ assignment.pk }}" title="Select for bulk action" data-bs-toggle="tooltip">
-                                                    <i class="fas fa-check"></i>
-                                                </label>
+                                                {% if assignment.status != 'Revoked' %}
+                                                    <input type="checkbox" name="selected_assignments" value="{{ assignment.pk }}" class="btn-check" id="assignment-{{ assignment.pk }}" form="bulkActionsForm">
+                                                    <label class="btn btn-outline-secondary" for="assignment-{{ assignment.pk }}" title="Select for bulk action" data-bs-toggle="tooltip">
+                                                        <i class="fas fa-check"></i>
+                                                    </label>
+                                                {% endif %}
                                             </div>
                                         </td>
                                     </tr>

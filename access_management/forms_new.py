@@ -139,6 +139,7 @@ class RevokeAccessForm(forms.Form):
     REVOKE_REASONS = [
         ('role_change', 'Role Change'),
         ('termination', 'Employee Termination'),
+        ('resigned', 'Employee Resigned'),
         ('security', 'Security Violation'),
         ('unused', 'Unused Access'),
         ('other', 'Other'),

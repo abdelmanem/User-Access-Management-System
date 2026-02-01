@@ -13,7 +13,7 @@ import json
 
 from .models import (
     UserSystemAccess, ApprovalWorkflow, Approval, ApprovalStep,
-    EvidenceArtifact, Attestation, AuditEventLog
+    EvidenceArtifact, Attestation, AuditEventLog, AccessHistory
 )
 from .risk import RiskScorer
 from .forms_new import (
@@ -219,25 +219,40 @@ def revoke_access_view(request, access_id):
     if form.is_valid():
         reason = f"{form.cleaned_data['reason']}: {form.cleaned_data['details']}"
         
-        # Soft-delete or revoke
-        access.revoke_access(reason=reason)
-        
-        # Log to audit
-        AuditEventLog.objects.create(
-            event_type='AccessRevoked',
-            event_data={
-                'access_id': access.pk,
-                'revoked_by': request.user.pk,
-                'reason': reason,
-                'verified': form.cleaned_data.get('verified_removal', False)
-            },
-            created_by=request.user
-        )
-        
-        messages.success(request, f'Access revoked for {access.user.full_name}')
-        return redirect('access_assignment_list')
+        try:
+            # Soft-delete or revoke
+            access.revoke_access(reason=reason)
+            
+            # Log to audit
+            AuditEventLog.objects.create(
+                event_type='AccessRevoked',
+                event_data={
+                    'access_id': access.pk,
+                    'revoked_by': request.user.pk,
+                    'reason': reason,
+                    'verified': form.cleaned_data.get('verified_removal', False)
+                },
+                created_by=request.user
+            )
+            
+            # Create access history entry
+            AccessHistory.objects.create(
+                user=access.user,
+                system=access.system,
+                user_system_access=access,
+                action='Revoked',
+                action_description=f"Access revoked: {reason}",
+                success=True,
+                created_by=request.user
+            )
+            
+            messages.success(request, f'Access revoked for {access.user.full_name}')
+            return redirect('access_management:access_assignment_list')
+        except Exception as e:
+            messages.error(request, f'Failed to revoke access: {str(e)}')
+            return redirect('access_management:access_assignment_detail', pk=access_id)
     
-    return render(request, 'access_management/revoke_access.html', {
+    return render(request, 'access_management/revoke_confirm.html', {
         'form': form,
         'access': access
     })
@@ -249,6 +264,11 @@ def revoke_access_confirm(request, access_id):
 
     access = get_object_or_404(UserSystemAccess, pk=access_id)
 
+    # Check if access can be revoked
+    if access.status not in ['Active', 'Suspended', 'Approved']:
+        messages.error(request, f'Cannot revoke access with status: {access.status}')
+        return redirect('access_management:access_assignment_detail', pk=access_id)
+
     # Permission: owner, staff/superuser, or has revoke permission
     if not (
         request.user.is_staff
@@ -258,7 +278,9 @@ def revoke_access_confirm(request, access_id):
     ):
         return HttpResponseForbidden('You do not have permission to revoke this access.')
 
+    form = RevokeAccessForm()
     return render(request, 'access_management/revoke_confirm.html', {
+        'form': form,
         'access': access
     })
 

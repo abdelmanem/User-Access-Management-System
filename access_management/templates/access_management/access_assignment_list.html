@@ -25,6 +25,7 @@
     /* Status-specific card backgrounds */
     .status-expired { background-color: rgba(248, 215, 218, 0.3); }
     .status-pending { background-color: rgba(255, 243, 205, 0.3); }
+    .status-revoked { background-color: rgba(108, 117, 125, 0.2); opacity: 0.7; }
     
     /* Bulk actions bar animation */
     #bulkActionsBar {
@@ -85,6 +86,22 @@
                 </ol>
             </nav>
         </div>
+        
+        <!-- View Mode Toggle -->
+        <div class="d-flex gap-2 flex-wrap align-items-center me-3">
+            <span class="text-muted small fw-semibold">View:</span>
+            <div class="btn-group btn-group-sm" role="group">
+                <a href="?{% if current_query %}{{ current_query }}&{% endif %}view_mode=system" 
+                   class="btn {% if view_mode == 'system' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    <i class="fas fa-server"></i> By System
+                </a>
+                <a href="?{% if current_query %}{{ current_query }}&{% endif %}view_mode=user" 
+                   class="btn {% if view_mode == 'user' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    <i class="fas fa-users"></i> By User
+                </a>
+            </div>
+        </div>
+        
         <div class="d-flex gap-2 flex-wrap">
             <a href="?{% if current_query %}{{ current_query }}&{% endif %}export=xlsx" 
                class="btn btn-outline-success">
@@ -463,8 +480,8 @@
                         <label for="selectAll" class="form-check-label">Select All</label>
                     </div>
                     <span class="text-muted">
-                        Showing {{ access_assignments.start_index }}-{{ access_assignments.end_index }} 
-                        of {{ access_assignments.paginator.count }} results
+                        Showing {{ grouped_page.start_index }}-{{ grouped_page.end_index }} 
+                        of {{ grouped_page.paginator.count }} {% if view_mode == 'user' %}users{% else %}systems{% endif %}
                     </span>
                 </div>
                 <div class="d-flex align-items-center gap-2">
@@ -478,197 +495,523 @@
                 </div>
             </div>
 
-            <!-- Assignment Cards List -->
+            <!-- Grouped Assignments List -->
             <div class="row" id="assignmentsList">
-                {% for assignment in access_assignments %}
-                <div class="col-12 mb-3">
-                    <div class="card assignment-card shadow-sm h-100 
-                                priority-{{ assignment.priority|lower }}
-                                {% if assignment.status == 'Expired' %}status-expired{% elif assignment.status == 'Pending' %}status-pending{% endif %}">
-                        <div class="card-body">
-                            <div class="row align-items-center g-3">
-                                <!-- Checkbox & User Info -->
-                                <div class="col-lg-3">
-                                    <div class="d-flex align-items-start gap-2">
-                                        <input type="checkbox" 
-                                               class="form-check-input mt-1 bulk-select" 
-                                               value="{{ assignment.id }}"
-                                               data-assignment-id="{{ assignment.id }}">
-                                        <div class="flex-grow-1">
-                                            <h6 class="mb-1">
-                                                <a href="{% url 'access_management:access_assignment_detail' assignment.id %}"
-                                                   class="text-decoration-none fw-bold">
-                                                    {{ assignment.user.get_full_name }}
-                                                </a>
-                                            </h6>
-                                            <div class="small text-muted">
-                                                <i class="fas fa-user"></i> {{ assignment.user.username }}
-                                            </div>
-                                            <div class="small text-muted">
-                                                <i class="fas fa-building"></i> 
-                                                {{ assignment.user.department.name|default:"No Department" }}
-                                            </div>
-                                            {% if not assignment.user.is_active %}
-                                                <span class="badge bg-danger-subtle text-danger mt-1">
-                                                    <i class="fas fa-user-slash"></i> Inactive Account
-                                                </span>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- System & Access Info -->
-                                <div class="col-lg-3">
-                                    <div>
-                                        <strong class="d-block mb-1">
-                                            <i class="fas fa-server text-muted"></i> 
-                                            {{ assignment.system.name }}
-                                        </strong>
-                                        <div class="d-flex flex-wrap gap-1">
-                                            <span class="badge bg-info-subtle text-info">
-                                                {{ assignment.get_access_type_display }}
-                                            </span>
-                                            {% if assignment.subscription_tier %}
-                                                <span class="badge bg-secondary-subtle text-secondary">
-                                                    {{ assignment.subscription_tier.name }}
-                                                </span>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Status & Dates -->
-                                <div class="col-lg-3">
-                                    <div>
-                                        <!-- Status Badge -->
-                                        {% if assignment.status == 'Active' %}
-                                            <span class="badge bg-success mb-2">
-                                                <i class="fas fa-check-circle"></i> Active
-                                            </span>
-                                        {% elif assignment.status == 'Pending' %}
-                                            <span class="badge bg-warning text-dark mb-2">
-                                                <i class="fas fa-clock"></i> Pending
-                                                {% if assignment.pending_days > 7 %}
-                                                    <span class="badge bg-danger ms-1">{{ assignment.pending_days }}d</span>
-                                                {% endif %}
-                                            </span>
-                                        {% elif assignment.status == 'Expired' %}
-                                            <span class="badge bg-danger mb-2">
-                                                <i class="fas fa-times-circle"></i> Expired
-                                            </span>
-                                        {% elif assignment.status == 'Revoked' %}
-                                            <span class="badge bg-secondary mb-2">
-                                                <i class="fas fa-ban"></i> Revoked
-                                            </span>
-                                        {% elif assignment.status == 'Approved' %}
-                                            <span class="badge bg-info mb-2">
-                                                <i class="fas fa-thumbs-up"></i> Approved
-                                            </span>
-                                        {% else %}
-                                            <span class="badge bg-light text-dark mb-2">
-                                                {{ assignment.status }}
-                                            </span>
-                                        {% endif %}
-                                        
-                                        <!-- Dates -->
-                                        <div class="small text-muted">
-                                            <i class="fas fa-calendar-plus"></i> 
-                                            Requested: {{ assignment.request_date|date:"M d, Y" }}
-                                        </div>
-                                            {% if assignment.access_end_date %}
-                                            <div class="small {% if assignment.is_expiring_soon %}text-danger fw-bold{% else %}text-muted{% endif %}">
-                                                <i class="fas fa-hourglass-end"></i>
-                                                Expires: {{ assignment.access_end_date|date:"M d, Y" }}
-                                                {% if assignment.days_until_expiry <= 30 and assignment.days_until_expiry >= 0 %}
-                                                    <span class="badge bg-warning ms-1">
-                                                        {{ assignment.days_until_expiry }} days
-                                                    </span>
-                                                {% endif %}
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                
-                                <!-- Actions -->
-                                <div class="col-lg-3 text-lg-end">
-                                    <div class="btn-group mb-2" role="group">
-                                        <a href="{% url 'access_management:access_assignment_detail' assignment.id %}" 
-                                           class="btn btn-sm btn-outline-primary"
-                                           title="View Details">
-                                            <i class="fas fa-eye"></i>
+                {% for group_data in grouped_page %}
+                <div class="col-12 mb-4">
+                    {% if view_mode == 'user' %}
+                    <!-- User Card -->
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-1">
+                                        <i class="fas fa-user text-primary"></i>
+                                        {% if group_data.user.id %}
+                                        <a href="{% url 'access_management:user_access_assignments' group_data.user.id %}" 
+                                           class="text-decoration-none">
+                                            {{ group_data.user.get_full_name }}
                                         </a>
-                                        
-                                        {% if assignment.status == 'Pending' and perms.access_management.can_approve %}
-                                            <button onclick="approveAccess({{ assignment.id }})" 
-                                                    class="btn btn-sm btn-outline-success"
-                                                    title="Approve">
-                                                <i class="fas fa-check"></i>
-                                            </button>
-                                            <button onclick="rejectAccess({{ assignment.id }})" 
-                                                    class="btn btn-sm btn-outline-danger"
-                                                    title="Reject">
-                                                <i class="fas fa-times"></i>
-                                            </button>
+                                        {% else %}
+                                        {{ group_data.user.get_full_name }}
                                         {% endif %}
-                                        
-                                        {% if assignment.can_edit %}
-                                            <a href="{% url 'access_management:access_assignment_update' assignment.id %}" 
-                                               class="btn btn-sm btn-outline-secondary"
-                                               title="Edit">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
+                                    </h5>
+                                    <div class="text-muted small">
+                                        Username: {{ group_data.user.username }} | 
+                                        Department: {{ group_data.user.department.name|default:"—" }}
+                                        {% if not group_data.user.is_active %}
+                                            <span class="badge bg-warning text-dark ms-2">Inactive</span>
                                         {% endif %}
                                     </div>
-                                    
-                                    <!-- Priority Badge -->
-                                    {% if assignment.priority in 'High,Critical' %}
-                                        <div>
-                                            <span class="badge bg-danger">
-                                                <i class="fas fa-exclamation-circle"></i> {{ assignment.priority }}
-                                            </span>
-                                        </div>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <div class="text-end">
+                                        <div class="small text-muted">Systems</div>
+                                        <div class="h5 mb-0">{{ group_data.assignment_count }}</div>
+                                    </div>
+                                    {% if group_data.active_count > 0 %}
+                                    <div class="text-end">
+                                        <div class="small text-success">Active</div>
+                                        <div class="h5 mb-0 text-success">{{ group_data.active_count }}</div>
+                                    </div>
+                                    {% endif %}
+                                    {% if group_data.pending_count > 0 %}
+                                    <div class="text-end">
+                                        <div class="small text-warning">Pending</div>
+                                        <div class="h5 mb-0 text-warning">{{ group_data.pending_count }}</div>
+                                    </div>
+                                    {% endif %}
+                                    {% if group_data.expired_count > 0 %}
+                                    <div class="text-end">
+                                        <div class="small text-danger">Expired</div>
+                                        <div class="h5 mb-0 text-danger">{{ group_data.expired_count }}</div>
+                                    </div>
                                     {% endif %}
                                 </div>
                             </div>
-                            
-                            <!-- Expandable Details -->
-                            <div class="mt-3">
-                                <button class="btn btn-link btn-sm p-0 text-decoration-none" 
-                                        type="button" 
-                                        data-bs-toggle="collapse" 
-                                        data-bs-target="#details-{{ assignment.id }}"
-                                        aria-expanded="false">
-                                    <i class="fas fa-chevron-right"></i> More Details
-                                </button>
-                            </div>
-                            
-                            <div class="collapse mt-2" id="details-{{ assignment.id }}">
-                                <div class="border-top pt-3">
-                                    <div class="row g-3">
-                                        <div class="col-md-6">
-                                            <small class="text-muted d-block fw-semibold">Business Justification:</small>
-                                            <small>{{ assignment.business_justification|default:"Not provided" }}</small>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <small class="text-muted d-block fw-semibold">Employment Status:</small>
-                                            <small>{{ assignment.user.get_employment_status_display }}</small>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <small class="text-muted d-block fw-semibold">Approved By:</small>
-                                            <small>
-                                                {% if assignment.approved_by %}
-                                                    {{ assignment.approved_by.get_full_name }}
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                {% for assignment in group_data.assignments %}
+                                <div class="col-lg-6 col-xl-4">
+                                    <div class="card assignment-card h-100 
+                                                priority-{{ assignment.priority|lower }}
+                                                {% if assignment.status == 'Expired' %}status-expired{% elif assignment.status == 'Pending' %}status-pending{% elif assignment.status == 'Revoked' %}status-revoked{% endif %}">
+                                        <div class="card-body p-3">
+                                            <div class="d-flex align-items-start gap-2 mb-2">
+                                                <input type="checkbox" 
+                                                       class="form-check-input mt-1 bulk-select" 
+                                                       value="{{ assignment.id }}"
+                                                       data-assignment-id="{{ assignment.id }}">
+                                                <div class="flex-grow-1">
+                                                    <h6 class="mb-1">
+                                                        <a href="{% url 'access_management:access_assignment_detail' assignment.id %}"
+                                                           class="text-decoration-none fw-bold">
+                                                            {{ assignment.system.name }}
+                                                        </a>
+                                                    </h6>
+                                                    <div class="small text-muted">
+                                                        <i class="fas fa-server"></i> {{ assignment.system.code|default:"—" }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Access Info -->
+                                            <div class="mb-2">
+                                                <div class="d-flex flex-wrap gap-1">
+                                                    <span class="badge bg-info-subtle text-info">
+                                                        {{ assignment.get_access_type_display }}
+                                                    </span>
+                                                    {% if assignment.subscription_tier %}
+                                                        <span class="badge bg-secondary-subtle text-secondary">
+                                                            {{ assignment.subscription_tier.name }}
+                                                        </span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Status & Dates -->
+                                            <div class="mb-2">
+                                                {% if assignment.status == 'Active' %}
+                                                    <span class="badge bg-success mb-1">
+                                                        <i class="fas fa-check-circle"></i> Active
+                                                    </span>
+                                                {% elif assignment.status == 'Pending' %}
+                                                    <span class="badge bg-warning text-dark mb-1">
+                                                        <i class="fas fa-clock"></i> Pending
+                                                        {% if assignment.pending_days > 7 %}
+                                                            <span class="badge bg-danger ms-1">{{ assignment.pending_days }}d</span>
+                                                        {% endif %}
+                                                    </span>
+                                                {% elif assignment.status == 'Expired' %}
+                                                    <span class="badge bg-danger mb-1">
+                                                        <i class="fas fa-times-circle"></i> Expired
+                                                    </span>
+                                                {% elif assignment.status == 'Revoked' %}
+                                                    <span class="badge bg-danger mb-1">
+                                                        <i class="fas fa-ban"></i> Revoked
+                                                    </span>
+                                                {% elif assignment.status == 'Approved' %}
+                                                    <span class="badge bg-info mb-1">
+                                                        <i class="fas fa-thumbs-up"></i> Approved
+                                                    </span>
                                                 {% else %}
-                                                    <span class="text-muted">Pending</span>
+                                                    <span class="badge bg-light text-dark mb-1">
+                                                        {{ assignment.status }}
+                                                    </span>
                                                 {% endif %}
-                                            </small>
+                                                
+                                                <div class="small text-muted">
+                                                    <i class="fas fa-calendar-plus"></i> 
+                                                    Requested: {{ assignment.request_date|date:"M d, Y" }}
+                                                </div>
+                                                {% if assignment.access_end_date %}
+                                                    <div class="small {% if assignment.is_expiring_soon %}text-danger fw-bold{% else %}text-muted{% endif %}">
+                                                        <i class="fas fa-hourglass-end"></i>
+                                                        Expires: {{ assignment.access_end_date|date:"M d, Y" }}
+                                                        {% if assignment.days_until_expiry <= 30 and assignment.days_until_expiry >= 0 %}
+                                                            <span class="badge bg-warning ms-1">
+                                                                {{ assignment.days_until_expiry }} days
+                                                            </span>
+                                                        {% endif %}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <!-- Actions -->
+                                            <div class="d-flex gap-1">
+                                                <a href="{% url 'access_management:access_assignment_detail' assignment.id %}" 
+                                                   class="btn btn-sm btn-outline-primary"
+                                                   title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                {% if assignment.can_edit %}
+                                                <a href="{% url 'access_management:access_assignment_update' assignment.id %}" 
+                                                   class="btn btn-sm btn-outline-warning"
+                                                   title="Edit">
+                                                    <i class="fas fa-pen"></i>
+                                                </a>
+                                                {% endif %}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+                                {% empty %}
+                                <!-- Empty State for User Assignments -->
+                                <div class="col-12">
+                                    <div class="text-center py-4">
+                                        <i class="fas fa-inbox fa-3x text-muted mb-2"></i>
+                                        <h6 class="text-muted">No assignments found for this user</h6>
+                                        <p class="small text-muted">Try adjusting your filters</p>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <!-- System Card -->
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-1">
+                                        <i class="fas fa-server text-primary"></i>
+                                        <a href="{% url 'access_management:system_access_assignments' group_data.system.id %}" 
+                                           class="text-decoration-none">
+                                            {{ group_data.system.name }}
+                                        </a>
+                                    </h5>
+                                    <div class="text-muted small">
+                                        Code: {{ group_data.system.code|default:"—" }} | 
+                                        Type: {{ group_data.system.get_system_type_display|default:group_data.system.system_type|default:"—" }}
+                                        {% if not group_data.system.is_active %}
+                                            <span class="badge bg-warning text-dark ms-2">Inactive</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <div class="text-end">
+                                        <div class="small text-muted">Assignments</div>
+                                        <div class="h5 mb-0">{{ group_data.assignment_count }}</div>
+                                    </div>
+                                    {% if group_data.active_count > 0 %}
+                                    <div class="text-end">
+                                        <div class="small text-success">Active</div>
+                                        <div class="h5 mb-0 text-success">{{ group_data.active_count }}</div>
+                                    </div>
+                                    {% endif %}
+                                    {% if group_data.pending_count > 0 %}
+                                    <div class="text-end">
+                                        <div class="small text-warning">Pending</div>
+                                        <div class="h5 mb-0 text-warning">{{ group_data.pending_count }}</div>
+                                    </div>
+                                    {% endif %}
+                                    {% if group_data.expired_count > 0 %}
+                                    <div class="text-end">
+                                        <div class="small text-danger">Expired</div>
+                                        <div class="h5 mb-0 text-danger">{{ group_data.expired_count }}</div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                {% for assignment in group_data.assignments %}
+                                <div class="col-lg-6 col-xl-4">
+                                    <div class="card assignment-card h-100 
+                                                priority-{{ assignment.priority|lower }}
+                                                {% if assignment.status == 'Expired' %}status-expired{% elif assignment.status == 'Pending' %}status-pending{% elif assignment.status == 'Revoked' %}status-revoked{% endif %}">
+                                        <div class="card-body p-3">
+                                            <div class="d-flex align-items-start gap-2 mb-2">
+                                                <input type="checkbox" 
+                                                       class="form-check-input mt-1 bulk-select" 
+                                                       value="{{ assignment.id }}"
+                                                       data-assignment-id="{{ assignment.id }}">
+                                                <div class="flex-grow-1">
+                                                    <h6 class="mb-1">
+                                                        <a href="{% url 'access_management:access_assignment_detail' assignment.id %}"
+                                                           class="text-decoration-none fw-bold">
+                                                            {{ assignment.user.get_full_name }}
+                                                        </a>
+                                                    </h6>
+                                                    <div class="small text-muted">
+                                                        <i class="fas fa-user"></i> {{ assignment.user.username }}
+                                                    </div>
+                                                    <div class="small text-muted">
+                                                        <i class="fas fa-building"></i> 
+                                                        {{ assignment.user.department.name|default:"No Department" }}
+                                                    </div>
+                                                    {% if not assignment.user.is_active %}
+                                                        <span class="badge bg-danger-subtle text-danger mt-1">
+                                                            <i class="fas fa-user-slash"></i> Inactive Account
+                                                        </span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Access Info -->
+                                            <div class="mb-2">
+                                                <div class="d-flex flex-wrap gap-1">
+                                                    <span class="badge bg-info-subtle text-info">
+                                                        {{ assignment.get_access_type_display }}
+                                                    </span>
+                                                    {% if assignment.subscription_tier %}
+                                                        <span class="badge bg-secondary-subtle text-secondary">
+                                                            {{ assignment.subscription_tier.name }}
+                                                        </span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Status & Dates -->
+                                            <div class="mb-2">
+                                                {% if assignment.status == 'Active' %}
+                                                    <span class="badge bg-success mb-1">
+                                                        <i class="fas fa-check-circle"></i> Active
+                                                    </span>
+                                                {% elif assignment.status == 'Pending' %}
+                                                    <span class="badge bg-warning text-dark mb-1">
+                                                        <i class="fas fa-clock"></i> Pending
+                                                        {% if assignment.pending_days > 7 %}
+                                                            <span class="badge bg-danger ms-1">{{ assignment.pending_days }}d</span>
+                                                        {% endif %}
+                                                    </span>
+                                                {% elif assignment.status == 'Expired' %}
+                                                    <span class="badge bg-danger mb-1">
+                                                        <i class="fas fa-times-circle"></i> Expired
+                                                    </span>
+                                                {% elif assignment.status == 'Revoked' %}
+                                                    <span class="badge bg-danger mb-1">
+                                                        <i class="fas fa-ban"></i> Revoked
+                                                    </span>
+                                                {% elif assignment.status == 'Approved' %}
+                                                    <span class="badge bg-info mb-1">
+                                                        <i class="fas fa-thumbs-up"></i> Approved
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-light text-dark mb-1">
+                                                        {{ assignment.status }}
+                                                    </span>
+                                                {% endif %}
+                                                
+                                                <div class="small text-muted">
+                                                    <i class="fas fa-calendar-plus"></i> 
+                                                    Requested: {{ assignment.request_date|date:"M d, Y" }}
+                                                </div>
+                                                {% if assignment.access_end_date %}
+                                                    <div class="small {% if assignment.is_expiring_soon %}text-danger fw-bold{% else %}text-muted{% endif %}">
+                                                        <i class="fas fa-hourglass-end"></i>
+                                                        Expires: {{ assignment.access_end_date|date:"M d, Y" }}
+                                                        {% if assignment.days_until_expiry <= 30 and assignment.days_until_expiry >= 0 %}
+                                                            <span class="badge bg-warning ms-1">
+                                                                {{ assignment.days_until_expiry }} days
+                                                            </span>
+                                                        {% endif %}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <!-- Actions -->
+                                            <div class="d-flex gap-1">
+                                                <a href="{% url 'access_management:access_assignment_detail' assignment.id %}" 
+                                                   class="btn btn-sm btn-outline-primary"
+                                                   title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                {% if assignment.can_edit %}
+                                                <a href="{% url 'access_management:access_assignment_update' assignment.id %}" 
+                                                   class="btn btn-sm btn-outline-warning"
+                                                   title="Edit">
+                                                    <i class="fas fa-pen"></i>
+                                                </a>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
                             </div>
                         </div>
                     </div>
                 </div>
+                <div class="col-12 mb-4">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-1">
+                                        <i class="fas fa-server text-primary"></i>
+                                        {% if group_data.system.id %}
+                                        <a href="{% url 'access_management:system_access_assignments' group_data.system.id %}" 
+                                           class="text-decoration-none">
+                                            {{ group_data.system.name }}
+                                        </a>
+                                        {% else %}
+                                        {{ group_data.system.name }}
+                                        {% endif %}
+                                    </h5>
+                                    <div class="text-muted small">
+                                        Code: {{ group_data.system.code|default:"—" }} | 
+                                        Type: {{ group_data.system.get_system_type_display|default:group_data.system.system_type|default:"—" }}
+                                        {% if not group_data.system.is_active %}
+                                            <span class="badge bg-warning text-dark ms-2">Inactive</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <div class="text-end">
+                                        <div class="small text-muted">Assignments</div>
+                                        <div class="h5 mb-0">{{ group_data.assignment_count }}</div>
+                                    </div>
+                                    {% if group_data.active_count > 0 %}
+                                    <div class="text-end">
+                                        <div class="small text-success">Active</div>
+                                        <div class="h5 mb-0 text-success">{{ group_data.active_count }}</div>
+                                    </div>
+                                    {% endif %}
+                                    {% if group_data.pending_count > 0 %}
+                                    <div class="text-end">
+                                        <div class="small text-warning">Pending</div>
+                                        <div class="h5 mb-0 text-warning">{{ group_data.pending_count }}</div>
+                                    </div>
+                                    {% endif %}
+                                    {% if group_data.expired_count > 0 %}
+                                    <div class="text-end">
+                                        <div class="small text-danger">Expired</div>
+                                        <div class="h5 mb-0 text-danger">{{ group_data.expired_count }}</div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                {% for assignment in group_data.assignments %}
+                                <div class="col-lg-6 col-xl-4">
+                                    <div class="card assignment-card h-100 
+                                                priority-{{ assignment.priority|lower }}
+                                                {% if assignment.status == 'Expired' %}status-expired{% elif assignment.status == 'Pending' %}status-pending{% elif assignment.status == 'Revoked' %}status-revoked{% endif %}">
+                                        <div class="card-body p-3">
+                                            <div class="d-flex align-items-start gap-2 mb-2">
+                                                <input type="checkbox" 
+                                                       class="form-check-input mt-1 bulk-select" 
+                                                       value="{{ assignment.id }}"
+                                                       data-assignment-id="{{ assignment.id }}">
+                                                <div class="flex-grow-1">
+                                                    <h6 class="mb-1">
+                                                        <a href="{% url 'access_management:access_assignment_detail' assignment.id %}"
+                                                           class="text-decoration-none fw-bold">
+                                                            {{ assignment.user.get_full_name }}
+                                                        </a>
+                                                    </h6>
+                                                    <div class="small text-muted">
+                                                        <i class="fas fa-user"></i> {{ assignment.user.username }}
+                                                    </div>
+                                                    <div class="small text-muted">
+                                                        <i class="fas fa-building"></i> 
+                                                        {{ assignment.user.department.name|default:"No Department" }}
+                                                    </div>
+                                                    {% if not assignment.user.is_active %}
+                                                        <span class="badge bg-danger-subtle text-danger mt-1">
+                                                            <i class="fas fa-user-slash"></i> Inactive Account
+                                                        </span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Access Info -->
+                                            <div class="mb-2">
+                                                <div class="d-flex flex-wrap gap-1">
+                                                    <span class="badge bg-info-subtle text-info">
+                                                        {{ assignment.get_access_type_display }}
+                                                    </span>
+                                                    {% if assignment.subscription_tier %}
+                                                        <span class="badge bg-secondary-subtle text-secondary">
+                                                            {{ assignment.subscription_tier.name }}
+                                                        </span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Status & Dates -->
+                                            <div class="mb-2">
+                                                {% if assignment.status == 'Active' %}
+                                                    <span class="badge bg-success mb-1">
+                                                        <i class="fas fa-check-circle"></i> Active
+                                                    </span>
+                                                {% elif assignment.status == 'Pending' %}
+                                                    <span class="badge bg-warning text-dark mb-1">
+                                                        <i class="fas fa-clock"></i> Pending
+                                                        {% if assignment.pending_days > 7 %}
+                                                            <span class="badge bg-danger ms-1">{{ assignment.pending_days }}d</span>
+                                                        {% endif %}
+                                                    </span>
+                                                {% elif assignment.status == 'Expired' %}
+                                                    <span class="badge bg-danger mb-1">
+                                                        <i class="fas fa-times-circle"></i> Expired
+                                                    </span>
+                                                {% elif assignment.status == 'Revoked' %}
+                                                    <span class="badge bg-danger mb-1">
+                                                        <i class="fas fa-ban"></i> Revoked
+                                                    </span>
+                                                {% elif assignment.status == 'Approved' %}
+                                                    <span class="badge bg-info mb-1">
+                                                        <i class="fas fa-thumbs-up"></i> Approved
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-light text-dark mb-1">
+                                                        {{ assignment.status }}
+                                                    </span>
+                                                {% endif %}
+                                                
+                                                <div class="small text-muted">
+                                                    <i class="fas fa-calendar-plus"></i> 
+                                                    Requested: {{ assignment.request_date|date:"M d, Y" }}
+                                                </div>
+                                                {% if assignment.access_end_date %}
+                                                    <div class="small {% if assignment.is_expiring_soon %}text-danger fw-bold{% else %}text-muted{% endif %}">
+                                                        <i class="fas fa-hourglass-end"></i>
+                                                        Expires: {{ assignment.access_end_date|date:"M d, Y" }}
+                                                        {% if assignment.days_until_expiry <= 30 and assignment.days_until_expiry >= 0 %}
+                                                            <span class="badge bg-warning ms-1">
+                                                                {{ assignment.days_until_expiry }} days
+                                                            </span>
+                                                        {% endif %}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <!-- Actions -->
+                                            <div class="d-flex gap-1">
+                                                <a href="{% url 'access_management:access_assignment_detail' assignment.id %}" 
+                                                   class="btn btn-sm btn-outline-primary"
+                                                   title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                {% if assignment.can_edit %}
+                                                <a href="{% url 'access_management:access_assignment_update' assignment.id %}" 
+                                                   class="btn btn-sm btn-outline-warning"
+                                                   title="Edit">
+                                                    <i class="fas fa-pen"></i>
+                                                </a>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <!-- Empty State for System Assignments -->
+                                <div class="col-12">
+                                    <div class="text-center py-4">
+                                        <i class="fas fa-inbox fa-3x text-muted mb-2"></i>
+                                        <h6 class="text-muted">No assignments found for this system</h6>
+                                        <p class="small text-muted">Try adjusting your filters</p>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                {% endif %}
                 {% empty %}
                 <!-- Empty State -->
                 <div class="col-12">
@@ -692,53 +1035,53 @@
             </div>
 
             <!-- Pagination -->
-            {% if access_assignments.has_other_pages %}
+            {% if grouped_page.has_other_pages %}
             <div class="d-flex justify-content-between align-items-center mt-4 flex-wrap gap-3">
                 <!-- Page Info -->
                 <div class="text-muted small">
-                    Page {{ access_assignments.number }} of {{ access_assignments.paginator.num_pages }}
+                    Page {{ grouped_page.number }} of {{ grouped_page.paginator.num_pages }}
                 </div>
                 
                 <!-- Pagination Controls -->
                 <nav aria-label="Page navigation">
                     <ul class="pagination mb-0">
-                        {% if access_assignments.has_previous %}
+                        {% if grouped_page.has_previous %}
                             <li class="page-item">
-                                <a class="page-link" href="?page=1{% for key, value in filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}&page_size={{ page_size }}">
+                                <a class="page-link" href="?page=1{% for key, value in filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}&page_size={{ page_size }}&view_mode={{ view_mode }}">
                                     <i class="fas fa-angle-double-left"></i>
                                 </a>
                             </li>
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ access_assignments.previous_page_number }}{% for key, value in filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}&page_size={{ page_size }}">
+                                <a class="page-link" href="?page={{ grouped_page.previous_page_number }}{% for key, value in filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}&page_size={{ page_size }}&view_mode={{ view_mode }}">
                                     <i class="fas fa-angle-left"></i>
                                 </a>
                             </li>
                         {% endif %}
                         
-                        {% for num in access_assignments.paginator.page_range %}
-                            {% if num == access_assignments.number %}
+                        {% for num in grouped_page.paginator.page_range %}
+                            {% if num == grouped_page.number %}
                                 <li class="page-item active">
                                     <span class="page-link">{{ num }}</span>
                                 </li>
-                            {% elif num == 1 or num == access_assignments.paginator.num_pages or num >= access_assignments.number|add:'-2' and num <= access_assignments.number|add:'2' %}
+                            {% elif num == 1 or num == grouped_page.paginator.num_pages or num >= grouped_page.number|add:'-2' and num <= grouped_page.number|add:'2' %}
                                 <li class="page-item">
-                                    <a class="page-link" href="?page={{ num }}{% for key, value in filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}&page_size={{ page_size }}">{{ num }}</a>
+                                    <a class="page-link" href="?page={{ num }}{% for key, value in filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}&page_size={{ page_size }}&view_mode={{ view_mode }}">{{ num }}</a>
                                 </li>
-                            {% elif num == 2 or num == access_assignments.paginator.num_pages|add:'-1' %}
+                            {% elif num == 2 or num == grouped_page.paginator.num_pages|add:'-1' %}
                                 <li class="page-item disabled">
                                     <span class="page-link">...</span>
                                 </li>
                             {% endif %}
                         {% endfor %}
                         
-                        {% if access_assignments.has_next %}
+                        {% if grouped_page.has_next %}
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ access_assignments.next_page_number }}{% for key, value in filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}&page_size={{ page_size }}">
+                                <a class="page-link" href="?page={{ grouped_page.next_page_number }}{% for key, value in filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}&page_size={{ page_size }}&view_mode={{ view_mode }}">
                                     <i class="fas fa-angle-right"></i>
                                 </a>
                             </li>
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ access_assignments.paginator.num_pages }}{% for key, value in filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}&page_size={{ page_size }}">
+                                <a class="page-link" href="?page={{ grouped_page.paginator.num_pages }}{% for key, value in filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}&page_size={{ page_size }}&view_mode={{ view_mode }}">
                                     <i class="fas fa-angle-double-right"></i>
                                 </a>
                             </li>
@@ -753,7 +1096,7 @@
                            class="form-control form-control-sm" 
                            style="width: 70px;" 
                            min="1" 
-                           max="{{ access_assignments.paginator.num_pages }}"
+                           max="{{ grouped_page.paginator.num_pages }}"
                            placeholder="Page"
                            id="jumpToPageInput">
                     <button class="btn btn-sm btn-outline-secondary" onclick="jumpToPage()">Go</button>
