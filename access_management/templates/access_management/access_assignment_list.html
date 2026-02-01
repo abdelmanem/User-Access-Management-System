@@ -91,13 +91,13 @@
         <div class="d-flex gap-2 flex-wrap align-items-center me-3">
             <span class="text-muted small fw-semibold">View:</span>
             <div class="btn-group btn-group-sm" role="group">
-                <a href="?{% if current_query %}{{ current_query }}&{% endif %}view_mode=system" 
-                   class="btn {% if view_mode == 'system' %}btn-primary{% else %}btn-outline-primary{% endif %}">
-                    <i class="fas fa-server"></i> By System
-                </a>
                 <a href="?{% if current_query %}{{ current_query }}&{% endif %}view_mode=user" 
                    class="btn {% if view_mode == 'user' %}btn-primary{% else %}btn-outline-primary{% endif %}">
-                    <i class="fas fa-users"></i> By User
+                    <i class="fas fa-server"></i> By user
+                </a>
+				<a href="?{% if current_query %}{{ current_query }}&{% endif %}view_mode=system" 
+                   class="btn {% if view_mode == 'system' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    <i class="fas fa-server"></i> By System
                 </a>
             </div>
         </div>
