@@ -318,8 +318,48 @@
         transform: rotate(180deg);
       }
       
-      .sidebar-backdrop {
-        display: none;
+      .sidebar-resize-handle {
+        width: 6px;
+        background: transparent;
+        cursor: ew-resize;
+        position: relative;
+        z-index: 1000;
+        transition: background-color 0.2s ease;
+      }
+      
+      .sidebar-resize-handle:hover,
+      .sidebar-resize-handle.resizing {
+        background: rgba(59, 130, 246, 0.5);
+      }
+      
+      .sidebar-resize-handle::before {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: rgba(59, 130, 246, 0.3);
+        transform: translateX(-50%);
+        opacity: 0;
+        transition: opacity 0.2s ease;
+      }
+      
+      .sidebar-resize-handle:hover::before,
+      .sidebar-resize-handle.resizing::before {
+        opacity: 1;
+      }
+      
+      /* Hide resize handle on mobile and when collapsed */
+      @media (max-width: 991.98px) {
+        .sidebar-resize-handle {
+          display: none;
+        }
+      }
+      
+      body.sidebar-collapsed .sidebar-resize-handle,
+      .sidebar.collapsed .sidebar-resize-handle {
+        display: none !important;
       }
 
       .sidebar [data-tooltip] {
@@ -651,6 +691,7 @@
     {% if user.is_authenticated %}
     <div class="app-shell d-flex">
       {% include 'navigation.html' %}
+      <div class="sidebar-resize-handle" id="sidebarResizeHandle"></div>
       <div class="sidebar-backdrop d-lg-none" id="sidebarBackdrop"></div>
       <div class="app-main flex-grow-1 d-flex flex-column">
         <div class="app-main-inner flex-grow-1 d-flex flex-column">
@@ -773,6 +814,110 @@
             }
           });
         });
+        
+        // Sidebar Resizing Functionality
+        const resizeHandle = document.getElementById('sidebarResizeHandle');
+        const sidebar = document.querySelector('.sidebar');
+        const appShell = document.querySelector('.app-shell');
+        
+        if (resizeHandle && sidebar) {
+          let isResizing = false;
+          let startX = 0;
+          let startWidth = 0;
+          const minWidth = 200; // Minimum sidebar width
+          const maxWidth = 500; // Maximum sidebar width
+          
+          // Load saved sidebar width from localStorage
+          const savedWidth = localStorage.getItem('sidebar-width');
+          if (savedWidth) {
+            const width = parseInt(savedWidth);
+            if (width >= minWidth && width <= maxWidth) {
+              document.documentElement.style.setProperty('--sidebar-width', width + 'px');
+            }
+          }
+          
+          function updateResizeHandleVisibility() {
+            const isCollapsed = document.body.classList.contains('sidebar-collapsed') || sidebar.classList.contains('collapsed');
+            const isMobile = window.innerWidth < 992;
+            resizeHandle.style.display = (isCollapsed || isMobile) ? 'none' : 'block';
+          }
+          
+          // Initial visibility check
+          updateResizeHandleVisibility();
+          
+          // Watch for collapse state changes
+          const observer = new MutationObserver(updateResizeHandleVisibility);
+          observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+          observer.observe(sidebar, { attributes: true, attributeFilter: ['class'] });
+          
+          // Watch for window resize
+          window.addEventListener('resize', updateResizeHandleVisibility);
+          
+          resizeHandle.addEventListener('mousedown', function(e) {
+            // Don't allow resizing when collapsed
+            if (document.body.classList.contains('sidebar-collapsed') || sidebar.classList.contains('collapsed')) {
+              return;
+            }
+            
+            isResizing = true;
+            startX = e.clientX;
+            startWidth = sidebar.offsetWidth;
+            resizeHandle.classList.add('resizing');
+            document.body.style.cursor = 'ew-resize';
+            document.body.style.userSelect = 'none';
+            
+            // Prevent text selection during resize
+            e.preventDefault();
+          });
+          
+          document.addEventListener('mousemove', function(e) {
+            if (!isResizing) return;
+            
+            // Double-check collapse state
+            if (document.body.classList.contains('sidebar-collapsed') || sidebar.classList.contains('collapsed')) {
+              isResizing = false;
+              resizeHandle.classList.remove('resizing');
+              document.body.style.cursor = '';
+              document.body.style.userSelect = '';
+              return;
+            }
+            
+            const deltaX = e.clientX - startX;
+            let newWidth = startWidth + deltaX;
+            
+            // Constrain width between min and max
+            newWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
+            
+            sidebar.style.width = newWidth + 'px';
+            document.documentElement.style.setProperty('--sidebar-width', newWidth + 'px');
+          });
+          
+          document.addEventListener('mouseup', function() {
+            if (!isResizing) return;
+            
+            isResizing = false;
+            resizeHandle.classList.remove('resizing');
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+            
+            // Save the new width to localStorage
+            const currentWidth = sidebar.offsetWidth;
+            localStorage.setItem('sidebar-width', currentWidth.toString());
+          });
+          
+          // Handle window resize to ensure sidebar doesn't get too wide on small screens
+          window.addEventListener('resize', function() {
+            const currentWidth = parseInt(localStorage.getItem('sidebar-width') || '270');
+            const windowWidth = window.innerWidth;
+            
+            if (windowWidth < 768 && currentWidth > 250) {
+              const constrainedWidth = Math.min(currentWidth, 250);
+              sidebar.style.width = constrainedWidth + 'px';
+              document.documentElement.style.setProperty('--sidebar-width', constrainedWidth + 'px');
+              localStorage.setItem('sidebar-width', constrainedWidth.toString());
+            }
+          });
+        }
         
         // Final security check: Hide sidebar if user is not authenticated
         // This runs after DOM is loaded to catch any edge cases
