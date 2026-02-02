@@ -635,111 +635,98 @@ def export_quarterly_reviews_to_csv(queryset):
     return response
 
 
-def export_cross_system_mapping_to_csv(rows):
-    headers = [
-        "User",
-        "Username",
-        "Employee ID",
-        "Department",
-        "System",
-        "System Code",
-        "System Username",
-        "Access Type",
-        "Status",
-        "Generic Account",
-        "Verified By",
-        "Verified Date",
-        "Verification Artifact (File)",
-        "Verification Artifact (URL)",
-        "System Owner",
-        "System Owner Approved",
-        "System Owner Approval Date",
-        "Business Justification",
-        "Legitimate Business Need",
-    ]
+def export_cross_system_mapping_to_csv(users, systems, user_system_mapping):
+    """
+    Export cross-system mapping as CSV in matrix format:
+    Columns: Employee, Employee ID, Department, then one column per system
+    Rows: One per user
+    """
     output = StringIO()
     writer = csv.writer(output)
+    
+    # Build headers: Employee, Employee ID, Department, then system names
+    headers = ["Employee", "Employee ID", "Department"]
+    headers.extend([system.name for system in systems])
     writer.writerow(headers)
-
-    for row in rows:
-        writer.writerow([
-            row["user_name"],
-            row["user_username"],
-            row["employee_id"],
-            row["department"],
-            row["system_name"],
-            row["system_code"],
-            row["system_username"],
-            row["access_type"],
-            row["status"],
-            row["is_generic"],
-            row["verified_by"],
-            row["verified_date"],
-            row["verification_artifact_file"],
-            row["verification_artifact_url"],
-            row["system_owner_name"],
-            row["system_owner_approved"],
-            row["system_owner_approval_date"],
-            row["business_justification"],
-            row["legitimate_business_need"],
-        ])
-
+    
+    # Write one row per user
+    for user in users:
+        row = [
+            user.full_name,
+            user.employee_id or '',
+            user.department.name if user.department else '',
+        ]
+        # Add username for each system (or empty if no access)
+        for system in systems:
+            access_info = user_system_mapping.get(user.id, {}).get(system.id)
+            if access_info and access_info.get('username'):
+                row.append(access_info['username'])
+            else:
+                row.append('')
+        writer.writerow(row)
+    
     response = HttpResponse(output.getvalue(), content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="cross_system_account_mapping.csv"'
     return response
 
 
-def export_cross_system_mapping_to_excel(rows):
+def export_cross_system_mapping_to_excel(users, systems, user_system_mapping):
+    """
+    Export cross-system mapping as Excel in matrix format:
+    Columns: Employee, Employee ID, Department, then one column per system
+    Rows: One per user
+    """
     workbook = Workbook()
     worksheet = workbook.active
     worksheet.title = "Cross-System Mapping"
-
-    headers = [
-        "User",
-        "Username",
-        "Employee ID",
-        "Department",
-        "System",
-        "System Code",
-        "System Username",
-        "Access Type",
-        "Status",
-        "Generic Account",
-        "Verified By",
-        "Verified Date",
-        "Verification Artifact (File)",
-        "Verification Artifact (URL)",
-        "System Owner",
-        "System Owner Approved",
-        "System Owner Approval Date",
-        "Business Justification",
-        "Legitimate Business Need",
-    ]
+    
+    # Build headers: Employee, Employee ID, Department, then system names
+    headers = ["Employee", "Employee ID", "Department"]
+    headers.extend([system.name for system in systems])
     worksheet.append(headers)
-
-    for row in rows:
-        worksheet.append([
-            row["user_name"],
-            row["user_username"],
-            row["employee_id"],
-            row["department"],
-            row["system_name"],
-            row["system_code"],
-            row["system_username"],
-            row["access_type"],
-            row["status"],
-            row["is_generic"],
-            row["verified_by"],
-            row["verified_date"],
-            row["verification_artifact_file"],
-            row["verification_artifact_url"],
-            row["system_owner_name"],
-            row["system_owner_approved"],
-            row["system_owner_approval_date"],
-            row["business_justification"],
-            row["legitimate_business_need"],
-        ])
-
+    
+    # Style header row
+    from openpyxl.styles import Font, PatternFill, Alignment
+    header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
+    header_font = Font(bold=True, color="FFFFFF")
+    
+    for col_num, header in enumerate(headers, 1):
+        cell = worksheet.cell(row=1, column=col_num)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+    
+    # Write one row per user
+    for user in users:
+        row = [
+            user.full_name,
+            user.employee_id or '',
+            user.department.name if user.department else '',
+        ]
+        # Add username for each system (or empty if no access)
+        for system in systems:
+            access_info = user_system_mapping.get(user.id, {}).get(system.id)
+            if access_info and access_info.get('username'):
+                row.append(access_info['username'])
+            else:
+                row.append('')
+        worksheet.append(row)
+    
+    # Auto-adjust column widths
+    from openpyxl.utils import get_column_letter
+    for col_num, header in enumerate(headers, 1):
+        col_letter = get_column_letter(col_num)
+        if col_num <= 3:
+            # Fixed width for first 3 columns
+            worksheet.column_dimensions[col_letter].width = 20
+        else:
+            # Auto-width for system columns
+            max_length = max(
+                len(header),
+                max((len(str(row[col_num - 1])) for row in worksheet.iter_rows(min_row=2, values_only=True) if row[col_num - 1]), default=0)
+            )
+            worksheet.column_dimensions[col_letter].width = min(max_length + 2, 30)
+    
     stream = BytesIO()
     workbook.save(stream)
     stream.seek(0)
@@ -3541,17 +3528,8 @@ def cross_system_account_mapping(request):
     if system_id:
         access_assignments = access_assignments.filter(system_id=system_id)
     
-    export_format = request.GET.get('export')
-    if export_format in {'csv', 'xlsx'}:
-        ordered_assignments = access_assignments.order_by(
-            'user__first_name', 'user__last_name', 'system__name'
-        )
-        rows = build_cross_system_mapping_rows(ordered_assignments, request)
-        if export_format == 'xlsx':
-            return export_cross_system_mapping_to_excel(rows)
-        return export_cross_system_mapping_to_csv(rows)
-
     # Build mapping: user_id -> {system_id: details}
+    # This is used both for the template display and for exports
     user_system_mapping = {}
     for access in access_assignments:
         user_id = access.user_id
@@ -3591,6 +3569,15 @@ def cross_system_account_mapping(request):
     
     # Order users
     users = users.order_by('first_name', 'last_name')
+    
+    # Handle exports (must be after building user_system_mapping)
+    export_format = request.GET.get('export')
+    if export_format in {'csv', 'xlsx'}:
+        # For exports, get all users (no pagination)
+        export_users = users
+        if export_format == 'xlsx':
+            return export_cross_system_mapping_to_excel(export_users, systems, user_system_mapping)
+        return export_cross_system_mapping_to_csv(export_users, systems, user_system_mapping)
     
     # Pagination
     paginator = Paginator(users, 50)

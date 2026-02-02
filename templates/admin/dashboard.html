@@ -1,385 +1,233 @@
 {% extends 'base.html' %}
 {% load static %}
-
 {% block title %}{{ title }}{% endblock %}
 
 {% block extracss %}
 <style>
-    :root {
-        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        --success-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        --warning-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-        --card-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.075);
-        --card-shadow-hover: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15);
-        --transition-base: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
+  :root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --success-gradient: linear-gradient(135deg, #1cc88a 0%, #22c55e 100%);
+    --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --warning-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    --card-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.075);
+    --card-shadow-hover: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15);
+    --transition-base: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
 
-    /* Smooth page transitions */
-    #content-main {
-        animation: fadeInUp 0.5s ease-out;
-    }
+  /* Smooth page transitions */
+  #content-main { animation: fadeInUp 0.5s ease-out; }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
+  /* Enhanced Cards */
+  .card {
+    transition: var(--transition-base);
+    border: none;
+    border-radius: 1rem;
+    overflow: hidden;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--card-shadow-hover) !important;
+  }
+  .card-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-bottom: 2px solid #e9ecef;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+  }
 
-    /* Enhanced Cards */
-    .card {
-        transition: var(--transition-base);
-        border: none;
-        border-radius: 1rem;
-        overflow: hidden;
-    }
+  /* Metric Cards with Gradients */
+  .metric-card { position: relative; overflow: hidden; background: white; }
+  .metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: var(--primary-gradient);
+    opacity: 0;
+    transition: var(--transition-base);
+  }
+  .metric-card:hover::before { opacity: 1; }
+  .metric-card .metric-icon {
+    width: 60px; height: 60px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 1rem;
+    font-size: 1.5rem;
+    transition: var(--transition-base);
+  }
+  .metric-card:hover .metric-icon { transform: scale(1.1) rotate(5deg); }
 
-    .card:hover {
-        transform: translateY(-4px);
-        box-shadow: var(--card-shadow-hover) !important;
-    }
+  /* Icon backgrounds */
+  .icon-bg-primary { background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); color: #667eea; }
+  .icon-bg-success { background: linear-gradient(135deg, rgba(28, 200, 138, 0.1), rgba(34, 197, 94, 0.1)); color: #1cc88a; }
+  .icon-bg-info { background: linear-gradient(135deg, rgba(54, 185, 204, 0.1), rgba(79, 172, 254, 0.1)); color: #36b9cc; }
+  .icon-bg-warning { background: linear-gradient(135deg, rgba(246, 194, 62, 0.1), rgba(251, 191, 36, 0.1)); color: #f6c23e; }
+  .icon-bg-danger { background: linear-gradient(135deg, rgba(231, 74, 59, 0.1), rgba(239, 68, 68, 0.1)); color: #e74a3b; }
 
-    .card-header {
-        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-        border-bottom: 2px solid #e9ecef;
-        font-weight: 600;
-        letter-spacing: 0.025em;
-    }
+  /* Enhanced Alert */
+  .alert {
+    border: none;
+    border-radius: 0.75rem;
+    border-left: 4px solid;
+    animation: slideInRight 0.5s ease-out;
+  }
+  @keyframes slideInRight {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
 
-    /* Metric Cards with Gradients */
-    .metric-card {
-        position: relative;
-        overflow: hidden;
-        background: white;
-    }
+  /* KPI Table Enhancements (kept for other tables if used) */
+  .kpi-table tr { transition: var(--transition-base); }
+  .kpi-table tr:hover { background-color: #f8f9fa; transform: translateX(4px); }
+  .kpi-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    min-width: 60px;
+    display: inline-block;
+    text-align: center;
+  }
 
-    .metric-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: var(--primary-gradient);
-        opacity: 0;
-        transition: var(--transition-base);
-    }
+  /* List Items */
+  .list-group-item {
+    border: none;
+    border-bottom: 1px solid #f0f0f0;
+    transition: var(--transition-base);
+    padding: 1rem 1.25rem;
+  }
+  .list-group-item:hover {
+    background-color: #f8f9fa;
+    transform: translateX(8px);
+    border-left: 3px solid #667eea;
+  }
+  .list-group-item:last-child { border-bottom: none; }
 
-    .metric-card:hover::before {
-        opacity: 1;
-    }
+  /* Progress Bars */
+  .progress { background-color: #e9ecef; border-radius: 0.5rem; overflow: hidden; }
+  .progress-bar {
+    transition: width 1s ease-in-out;
+    background: linear-gradient(90deg, currentColor, currentColor);
+    position: relative;
+    overflow: hidden;
+  }
+  .progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: shimmer 2s infinite;
+  }
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
 
-    .metric-card .metric-icon {
-        width: 60px;
-        height: 60px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 1rem;
-        font-size: 1.5rem;
-        transition: var(--transition-base);
-    }
+  /* Quick Action Cards */
+  .quick-action-card {
+    transition: var(--transition-base);
+    cursor: pointer;
+    border: 2px solid transparent;
+  }
+  .quick-action-card:hover {
+    border-color: #667eea;
+    transform: translateY(-8px);
+  }
+  .quick-action-icon {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    transition: var(--transition-base);
+  }
+  .quick-action-card:hover .quick-action-icon { transform: rotate(360deg); }
 
-    .metric-card:hover .metric-icon {
-        transform: scale(1.1) rotate(5deg);
-    }
+  /* Badge Enhancements */
+  .badge { padding: 0.35rem 0.75rem; font-weight: 600; letter-spacing: 0.025em; }
+  .badge-pill { border-radius: 2rem; }
 
-    /* Icon backgrounds */
-    .icon-bg-primary {
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-        color: #667eea;
-    }
+  /* Chart Container */
+  .chart-area, .chart-pie { position: relative; animation: fadeIn 0.8s ease-out; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    .icon-bg-success {
-        background: linear-gradient(135deg, rgba(28, 200, 138, 0.1), rgba(34, 197, 94, 0.1));
-        color: #1cc88a;
-    }
+  /* Typography */
+  .h4 { font-weight: 700; letter-spacing: -0.025em; }
+  .text-muted { color: #6c757d !important; font-size: 0.875rem; }
 
-    .icon-bg-info {
-        background: linear-gradient(135deg, rgba(54, 185, 204, 0.1), rgba(79, 172, 254, 0.1));
-        color: #36b9cc;
-    }
+  /* Smooth scrolling */
+  html { scroll-behavior: smooth; }
 
-    .icon-bg-warning {
-        background: linear-gradient(135deg, rgba(246, 194, 62, 0.1), rgba(251, 191, 36, 0.1));
-        color: #f6c23e;
-    }
+  /* Auth nav enhancement */
+  .auth-nav {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 0.75rem 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
 
-    .icon-bg-danger {
-        background: linear-gradient(135deg, rgba(231, 74, 59, 0.1), rgba(239, 68, 68, 0.1));
-        color: #e74a3b;
-    }
+  /* Button enhancements */
+  .btn { font-weight: 600; letter-spacing: 0.025em; transition: var(--transition-base); border-radius: 0.5rem; }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+  .btn-primary { background: var(--primary-gradient); border: none; }
+  .btn-success { background: var(--success-gradient); border: none; }
+  .btn-warning { background: linear-gradient(135deg, #f6c23e 0%, #fbbf24 100%); border: none; }
+  .btn-info { background: linear-gradient(135deg, #36b9cc 0%, #4facfe 100%); border: none; }
 
-    /* Enhanced Alert */
-    .alert {
-        border: none;
-        border-radius: 0.75rem;
-        border-left: 4px solid;
-        animation: slideInRight 0.5s ease-out;
-    }
+  /* ==========================================
+     ✅ NEW: KPI Card Layout (Horizontal/Vertical)
+     ========================================== */
+  .kpi-wrap { padding: 1rem; }
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+  .kpi-tile {
+    background: #fff;
+    border: 1px solid #eef2f7;
+    border-radius: 0.9rem;
+    padding: 0.95rem;
+    transition: var(--transition-base);
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi-tile:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+    border-color: rgba(102,126,234,0.35);
+  }
+  .kpi-tile::before{
+    content:'';
+    position:absolute;
+    left:0; top:0; bottom:0;
+    width:4px;
+    background: var(--primary-gradient);
+    opacity: .9;
+  }
+  .kpi-tile .row1 { display:flex; justify-content:space-between; align-items:flex-start; gap:0.75rem; }
+  .kpi-tile .label { font-weight: 800; font-size: 0.95rem; }
+  .kpi-tile .desc { font-size: 0.82rem; color: #6c757d; margin-top: 0.25rem; }
+  .kpi-tile .value-badge {
+    padding: 0.45rem 0.75rem;
+    border-radius: 2rem;
+    font-weight: 900;
+    font-size: 0.9rem;
+    white-space: nowrap;
+  }
+  .kpi-vertical .kpi-grid { grid-template-columns: 1fr; }
 
-    @keyframes slideInRight {
-        from {
-            opacity: 0;
-            transform: translateX(-20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateX(0);
-        }
-    }
-
-    /* KPI Table Enhancements */
-    .kpi-table tr {
-        transition: var(--transition-base);
-    }
-
-    .kpi-table tr:hover {
-        background-color: #f8f9fa;
-        transform: translateX(4px);
-    }
-
-    .kpi-badge {
-        padding: 0.5rem 1rem;
-        border-radius: 2rem;
-        font-weight: 600;
-        font-size: 0.875rem;
-        min-width: 60px;
-        display: inline-block;
-        text-align: center;
-    }
-
-    /* List Items */
-    .list-group-item {
-        border: none;
-        border-bottom: 1px solid #f0f0f0;
-        transition: var(--transition-base);
-        padding: 1rem 1.25rem;
-    }
-
-    .list-group-item:hover {
-        background-color: #f8f9fa;
-        transform: translateX(8px);
-        border-left: 3px solid #667eea;
-    }
-
-    .list-group-item:last-child {
-        border-bottom: none;
-    }
-
-    /* Progress Bars */
-    .progress {
-        background-color: #e9ecef;
-        border-radius: 0.5rem;
-        overflow: hidden;
-    }
-
-    .progress-bar {
-        transition: width 1s ease-in-out;
-        background: linear-gradient(90deg, currentColor, currentColor);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .progress-bar::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        right: 0;
-        background: linear-gradient(
-            90deg,
-            transparent,
-            rgba(255, 255, 255, 0.3),
-            transparent
-        );
-        animation: shimmer 2s infinite;
-    }
-
-    @keyframes shimmer {
-        0% { transform: translateX(-100%); }
-        100% { transform: translateX(100%); }
-    }
-
-    /* Quick Action Cards */
-    .quick-action-card {
-        transition: var(--transition-base);
-        cursor: pointer;
-        border: 2px solid transparent;
-    }
-
-    .quick-action-card:hover {
-        border-color: #667eea;
-        transform: translateY(-8px);
-    }
-
-    .quick-action-icon {
-        width: 60px;
-        height: 60px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        font-size: 1.5rem;
-        transition: var(--transition-base);
-    }
-
-    .quick-action-card:hover .quick-action-icon {
-        transform: rotate(360deg);
-    }
-
-    /* Badge Enhancements */
-    .badge {
-        padding: 0.35rem 0.75rem;
-        font-weight: 600;
-        letter-spacing: 0.025em;
-    }
-
-    .badge-pill {
-        border-radius: 2rem;
-    }
-
-    /* Chart Container */
-    .chart-area, .chart-pie {
-        position: relative;
-        animation: fadeIn 0.8s ease-out;
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-
-    /* Typography */
-    .h4 {
-        font-weight: 700;
-        letter-spacing: -0.025em;
-    }
-
-    .text-muted {
-        color: #6c757d !important;
-        font-size: 0.875rem;
-    }
-
-    /* Smooth scrolling */
-    html {
-        scroll-behavior: smooth;
-    }
-
-    /* Loading states */
-    .loading-skeleton {
-        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-        background-size: 200% 100%;
-        animation: loading 1.5s infinite;
-    }
-
-    @keyframes loading {
-        0% { background-position: 200% 0; }
-        100% { background-position: -200% 0; }
-    }
-
-    /* Section Headers */
-    .section-header {
-        position: relative;
-        padding-bottom: 0.75rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .section-header::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 60px;
-        height: 3px;
-        background: var(--primary-gradient);
-        border-radius: 2px;
-    }
-
-    /* Responsive improvements */
-    @media (max-width: 768px) {
-        .metric-card {
-            margin-bottom: 1rem;
-        }
-        
-        .card-body {
-            padding: 1rem;
-        }
-    }
-
-    /* Link styles */
-    a.fw-semibold {
-        transition: var(--transition-base);
-        position: relative;
-    }
-
-    a.fw-semibold::after {
-        content: '';
-        position: absolute;
-        bottom: -2px;
-        left: 0;
-        width: 0;
-        height: 2px;
-        background: currentColor;
-        transition: width 0.3s ease;
-    }
-
-    a.fw-semibold:hover::after {
-        width: 100%;
-    }
-
-    /* Stagger animation for cards */
-    .card:nth-child(1) { animation-delay: 0s; }
-    .card:nth-child(2) { animation-delay: 0.1s; }
-    .card:nth-child(3) { animation-delay: 0.2s; }
-    .card:nth-child(4) { animation-delay: 0.3s; }
-
-    /* Auth nav enhancement */
-    .auth-nav {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
-        padding: 0.75rem 0;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-
-    /* Button enhancements */
-    .btn {
-        font-weight: 600;
-        letter-spacing: 0.025em;
-        transition: var(--transition-base);
-        border-radius: 0.5rem;
-    }
-
-    .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-
-    .btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: none;
-    }
-
-    .btn-success {
-        background: linear-gradient(135deg, #1cc88a 0%, #22c55e 100%);
-        border: none;
-    }
-
-    .btn-warning {
-        background: linear-gradient(135deg, #f6c23e 0%, #fbbf24 100%);
-        border: none;
-    }
-
-    .btn-info {
-        background: linear-gradient(135deg, #36b9cc 0%, #4facfe 100%);
-        border: none;
-    }
+  @media (max-width: 768px){
+    .kpi-grid { grid-template-columns: 1fr; }
+    .metric-card { margin-bottom: 1rem; }
+    .card-body { padding: 1rem; }
+  }
 </style>
 {% endblock %}
 
@@ -387,1094 +235,1070 @@
 <!-- Authentication Navigation -->
 {% if not user.is_authenticated %}
 <div class="auth-nav fixed-top">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-12 text-end">
-                <a href="{% url 'accounts:login' %}" class="btn btn-sm btn-primary">
-                    <i class="fas fa-sign-in-alt me-2"></i>Login
-                </a>
-            </div>
-        </div>
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-12 text-end">
+        <a href="{% url 'accounts:login' %}" class="btn btn-sm btn-primary">
+          <i class="fas fa-sign-in-alt me-2"></i>Login
+        </a>
+      </div>
     </div>
+  </div>
 </div>
 {% endif %}
 
 <div id="content-main">
-    <div class="container-fluid px-4 py-4">
-        
-        <!-- Page Header -->
-        <div class="d-flex align-items-center justify-content-between mb-4">
-            <div>
-                <h1 class="h3 mb-1 fw-bold text-gradient">{{ title }}</h1>
-                <p class="text-muted mb-0">Welcome back! Here's what's happening today.</p>
-            </div>
-            <div>
-                <span class="badge bg-light text-dark border">
-                    <i class="fas fa-clock me-1"></i>
-                    Last updated: <span id="last-updated">Just now</span>
-                </span>
-            </div>
-        </div>
+  <div class="container-fluid px-4 py-4">
 
-        <!-- Info Alert -->
-        <div class="alert alert-info d-flex align-items-start gap-3 border-info mb-4" role="alert">
-            <i class="fas fa-info-circle fs-4 mt-1"></i>
-            <div>
-                <h6 class="alert-heading mb-2">Dashboard Metrics Information</h6>
-                <p class="small mb-2">
-                    Dashboard totals exclude accounts marked <strong>Exclude from metrics</strong>. 
-                    Use the Quick Actions below to manage which users are counted.
-                </p>
-                <a href="#quick-actions" class="alert-link text-decoration-none">
-                    <i class="fas fa-arrow-down me-1"></i>Jump to Quick Actions
-                </a>
-            </div>
-        </div>
-
-        <!-- User KPI Snapshot -->
-        <div class="row g-4 mb-4">
-            <div class="col-xl-6">
-                <div class="card shadow-sm h-100">
-                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="m-0 fw-bold text-primary">
-                                <i class="fas fa-chart-line me-2"></i>User KPI Snapshot
-                            </h6>
-                        </div>
-                        <span class="badge bg-light text-muted border">
-                            <i class="fas fa-globe me-1"></i>Entire Directory
-                        </span>
-                    </div>
-                    <div class="card-body p-0">
-                        {% if user_kpis %}
-                        <div class="table-responsive">
-                            <table class="table table-sm table-hover align-middle mb-0 kpi-table">
-                                <tbody>
-                                    {% for kpi in user_kpis %}
-                                    <tr>
-                                        <th scope="row" class="ps-4 py-3" style="font-weight: 600;">
-                                            {{ kpi.label }}
-                                            <div class="text-muted small fw-normal">{{ kpi.description }}</div>
-                                        </th>
-                                        <td class="text-end pe-4">
-                                            <span class="kpi-badge bg-{{ kpi.badge }}-subtle text-{{ kpi.badge }}">
-                                                {{ kpi.value }}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                        {% else %}
-                        <div class="p-4 text-center">
-                            <i class="fas fa-chart-bar text-muted mb-3" style="font-size: 3rem; opacity: 0.3;"></i>
-                            <p class="text-muted mb-0">No KPI data available.</p>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Metric Cards - Primary Row -->
-        <div class="row g-4 mb-4">
-            <div class="col-xxl-3 col-md-6">
-                <div class="card shadow-sm metric-card h-100">
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="flex-grow-1">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <div class="text-uppercase text-muted small fw-semibold">Reportable Users</div>
-                                    <span class="badge bg-light text-muted border small">Excludes flagged</span>
-                                </div>
-                                <div class="h2 fw-bold mb-2 text-primary">{{ stats.total_users }}</div>
-                                <div class="small text-muted">
-                                    <i class="fas fa-check-circle text-success me-1"></i>
-                                    Only users not marked "Exclude from metrics"
-                                </div>
-                            </div>
-                            <div class="metric-icon icon-bg-primary">
-                                <i class="fas fa-users"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-xxl-3 col-md-6">
-                <div class="card shadow-sm metric-card h-100">
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="flex-grow-1">
-                                <div class="text-uppercase text-muted small fw-semibold mb-2">Active Reportable Users</div>
-                                <div class="h2 fw-bold mb-2 text-success">{{ stats.active_users }}</div>
-                                <div class="small text-muted">
-                                    <i class="fas fa-arrow-up text-success me-1"></i>
-                                    Subset of reportable users currently active
-                                </div>
-                            </div>
-                            <div class="metric-icon icon-bg-success">
-                                <i class="fas fa-user-check"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-xxl-3 col-md-6">
-                <div class="card shadow-sm metric-card h-100">
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="flex-grow-1">
-                                <div class="text-uppercase text-muted small fw-semibold mb-2">Total Hardware</div>
-                                <div class="h2 fw-bold mb-2 text-info">{{ stats.total_hardware }}</div>
-                                <div class="small text-muted">
-                                    <i class="fas fa-box text-info me-1"></i>
-                                    All hardware assets in inventory
-                                </div>
-                            </div>
-                            <div class="metric-icon icon-bg-info">
-                                <i class="fas fa-boxes-stacked"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-xxl-3 col-md-6">
-                <div class="card shadow-sm metric-card h-100">
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="flex-grow-1">
-                                <div class="text-uppercase text-muted small fw-semibold mb-2">Active Hardware</div>
-                                <div class="h2 fw-bold mb-2 text-success">{{ stats.active_hardware }}</div>
-                                <div class="small text-muted">
-                                    <i class="fas fa-power-off text-success me-1"></i>
-                                    Currently in service
-                                </div>
-                            </div>
-                            <div class="metric-icon icon-bg-success">
-                                <i class="fas fa-laptop"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Metric Cards - Secondary Row -->
-        <div class="row g-4 mb-4">
-            <div class="col-xxl-3 col-md-6">
-                <div class="card shadow-sm metric-card h-100">
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="flex-grow-1">
-                                <div class="text-uppercase text-muted small fw-semibold mb-2">Pending Requests</div>
-                                <div class="h2 fw-bold mb-2 text-warning">{{ stats.pending_requests }}</div>
-                                {% if stats.suspicious_activities %}
-                                <div class="small text-danger">
-                                    <i class="fas fa-exclamation-triangle me-1"></i>
-                                    {{ stats.suspicious_activities }} suspicious events today
-                                </div>
-                                {% else %}
-                                <div class="small text-muted">
-                                    <i class="fas fa-shield-alt text-success me-1"></i>
-                                    No suspicious activity detected
-                                </div>
-                                {% endif %}
-                            </div>
-                            <div class="metric-icon icon-bg-warning">
-                                <i class="fas fa-clipboard-list"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-xxl-3 col-md-6">
-                <div class="card shadow-sm metric-card h-100">
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="flex-grow-1">
-                                <div class="text-uppercase text-muted small fw-semibold mb-2">Failed Logins (24h)</div>
-                                <div class="h2 fw-bold mb-2 text-danger">{{ stats.failed_logins_24h }}</div>
-                                <div class="small text-muted">
-                                    <i class="fas fa-clock text-muted me-1"></i>
-                                    Last 24 hours
-                                </div>
-                            </div>
-                            <div class="metric-icon icon-bg-danger">
-                                <i class="fas fa-exclamation-triangle"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-xxl-3 col-md-6">
-                <div class="card shadow-sm metric-card h-100">
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="flex-grow-1">
-                                <div class="text-uppercase text-muted small fw-semibold mb-2">Warranties ≤ 60 Days</div>
-                                <div class="h2 fw-bold mb-2 text-warning">{{ stats.warranty_expiring }}</div>
-                                <div class="small text-muted">
-                                    <i class="fas fa-calendar-alt text-warning me-1"></i>
-                                    Requires attention soon
-                                </div>
-                            </div>
-                            <div class="metric-icon icon-bg-warning">
-                                <i class="fas fa-calendar-check"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-xxl-3 col-md-6">
-                <div class="card shadow-sm metric-card h-100">
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="flex-grow-1">
-                                <div class="text-uppercase text-muted small fw-semibold mb-2">Patch Exceptions</div>
-                                <div class="h2 fw-bold mb-2 text-secondary">{{ stats.patch_exceptions }}</div>
-                                <div class="small text-muted">
-                                    <i class="fas fa-wrench text-secondary me-1"></i>
-                                    Require manual updates
-                                </div>
-                            </div>
-                            <div class="metric-icon" style="background: linear-gradient(135deg, rgba(108, 117, 125, 0.1), rgba(108, 117, 125, 0.1)); color: #6c757d;">
-                                <i class="fas fa-screwdriver-wrench"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Charts Section -->
-        <div class="row g-4 mb-4">
-            <div class="col-xl-8">
-                <div class="card shadow-sm h-100">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 fw-bold text-primary">
-                            <i class="fas fa-chart-area me-2"></i>Access Trends (Last 7 Days)
-                        </h6>
-                    </div>
-                    <div class="card-body p-4">
-                        <div class="chart-area" style="height: 320px;">
-                            <canvas id="access-trends-chart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-xl-4">
-                <div class="card shadow-sm h-100">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 fw-bold text-primary">
-                            <i class="fas fa-chart-pie me-2"></i>System Usage
-                        </h6>
-                    </div>
-                    <div class="card-body p-4">
-                        {% if system_usage.data %}
-                        <div class="chart-pie" style="height: 280px;">
-                            <canvas id="system-usage-chart"></canvas>
-                        </div>
-                        {% else %}
-                        <div class="text-center py-5">
-                            <i class="fas fa-chart-pie text-muted mb-3" style="font-size: 3rem; opacity: 0.3;"></i>
-                            <p class="text-muted mb-0">No access activity recorded yet.</p>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Hardware Charts -->
-        <div class="row g-4 mb-4">
-            <div class="col-xl-4">
-                <div class="card shadow-sm h-100">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 fw-bold text-primary">
-                            <i class="fas fa-server me-2"></i>Hardware Type Distribution
-                        </h6>
-                    </div>
-                    <div class="card-body p-4">
-                        {% if hardware_counts.total %}
-                        <div class="chart-pie" style="height: 280px;">
-                            <canvas id="hardware-type-chart"></canvas>
-                        </div>
-                        {% else %}
-                        <div class="text-center py-5">
-                            <i class="fas fa-server text-muted mb-3" style="font-size: 3rem; opacity: 0.3;"></i>
-                            <p class="text-muted mb-0">No hardware assets recorded yet.</p>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-xl-8">
-                <div class="card shadow-sm h-100">
-                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                        <h6 class="m-0 fw-bold text-primary">
-                            <i class="fas fa-tasks me-2"></i>Hardware Status Overview
-                        </h6>
-                        <span class="badge bg-info text-white">
-                            <i class="fas fa-cloud me-1"></i>{{ stats.virtual_assets }} virtual assets
-                        </span>
-                    </div>
-                    <div class="card-body p-4">
-                        <div class="d-flex flex-wrap gap-4 mb-4">
-                            <div class="text-center">
-                                <div class="text-uppercase text-muted small mb-1">In Service</div>
-                                <div class="h4 fw-bold mb-0 text-success">
-                                    <i class="fas fa-circle-check me-1"></i>{{ hardware_counts.in_service }}
-                                </div>
-                            </div>
-                            <div class="text-center">
-                                <div class="text-uppercase text-muted small mb-1">In Storage</div>
-                                <div class="h4 fw-bold mb-0 text-info">
-                                    <i class="fas fa-warehouse me-1"></i>{{ hardware_counts.in_storage }}
-                                </div>
-                            </div>
-                            <div class="text-center">
-                                <div class="text-uppercase text-muted small mb-1">Retired/Disposed</div>
-                                <div class="h4 fw-bold mb-0 text-secondary">
-                                    <i class="fas fa-archive me-1"></i>{{ hardware_counts.retired }}
-                                </div>
-                            </div>
-                        </div>
-
-                        {% if hardware_status_breakdown %}
-                            {% for status in hardware_status_breakdown %}
-                            <div class="mb-3">
-                                <div class="d-flex justify-content-between small fw-semibold mb-2">
-                                    <span>
-                                        <i class="fas fa-circle text-{{ status.color }} me-2" style="font-size: 0.5rem;"></i>
-                                        {{ status.label }}
-                                    </span>
-                                    <span class="text-muted">{{ status.count }} ({{ status.percentage }}%)</span>
-                                </div>
-                                <div class="progress" style="height: 10px;">
-                                    <div class="progress-bar bg-{{ status.color }}" 
-                                         role="progressbar" 
-                                         style="width: {{ status.percentage }}%;" 
-                                         aria-valuenow="{{ status.percentage }}" 
-                                         aria-valuemin="0" 
-                                         aria-valuemax="100"></div>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        {% else %}
-                        <div class="text-center py-3">
-                            <i class="fas fa-box-open text-muted mb-3" style="font-size: 3rem; opacity: 0.3;"></i>
-                            <p class="text-muted mb-0">No hardware assets to display.</p>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Warranties and Alerts -->
-        <div class="row g-4 mb-4">
-            <div class="col-xl-6">
-                <div class="card shadow-sm h-100">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 fw-bold text-primary">
-                            <i class="fas fa-calendar-alt me-2"></i>Upcoming Warranties (≤ 90 days)
-                        </h6>
-                    </div>
-                    <div class="card-body p-0">
-                        {% if hardware_warranties.upcoming %}
-                        <ul class="list-group list-group-flush">
-                            {% for entry in hardware_warranties.upcoming %}
-                            <li class="list-group-item">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="flex-grow-1">
-                                        <a href="{% url 'hardware:hardware_detail' entry.id %}" 
-                                           class="fw-semibold text-decoration-none d-block mb-1">
-                                            {{ entry.name }}
-                                        </a>
-                                        <div class="text-muted small">
-                                            <i class="fas fa-tag me-1"></i>{{ entry.asset_tag }}
-                                            {% if entry.department %}
-                                            <span class="mx-2">·</span>
-                                            <i class="fas fa-building me-1"></i>{{ entry.department }}
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                    <div class="text-end ms-3">
-                                        <span class="badge bg-warning text-dark mb-1">
-                                            <i class="fas fa-clock me-1"></i>{{ entry.days_remaining }}d
-                                        </span>
-                                        <div class="small text-muted">{{ entry.warranty_expiration|date:"M d, Y" }}</div>
-                                    </div>
-                                </div>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                        {% else %}
-                        <div class="p-4 text-center">
-                            <i class="fas fa-shield-alt text-success mb-3" style="font-size: 3rem; opacity: 0.3;"></i>
-                            <p class="text-muted mb-0">No warranties expiring in the next 90 days.</p>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-xl-6">
-                <div class="card shadow-sm h-100">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 fw-bold text-primary">
-                            <i class="fas fa-bell me-2"></i>Hardware Alerts
-                        </h6>
-                    </div>
-                    <div class="card-body">
-                        <h6 class="text-danger text-uppercase small fw-bold mb-3">
-                            <i class="fas fa-exclamation-circle me-2"></i>Overdue Warranties
-                        </h6>
-                        {% if hardware_warranties.overdue %}
-                        <ul class="list-group list-group-flush mb-4">
-                            {% for entry in hardware_warranties.overdue %}
-                            <li class="list-group-item px-0">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="flex-grow-1">
-                                        <a href="{% url 'hardware:hardware_detail' entry.id %}" 
-                                           class="fw-semibold text-decoration-none d-block mb-1">
-                                            {{ entry.name }}
-                                        </a>
-                                        <div class="text-muted small">
-                                            <i class="fas fa-tag me-1"></i>{{ entry.asset_tag }}
-                                            {% if entry.department %}
-                                            <span class="mx-2">·</span>
-                                            <i class="fas fa-building me-1"></i>{{ entry.department }}
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                    <div class="text-end ms-3">
-                                        <span class="badge bg-danger text-white mb-1">
-                                            <i class="fas fa-times me-1"></i>{{ entry.overdue_days }}d overdue
-                                        </span>
-                                        <div class="small text-muted">{{ entry.warranty_expiration|date:"M d, Y" }}</div>
-                                    </div>
-                                </div>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                        {% else %}
-                        <p class="text-muted mb-4 small">
-                            <i class="fas fa-check-circle text-success me-2"></i>No overdue warranties detected.
-                        </p>
-                        {% endif %}
-
-                        <h6 class="text-warning text-uppercase small fw-bold mb-3">
-                            <i class="fas fa-wrench me-2"></i>Patch Exceptions
-                        </h6>
-                        {% if hardware_patch_exceptions %}
-                        <ul class="list-group list-group-flush">
-                            {% for asset in hardware_patch_exceptions %}
-                            <li class="list-group-item px-0">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="flex-grow-1">
-                                        <a href="{% url 'hardware:hardware_detail' asset.id %}" 
-                                           class="fw-semibold text-decoration-none d-block mb-1">
-                                            {{ asset.name }}
-                                        </a>
-                                        <div class="text-muted small">
-                                            <i class="fas fa-tag me-1"></i>{{ asset.asset_tag }}
-                                            {% if asset.department %}
-                                            <span class="mx-2">·</span>
-                                            <i class="fas fa-building me-1"></i>{{ asset.department }}
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                    <div class="text-end ms-3">
-                                        <span class="badge bg-{{ asset.status_badge }} mb-1">{{ asset.status }}</span>
-                                        <div class="small text-muted">
-                                            <i class="fas fa-server me-1"></i>{{ asset.systems_count }} system{{ asset.systems_count|pluralize }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                        {% else %}
-                        <p class="text-muted mb-0 small">
-                            <i class="fas fa-check-circle text-success me-2"></i>All hardware assets are enrolled in patch management.
-                        </p>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Activity and Systems Row -->
-        <div class="row g-4 mb-4">
-            <div class="col-xl-4">
-                <div class="card shadow-sm h-100">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 fw-bold text-primary">
-                            <i class="fas fa-hourglass-half me-2"></i>Pending Access Requests
-                        </h6>
-                    </div>
-                    <div class="card-body p-0">
-                        {% if pending_requests %}
-                        <ul class="list-group list-group-flush">
-                            {% for request in pending_requests %}
-                            <li class="list-group-item">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="flex-grow-1">
-                                        <div class="fw-semibold mb-1">
-                                            <i class="fas fa-user me-1"></i>{{ request.user_name }}
-                                        </div>
-                                        <div class="text-muted small">
-                                            <i class="fas fa-desktop me-1"></i>{{ request.system_name }}
-                                        </div>
-                                    </div>
-                                    <div class="text-end ms-3">
-                                        <span class="badge bg-{{ request.priority_badge }} mb-1">{{ request.priority }}</span>
-                                        <div class="small text-muted">{{ request.submitted|date:"M d, H:i" }}</div>
-                                    </div>
-                                </div>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                        {% else %}
-                        <div class="p-4 text-center">
-                            <i class="fas fa-check-circle text-success mb-3" style="font-size: 3rem; opacity: 0.3;"></i>
-                            <p class="text-muted mb-0">No pending access requests at this time.</p>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-xl-4">
-                <div class="card shadow-sm h-100">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 fw-bold text-primary">
-                            <i class="fas fa-history me-2"></i>Recent Activity
-                        </h6>
-                    </div>
-                    <div class="card-body p-0">
-                        {% if recent_activity %}
-                        <ul class="list-group list-group-flush">
-                            {% for item in recent_activity %}
-                            <li class="list-group-item">
-                                <div class="d-flex align-items-start">
-                                    <span class="badge rounded-circle bg-primary-subtle text-primary me-3 p-2" 
-                                          style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-                                        <i class="fas fa-{{ item.icon }}"></i>
-                                    </span>
-                                    <div class="flex-grow-1">
-                                        <div class="small fw-semibold mb-1">{{ item.title }}</div>
-                                        <div class="text-muted small">
-                                            <i class="fas fa-clock me-1"></i>{{ item.timestamp|date:"M d, Y H:i" }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                        {% else %}
-                        <div class="p-4 text-center">
-                            <i class="fas fa-stream text-muted mb-3" style="font-size: 3rem; opacity: 0.3;"></i>
-                            <p class="text-muted mb-0">No recent activity recorded.</p>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-xl-4">
-                <div class="card shadow-sm h-100">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 fw-bold text-primary">
-                            <i class="fas fa-trophy me-2"></i>Top Systems with Hardware
-                        </h6>
-                    </div>
-                    <div class="card-body p-0">
-                        {% if hardware_top_systems %}
-                        <ul class="list-group list-group-flush">
-                            {% for system in hardware_top_systems %}
-                            <li class="list-group-item">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="flex-grow-1">
-                                        <a href="{% url 'systems:system_detail' system.id %}" 
-                                           class="fw-semibold text-decoration-none d-block mb-1">
-                                            {{ system.name }}
-                                        </a>
-                                        <div class="text-muted small">
-                                            <i class="fas fa-code me-1"></i>Code: {{ system.code }}
-                                        </div>
-                                    </div>
-                                    <div class="text-end ms-3">
-                                        <span class="badge bg-primary mb-1">
-                                            <i class="fas fa-laptop me-1"></i>{{ system.hardware_count }} HW
-                                        </span>
-                                        <div class="small text-muted">
-                                            <i class="fas fa-users me-1"></i>{{ system.active_assignments }} active users
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                        {% else %}
-                        <div class="p-4 text-center">
-                            <i class="fas fa-server text-muted mb-3" style="font-size: 3rem; opacity: 0.3;"></i>
-                            <p class="text-muted mb-0">No systems have hardware mapped yet.</p>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Quick Actions Section -->
-        <div class="row g-4" id="quick-actions">
-            <div class="col-12">
-                <div class="card shadow-sm border-0">
-                    <div class="card-header py-3 bg-gradient">
-                        <h6 class="m-0 fw-bold text-primary">
-                            <i class="fas fa-bolt me-2"></i>Quick Actions
-                        </h6>
-                    </div>
-                    <div class="card-body p-4">
-                        <div class="row g-4">
-                            <div class="col-md-6 col-xl-4 col-xxl-3">
-                                <div class="card shadow-sm quick-action-card h-100">
-                                    <div class="card-body p-4 d-flex flex-column">
-                                        <div class="d-flex align-items-start mb-3">
-                                            <div class="quick-action-icon icon-bg-primary me-3">
-                                                <i class="fas fa-users"></i>
-                                            </div>
-                                            <div>
-                                                <p class="text-uppercase text-muted small mb-1 fw-semibold">Directory</p>
-                                                <h6 class="mb-0 fw-bold">Manage Users</h6>
-                                            </div>
-                                        </div>
-                                        <p class="text-muted small flex-grow-1 mb-0">
-                                            Review accounts and toggle the "Exclude from metrics" flag for service or super users.
-                                        </p>
-                                        <div class="d-grid mt-4">
-                                            <a href="{% url 'accounts:user_list' %}" class="btn btn-primary">
-                                                <i class="fas fa-arrow-right me-2"></i>Open User List
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6 col-xl-4 col-xxl-3">
-                                <div class="card shadow-sm quick-action-card h-100">
-                                    <div class="card-body p-4 d-flex flex-column">
-                                        <div class="d-flex align-items-start mb-3">
-                                            <div class="quick-action-icon icon-bg-success me-3">
-                                                <i class="fas fa-clipboard-check"></i>
-                                            </div>
-                                            <div>
-                                                <p class="text-uppercase text-muted small mb-1 fw-semibold">Access</p>
-                                                <h6 class="mb-0 fw-bold">Manage Assignments</h6>
-                                            </div>
-                                        </div>
-                                        <p class="text-muted small flex-grow-1 mb-0">
-                                            Triage pending approvals, revoke stale access, and audit active assignments.
-                                        </p>
-                                        <div class="d-grid mt-4">
-                                            <a href="{% url 'access_management:access_assignment_list' %}" class="btn btn-success">
-                                                <i class="fas fa-arrow-right me-2"></i>Review Access
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6 col-xl-4 col-xxl-3">
-                                <div class="card shadow-sm quick-action-card h-100">
-                                    <div class="card-body p-4 d-flex flex-column">
-                                        <div class="d-flex align-items-start mb-3">
-                                            <div class="quick-action-icon icon-bg-warning me-3">
-                                                <i class="fas fa-calendar-check"></i>
-                                            </div>
-                                            <div>
-                                                <p class="text-uppercase text-muted small mb-1 fw-semibold">Reviews</p>
-                                                <h6 class="mb-0 fw-bold">Quarterly Access</h6>
-                                            </div>
-                                        </div>
-                                        <p class="text-muted small flex-grow-1 mb-0">
-                                            Launch quarterly reviews to keep compliance targets on track.
-                                        </p>
-                                        <div class="d-grid mt-4">
-                                            <a href="{% url 'access_management:quarterly_access_review_dashboard' %}" class="btn btn-warning text-white">
-                                                <i class="fas fa-arrow-right me-2"></i>Open Review Hub
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6 col-xl-4 col-xxl-3">
-                                <div class="card shadow-sm quick-action-card h-100">
-                                    <div class="card-body p-4 d-flex flex-column">
-                                        <div class="d-flex align-items-start mb-3">
-                                            <div class="quick-action-icon icon-bg-info me-3">
-                                                <i class="fas fa-desktop"></i>
-                                            </div>
-                                            <div>
-                                                <p class="text-uppercase text-muted small mb-1 fw-semibold">Hardware</p>
-                                                <h6 class="mb-0 fw-bold">Inventory Overview</h6>
-                                            </div>
-                                        </div>
-                                        <p class="text-muted small flex-grow-1 mb-0">
-                                            View assigned devices, lifecycle state, and patch requirements.
-                                        </p>
-                                        <div class="d-grid mt-4">
-                                            <a href="{% url 'hardware:hardware_list' %}" class="btn btn-info text-white">
-                                                <i class="fas fa-arrow-right me-2"></i>Open Inventory
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6 col-xl-4 col-xxl-3">
-                                <div class="card shadow-sm quick-action-card h-100">
-                                    <div class="card-body p-4 d-flex flex-column">
-                                        <div class="d-flex align-items-start mb-3">
-                                            <div class="quick-action-icon icon-bg-primary me-3">
-                                                <i class="fas fa-chart-column"></i>
-                                            </div>
-                                            <div>
-                                                <p class="text-uppercase text-muted small mb-1 fw-semibold">Reporting</p>
-                                                <h6 class="mb-0 fw-bold">Hardware Reports</h6>
-                                            </div>
-                                        </div>
-                                        <p class="text-muted small flex-grow-1 mb-0">
-                                            Download warranty, lifecycle, and ownership analytics for audits.
-                                        </p>
-                                        <div class="d-grid mt-4">
-                                            <a href="{% url 'hardware_inventory_report' %}" class="btn btn-outline-primary">
-                                                <i class="fas fa-arrow-right me-2"></i>Run Report
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6 col-xl-4 col-xxl-3">
-                                <div class="card shadow-sm quick-action-card h-100">
-                                    <div class="card-body p-4 d-flex flex-column">
-                                        <div class="d-flex align-items-start mb-3">
-                                            <div class="quick-action-icon" style="background: linear-gradient(135deg, rgba(108, 117, 125, 0.1), rgba(108, 117, 125, 0.1)); color: #6c757d;">
-                                                <i class="fas fa-exchange-alt"></i>
-                                            </div>
-                                            <div>
-                                                <p class="text-uppercase text-muted small mb-1 fw-semibold">Data</p>
-                                                <h6 class="mb-0 fw-bold">Import / Export</h6>
-                                            </div>
-                                        </div>
-                                        <p class="text-muted small flex-grow-1 mb-0">
-                                            Load new systems or export authoritative records for downstream systems.
-                                        </p>
-                                        <div class="d-grid mt-4">
-                                            <a href="{% url 'data_import_export:home' %}" class="btn btn-outline-secondary">
-                                                <i class="fas fa-arrow-right me-2"></i>Open Workspace
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+    <!-- Page Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+      <div>
+        <h1 class="h3 mb-1 fw-bold">{{ title }}</h1>
+        <p class="text-muted mb-0">Welcome back! Here's what's happening today.</p>
+      </div>
+      <div>
+        <span class="badge bg-light text-dark border">
+          <i class="fas fa-clock me-1"></i>
+          Last updated: <span id="last-updated">Just now</span>
+        </span>
+      </div>
     </div>
+
+    <!-- Info Alert -->
+    <div class="alert alert-info d-flex align-items-start gap-3 border-info mb-4" role="alert">
+      <i class="fas fa-info-circle fs-4 mt-1"></i>
+      <div>
+        <h6 class="alert-heading mb-2">Dashboard Metrics Information</h6>
+        <p class="small mb-2">
+          Dashboard totals exclude accounts marked <strong>Exclude from metrics</strong>.
+          Use the Quick Actions below to manage which users are counted.
+        </p>
+        <a href="#quick-actions" class="alert-link text-decoration-none">
+          <i class="fas fa-arrow-down me-1"></i>Jump to Quick Actions
+        </a>
+      </div>
+    </div>
+
+    <!-- ✅ User KPI Snapshot (Clean KPI Cards + toggle layout) -->
+    <div class="row g-4 mb-4">
+      <div class="col-xl-6">
+        <div class="card shadow-sm h-100" id="kpiCard">
+          <div class="card-header py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h6 class="m-0 fw-bold text-primary">
+              <i class="fas fa-chart-line me-2"></i>User KPI Snapshot
+            </h6>
+            <div class="d-flex gap-2 align-items-center flex-wrap">
+              <span class="badge bg-light text-muted border">
+                <i class="fas fa-globe me-1"></i>Entire Directory
+              </span>
+              <div class="btn-group btn-group-sm" role="group" aria-label="KPI layout toggle">
+                <button type="button" class="btn btn-outline-primary" id="kpiHorizontalBtn">
+                  <i class="fas fa-grip-horizontal me-1"></i>Horizontal
+                </button>
+                <button type="button" class="btn btn-outline-primary" id="kpiVerticalBtn">
+                  <i class="fas fa-grip-vertical me-1"></i>Vertical
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {% if user_kpis %}
+          <div class="kpi-wrap" id="kpiWrap">
+            <div class="kpi-grid">
+              {% for kpi in user_kpis %}
+              <div class="kpi-tile">
+                <div class="row1">
+                  <div>
+                    <div class="label">{{ kpi.label }}</div>
+                    <div class="desc">{{ kpi.description }}</div>
+                  </div>
+                  <span class="value-badge bg-{{ kpi.badge }}-subtle text-{{ kpi.badge }}">
+                    {{ kpi.value }}
+                  </span>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% else %}
+          <div class="p-4 text-center">
+            <i class="fas fa-chart-bar text-muted mb-3" style="font-size: 3rem; opacity: 0.3;"></i>
+            <p class="text-muted mb-0">No KPI data available.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Metric Cards - Primary Row -->
+    <div class="row g-4 mb-4">
+      <div class="col-xxl-3 col-md-6">
+        <div class="card shadow-sm metric-card h-100">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="flex-grow-1">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <div class="text-uppercase text-muted small fw-semibold">Reportable Users</div>
+                  <span class="badge bg-light text-muted border small">Excludes flagged</span>
+                </div>
+                <div class="h2 fw-bold mb-2 text-primary">{{ stats.total_users }}</div>
+                <div class="small text-muted">
+                  <i class="fas fa-check-circle text-success me-1"></i>
+                  Only users not marked "Exclude from metrics"
+                </div>
+              </div>
+              <div class="metric-icon icon-bg-primary">
+                <i class="fas fa-users"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xxl-3 col-md-6">
+        <div class="card shadow-sm metric-card h-100">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="flex-grow-1">
+                <div class="text-uppercase text-muted small fw-semibold mb-2">Active Reportable Users</div>
+                <div class="h2 fw-bold mb-2 text-success">{{ stats.active_users }}</div>
+                <div class="small text-muted">
+                  <i class="fas fa-arrow-up text-success me-1"></i>
+                  Subset of reportable users currently active
+                </div>
+              </div>
+              <div class="metric-icon icon-bg-success">
+                <i class="fas fa-user-check"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xxl-3 col-md-6">
+        <div class="card shadow-sm metric-card h-100">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="flex-grow-1">
+                <div class="text-uppercase text-muted small fw-semibold mb-2">Total Hardware</div>
+                <div class="h2 fw-bold mb-2 text-info">{{ stats.total_hardware }}</div>
+                <div class="small text-muted">
+                  <i class="fas fa-box text-info me-1"></i>
+                  All hardware assets in inventory
+                </div>
+              </div>
+              <div class="metric-icon icon-bg-info">
+                <i class="fas fa-boxes-stacked"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xxl-3 col-md-6">
+        <div class="card shadow-sm metric-card h-100">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="flex-grow-1">
+                <div class="text-uppercase text-muted small fw-semibold mb-2">Active Hardware</div>
+                <div class="h2 fw-bold mb-2 text-success">{{ stats.active_hardware }}</div>
+                <div class="small text-muted">
+                  <i class="fas fa-power-off text-success me-1"></i>
+                  Currently in service
+                </div>
+              </div>
+              <div class="metric-icon icon-bg-success">
+                <i class="fas fa-laptop"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Metric Cards - Secondary Row -->
+    <div class="row g-4 mb-4">
+      <div class="col-xxl-3 col-md-6">
+        <div class="card shadow-sm metric-card h-100">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="flex-grow-1">
+                <div class="text-uppercase text-muted small fw-semibold mb-2">Pending Requests</div>
+                <div class="h2 fw-bold mb-2 text-warning">{{ stats.pending_requests }}</div>
+                {% if stats.suspicious_activities %}
+                <div class="small text-danger">
+                  <i class="fas fa-exclamation-triangle me-1"></i>
+                  {{ stats.suspicious_activities }} suspicious events today
+                </div>
+                {% else %}
+                <div class="small text-muted">
+                  <i class="fas fa-shield-alt text-success me-1"></i>
+                  No suspicious activity detected
+                </div>
+                {% endif %}
+              </div>
+              <div class="metric-icon icon-bg-warning">
+                <i class="fas fa-clipboard-list"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xxl-3 col-md-6">
+        <div class="card shadow-sm metric-card h-100">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="flex-grow-1">
+                <div class="text-uppercase text-muted small fw-semibold mb-2">Failed Logins (24h)</div>
+                <div class="h2 fw-bold mb-2 text-danger">{{ stats.failed_logins_24h }}</div>
+                <div class="small text-muted">
+                  <i class="fas fa-clock text-muted me-1"></i>
+                  Last 24 hours
+                </div>
+              </div>
+              <div class="metric-icon icon-bg-danger">
+                <i class="fas fa-exclamation-triangle"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xxl-3 col-md-6">
+        <div class="card shadow-sm metric-card h-100">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="flex-grow-1">
+                <div class="text-uppercase text-muted small fw-semibold mb-2">Warranties ≤ 60 Days</div>
+                <div class="h2 fw-bold mb-2 text-warning">{{ stats.warranty_expiring }}</div>
+                <div class="small text-muted">
+                  <i class="fas fa-calendar-alt text-warning me-1"></i>
+                  Requires attention soon
+                </div>
+              </div>
+              <div class="metric-icon icon-bg-warning">
+                <i class="fas fa-calendar-check"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xxl-3 col-md-6">
+        <div class="card shadow-sm metric-card h-100">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="flex-grow-1">
+                <div class="text-uppercase text-muted small fw-semibold mb-2">Patch Exceptions</div>
+                <div class="h2 fw-bold mb-2 text-secondary">{{ stats.patch_exceptions }}</div>
+                <div class="small text-muted">
+                  <i class="fas fa-wrench text-secondary me-1"></i>
+                  Require manual updates
+                </div>
+              </div>
+              <div class="metric-icon" style="background: rgba(108, 117, 125, 0.12); color:#6c757d;">
+                <i class="fas fa-screwdriver-wrench"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row g-4 mb-4">
+      <div class="col-xl-8">
+        <div class="card shadow-sm h-100">
+          <div class="card-header py-3">
+            <h6 class="m-0 fw-bold text-primary">
+              <i class="fas fa-chart-area me-2"></i>Access Trends (Last 7 Days)
+            </h6>
+          </div>
+          <div class="card-body p-4">
+            <div class="chart-area" style="height: 320px;">
+              <canvas id="access-trends-chart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-4">
+        <div class="card shadow-sm h-100">
+          <div class="card-header py-3">
+            <h6 class="m-0 fw-bold text-primary">
+              <i class="fas fa-chart-pie me-2"></i>System Usage
+            </h6>
+          </div>
+          <div class="card-body p-4">
+            {% if system_usage.data %}
+            <div class="chart-pie" style="height: 280px;">
+              <canvas id="system-usage-chart"></canvas>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+              <i class="fas fa-chart-pie text-muted mb-3" style="font-size: 3rem; opacity: 0.3;"></i>
+              <p class="text-muted mb-0">No access activity recorded yet.</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hardware Charts -->
+    <div class="row g-4 mb-4">
+      <div class="col-xl-4">
+        <div class="card shadow-sm h-100">
+          <div class="card-header py-3">
+            <h6 class="m-0 fw-bold text-primary">
+              <i class="fas fa-server me-2"></i>Hardware Type Distribution
+            </h6>
+          </div>
+          <div class="card-body p-4">
+            {% if hardware_counts.total %}
+            <div class="chart-pie" style="height: 280px;">
+              <canvas id="hardware-type-chart"></canvas>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+              <i class="fas fa-server text-muted mb-3" style="font-size: 3rem; opacity: 0.3;"></i>
+              <p class="text-muted mb-0">No hardware assets recorded yet.</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-8">
+        <div class="card shadow-sm h-100">
+          <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 fw-bold text-primary">
+              <i class="fas fa-tasks me-2"></i>Hardware Status Overview
+            </h6>
+            <span class="badge bg-info text-white">
+              <i class="fas fa-cloud me-1"></i>{{ stats.virtual_assets }} virtual assets
+            </span>
+          </div>
+          <div class="card-body p-4">
+            <div class="d-flex flex-wrap gap-4 mb-4">
+              <div class="text-center">
+                <div class="text-uppercase text-muted small mb-1">In Service</div>
+                <div class="h4 fw-bold mb-0 text-success">
+                  <i class="fas fa-circle-check me-1"></i>{{ hardware_counts.in_service }}
+                </div>
+              </div>
+              <div class="text-center">
+                <div class="text-uppercase text-muted small mb-1">In Storage</div>
+                <div class="h4 fw-bold mb-0 text-info">
+                  <i class="fas fa-warehouse me-1"></i>{{ hardware_counts.in_storage }}
+                </div>
+              </div>
+              <div class="text-center">
+                <div class="text-uppercase text-muted small mb-1">Retired/Disposed</div>
+                <div class="h4 fw-bold mb-0 text-secondary">
+                  <i class="fas fa-archive me-1"></i>{{ hardware_counts.retired }}
+                </div>
+              </div>
+            </div>
+
+            {% if hardware_status_breakdown %}
+              {% for status in hardware_status_breakdown %}
+              <div class="mb-3">
+                <div class="d-flex justify-content-between small fw-semibold mb-2">
+                  <span>
+                    <i class="fas fa-circle text-{{ status.color }} me-2" style="font-size: 0.5rem;"></i>
+                    {{ status.label }}
+                  </span>
+                  <span class="text-muted">{{ status.count }} ({{ status.percentage }}%)</span>
+                </div>
+                <div class="progress" style="height: 10px;">
+                  <div class="progress-bar bg-{{ status.color }}"
+                       role="progressbar"
+                       style="width: {{ status.percentage }}%;"
+                       aria-valuenow="{{ status.percentage }}"
+                       aria-valuemin="0"
+                       aria-valuemax="100"></div>
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <div class="text-center py-3">
+                <i class="fas fa-box-open text-muted mb-3" style="font-size: 3rem; opacity: 0.3;"></i>
+                <p class="text-muted mb-0">No hardware assets to display.</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Warranties and Alerts -->
+    <div class="row g-4 mb-4">
+      <div class="col-xl-6">
+        <div class="card shadow-sm h-100">
+          <div class="card-header py-3">
+            <h6 class="m-0 fw-bold text-primary">
+              <i class="fas fa-calendar-alt me-2"></i>Upcoming Warranties (≤ 90 days)
+            </h6>
+          </div>
+          <div class="card-body p-0">
+            {% if hardware_warranties.upcoming %}
+              <ul class="list-group list-group-flush">
+                {% for entry in hardware_warranties.upcoming %}
+                <li class="list-group-item">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div class="flex-grow-1">
+                      <a href="{% url 'hardware:hardware_detail' entry.id %}"
+                         class="fw-semibold text-decoration-none d-block mb-1">
+                        {{ entry.name }}
+                      </a>
+                      <div class="text-muted small">
+                        <i class="fas fa-tag me-1"></i>{{ entry.asset_tag }}
+                        {% if entry.department %}
+                          <span class="mx-2">·</span>
+                          <i class="fas fa-building me-1"></i>{{ entry.department }}
+                        {% endif %}
+                      </div>
+                    </div>
+                    <div class="text-end ms-3">
+                      <span class="badge bg-warning text-dark mb-1">
+                        <i class="fas fa-clock me-1"></i>{{ entry.days_remaining }}d
+                      </span>
+                      <div class="small text-muted">{{ entry.warranty_expiration|date:"M d, Y" }}</div>
+                    </div>
+                  </div>
+                </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <div class="p-4 text-center">
+                <i class="fas fa-shield-alt text-success mb-3" style="font-size: 3rem; opacity: 0.3;"></i>
+                <p class="text-muted mb-0">No warranties expiring in the next 90 days.</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-6">
+        <div class="card shadow-sm h-100">
+          <div class="card-header py-3">
+            <h6 class="m-0 fw-bold text-primary">
+              <i class="fas fa-bell me-2"></i>Hardware Alerts
+            </h6>
+          </div>
+          <div class="card-body">
+            <h6 class="text-danger text-uppercase small fw-bold mb-3">
+              <i class="fas fa-exclamation-circle me-2"></i>Overdue Warranties
+            </h6>
+
+            {% if hardware_warranties.overdue %}
+              <ul class="list-group list-group-flush mb-4">
+                {% for entry in hardware_warranties.overdue %}
+                <li class="list-group-item px-0">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div class="flex-grow-1">
+                      <a href="{% url 'hardware:hardware_detail' entry.id %}"
+                         class="fw-semibold text-decoration-none d-block mb-1">
+                        {{ entry.name }}
+                      </a>
+                      <div class="text-muted small">
+                        <i class="fas fa-tag me-1"></i>{{ entry.asset_tag }}
+                        {% if entry.department %}
+                          <span class="mx-2">·</span>
+                          <i class="fas fa-building me-1"></i>{{ entry.department }}
+                        {% endif %}
+                      </div>
+                    </div>
+                    <div class="text-end ms-3">
+                      <span class="badge bg-danger text-white mb-1">
+                        <i class="fas fa-times me-1"></i>{{ entry.overdue_days }}d overdue
+                      </span>
+                      <div class="small text-muted">{{ entry.warranty_expiration|date:"M d, Y" }}</div>
+                    </div>
+                  </div>
+                </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="text-muted mb-4 small">
+                <i class="fas fa-check-circle text-success me-2"></i>No overdue warranties detected.
+              </p>
+            {% endif %}
+
+            <h6 class="text-warning text-uppercase small fw-bold mb-3">
+              <i class="fas fa-wrench me-2"></i>Patch Exceptions
+            </h6>
+
+            {% if hardware_patch_exceptions %}
+              <ul class="list-group list-group-flush">
+                {% for asset in hardware_patch_exceptions %}
+                <li class="list-group-item px-0">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div class="flex-grow-1">
+                      <a href="{% url 'hardware:hardware_detail' asset.id %}"
+                         class="fw-semibold text-decoration-none d-block mb-1">
+                        {{ asset.name }}
+                      </a>
+                      <div class="text-muted small">
+                        <i class="fas fa-tag me-1"></i>{{ asset.asset_tag }}
+                        {% if asset.department %}
+                          <span class="mx-2">·</span>
+                          <i class="fas fa-building me-1"></i>{{ asset.department }}
+                        {% endif %}
+                      </div>
+                    </div>
+                    <div class="text-end ms-3">
+                      <span class="badge bg-{{ asset.status_badge }} mb-1">{{ asset.status }}</span>
+                      <div class="small text-muted">
+                        <i class="fas fa-server me-1"></i>{{ asset.systems_count }} system{{ asset.systems_count|pluralize }}
+                      </div>
+                    </div>
+                  </div>
+                </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="text-muted mb-0 small">
+                <i class="fas fa-check-circle text-success me-2"></i>All hardware assets are enrolled in patch management.
+              </p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Activity and Systems Row -->
+    <div class="row g-4 mb-4">
+      <div class="col-xl-4">
+        <div class="card shadow-sm h-100">
+          <div class="card-header py-3">
+            <h6 class="m-0 fw-bold text-primary">
+              <i class="fas fa-hourglass-half me-2"></i>Pending Access Requests
+            </h6>
+          </div>
+          <div class="card-body p-0">
+            {% if pending_requests %}
+              <ul class="list-group list-group-flush">
+                {% for request in pending_requests %}
+                <li class="list-group-item">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div class="flex-grow-1">
+                      <div class="fw-semibold mb-1">
+                        <i class="fas fa-user me-1"></i>{{ request.user_name }}
+                      </div>
+                      <div class="text-muted small">
+                        <i class="fas fa-desktop me-1"></i>{{ request.system_name }}
+                      </div>
+                    </div>
+                    <div class="text-end ms-3">
+                      <span class="badge bg-{{ request.priority_badge }} mb-1">{{ request.priority }}</span>
+                      <div class="small text-muted">{{ request.submitted|date:"M d, H:i" }}</div>
+                    </div>
+                  </div>
+                </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <div class="p-4 text-center">
+                <i class="fas fa-check-circle text-success mb-3" style="font-size: 3rem; opacity: 0.3;"></i>
+                <p class="text-muted mb-0">No pending access requests at this time.</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-4">
+        <div class="card shadow-sm h-100">
+          <div class="card-header py-3">
+            <h6 class="m-0 fw-bold text-primary">
+              <i class="fas fa-history me-2"></i>Recent Activity
+            </h6>
+          </div>
+          <div class="card-body p-0">
+            {% if recent_activity %}
+              <ul class="list-group list-group-flush">
+                {% for item in recent_activity %}
+                <li class="list-group-item">
+                  <div class="d-flex align-items-start">
+                    <span class="badge rounded-circle bg-primary-subtle text-primary me-3 p-2"
+                          style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                      <i class="fas fa-{{ item.icon }}"></i>
+                    </span>
+                    <div class="flex-grow-1">
+                      <div class="small fw-semibold mb-1">{{ item.title }}</div>
+                      <div class="text-muted small">
+                        <i class="fas fa-clock me-1"></i>{{ item.timestamp|date:"M d, Y H:i" }}
+                      </div>
+                    </div>
+                  </div>
+                </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <div class="p-4 text-center">
+                <i class="fas fa-stream text-muted mb-3" style="font-size: 3rem; opacity: 0.3;"></i>
+                <p class="text-muted mb-0">No recent activity recorded.</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-4">
+        <div class="card shadow-sm h-100">
+          <div class="card-header py-3">
+            <h6 class="m-0 fw-bold text-primary">
+              <i class="fas fa-trophy me-2"></i>Top Systems with Hardware
+            </h6>
+          </div>
+          <div class="card-body p-0">
+            {% if hardware_top_systems %}
+              <ul class="list-group list-group-flush">
+                {% for system in hardware_top_systems %}
+                <li class="list-group-item">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div class="flex-grow-1">
+                      <a href="{% url 'systems:system_detail' system.id %}" class="fw-semibold text-decoration-none d-block mb-1">
+                        {{ system.name }}
+                      </a>
+                      <div class="text-muted small">
+                        <i class="fas fa-code me-1"></i>Code: {{ system.code }}
+                      </div>
+                    </div>
+                    <div class="text-end ms-3">
+                      <span class="badge bg-primary mb-1">
+                        <i class="fas fa-laptop me-1"></i>{{ system.hardware_count }} HW
+                      </span>
+                      <div class="small text-muted">
+                        <i class="fas fa-users me-1"></i>{{ system.active_assignments }} active users
+                      </div>
+                    </div>
+                  </div>
+                </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <div class="p-4 text-center">
+                <i class="fas fa-server text-muted mb-3" style="font-size: 3rem; opacity: 0.3;"></i>
+                <p class="text-muted mb-0">No systems have hardware mapped yet.</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions Section -->
+    <div class="row g-4" id="quick-actions">
+      <div class="col-12">
+        <div class="card shadow-sm border-0">
+          <div class="card-header py-3">
+            <h6 class="m-0 fw-bold text-primary">
+              <i class="fas fa-bolt me-2"></i>Quick Actions
+            </h6>
+          </div>
+          <div class="card-body p-4">
+            <div class="row g-4">
+
+              <div class="col-md-6 col-xl-4 col-xxl-3">
+                <div class="card shadow-sm quick-action-card h-100">
+                  <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex align-items-start mb-3">
+                      <div class="quick-action-icon icon-bg-primary me-3">
+                        <i class="fas fa-users"></i>
+                      </div>
+                      <div>
+                        <p class="text-uppercase text-muted small mb-1 fw-semibold">Directory</p>
+                        <h6 class="mb-0 fw-bold">Manage Users</h6>
+                      </div>
+                    </div>
+                    <p class="text-muted small flex-grow-1 mb-0">
+                      Review accounts and toggle the "Exclude from metrics" flag for service or super users.
+                    </p>
+                    <div class="d-grid mt-4">
+                      <a href="{% url 'accounts:user_list' %}" class="btn btn-primary">
+                        <i class="fas fa-arrow-right me-2"></i>Open User List
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-6 col-xl-4 col-xxl-3">
+                <div class="card shadow-sm quick-action-card h-100">
+                  <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex align-items-start mb-3">
+                      <div class="quick-action-icon icon-bg-success me-3">
+                        <i class="fas fa-clipboard-check"></i>
+                      </div>
+                      <div>
+                        <p class="text-uppercase text-muted small mb-1 fw-semibold">Access</p>
+                        <h6 class="mb-0 fw-bold">Manage Assignments</h6>
+                      </div>
+                    </div>
+                    <p class="text-muted small flex-grow-1 mb-0">
+                      Triage pending approvals, revoke stale access, and audit active assignments.
+                    </p>
+                    <div class="d-grid mt-4">
+                      <a href="{% url 'access_management:access_assignment_list' %}" class="btn btn-success">
+                        <i class="fas fa-arrow-right me-2"></i>Review Access
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-6 col-xl-4 col-xxl-3">
+                <div class="card shadow-sm quick-action-card h-100">
+                  <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex align-items-start mb-3">
+                      <div class="quick-action-icon icon-bg-warning me-3">
+                        <i class="fas fa-calendar-check"></i>
+                      </div>
+                      <div>
+                        <p class="text-uppercase text-muted small mb-1 fw-semibold">Reviews</p>
+                        <h6 class="mb-0 fw-bold">Quarterly Access</h6>
+                      </div>
+                    </div>
+                    <p class="text-muted small flex-grow-1 mb-0">
+                      Launch quarterly reviews to keep compliance targets on track.
+                    </p>
+                    <div class="d-grid mt-4">
+                      <a href="{% url 'access_management:quarterly_access_review_dashboard' %}" class="btn btn-warning text-white">
+                        <i class="fas fa-arrow-right me-2"></i>Open Review Hub
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-6 col-xl-4 col-xxl-3">
+                <div class="card shadow-sm quick-action-card h-100">
+                  <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex align-items-start mb-3">
+                      <div class="quick-action-icon icon-bg-info me-3">
+                        <i class="fas fa-desktop"></i>
+                      </div>
+                      <div>
+                        <p class="text-uppercase text-muted small mb-1 fw-semibold">Hardware</p>
+                        <h6 class="mb-0 fw-bold">Inventory Overview</h6>
+                      </div>
+                    </div>
+                    <p class="text-muted small flex-grow-1 mb-0">
+                      View assigned devices, lifecycle state, and patch requirements.
+                    </p>
+                    <div class="d-grid mt-4">
+                      <a href="{% url 'hardware:hardware_list' %}" class="btn btn-info text-white">
+                        <i class="fas fa-arrow-right me-2"></i>Open Inventory
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-6 col-xl-4 col-xxl-3">
+                <div class="card shadow-sm quick-action-card h-100">
+                  <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex align-items-start mb-3">
+                      <div class="quick-action-icon icon-bg-primary me-3">
+                        <i class="fas fa-chart-column"></i>
+                      </div>
+                      <div>
+                        <p class="text-uppercase text-muted small mb-1 fw-semibold">Reporting</p>
+                        <h6 class="mb-0 fw-bold">Hardware Reports</h6>
+                      </div>
+                    </div>
+                    <p class="text-muted small flex-grow-1 mb-0">
+                      Download warranty, lifecycle, and ownership analytics for audits.
+                    </p>
+                    <div class="d-grid mt-4">
+                      <a href="{% url 'hardware_inventory_report' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-right me-2"></i>Run Report
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-6 col-xl-4 col-xxl-3">
+                <div class="card shadow-sm quick-action-card h-100">
+                  <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex align-items-start mb-3">
+                      <div class="quick-action-icon" style="background: rgba(108, 117, 125, 0.12); color:#6c757d;">
+                        <i class="fas fa-exchange-alt"></i>
+                      </div>
+                      <div>
+                        <p class="text-uppercase text-muted small mb-1 fw-semibold">Data</p>
+                        <h6 class="mb-0 fw-bold">Import / Export</h6>
+                      </div>
+                    </div>
+                    <p class="text-muted small flex-grow-1 mb-0">
+                      Load new systems or export authoritative records for downstream systems.
+                    </p>
+                    <div class="d-grid mt-4">
+                      <a href="{% url 'data_import_export:home' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-right me-2"></i>Open Workspace
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div><!-- /row -->
+          </div><!-- /card-body -->
+        </div><!-- /card -->
+      </div>
+    </div>
+
+  </div>
 </div>
 {% endblock %}
 
 {% block extrajs %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        // Update timestamp
-        function updateTimestamp() {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString('en-US', { 
-                hour: '2-digit', 
-                minute: '2-digit'
-            });
-            document.getElementById('last-updated').textContent = timeString;
-        }
-        updateTimestamp();
-        setInterval(updateTimestamp, 60000); // Update every minute
+document.addEventListener("DOMContentLoaded", function() {
 
-        // Chart.js global defaults
-        Chart.defaults.font.family = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-        Chart.defaults.color = '#6c757d';
+  // ===== KPI layout toggle (horizontal/vertical) =====
+  const kpiWrap = document.getElementById('kpiWrap');
+  const btnH = document.getElementById('kpiHorizontalBtn');
+  const btnV = document.getElementById('kpiVerticalBtn');
 
-        // Access Trends Chart
-        const accessTrendsEl = document.getElementById('access-trends-chart');
-        if (accessTrendsEl) {
-            const accessLabels = {{ access_trends.labels|safe }};
-            const accessData = {{ access_trends.data|safe }};
-            new Chart(accessTrendsEl.getContext('2d'), {
-                type: 'line',
-                data: {
-                    labels: accessLabels,
-                    datasets: [{
-                        label: 'Access Events',
-                        data: accessData,
-                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                        borderColor: '#667eea',
-                        pointRadius: 4,
-                        pointBackgroundColor: '#667eea',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointHoverRadius: 6,
-                        pointHoverBackgroundColor: '#667eea',
-                        pointHoverBorderColor: '#fff',
-                        tension: 0.4,
-                        fill: true,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                            titleColor: '#212529',
-                            bodyColor: '#495057',
-                            borderColor: '#dee2e6',
-                            borderWidth: 1,
-                            padding: 12,
-                            displayColors: false,
-                            callbacks: {
-                                title: function(context) {
-                                    return context[0].label;
-                                },
-                                label: function(context) {
-                                    return context.parsed.y + ' access events';
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                precision: 0,
-                                padding: 10
-                            },
-                            grid: {
-                                color: 'rgba(0,0,0,0.05)',
-                                drawBorder: false
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false,
-                                drawBorder: false
-                            },
-                            ticks: {
-                                padding: 10
-                            }
-                        }
-                    },
-                    interaction: {
-                        intersect: false,
-                        mode: 'index'
-                    }
-                }
-            });
-        }
+  function setKpiMode(mode){
+    if(!kpiWrap) return;
 
-        // System Usage Chart
-        const systemUsageEl = document.getElementById('system-usage-chart');
-        if (systemUsageEl) {
-            const systemUsageLabels = {{ system_usage.labels|safe }};
-            const systemUsageData = {{ system_usage.data|safe }};
-            if (systemUsageData.length) {
-                new Chart(systemUsageEl.getContext('2d'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: systemUsageLabels,
-                        datasets: [{
-                            data: systemUsageData,
-                            backgroundColor: [
-                                '#667eea',
-                                '#1cc88a',
-                                '#36b9cc',
-                                '#f6c23e',
-                                '#e74a3b',
-                                '#6f42c1',
-                                '#20c997',
-                                '#fd7e14',
-                                '#6c757d',
-                                '#17a2b8'
-                            ],
-                            borderWidth: 0,
-                            hoverOffset: 10
-                        }],
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: true,
-                                position: 'bottom',
-                                labels: {
-                                    padding: 15,
-                                    usePointStyle: true,
-                                    font: {
-                                        size: 11
-                                    }
-                                }
-                            },
-                            tooltip: {
-                                backgroundColor: 'rgba(255,255,255,0.95)',
-                                bodyColor: '#495057',
-                                titleColor: '#212529',
-                                borderColor: '#dee2e6',
-                                borderWidth: 1,
-                                padding: 12,
-                                displayColors: true,
-                                callbacks: {
-                                    label: function(context) {
-                                        const label = context.label || '';
-                                        const value = context.parsed || 0;
-                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                        const percentage = ((value / total) * 100).toFixed(1);
-                                        return label + ': ' + value + ' (' + percentage + '%)';
-                                    }
-                                }
-                            }
-                        },
-                        cutout: '70%',
-                    },
-                });
+    if(mode === 'vertical'){
+      kpiWrap.classList.add('kpi-vertical');
+
+      btnV.classList.add('btn-primary');
+      btnV.classList.remove('btn-outline-primary');
+      btnH.classList.add('btn-outline-primary');
+      btnH.classList.remove('btn-primary');
+    } else {
+      kpiWrap.classList.remove('kpi-vertical');
+
+      btnH.classList.add('btn-primary');
+      btnH.classList.remove('btn-outline-primary');
+      btnV.classList.add('btn-outline-primary');
+      btnV.classList.remove('btn-primary');
+    }
+    localStorage.setItem('dashboard-kpi-mode', mode);
+  }
+
+  if(btnH) btnH.addEventListener('click', () => setKpiMode('horizontal'));
+  if(btnV) btnV.addEventListener('click', () => setKpiMode('vertical'));
+
+  const saved = localStorage.getItem('dashboard-kpi-mode') || 'horizontal';
+  setKpiMode(saved);
+
+  // ===== Last updated timestamp =====
+  function updateTimestamp() {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    const el = document.getElementById('last-updated');
+    if(el) el.textContent = timeString;
+  }
+  updateTimestamp();
+  setInterval(updateTimestamp, 60000);
+
+  // Chart.js global defaults
+  Chart.defaults.color = '#6c757d';
+
+  // Access Trends Chart
+  const accessTrendsEl = document.getElementById('access-trends-chart');
+  if (accessTrendsEl) {
+    const accessLabels = {{ access_trends.labels|safe }};
+    const accessData = {{ access_trends.data|safe }};
+
+    new Chart(accessTrendsEl.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: accessLabels,
+        datasets: [{
+          label: 'Access Events',
+          data: accessData,
+          backgroundColor: 'rgba(102, 126, 234, 0.1)',
+          borderColor: '#667eea',
+          pointRadius: 4,
+          pointBackgroundColor: '#667eea',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          pointHoverRadius: 6,
+          pointHoverBackgroundColor: '#667eea',
+          pointHoverBorderColor: '#fff',
+          tension: 0.4,
+          fill: true,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            titleColor: '#212529',
+            bodyColor: '#495057',
+            borderColor: '#dee2e6',
+            borderWidth: 1,
+            padding: 12,
+            displayColors: false,
+            callbacks: {
+              title: function(context){ return context[0].label; },
+              label: function(context){ return context.parsed.y + ' access events'; }
             }
-        }
-
-        // Hardware Type Chart
-        const hardwareTypeEl = document.getElementById('hardware-type-chart');
-        if (hardwareTypeEl) {
-            const hardwareLabels = {{ hardware_distribution.labels|safe }};
-            const hardwareData = {{ hardware_distribution.data|safe }};
-            if (hardwareData.length) {
-                new Chart(hardwareTypeEl.getContext('2d'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: hardwareLabels,
-                        datasets: [{
-                            data: hardwareData,
-                            backgroundColor: [
-                                '#4e73df',
-                                '#1cc88a',
-                                '#36b9cc',
-                                '#f6c23e',
-                                '#fd7e14',
-                                '#e74a3b',
-                                '#20c997',
-                                '#6f42c1',
-                                '#6c757d',
-                                '#17a2b8'
-                            ],
-                            borderWidth: 0,
-                            hoverOffset: 10
-                        }],
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: true,
-                                position: 'bottom',
-                                labels: {
-                                    padding: 15,
-                                    usePointStyle: true,
-                                    font: {
-                                        size: 11
-                                    }
-                                }
-                            },
-                            tooltip: {
-                                backgroundColor: 'rgba(255,255,255,0.95)',
-                                bodyColor: '#495057',
-                                titleColor: '#212529',
-                                borderColor: '#dee2e6',
-                                borderWidth: 1,
-                                padding: 12,
-                                displayColors: true,
-                                callbacks: {
-                                    label: function(context) {
-                                        const label = context.label || '';
-                                        const value = context.parsed || 0;
-                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                        const percentage = ((value / total) * 100).toFixed(1);
-                                        return label + ': ' + value + ' (' + percentage + '%)';
-                                    }
-                                }
-                            }
-                        },
-                        cutout: '70%',
-                    },
-                });
-            }
-        }
-
-        // Animate progress bars on scroll
-        const observerOptions = {
-            threshold: 0.5,
-            rootMargin: '0px 0px -100px 0px'
-        };
-
-        const observer = new IntersectionObserver(function(entries) {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const progressBars = entry.target.querySelectorAll('.progress-bar');
-                    progressBars.forEach(bar => {
-                        const width = bar.style.width;
-                        bar.style.width = '0%';
-                        setTimeout(() => {
-                            bar.style.width = width;
-                        }, 100);
-                    });
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, observerOptions);
-
-        const progressSections = document.querySelectorAll('.card-body');
-        progressSections.forEach(section => {
-            if (section.querySelector('.progress')) {
-                observer.observe(section);
-            }
-        });
-
-        // Add ripple effect to cards
-        document.querySelectorAll('.quick-action-card').forEach(card => {
-            card.addEventListener('click', function(e) {
-                const link = this.querySelector('a');
-                if (link && e.target !== link) {
-                    link.click();
-                }
-            });
-        });
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { precision: 0, padding: 10 },
+            grid: { color: 'rgba(0,0,0,0.05)', drawBorder: false }
+          },
+          x: {
+            grid: { display: false, drawBorder: false },
+            ticks: { padding: 10 }
+          }
+        },
+        interaction: { intersect: false, mode: 'index' }
+      }
     });
+  }
+
+  // System Usage Chart
+  const systemUsageEl = document.getElementById('system-usage-chart');
+  if (systemUsageEl) {
+    const systemUsageLabels = {{ system_usage.labels|safe }};
+    const systemUsageData = {{ system_usage.data|safe }};
+
+    if (systemUsageData.length) {
+      new Chart(systemUsageEl.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+          labels: systemUsageLabels,
+          datasets: [{
+            data: systemUsageData,
+            backgroundColor: ['#667eea','#1cc88a','#36b9cc','#f6c23e','#e74a3b','#6f42c1','#20c997','#fd7e14','#6c757d','#17a2b8'],
+            borderWidth: 0,
+            hoverOffset: 10
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'bottom',
+              labels: { padding: 15, usePointStyle: true, font: { size: 11 } }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(255,255,255,0.95)',
+              bodyColor: '#495057',
+              titleColor: '#212529',
+              borderColor: '#dee2e6',
+              borderWidth: 1,
+              padding: 12,
+              displayColors: true,
+              callbacks: {
+                label: function(context){
+                  const label = context.label || '';
+                  const value = context.parsed || 0;
+                  const total = context.dataset.data.reduce((a,b) => a + b, 0);
+                  const percentage = total ? ((value / total) * 100).toFixed(1) : '0.0';
+                  return label + ': ' + value + ' (' + percentage + '%)';
+                }
+              }
+            }
+          },
+          cutout: '70%'
+        }
+      });
+    }
+  }
+
+  // Hardware Type Chart
+  const hardwareTypeEl = document.getElementById('hardware-type-chart');
+  if (hardwareTypeEl) {
+    const hardwareLabels = {{ hardware_distribution.labels|safe }};
+    const hardwareData = {{ hardware_distribution.data|safe }};
+
+    if (hardwareData.length) {
+      new Chart(hardwareTypeEl.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+          labels: hardwareLabels,
+          datasets: [{
+            data: hardwareData,
+            backgroundColor: ['#4e73df','#1cc88a','#36b9cc','#f6c23e','#fd7e14','#e74a3b','#20c997','#6f42c1','#6c757d','#17a2b8'],
+            borderWidth: 0,
+            hoverOffset: 10
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'bottom',
+              labels: { padding: 15, usePointStyle: true, font: { size: 11 } }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(255,255,255,0.95)',
+              bodyColor: '#495057',
+              titleColor: '#212529',
+              borderColor: '#dee2e6',
+              borderWidth: 1,
+              padding: 12,
+              displayColors: true,
+              callbacks: {
+                label: function(context){
+                  const label = context.label || '';
+                  const value = context.parsed || 0;
+                  const total = context.dataset.data.reduce((a,b) => a + b, 0);
+                  const percentage = total ? ((value / total) * 100).toFixed(1) : '0.0';
+                  return label + ': ' + value + ' (' + percentage + '%)';
+                }
+              }
+            }
+          },
+          cutout: '70%'
+        }
+      });
+    }
+  }
+
+  // Animate progress bars on scroll
+  const observerOptions = { threshold: 0.5, rootMargin: '0px 0px -100px 0px' };
+  const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const progressBars = entry.target.querySelectorAll('.progress-bar');
+        progressBars.forEach(bar => {
+          const width = bar.style.width;
+          bar.style.width = '0%';
+          setTimeout(() => { bar.style.width = width; }, 100);
+        });
+        observer.unobserve(entry.target);
+      }
+    });
+  }, observerOptions);
+
+  document.querySelectorAll('.card-body').forEach(section => {
+    if (section.querySelector('.progress')) observer.observe(section);
+  });
+
+  // Quick action cards click-through
+  document.querySelectorAll('.quick-action-card').forEach(card => {
+    card.addEventListener('click', function(e) {
+      const link = this.querySelector('a');
+      if (link && e.target !== link) link.click();
+    });
+  });
+
+});
 </script>
 {% endblock %}
