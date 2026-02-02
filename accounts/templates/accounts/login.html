@@ -1,158 +1,749 @@
 {% extends 'base.html' %}
 {% load static %}
-
-{% block title %}Login - User Access Management System{% endblock %}
+{% block title %}Sign In - User Access Management{% endblock %}
 
 {% block extrahead %}
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --primary-color:#2563eb;
+    --primary-hover:#1d4ed8;
+    --primary-light:#dbeafe;
+
+    --error-color:#dc2626;
+    --error-bg:#fee2e2;
+
+    --info-color:#0891b2;
+    --info-bg:#cffafe;
+
+    --text-primary:#0f172a;
+    --text-secondary:#64748b;
+    --text-muted:#94a3b8;
+
+    --border-color:#e2e8f0;
+    --input-bg:#ffffff;
+    --card-bg:#ffffff;
+
+    --shadow-sm:0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md:0 4px 6px -1px rgb(0 0 0 / 0.1),0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg:0 10px 15px -3px rgb(0 0 0 / 0.1),0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl:0 20px 25px -5px rgb(0 0 0 / 0.1),0 8px 10px -6px rgb(0 0 0 / 0.1);
+
+    --radius-sm:.375rem;
+    --radius-md:.5rem;
+    --radius-lg:.75rem;
+    --radius-xl:1rem;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+
+  /* Do NOT rely on body centering because base.html may control layout */
+  body{
+    font-family:'Outfit',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  }
+
+  /* ✅ Guaranteed centering wrapper */
+  .auth-shell{
+    width:100%;
+    min-height:100vh;
+    display:grid;
+    place-items:center;
+    padding:1rem;
+    position:relative;
+    overflow:hidden;
+    background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+  }
+  @supports (height: 100dvh){
+    .auth-shell{min-height:100dvh;}
+  }
+
+  /* Decorative background blobs */
+  .auth-shell::before,
+  .auth-shell::after{
+    content:'';
+    position:absolute;
+    border-radius:50%;
+    background:rgba(255,255,255,.06);
+    pointer-events:none;
+    z-index:0;
+  }
+  .auth-shell::before{width:520px;height:520px;top:-260px;right:-260px;}
+  .auth-shell::after{width:420px;height:420px;bottom:-210px;left:-210px;}
+
+  .login-container{
+    width:100%;
+    max-width:520px;
+    margin:0 auto;
+    position:relative;
+    z-index:1;
+    animation:slideUp .6s cubic-bezier(.16,1,.3,1);
+  }
+  @keyframes slideUp{
+    from{opacity:0;transform:translateY(30px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  .login-card{
+    background:var(--card-bg);
+    border-radius:var(--radius-xl);
+    box-shadow:var(--shadow-xl);
+    padding:2.5rem;
+    position:relative;
+    overflow:hidden;
+  }
+  .login-card::before{
+    content:'';
+    position:absolute;
+    top:0;left:0;right:0;height:4px;
+    background:linear-gradient(90deg,var(--primary-color),#8b5cf6,#ec4899);
+  }
+
+  .login-header{
+    text-align:center;
+    margin-bottom:1.75rem;
+  }
+  .login-header h1{
+    font-size:1.75rem;
+    font-weight:800;
+    color:var(--text-primary);
+    margin-bottom:.5rem;
+    letter-spacing:-.03em;
+  }
+  .login-header p{
+    color:var(--text-secondary);
+    font-size:.95rem;
+  }
+
+  /* Alerts */
+  .alert{
+    border-radius:var(--radius-md);
+    padding:1rem;
+    margin-bottom:1.25rem;
+    display:flex;
+    align-items:flex-start;
+    gap:.75rem;
+    font-size:.925rem;
+    animation:fadeIn .25s ease-out;
+  }
+  @keyframes fadeIn{
+    from{opacity:0;transform:translateY(-8px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+  .alert-danger{
+    background:var(--error-bg);
+    color:var(--error-color);
+    border-left:3px solid var(--error-color);
+  }
+  .alert-info{
+    background:var(--info-bg);
+    color:var(--info-color);
+    border-left:3px solid var(--info-color);
+  }
+  .alert i{flex-shrink:0;margin-top:2px;font-size:1.1rem}
+  .alert-content{flex:1}
+  .alert-content strong{display:block;margin-bottom:.25rem}
+
+  /* Form */
+  .form-group{margin-bottom:1.25rem}
+  .form-label{
+    display:block;
+    font-weight:600;
+    color:var(--text-primary);
+    margin-bottom:.5rem;
+    font-size:.925rem;
+  }
+
+  .form-control{
+    width:100%;
+    padding:.78rem 1rem;
+    border:1.5px solid var(--border-color);
+    border-radius:var(--radius-md);
+    font-size:1rem;
+    color:var(--text-primary);
+    background:var(--input-bg);
+    transition:all .2s ease;
+    font-family:inherit;
+  }
+  .form-control::placeholder{color:var(--text-muted)}
+  .form-control:focus{
+    outline:none;
+    border-color:var(--primary-color);
+    box-shadow:0 0 0 3px var(--primary-light);
+  }
+  .form-control:hover:not(:focus){border-color:var(--text-secondary)}
+
+  .hint{
+    display:block;
+    margin-top:.45rem;
+    color:var(--text-muted);
+    font-size:.85rem;
+    line-height:1.4;
+  }
+  .hint code{
+    background:#e2e8f0;
+    padding:.1rem .35rem;
+    border-radius:.35rem;
+    font-size:.82rem;
+  }
+
+  /* Password group */
+  .password-input-group{position:relative}
+  .password-input-group .form-control{padding-right:3rem}
+  .password-toggle-btn{
+    position:absolute;right:0;top:0;height:100%;width:3rem;
+    display:flex;align-items:center;justify-content:center;
+    background:none;border:none;color:var(--text-muted);
+    cursor:pointer;transition:color .2s ease;
+  }
+  .password-toggle-btn:hover{color:var(--text-primary)}
+  .password-toggle-btn:active{transform:scale(.96)}
+  .password-toggle-btn:focus-visible{
+    outline:2px solid var(--primary-color);
+    outline-offset:2px;
+    border-radius:10px;
+  }
+
+  /* Checkbox */
+  .checkbox-group{display:flex;align-items:center;gap:.625rem}
+  .checkbox-group input[type="checkbox"]{
+    width:1.125rem;height:1.125rem;cursor:pointer;
+    accent-color:var(--primary-color);
+  }
+  .checkbox-group label{
+    display:flex;align-items:center;gap:.5rem;
+    font-size:.925rem;color:var(--text-secondary);
+    cursor:pointer;user-select:none;
+  }
+  .checkbox-group input[type="checkbox"]:checked ~ label{color:var(--text-primary)}
+
+  /* Radio group */
+  .radio-group{display:flex;flex-direction:column;gap:.75rem}
+  .radio-option{
+    display:flex;align-items:center;
+    padding:.875rem 1rem;
+    border:1.5px solid var(--border-color);
+    border-radius:var(--radius-md);
+    cursor:pointer;
+    transition:all .2s ease;
+    background:var(--input-bg);
+    user-select:none;
+  }
+  .radio-option:hover{
+    border-color:var(--primary-color);
+    background:var(--primary-light);
+    transform:translateX(2px);
+  }
+  .radio-option input[type="radio"]{
+    width:1.125rem;height:1.125rem;
+    margin:0 .75rem 0 0;
+    cursor:pointer;
+    accent-color:var(--primary-color);
+    flex-shrink:0;
+  }
+  .radio-option:has(input:checked){
+    border-color:var(--primary-color);
+    background:var(--primary-light);
+    box-shadow:0 0 0 3px rgba(37,99,235,.1);
+  }
+  .radio-label{
+    flex:1;
+    display:flex;align-items:center;gap:.5rem;
+    font-size:.925rem;color:var(--text-primary);
+  }
+  .radio-option input[type="radio"]:checked ~ .radio-label{
+    color:var(--primary-color);
+    font-weight:600;
+  }
+  .radio-label i{color:var(--text-secondary)}
+  .radio-option input[type="radio"]:checked ~ .radio-label i{color:var(--primary-color)}
+
+  /* Button */
+  .btn-primary{
+    width:100%;
+    padding:.9rem 1.5rem;
+    background:var(--primary-color);
+    color:#fff;
+    border:none;
+    border-radius:var(--radius-md);
+    font-size:1rem;
+    font-weight:700;
+    cursor:pointer;
+    transition:all .2s ease;
+    display:flex;align-items:center;justify-content:center;gap:.5rem;
+    position:relative;overflow:hidden;
+    font-family:inherit;
+  }
+  .btn-primary::before{
+    content:'';
+    position:absolute;inset:0;
+    background:linear-gradient(45deg,transparent,rgba(255,255,255,.12),transparent);
+    transform:translateX(-100%);
+    transition:transform .6s;
+  }
+  .btn-primary:hover::before{transform:translateX(100%)}
+  .btn-primary:hover{background:var(--primary-hover);transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+  .btn-primary:active{transform:translateY(0)}
+  .btn-primary:focus-visible{outline:none;box-shadow:0 0 0 3px var(--primary-light)}
+  .btn-primary:disabled{opacity:.65;cursor:not-allowed;transform:none}
+
+  /* Loading state */
+  .btn-primary.loading{pointer-events:none;}
+  .btn-primary.loading::after{
+    content:'';
+    width:1rem;height:1rem;
+    border:2px solid rgba(255,255,255,.35);
+    border-top-color:#fff;
+    border-radius:50%;
+    animation:spin .6s linear infinite;
+    margin-left:.5rem;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* Footer */
+  .login-footer{
+    text-align:center;
+    margin-top:1.4rem;
+    padding-top:1.25rem;
+    border-top:1px solid var(--border-color);
+  }
+  .login-footer small{
+    color:var(--text-muted);
+    font-size:.875rem;
+    display:flex;align-items:center;justify-content:center;gap:.375rem;
+  }
+
+  /* =========================
+     Advanced Login Options
+     ========================= */
+  .advanced-row{
+    margin:.75rem 0 1.25rem;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:.75rem;
+  }
+  .advanced-toggle{
+    background:none;
+    border:none;
+    color:var(--primary-color);
+    font-size:.925rem;
+    cursor:pointer;
+    padding:.4rem .6rem;
+    border-radius:var(--radius-md);
+    display:flex;
+    align-items:center;
+    gap:.5rem;
+    transition:all .2s ease;
+  }
+  .advanced-toggle:hover{
+    background:var(--primary-light);
+    color:var(--primary-hover);
+  }
+  .advanced-toggle i.fa-chevron-down{
+    transition:transform .25s ease;
+    font-size:.8rem;
+  }
+  .advanced-toggle.expanded i.fa-chevron-down{transform:rotate(180deg);}
+
+  .advanced-panel{
+    border:1px solid var(--border-color);
+    border-radius:var(--radius-md);
+    background:#f8fafc;
+    padding:0;
+    overflow:hidden;
+    max-height:0;
+    opacity:0;
+    transition:all .3s cubic-bezier(.4,0,.2,1);
+  }
+  .advanced-panel.show{
+    padding:1rem;
+    max-height:900px;
+    opacity:1;
+  }
+
+  /* Help */
+  .help-section{margin-top:1rem;}
+  .help-toggle-btn{
+    background:none;border:none;
+    color:var(--primary-color);
+    font-size:.925rem;
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:.5rem;
+    padding:.5rem;width:100%;
+    border-radius:var(--radius-md);
+    transition:all .2s ease;
+  }
+  .help-toggle-btn:hover{background:var(--primary-light);color:var(--primary-hover);}
+  .help-toggle-btn i.fa-chevron-down{transition:transform .3s ease;font-size:.8rem;}
+  .help-toggle-btn.expanded i.fa-chevron-down{transform:rotate(180deg);}
+
+  .help-content{
+    margin-top:1rem;
+    padding:0;
+    background:#f8fafc;
+    border-radius:var(--radius-md);
+    border:1px solid var(--border-color);
+    overflow:hidden;
+    max-height:0;
+    opacity:0;
+    transition:all .3s cubic-bezier(.4,0,.2,1);
+  }
+  .help-content.show{
+    max-height:2000px;
+    opacity:1;
+    padding:1.25rem;
+  }
+  .help-content h6{
+    font-size:.925rem;font-weight:700;color:var(--text-primary);
+    margin:0 0 .75rem 0;
+    display:flex;align-items:center;gap:.5rem;
+  }
+  .help-content h6:not(:first-child){margin-top:1.1rem;}
+  .help-content ul{margin:0;padding-left:0;list-style:none;}
+  .help-content li{
+    font-size:.875rem;color:var(--text-secondary);
+    margin-bottom:.5rem;line-height:1.6;
+    position:relative;padding-left:1rem;
+  }
+  .help-content li::before{
+    content:'•';
+    position:absolute;left:0;
+    color:var(--primary-color);
+    font-weight:800;
+  }
+  .help-content code{
+    background:#e2e8f0;
+    padding:.125rem .375rem;
+    border-radius:.25rem;
+    font-family:'Courier New',monospace;
+    font-size:.825rem;
+    color:var(--text-primary);
+  }
+
+  /* Focus visible */
+  *:focus-visible{outline:2px solid var(--primary-color);outline-offset:2px;}
+
+  /* Mobile */
+  @media (max-width: 767px){
+    .auth-shell{padding:.85rem;}
+    .login-card{padding:1.6rem 1.25rem;border-radius:var(--radius-lg);}
+    .login-header h1{font-size:1.5rem;}
+    .login-header p{font-size:.88rem;}
+    .form-control{font-size:16px;} /* prevent iOS zoom */
+  }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{
+      animation-duration:0.01ms !important;
+      animation-iteration-count:1 !important;
+      transition-duration:0.01ms !important;
+    }
+    .auth-shell::before,.auth-shell::after{display:none;}
+  }
+</style>
 {% endblock %}
 
 {% block content %}
-<section class="py-5">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-12 col-sm-10 col-md-8 col-lg-5">
-                <div class="card shadow-sm">
-                    <div class="card-body p-4">
-                        <div class="text-center mb-4">
-                            <h1 class="h4 mb-1">User Access Management</h1>
-                            <p class="text-muted mb-0">Please sign in to continue</p>
-                        </div>
+<div class="auth-shell">
+  <div class="login-container">
+    <div class="login-card">
 
-                        {% if form.errors %}
-                        <div class="alert alert-danger" role="alert">
-                            Your username and password didn't match. Please try again.
-                        </div>
-                        {% endif %}
+      <div class="login-header">
+        <h1>User Access Management</h1>
+        <p>Sign in to continue to your account</p>
+      </div>
 
-                        {% if next %}
-                        <div class="alert alert-info" role="alert">
-                            Please login to access this page.
-                        </div>
-                        {% endif %}
-
-                        <form method="post" action="{% url 'accounts:login' %}" novalidate>
-                            {% csrf_token %}
-                            <input type="hidden" name="next" value="{{ next }}">
-
-                            <div class="mb-3">
-                                <label class="form-label" for="{{ form.username.id_for_label }}">Username</label>
-                                <input type="text" name="{{ form.username.name }}" id="{{ form.username.id_for_label }}" class="form-control" required autofocus />
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label" for="{{ form.password.id_for_label }}">Password</label>
-                                <div class="position-relative">
-                                    <input type="password" name="{{ form.password.name }}" id="{{ form.password.id_for_label }}" class="form-control" required />
-                                    <button type="button" class="btn btn-link position-absolute end-0 top-50 translate-middle-y pe-3" id="togglePassword" style="border: none; background: none; color: #6c757d; z-index: 10;" aria-label="Toggle password visibility">
-                                        <i class="fa-solid fa-eye" id="togglePasswordIcon"></i>
-                                    </button>
-                                </div>
-                            </div>
-
-                            {% if ldap_enabled %}
-                            <div class="mb-3">
-                                <label class="form-label">Authentication Method</label>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="auth_method" id="auth_method_auto" value="auto" checked>
-                                    <label class="form-check-label" for="auth_method_auto">
-                                        <i class="fa-solid fa-shuffle me-1"></i>Auto (Try LDAP first, then Django DB)
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="auth_method" id="auth_method_ldap" value="ldap">
-                                    <label class="form-check-label" for="auth_method_ldap">
-                                        <i class="fa-solid fa-server me-1"></i>LDAP/Active Directory
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="auth_method" id="auth_method_django" value="django">
-                                    <label class="form-check-label" for="auth_method_django">
-                                        <i class="fa-solid fa-database me-1"></i>Django DB Authentication
-                                    </label>
-                                </div>
-                            </div>
-                            {% endif %}
-
-                            <div class="mb-3 form-check">
-                                <input type="checkbox" class="form-check-input" name="remember_me" id="remember_me">
-                                <label class="form-check-label" for="remember_me">
-                                    <i class="fa-solid fa-clock me-1"></i>Remember me
-                                </label>
-                            </div>
-
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fa-solid fa-right-to-bracket me-1"></i>
-                                    Sign In
-                                </button>
-                            </div>
-                        </form>
-
-                        <div class="text-center mt-3">
-                            <small class="text-muted">Forgot your password? Contact your administrator.</small>
-                        </div>
-
-                        {% if ldap_enabled %}
-                        <div class="mt-3">
-                            <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" data-bs-toggle="collapse" data-bs-target="#loginHelp" aria-expanded="false" aria-controls="loginHelp">
-                                <i class="fa-solid fa-circle-question me-1"></i>Login Help & Troubleshooting
-                            </button>
-                            <div class="collapse mt-2" id="loginHelp">
-                                <div class="card card-body bg-light">
-                                    <h6 class="mb-2"><i class="fa-solid fa-info-circle"></i> Authentication Methods:</h6>
-                                    <ul class="small mb-2">
-                                        <li><strong>Auto:</strong> Tries LDAP first, then Django DB (recommended)</li>
-                                        <li><strong>LDAP/Active Directory:</strong> LDAP authentication only</li>
-                                        <li><strong>Django DB:</strong> Local database authentication only</li>
-                                    </ul>
-                                    <h6 class="mb-2"><i class="fa-solid fa-lightbulb"></i> Username Formats:</h6>
-                                    <ul class="small mb-2">
-                                        <li><strong>UPN format:</strong> <code>username@domain.com</code> (e.g., Administrator@caizh.radissonhotels.com)</li>
-                                        <li><strong>sAMAccountName:</strong> Just the username (e.g., Administrator)</li>
-                                        <li>Both formats are supported - try the format that matches how your account was synced</li>
-                                    </ul>
-                                    <h6 class="mb-2"><i class="fa-solid fa-triangle-exclamation"></i> If Login Fails:</h6>
-                                    <ul class="small mb-0">
-                                        <li>Check that your account exists and is active</li>
-                                        <li>Try different username formats (with/without domain)</li>
-                                        <li>Try "Auto" authentication method</li>
-                                        <li>Contact your administrator to verify LDAP configuration</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
+      {% if form.errors %}
+      <div class="alert alert-danger" role="alert" aria-live="assertive">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <div class="alert-content">
+          <strong>Authentication failed</strong>
+          Your username and password didn't match. Please try again.
         </div>
+      </div>
+      {% endif %}
+
+      {% if next %}
+      <div class="alert alert-info" role="alert" aria-live="polite">
+        <i class="fa-solid fa-circle-info"></i>
+        <div class="alert-content">Please sign in to access the requested page.</div>
+      </div>
+      {% endif %}
+
+      <form method="post" action="{% url 'accounts:login' %}" novalidate id="loginForm">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
+
+        <div class="form-group">
+          <label class="form-label" for="{{ form.username.id_for_label }}">Username</label>
+          <input
+            type="text"
+            name="{{ form.username.name }}"
+            id="{{ form.username.id_for_label }}"
+            class="form-control"
+            placeholder="Enter your username"
+            required
+            autofocus
+            autocomplete="username"
+            aria-describedby="usernameHint"
+          />
+          <small class="hint" id="usernameHint">
+            Use <code>username</code> or <code>username@domain.com</code>
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="{{ form.password.id_for_label }}">Password</label>
+          <div class="password-input-group">
+            <input
+              type="password"
+              name="{{ form.password.name }}"
+              id="{{ form.password.id_for_label }}"
+              class="form-control"
+              placeholder="Enter your password"
+              required
+              autocomplete="current-password"
+            />
+            <button
+              type="button"
+              class="password-toggle-btn"
+              id="togglePassword"
+              aria-label="Show password"
+              aria-pressed="false"
+            >
+              <i class="fa-solid fa-eye" id="togglePasswordIcon" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+
+        {% if ldap_enabled %}
+          <!-- Advanced options toggle -->
+          <div class="advanced-row">
+            <button
+              type="button"
+              class="advanced-toggle"
+              id="showAuthOptions"
+              aria-expanded="false"
+              aria-controls="authPanel"
+            >
+              <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+              <span>Advanced login options</span>
+              <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+            </button>
+
+            <span class="hint" style="margin:0;">
+              For LDAP / AD users
+            </span>
+          </div>
+
+          <!-- Collapsible panel -->
+          <div class="advanced-panel" id="authPanel" aria-hidden="true">
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Authentication Method</label>
+
+              <div class="radio-group" role="radiogroup" aria-label="Authentication method">
+                <label class="radio-option" tabindex="0">
+                  <input type="radio" name="auth_method" id="auth_method_auto" value="auto" checked />
+                  <span class="radio-label">
+                    <i class="fa-solid fa-shuffle" aria-hidden="true"></i>
+                    <span>Auto (Try LDAP first, then Django DB)</span>
+                  </span>
+                </label>
+
+                <label class="radio-option" tabindex="0">
+                  <input type="radio" name="auth_method" id="auth_method_ldap" value="ldap" />
+                  <span class="radio-label">
+                    <i class="fa-solid fa-server" aria-hidden="true"></i>
+                    <span>LDAP / Active Directory</span>
+                  </span>
+                </label>
+
+                <label class="radio-option" tabindex="0">
+                  <input type="radio" name="auth_method" id="auth_method_django" value="django" />
+                  <span class="radio-label">
+                    <i class="fa-solid fa-database" aria-hidden="true"></i>
+                    <span>Django DB Authentication</span>
+                  </span>
+                </label>
+              </div>
+
+              <small class="hint" style="margin-top:.75rem;">
+                Tip: If "Auto" doesn't work, try selecting a specific method.
+              </small>
+            </div>
+          </div>
+        {% endif %}
+
+        <div class="form-group" style="margin-top:1rem;">
+          <div class="checkbox-group">
+            <input type="checkbox" name="remember_me" id="remember_me" />
+            <label for="remember_me">
+              <i class="fa-solid fa-clock" aria-hidden="true"></i>
+              <span>Keep me signed in</span>
+            </label>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary" id="submitBtn">
+          <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i>
+          <span id="submitText">Sign In</span>
+        </button>
+      </form>
+
+      <div class="login-footer">
+        <small>
+          <i class="fa-solid fa-lock" aria-hidden="true"></i>
+          Forgot your password? Contact your administrator for assistance.
+        </small>
+      </div>
+
+      {% if ldap_enabled %}
+      <div class="help-section">
+        <button
+          type="button"
+          class="help-toggle-btn"
+          id="helpToggle"
+          aria-expanded="false"
+          aria-controls="loginHelp"
+        >
+          <i class="fa-solid fa-circle-question" aria-hidden="true"></i>
+          <span>Login Help & Troubleshooting</span>
+          <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+        </button>
+
+        <div class="help-content" id="loginHelp" aria-hidden="true">
+          <h6><i class="fa-solid fa-info-circle" aria-hidden="true"></i> Authentication Methods</h6>
+          <ul>
+            <li><strong>Auto:</strong> Tries LDAP first, then Django DB (recommended)</li>
+            <li><strong>LDAP/Active Directory:</strong> Use this if your account is in LDAP</li>
+            <li><strong>Django DB:</strong> Use this for local database accounts only</li>
+          </ul>
+
+          <h6><i class="fa-solid fa-lightbulb" aria-hidden="true"></i> Username Formats</h6>
+          <ul>
+            <li><strong>UPN format:</strong> <code>username@domain.com</code></li>
+            <li><strong>sAMAccountName:</strong> <code>username</code></li>
+          </ul>
+
+          <h6><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Troubleshooting</h6>
+          <ul>
+            <li>Verify your account exists and is active</li>
+            <li>Try different username formats (with/without domain)</li>
+            <li>Ensure you're using the correct authentication method</li>
+            <li>If Auto doesn't work, choose a specific method</li>
+            <li>Contact your administrator to verify LDAP configuration</li>
+          </ul>
+        </div>
+      </div>
+      {% endif %}
+
     </div>
-</section>
+  </div>
+</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const togglePassword = document.getElementById('togglePassword');
-    const passwordInput = document.getElementById('{{ form.password.id_for_label }}');
-    const togglePasswordIcon = document.getElementById('togglePasswordIcon');
-    
-    if (togglePassword && passwordInput && togglePasswordIcon) {
-        togglePassword.addEventListener('click', function() {
-            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordInput.setAttribute('type', type);
-            
-            // Toggle icon between eye and eye-slash
-            if (type === 'password') {
-                togglePasswordIcon.classList.remove('fa-eye-slash');
-                togglePasswordIcon.classList.add('fa-eye');
-            } else {
-                togglePasswordIcon.classList.remove('fa-eye');
-                togglePasswordIcon.classList.add('fa-eye-slash');
-            }
-        });
-    }
+  // Password toggle
+  const togglePassword = document.getElementById('togglePassword');
+  const passwordInput = document.getElementById('{{ form.password.id_for_label }}');
+  const togglePasswordIcon = document.getElementById('togglePasswordIcon');
+
+  if (togglePassword && passwordInput && togglePasswordIcon) {
+    togglePassword.addEventListener('click', function() {
+      const isHidden = passwordInput.getAttribute('type') === 'password';
+      passwordInput.setAttribute('type', isHidden ? 'text' : 'password');
+
+      togglePasswordIcon.classList.toggle('fa-eye', !isHidden);
+      togglePasswordIcon.classList.toggle('fa-eye-slash', isHidden);
+      togglePassword.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+      togglePassword.setAttribute('aria-pressed', isHidden ? 'true' : 'false');
+    });
+  }
+
+  // Help toggle
+  const helpToggle = document.getElementById('helpToggle');
+  const helpContent = document.getElementById('loginHelp');
+  if (helpToggle && helpContent) {
+    helpToggle.addEventListener('click', function() {
+      const isExpanded = helpToggle.getAttribute('aria-expanded') === 'true';
+      helpToggle.setAttribute('aria-expanded', isExpanded ? 'false' : 'true');
+      helpToggle.classList.toggle('expanded', !isExpanded);
+      helpContent.classList.toggle('show', !isExpanded);
+      helpContent.setAttribute('aria-hidden', isExpanded ? 'true' : 'false');
+    });
+  }
+
+  // Advanced auth options (progressive disclosure)
+  const showAuthOptions = document.getElementById('showAuthOptions');
+  const authPanel = document.getElementById('authPanel');
+
+  function expandAdvancedAuth() {
+    if (!showAuthOptions || !authPanel) return;
+    showAuthOptions.setAttribute('aria-expanded', 'true');
+    showAuthOptions.classList.add('expanded');
+    authPanel.classList.add('show');
+    authPanel.setAttribute('aria-hidden', 'false');
+  }
+
+  function collapseAdvancedAuth() {
+    if (!showAuthOptions || !authPanel) return;
+    showAuthOptions.setAttribute('aria-expanded', 'false');
+    showAuthOptions.classList.remove('expanded');
+    authPanel.classList.remove('show');
+    authPanel.setAttribute('aria-hidden', 'true');
+  }
+
+  if (showAuthOptions && authPanel) {
+    showAuthOptions.addEventListener('click', function () {
+      const expanded = showAuthOptions.getAttribute('aria-expanded') === 'true';
+      if (expanded) collapseAdvancedAuth();
+      else expandAdvancedAuth();
+    });
+  }
+
+  // ✅ Auto-expand Advanced login options when login fails (form.errors)
+  const hasFormErrors = {{ form.errors|yesno:"true,false" }};
+  if (hasFormErrors) {
+    expandAdvancedAuth();
+  }
+
+  // Prevent double submit + loading state
+  const loginForm = document.getElementById('loginForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const submitText = document.getElementById('submitText');
+
+  if (loginForm && submitBtn) {
+    loginForm.addEventListener('submit', function(e) {
+      if (submitBtn.classList.contains('loading')) {
+        e.preventDefault();
+        return false;
+      }
+      submitBtn.classList.add('loading');
+      submitBtn.disabled = true;
+      if (submitText) submitText.textContent = 'Signing you in…';
+
+      setTimeout(function() {
+        submitBtn.classList.remove('loading');
+        submitBtn.disabled = false;
+        if (submitText) submitText.textContent = 'Sign In';
+      }, 5000);
+    });
+  }
+
+  // Autofocus on error (prefer password)
+  const errorAlert = document.querySelector('.alert-danger');
+  if (errorAlert && passwordInput) {
+    passwordInput.focus();
+    passwordInput.select();
+  }
 });
 </script>
 {% endblock %}
+``

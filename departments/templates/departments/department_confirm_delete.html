@@ -1,97 +1,53 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Confirm Delete Department{% endblock %}
+{% block title %}Delete Department{% endblock %}
 
 {% block content %}
-<div id="content-main">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Confirm Delete Department</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="alert alert-danger">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <strong>Warning:</strong> You are about to delete the department
-                            "<strong>{{ department.name }}</strong>" ({{ department.code }}).
-                            This action cannot be undone.
-                        </div>
+<div class="container-fluid">
+  <div class="card shadow-sm border border-danger">
 
-                        {% if assigned_users or sub_departments %}
-                            <div class="alert alert-warning">
-                                <strong>Deletion blocked:</strong> This department still has assigned users and/or sub-departments.
-                                You must unassign all users and move or remove all sub-departments before deletion is allowed.
-                            </div>
-                        {% endif %}
-
-                        {% if assigned_users %}
-                            <h5>Assigned Users</h5>
-                            <div class="table-responsive mb-3">
-                                <table class="table table-bordered table-striped table-sm">
-                                    <thead>
-                                        <tr>
-                                            <th>Name</th>
-                                            <th>Username</th>
-                                            <th>Email</th>
-                                            <th>Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for user in assigned_users %}
-                                            <tr>
-                                                <td>{{ user.get_full_name|default:user.username }}</td>
-                                                <td>{{ user.username }}</td>
-                                                <td>{{ user.email }}</td>
-                                                <td>
-                                                    {% if user.is_active %}
-                                                        <span class="badge bg-success">Active</span>
-                                                    {% else %}
-                                                        <span class="badge bg-secondary">Inactive</span>
-                                                    {% endif %}
-                                                </td>
-                                            </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                        {% else %}
-                            <p class="text-muted"><strong>No users are currently assigned to this department.</strong></p>
-                        {% endif %}
-
-                        {% if sub_departments %}
-                            <h5>Sub-departments</h5>
-                            <ul class="list-group mb-3">
-                                {% for sub in sub_departments %}
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        <span>{{ sub.name }} ({{ sub.code }})</span>
-                                        <span class="badge bg-info">{{ sub.get_breadcrumb_path }}</span>
-                                    </li>
-                                {% endfor %}
-                            </ul>
-                        {% else %}
-                            <p class="text-muted"><strong>No sub-departments are attached to this department.</strong></p>
-                        {% endif %}
-
-                        <form method="post">
-                            {% csrf_token %}
-                            <div class="row">
-                                <div class="col-12">
-                                    <button type="submit" class="btn btn-danger" {% if assigned_users or sub_departments %}disabled{% endif %}>
-                                        <i class="fas fa-trash"></i> Yes, Delete Department
-                                    </button>
-                                    <a href="{% url 'departments:department_list' %}" class="btn btn-secondary">
-                                        <i class="fas fa-arrow-left"></i> Cancel
-                                    </a>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="card-header bg-danger text-white">
+      <h3 class="mb-0">
+        <i class="fas fa-triangle-exclamation me-2"></i>
+        Confirm Department Deletion
+      </h3>
     </div>
+
+    <div class="card-body">
+
+      <div class="alert alert-danger">
+        You are about to permanently delete
+        <strong>{{ department.name }}</strong> ({{ department.code }}).
+        This action <strong>cannot be undone</strong>.
+      </div>
+
+      {% if assigned_users or sub_departments %}
+        <div class="alert alert-warning">
+          <strong>Deletion blocked.</strong><br>
+          This department still has:
+          <ul class="mb-0">
+            {% if assigned_users %}<li>Assigned users</li>{% endif %}
+            {% if sub_departments %}<li>Sub-departments</li>{% endif %}
+          </ul>
+        </div>
+      {% endif %}
+
+
+        <form method="post" class="d-flex justify-content-between mt-4">
+        {% csrf_token %}
+
+        <a href="{% url 'departments:department_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Cancel
+        </a>
+
+        <button type="submit" class="btn btn-danger" {% if assigned_users or sub_departments %}disabled{% endif %}>
+         <i class="fas fa-trash"></i> Yes, Delete Department
+        </button>
+        </form>
+
+
+    </div>
+  </div>
 </div>
 {% endblock %}
