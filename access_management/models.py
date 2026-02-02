@@ -574,6 +574,7 @@ class UserSystemAccess(models.Model):
         if self.status != 'Pending':
             raise ValueError("Only pending requests can be approved")
         # transition handled by FSM decorator if available
+        self.status = 'Approved'  # Set status to Approved
         self.approved_by = approver
         self.approval_date = timezone.now()
         if comments:
