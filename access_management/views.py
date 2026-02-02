@@ -3499,6 +3499,10 @@ def cross_system_account_mapping(request):
     department_id = request.GET.get('department')
     search = request.GET.get('search', '').strip()
     show_only_with_access = request.GET.get('show_only_with_access', 'false') == 'true'
+    account_status = request.GET.get('account_status', '').strip()
+    employment_status = request.GET.get('employment_status', '').strip()
+    assignment_status = request.GET.get('assignment_status', '').strip()
+    metrics = request.GET.get('metrics', '').strip()
     
     # Get all users
     users = CustomUser.objects.all().select_related('department')
@@ -3506,7 +3510,7 @@ def cross_system_account_mapping(request):
     # Get all systems
     systems = System.objects.filter(is_active=True).order_by('name')
     
-    # Apply filters
+    # Apply user filters
     if user_id:
         users = users.filter(id=user_id)
     if department_id:
@@ -3519,14 +3523,45 @@ def cross_system_account_mapping(request):
             Q(employee_id__icontains=search) |
             Q(email__icontains=search)
         )
+    # Account Status filter (is_active)
+    if account_status == 'active':
+        users = users.filter(is_active=True)
+    elif account_status == 'inactive':
+        users = users.filter(is_active=False)
+    # Employment Status filter
+    if employment_status:
+        users = users.filter(employment_status=employment_status)
+    # Metrics filter (exclude_from_metrics)
+    if metrics == 'include':
+        users = users.filter(exclude_from_metrics=False)
+    elif metrics == 'exclude':
+        users = users.filter(exclude_from_metrics=True)
     
     # Get all access assignments with system usernames
-    access_assignments = UserSystemAccess.objects.filter(
-        status__in=['Active', 'Approved']
-    ).select_related('user', 'user__department', 'system', 'username_verified_by')
+    # Base filter: include Active and Approved by default, but allow filtering by assignment_status
+    if assignment_status:
+        access_assignments = UserSystemAccess.objects.filter(
+            status=assignment_status
+        ).select_related('user', 'user__department', 'system', 'username_verified_by')
+    else:
+        access_assignments = UserSystemAccess.objects.filter(
+            status__in=['Active', 'Approved']
+        ).select_related('user', 'user__department', 'system', 'username_verified_by')
     
     if system_id:
         access_assignments = access_assignments.filter(system_id=system_id)
+    
+    # Apply user-level filters to access assignments (for assignment_status filter)
+    if account_status == 'active':
+        access_assignments = access_assignments.filter(user__is_active=True)
+    elif account_status == 'inactive':
+        access_assignments = access_assignments.filter(user__is_active=False)
+    if employment_status:
+        access_assignments = access_assignments.filter(user__employment_status=employment_status)
+    if metrics == 'include':
+        access_assignments = access_assignments.filter(user__exclude_from_metrics=False)
+    elif metrics == 'exclude':
+        access_assignments = access_assignments.filter(user__exclude_from_metrics=True)
     
     # Build mapping: user_id -> {system_id: details}
     # This is used both for the template display and for exports
@@ -3589,6 +3624,11 @@ def cross_system_account_mapping(request):
     users_with_access = len(user_system_mapping)
     total_systems = systems.count()
     
+    # Build query string for pagination links (preserve all filters)
+    query_params = request.GET.copy()
+    query_params.pop('page', None)  # Remove page parameter
+    query_string = query_params.urlencode()
+    
     context = {
         'page_obj': page_obj,
         'users': page_obj,
@@ -3603,6 +3643,15 @@ def cross_system_account_mapping(request):
         'users_with_access': users_with_access,
         'total_systems': total_systems,
         'departments': Department.objects.filter(is_active=True).order_by('name'),
+        'employment_status_choices': CustomUser.EMPLOYMENT_STATUS_CHOICES,
+        'assignment_status_choices': UserSystemAccess.STATUS_CHOICES,
+        'filters': {
+            'account_status': account_status,
+            'employment_status': employment_status,
+            'assignment_status': assignment_status,
+            'metrics': metrics,
+        },
+        'query_string': query_string,
     }
     
     return render(request, 'access_management/cross_system_account_mapping.html', context)

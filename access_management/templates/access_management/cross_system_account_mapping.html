@@ -443,6 +443,48 @@
           </div>
 
           <div class="col-md-3">
+            <label for="account_status" class="form-label"><i class="fas fa-user-check me-1"></i> Account Status</label>
+            <select class="form-select" id="account_status" name="account_status">
+              <option value="">All Accounts</option>
+              <option value="active" {% if filters.account_status == 'active' %}selected{% endif %}>Active</option>
+              <option value="inactive" {% if filters.account_status == 'inactive' %}selected{% endif %}>Inactive</option>
+            </select>
+          </div>
+
+          <div class="col-md-3">
+            <label for="employment_status" class="form-label"><i class="fas fa-briefcase me-1"></i> Employment Status</label>
+            <select class="form-select" id="employment_status" name="employment_status">
+              <option value="">All Statuses</option>
+              {% for status in employment_status_choices %}
+                <option value="{{ status.0 }}" {% if filters.employment_status == status.0 %}selected{% endif %}>
+                  {{ status.1 }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-3">
+            <label for="assignment_status" class="form-label"><i class="fas fa-key me-1"></i> Assignment Status</label>
+            <select class="form-select" id="assignment_status" name="assignment_status">
+              <option value="">All Statuses</option>
+              {% for status in assignment_status_choices %}
+                <option value="{{ status.0 }}" {% if filters.assignment_status == status.0 %}selected{% endif %}>
+                  {{ status.1 }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-3">
+            <label for="metrics" class="form-label"><i class="fas fa-chart-bar me-1"></i> Metrics</label>
+            <select class="form-select" id="metrics" name="metrics">
+              <option value="">All Users</option>
+              <option value="include" {% if filters.metrics == 'include' %}selected{% endif %}>Include in Metrics</option>
+              <option value="exclude" {% if filters.metrics == 'exclude' %}selected{% endif %}>Exclude from Metrics</option>
+            </select>
+          </div>
+
+          <div class="col-md-3">
             <label class="form-label">&nbsp;</label>
             <div class="checkbox-wrap">
               <input class="form-check-input" type="checkbox" id="show_only_with_access"
@@ -557,10 +599,10 @@
         {% if page_obj.has_other_pages %}
           <div class="pagination">
             {% if page_obj.has_previous %}
-              <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}{% if selected_department_id %}&department={{ selected_department_id }}{% endif %}{% if selected_system_id %}&system={{ selected_system_id }}{% endif %}{% if show_only_with_access %}&show_only_with_access=true{% endif %}">
+              <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page=1">
                 <i class="fas fa-angle-double-left"></i>
               </a>
-              <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if selected_department_id %}&department={{ selected_department_id }}{% endif %}{% if selected_system_id %}&system={{ selected_system_id }}{% endif %}{% if show_only_with_access %}&show_only_with_access=true{% endif %}">
+              <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.previous_page_number }}">
                 <i class="fas fa-angle-left"></i>
               </a>
             {% else %}
@@ -571,10 +613,10 @@
             <span class="page-link active">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
 
             {% if page_obj.has_next %}
-              <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if selected_department_id %}&department={{ selected_department_id }}{% endif %}{% if selected_system_id %}&system={{ selected_system_id }}{% endif %}{% if show_only_with_access %}&show_only_with_access=true{% endif %}">
+              <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.next_page_number }}">
                 <i class="fas fa-angle-right"></i>
               </a>
-              <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if selected_department_id %}&department={{ selected_department_id }}{% endif %}{% if selected_system_id %}&system={{ selected_system_id }}{% endif %}{% if show_only_with_access %}&show_only_with_access=true{% endif %}">
+              <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.paginator.num_pages }}">
                 <i class="fas fa-angle-double-right"></i>
               </a>
             {% else %}
