@@ -1,315 +1,344 @@
 {% extends 'base.html' %}
 {% load static %}
-
-{% block title %}System Payment & P&L Guidance{% endblock %}
+{% block title %}Payments & P&L Guidance{% endblock %}
 
 {% block content %}
 <div id="content-main">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <div>
-                            <h3 class="card-title mb-0">
-                                <i class="fas fa-receipt me-2"></i>Payments & P&L Guidance
-                            </h3>
-                            <div class="text-muted small">
-                                Previous: {{ previous_month }} | Current: {{ current_month }} | Next: {{ next_month }}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-3 mb-4">
-                            <div class="col">
-                                <div class="card border-primary h-100">
-                                    <div class="card-body text-primary">
-                                        <h6 class="card-subtitle text-uppercase fw-semibold mb-1">Systems Covered</h6>
-                                        <h3 class="card-title mb-0">{{ rows|length }}</h3>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col">
-                                <div class="card border-success h-100">
-                                    <div class="card-body text-success">
-                                        <h6 class="card-subtitle text-uppercase fw-semibold mb-1">Monthly (local) - {{ current_month }}</h6>
-                                        <h3 class="card-title mb-0">
-                                            {% if total_monthly_local %}
-                                                {{ total_monthly_local|floatformat:2 }}
-                                            {% else %}
-                                                —
-                                            {% endif %}
-                                        </h3>
-                                        {% if prev_month_total_monthly and monthly_diff is not None %}
-                                            <div class="mt-2">
-                                                <small class="text-muted d-block">Previous Month ({{ previous_month_str }}): {{ prev_month_total_monthly|floatformat:2 }}</small>
-                                                <small class="{% if monthly_diff >= 0 %}text-danger{% else %}text-success{% endif %} fw-semibold">
-                                                    {% if monthly_diff >= 0 %}+{% endif %}{{ monthly_diff|floatformat:2 }} 
-                                                    ({% if monthly_diff >= 0 %}+{% endif %}{{ monthly_diff_pct|floatformat:2 }}%)
-                                                </small>
-                                            </div>
-                                        {% else %}
-                                            <div class="text-muted small mt-2">Sum where exchange rate is provided</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col">
-                                <div class="card border-warning h-100">
-                                    <div class="card-body text-warning">
-                                        <h6 class="card-subtitle text-uppercase fw-semibold mb-1">Yearly (local) - {{ current_month|slice:":4" }}</h6>
-                                        <h3 class="card-title mb-0">
-                                            {% if total_yearly_local %}
-                                                {{ total_yearly_local|floatformat:2 }}
-                                            {% else %}
-                                                —
-                                            {% endif %}
-                                        </h3>
-                                        {% if prev_year_total_yearly and yearly_diff is not None %}
-                                            <div class="mt-2">
-                                                <small class="text-muted d-block">Previous Year ({{ previous_year_str }}): {{ prev_year_total_yearly|floatformat:2 }}</small>
-                                                <small class="{% if yearly_diff >= 0 %}text-danger{% else %}text-success{% endif %} fw-semibold">
-                                                    {% if yearly_diff >= 0 %}+{% endif %}{{ yearly_diff|floatformat:2 }} 
-                                                    ({% if yearly_diff >= 0 %}+{% endif %}{{ yearly_diff_pct|floatformat:2 }}%)
-                                                </small>
-                                            </div>
-                                        {% else %}
-                                            <div class="text-muted small mt-2">Sum where exchange rate is provided</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col">
-                                <div class="card border-info h-100">
-                                    <div class="card-body text-info">
-                                        <h6 class="card-subtitle text-uppercase fw-semibold mb-1">Comparison Summary</h6>
-                                        <div class="small">
-                                            {% if monthly_diff is not None %}
-                                                <div class="mb-2">
-                                                    <strong>Month-over-Month:</strong><br>
-                                                    <span class="{% if monthly_diff >= 0 %}text-danger{% else %}text-success{% endif %}">
-                                                        {% if monthly_diff >= 0 %}↑ Increase{% else %}↓ Decrease{% endif %}
-                                                    </span>
-                                                </div>
-                                            {% endif %}
-                                            {% if yearly_diff is not None %}
-                                                <div>
-                                                    <strong>Year-over-Year:</strong><br>
-                                                    <span class="{% if yearly_diff >= 0 %}text-danger{% else %}text-success{% endif %}">
-                                                        {% if yearly_diff >= 0 %}↑ Increase{% else %}↓ Decrease{% endif %}
-                                                    </span>
-                                                </div>
-                                            {% endif %}
-                                            {% if monthly_diff is None and yearly_diff is None %}
-                                                <div class="text-muted">No comparison data available</div>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+  <div class="container-fluid">
 
-                        <div class="d-flex flex-wrap gap-2 align-items-end mb-3">
-                            <form method="get" class="row g-2 align-items-end">
-                                <div class="col-sm-4 col-md-2">
-                                    <label class="form-label small mb-1">Search</label>
-                                    <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="System name or code">
-                                </div>
-                                <div class="col-sm-4 col-md-2">
-                                    <label class="form-label small mb-1">Billing currency</label>
-                                    <input type="text" name="billing_currency" value="{{ billing_currency_filter }}" class="form-control form-control-sm" placeholder="e.g. USD">
-                                </div>
-                                <div class="col-sm-4 col-md-2">
-                                    <label class="form-label small mb-1">Local currency</label>
-                                    <input type="text" name="local_currency" value="{{ local_currency_filter }}" class="form-control form-control-sm" placeholder="e.g. SAR">
-                                </div>
-                                <div class="col-sm-4 col-md-2">
-                                    <label class="form-label small mb-1">Start Date</label>
-                                    <input type="date" name="start_date" value="{{ start_date }}" class="form-control form-control-sm">
-                                </div>
-                                <div class="col-sm-4 col-md-2">
-                                    <label class="form-label small mb-1">End Date</label>
-                                    <input type="date" name="end_date" value="{{ end_date }}" class="form-control form-control-sm">
-                                </div>
-                                <div class="col-auto">
-                                    <button type="submit" class="btn btn-sm btn-primary">
-                                        <i class="fas fa-filter me-1"></i>Filter
-                                    </button>
-                                </div>
-                                <div class="col-auto">
-                                    <a href="{% url 'systems:system_dues_notifications' %}" class="btn btn-sm btn-outline-secondary">
-                                        <i class="fas fa-rotate-left me-1"></i>Reset
-                                    </a>
-                                </div>
-                            </form>
-                            <div class="ms-auto d-flex gap-2">
-                                <a class="btn btn-sm btn-outline-success" href="?{% if q %}q={{ q|urlencode }}&{% endif %}{% if billing_currency_filter %}billing_currency={{ billing_currency_filter|urlencode }}&{% endif %}{% if local_currency_filter %}local_currency={{ local_currency_filter|urlencode }}&{% endif %}{% if start_date %}start_date={{ start_date|urlencode }}&{% endif %}{% if end_date %}end_date={{ end_date|urlencode }}&{% endif %}export=csv">
-                                    <i class="fas fa-file-excel me-1"></i>Export CSV
-                                </a>
-                                <a class="btn btn-sm btn-outline-danger" href="?{% if q %}q={{ q|urlencode }}&{% endif %}{% if billing_currency_filter %}billing_currency={{ billing_currency_filter|urlencode }}&{% endif %}{% if local_currency_filter %}local_currency={{ local_currency_filter|urlencode }}&{% endif %}{% if start_date %}start_date={{ start_date|urlencode }}&{% endif %}{% if end_date %}end_date={{ end_date|urlencode }}&{% endif %}export=pdf">
-                                    <i class="fas fa-file-pdf me-1"></i>Export PDF
-                                </a>
-                            </div>
-                        </div>
-
-                        <h5 class="mb-2">Per-System Dues</h5>
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-striped align-middle" id="dues-table">
-                                <thead>
-                                    <tr>
-                                        <th class="sortable" data-sort="system">System <i class="fas fa-sort ms-1"></i></th>
-                                        <th class="sortable" data-sort="monthly-billing">Monthly (billing) <i class="fas fa-sort ms-1"></i></th>
-                                        <th class="sortable" data-sort="yearly-billing">Yearly (billing) <i class="fas fa-sort ms-1"></i></th>
-                                        <th class="sortable" data-sort="monthly-local">Monthly (local) <i class="fas fa-sort ms-1"></i></th>
-                                        <th class="sortable" data-sort="yearly-local">Yearly (local) <i class="fas fa-sort ms-1"></i></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for row in rows %}
-                                    <tr>
-                                        <td data-sort-value="{{ row.system.name|lower }}">
-                                            <a href="{% url 'systems:system_detail' row.system.pk %}">
-                                                {{ row.system.name }}
-                                            </a>
-                                        </td>
-                                        <td data-sort-value="{{ row.monthly_billing|default:'0' }}">
-                                            {% if row.monthly_billing %}
-                                                {{ row.monthly_billing|floatformat:2 }} {{ row.billing_currency }}
-                                            {% else %}<span class="text-muted">—</span>{% endif %}
-                                        </td>
-                                        <td data-sort-value="{{ row.yearly_billing|default:'0' }}">
-                                            {% if row.yearly_billing %}
-                                                {{ row.yearly_billing|floatformat:2 }} {{ row.billing_currency }}
-                                            {% else %}<span class="text-muted">—</span>{% endif %}
-                                        </td>
-                                        <td data-sort-value="{{ row.monthly_local|default:'0' }}">
-                                            {% if row.monthly_local %}
-                                                {{ row.monthly_local|floatformat:2 }} {{ row.local_currency }}
-                                            {% else %}<span class="text-muted">—</span>{% endif %}
-                                        </td>
-                                        <td data-sort-value="{{ row.yearly_local|default:'0' }}">
-                                            {% if row.yearly_local %}
-                                                {{ row.yearly_local|floatformat:2 }} {{ row.local_currency }}
-                                            {% else %}<span class="text-muted">—</span>{% endif %}
-                                        </td>
-                                    </tr>
-                                    {% empty %}
-                                    <tr>
-                                        <td colspan="5" class="text-center text-muted">No contract dues captured yet.</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <!-- Page Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+      <div>
+        <h2 class="mb-0">
+          <i class="fas fa-receipt me-2 text-muted"></i> Payments & P&L Guidance
+        </h2>
+        <div class="text-muted small">
+          Previous: {{ previous_month }} &nbsp;•&nbsp;
+          Current: {{ current_month }} &nbsp;•&nbsp;
+          Next: {{ next_month }}
         </div>
+      </div>
+
+      <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-sm btn-outline-success"
+           href="?{% if q %}q={{ q|urlencode }}&{% endif %}{% if billing_currency_filter %}billing_currency={{ billing_currency_filter|urlencode }}&{% endif %}{% if local_currency_filter %}local_currency={{ local_currency_filter|urlencode }}&{% endif %}{% if start_date %}start_date={{ start_date|urlencode }}&{% endif %}{% if end_date %}end_date={{ end_date|urlencode }}&{% endif %}export=csv">
+          <i class="fas fa-file-excel me-1"></i> Export CSV
+        </a>
+        <a class="btn btn-sm btn-outline-danger"
+           href="?{% if q %}q={{ q|urlencode }}&{% endif %}{% if billing_currency_filter %}billing_currency={{ billing_currency_filter|urlencode }}&{% endif %}{% if local_currency_filter %}local_currency={{ local_currency_filter|urlencode }}&{% endif %}{% if start_date %}start_date={{ start_date|urlencode }}&{% endif %}{% if end_date %}end_date={{ end_date|urlencode }}&{% endif %}export=pdf">
+          <i class="fas fa-file-pdf me-1"></i> Export PDF
+        </a>
+      </div>
     </div>
+
+    <!-- Summary Cards -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-3 mb-4">
+      <div class="col">
+        <div class="card border-primary shadow-sm h-100">
+          <div class="card-body">
+            <div class="text-uppercase small text-muted fw-semibold">Systems Covered</div>
+            <div class="display-6 fw-bold text-primary mb-0">{{ rows|length }}</div>
+            <div class="text-muted small mt-2">Total systems with dues records</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="card border-success shadow-sm h-100">
+          <div class="card-body">
+            <div class="text-uppercase small text-muted fw-semibold">Monthly (local) - {{ current_month }}</div>
+            <div class="fs-2 fw-bold text-success mb-0">
+              {% if total_monthly_local %}
+                {{ total_monthly_local|floatformat:2 }}
+              {% else %}
+                —
+              {% endif %}
+            </div>
+
+            {% if prev_month_total_monthly and monthly_diff is not None %}
+              <div class="mt-2 small">
+                <div class="text-muted">
+                  Previous ({{ previous_month_str }}): {{ prev_month_total_monthly|floatformat:2 }}
+                </div>
+                <div class="{% if monthly_diff >= 0 %}text-danger{% else %}text-success{% endif %} fw-semibold">
+                  {% if monthly_diff >= 0 %}+{% endif %}{{ monthly_diff|floatformat:2 }}
+                  ( {% if monthly_diff >= 0 %}+{% endif %}{{ monthly_diff_pct|floatformat:2 }}% )
+                </div>
+              </div>
+            {% else %}
+              <div class="text-muted small mt-2">Sum where exchange rate is provided</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="card border-warning shadow-sm h-100">
+          <div class="card-body">
+            <div class="text-uppercase small text-muted fw-semibold">Yearly (local) - {{ current_month|slice:":4" }}</div>
+            <div class="fs-2 fw-bold text-warning mb-0">
+              {% if total_yearly_local %}
+                {{ total_yearly_local|floatformat:2 }}
+              {% else %}
+                —
+              {% endif %}
+            </div>
+
+            {% if prev_year_total_yearly and yearly_diff is not None %}
+              <div class="mt-2 small">
+                <div class="text-muted">
+                  Previous ({{ previous_year_str }}): {{ prev_year_total_yearly|floatformat:2 }}
+                </div>
+                <div class="{% if yearly_diff >= 0 %}text-danger{% else %}text-success{% endif %} fw-semibold">
+                  {% if yearly_diff >= 0 %}+{% endif %}{{ yearly_diff|floatformat:2 }}
+                  ( {% if yearly_diff >= 0 %}+{% endif %}{{ yearly_diff_pct|floatformat:2 }}% )
+                </div>
+              </div>
+            {% else %}
+              <div class="text-muted small mt-2">Sum where exchange rate is provided</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="card border-info shadow-sm h-100">
+          <div class="card-body">
+            <div class="text-uppercase small text-muted fw-semibold">Comparison Summary</div>
+
+            <div class="small mt-2">
+              {% if monthly_diff is not None %}
+                <div class="mb-2">
+                  <span class="fw-semibold">Month-over-Month:</span><br>
+                  <span class="{% if monthly_diff >= 0 %}text-danger{% else %}text-success{% endif %}">
+                    {% if monthly_diff >= 0 %}↑ Increase{% else %}↓ Decrease{% endif %}
+                  </span>
+                </div>
+              {% endif %}
+
+              {% if yearly_diff is not None %}
+                <div>
+                  <span class="fw-semibold">Year-over-Year:</span><br>
+                  <span class="{% if yearly_diff >= 0 %}text-danger{% else %}text-success{% endif %}">
+                    {% if yearly_diff >= 0 %}↑ Increase{% else %}↓ Decrease{% endif %}
+                  </span>
+                </div>
+              {% endif %}
+
+              {% if monthly_diff is None and yearly_diff is None %}
+                <div class="text-muted">No comparison data available</div>
+              {% endif %}
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters (Sticky) -->
+    <div class="card shadow-sm mb-3 sticky-top" style="top: .75rem; z-index: 10;">
+      <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+
+          <div class="col-12 col-sm-6 col-md-3 col-lg-2">
+            <label class="form-label small mb-1 text-muted">Search</label>
+            <div class="input-group input-group-sm">
+              <span class="input-group-text"><i class="fas fa-search"></i></span>
+              <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="System name or code">
+            </div>
+          </div>
+
+          <div class="col-6 col-sm-6 col-md-3 col-lg-2">
+            <label class="form-label small mb-1 text-muted">Billing currency</label>
+            <input type="text" name="billing_currency" value="{{ billing_currency_filter }}" class="form-control form-control-sm" placeholder="e.g. USD">
+          </div>
+
+          <div class="col-6 col-sm-6 col-md-3 col-lg-2">
+            <label class="form-label small mb-1 text-muted">Local currency</label>
+            <input type="text" name="local_currency" value="{{ local_currency_filter }}" class="form-control form-control-sm" placeholder="e.g. EGP">
+          </div>
+
+          <div class="col-6 col-sm-6 col-md-3 col-lg-2">
+            <label class="form-label small mb-1 text-muted">Start Date</label>
+            <input type="date" name="start_date" value="{{ start_date }}" class="form-control form-control-sm">
+          </div>
+
+          <div class="col-6 col-sm-6 col-md-3 col-lg-2">
+            <label class="form-label small mb-1 text-muted">End Date</label>
+            <input type="date" name="end_date" value="{{ end_date }}" class="form-control form-control-sm">
+          </div>
+
+          <div class="col-12 col-md-12 col-lg-2 d-flex gap-2">
+            <button type="submit" class="btn btn-sm btn-primary flex-grow-1">
+              <i class="fas fa-filter me-1"></i> Apply
+            </button>
+            <a href="{% url 'systems:system_dues_notifications' %}" class="btn btn-sm btn-outline-secondary" title="Reset filters">
+              <i class="fas fa-rotate-left"></i>
+            </a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card shadow-sm">
+      <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div class="fw-semibold">
+          <i class="fas fa-table me-2 text-muted"></i> Per-System Dues
+        </div>
+        <div class="text-muted small">
+          Tip: Click column headers to sort.
+        </div>
+      </div>
+
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover table-striped align-middle mb-0" id="dues-table">
+            <thead class="table-light">
+              <tr>
+                <th class="sortable" data-sort="system">System <i class="fas fa-sort ms-1"></i></th>
+                <th class="sortable" data-sort="monthly-billing">Monthly (billing) <i class="fas fa-sort ms-1"></i></th>
+                <th class="sortable" data-sort="yearly-billing">Yearly (billing) <i class="fas fa-sort ms-1"></i></th>
+                <th class="sortable" data-sort="monthly-local">Monthly (local) <i class="fas fa-sort ms-1"></i></th>
+                <th class="sortable" data-sort="yearly-local">Yearly (local) <i class="fas fa-sort ms-1"></i></th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for row in rows %}
+                <tr>
+                  <td data-sort-value="{{ row.system.name|lower }}">
+                    <div class="fw-semibold">
+                      <a href="{% url 'systems:system_detail' row.system.pk %}">
+                        {{ row.system.name }}
+                      </a>
+                    </div>
+                    <div class="text-muted small">{{ row.system.code }}</div>
+                  </td>
+
+                  <td data-sort-value="{{ row.monthly_billing|default:'0' }}">
+                    {% if row.monthly_billing %}
+                      {{ row.monthly_billing|floatformat:2 }} {{ row.billing_currency }}
+                    {% else %}
+                      <span class="text-muted">—</span>
+                    {% endif %}
+                  </td>
+
+                  <td data-sort-value="{{ row.yearly_billing|default:'0' }}">
+                    {% if row.yearly_billing %}
+                      {{ row.yearly_billing|floatformat:2 }} {{ row.billing_currency }}
+                    {% else %}
+                      <span class="text-muted">—</span>
+                    {% endif %}
+                  </td>
+
+                  <td data-sort-value="{{ row.monthly_local|default:'0' }}">
+                    {% if row.monthly_local %}
+                      {{ row.monthly_local|floatformat:2 }} {{ row.local_currency }}
+                    {% else %}
+                      <span class="text-muted">—</span>
+                    {% endif %}
+                  </td>
+
+                  <td data-sort-value="{{ row.yearly_local|default:'0' }}">
+                    {% if row.yearly_local %}
+                      {{ row.yearly_local|floatformat:2 }} {{ row.local_currency }}
+                    {% else %}
+                      <span class="text-muted">—</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="5" class="text-center text-muted py-5">
+                    <div class="mb-2"><i class="fas fa-inbox fa-2x"></i></div>
+                    <div class="fw-semibold">No contract dues captured yet</div>
+                    <div class="small">Once contracts are configured, dues will appear here.</div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
 </div>
 {% endblock %}
 
 {% block extrajs %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const table = document.getElementById('dues-table');
-    if (!table) return;
-    
-    const headers = table.querySelectorAll('th.sortable');
-    const tbody = table.querySelector('tbody');
-    let currentSort = { column: null, direction: 'asc' };
-    
-    // Add click handlers to sortable headers
-    headers.forEach((header, index) => {
-        header.style.cursor = 'pointer';
-        header.addEventListener('click', function() {
-            const sortType = this.getAttribute('data-sort');
-            const isAsc = currentSort.column === sortType && currentSort.direction === 'asc';
-            currentSort = {
-                column: sortType,
-                direction: isAsc ? 'desc' : 'asc'
-            };
-            
-            // Update sort icons
-            headers.forEach(h => {
-                const icon = h.querySelector('i');
-                if (h === this) {
-                    icon.className = isAsc ? 'fas fa-sort-down ms-1' : 'fas fa-sort-up ms-1';
-                } else {
-                    icon.className = 'fas fa-sort ms-1';
-                }
-            });
-            
-            // Sort the table
-            sortTable(tbody, index, isAsc);
-        });
+  const table = document.getElementById('dues-table');
+  if (!table) return;
+
+  const headers = table.querySelectorAll('th.sortable');
+  const tbody = table.querySelector('tbody');
+  let currentSort = { column: null, direction: 'asc' };
+
+  headers.forEach((header, index) => {
+    header.style.cursor = 'pointer';
+    header.addEventListener('click', function() {
+      const sortType = this.getAttribute('data-sort');
+      const isAsc = currentSort.column === sortType && currentSort.direction === 'asc';
+      currentSort = { column: sortType, direction: isAsc ? 'desc' : 'asc' };
+
+      headers.forEach(h => {
+        const icon = h.querySelector('i');
+        if (!icon) return;
+        if (h === this) {
+          icon.className = isAsc ? 'fas fa-sort-down ms-1' : 'fas fa-sort-up ms-1';
+        } else {
+          icon.className = 'fas fa-sort ms-1';
+        }
+      });
+
+      sortTable(tbody, index, isAsc);
     });
-    
-    function sortTable(tbody, columnIndex, ascending) {
-        const rows = Array.from(tbody.querySelectorAll('tr'));
-        
-        rows.sort((a, b) => {
-            const aCell = a.cells[columnIndex];
-            const bCell = b.cells[columnIndex];
-            
-            // Get sort value from data attribute or text content
-            let aValue = aCell.getAttribute('data-sort-value');
-            let bValue = bCell.getAttribute('data-sort-value');
-            
-            if (aValue === null) {
-                aValue = aCell.textContent.trim();
-            }
-            if (bValue === null) {
-                bValue = bCell.textContent.trim();
-            }
-            
-            // Handle numeric values (for dues columns)
-            if (columnIndex >= 1 && columnIndex <= 4) {
-                aValue = parseFloat(aValue) || 0;
-                bValue = parseFloat(bValue) || 0;
-                return ascending ? aValue - bValue : bValue - aValue;
-            }
-            
-            // Handle text values (for system name)
-            aValue = aValue.toLowerCase();
-            bValue = bValue.toLowerCase();
-            
-            if (aValue < bValue) return ascending ? -1 : 1;
-            if (aValue > bValue) return ascending ? 1 : -1;
-            return 0;
-        });
-        
-        // Re-append sorted rows
-        rows.forEach(row => tbody.appendChild(row));
-    }
-    
-    // Default sort by Monthly (billing) - Per-System Dues column (index 1)
-    if (headers.length > 1) {
-        headers[1].click(); // Trigger sort on Monthly (billing) column
-    }
+  });
+
+  function sortTable(tbody, columnIndex, ascending) {
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    rows.sort((a, b) => {
+      const aCell = a.cells[columnIndex];
+      const bCell = b.cells[columnIndex];
+
+      let aValue = aCell.getAttribute('data-sort-value');
+      let bValue = bCell.getAttribute('data-sort-value');
+
+      if (aValue === null) aValue = aCell.textContent.trim();
+      if (bValue === null) bValue = bCell.textContent.trim();
+
+      // numeric columns 1..4
+      if (columnIndex >= 1 && columnIndex <= 4) {
+        aValue = parseFloat(aValue) || 0;
+        bValue = parseFloat(bValue) || 0;
+        return ascending ? aValue - bValue : bValue - aValue;
+      }
+
+      // text column 0
+      aValue = String(aValue).toLowerCase();
+      bValue = String(bValue).toLowerCase();
+      if (aValue < bValue) return ascending ? -1 : 1;
+      if (aValue > bValue) return ascending ? 1 : -1;
+      return 0;
+    });
+
+    rows.forEach(row => tbody.appendChild(row));
+  }
+
+  // Default sort by Monthly (billing) column (index 1)
+  if (headers.length > 1) headers[1].click();
 });
 </script>
+
 <style>
-th.sortable {
-    user-select: none;
-    position: relative;
-}
-th.sortable:hover {
-    background-color: rgba(0, 0, 0, 0.05);
-}
-html.dark-mode th.sortable:hover,
-body.dark-mode th.sortable:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-th.sortable i {
-    opacity: 0.5;
-    font-size: 0.85em;
-}
-th.sortable:hover i {
-    opacity: 1;
-}
+  th.sortable { user-select: none; }
+  th.sortable i { opacity: .55; font-size: .85em; }
+  th.sortable:hover { background: rgba(0,0,0,.04); }
+  th.sortable:hover i { opacity: 1; }
 </style>
 {% endblock %}
-
-
-
