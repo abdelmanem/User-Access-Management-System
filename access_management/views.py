@@ -979,7 +979,7 @@ def access_assignment_list(request):
     search_query = request.GET.get('search', '')
     
     # NEW: View mode parameter
-    view_mode = request.GET.get('view_mode', 'system')  # 'system' or 'user'
+    view_mode = request.GET.get('view_mode', 'user')  # 'system' or 'user'
     
     # NEW: Additional filters
     days_to_expiry = request.GET.get('days_to_expiry', '')
