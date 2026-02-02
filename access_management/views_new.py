@@ -27,12 +27,13 @@ from .forms_new import (
 def approval_dashboard(request):
     """Dashboard showing pending approvals for the current user."""
     
+    my_approvals = []
+    
+    # 1. Workflow-based approvals
     pending_workflows = ApprovalWorkflow.objects.filter(
         status__in=['Pending', 'In Progress']
     ).select_related('user_system_access__user', 'user_system_access__system')
     
-    # Filter to only those assigned to current user
-    my_approvals = []
     for workflow in pending_workflows:
         for step in workflow.steps.all():
             if step.approver == request.user:
@@ -41,6 +42,39 @@ def approval_dashboard(request):
                     'step': step,
                     'access': workflow.user_system_access
                 })
+    
+    # 2. Simple pending access assignments (non-workflow)
+    from systems.models import System
+    
+    # Get pending assignments where user can approve
+    pending_assignments = UserSystemAccess.objects.filter(
+        status='Pending'
+    ).select_related('user', 'system', 'system__system_owner')
+    
+    # Filter based on user permissions and assignments
+    if request.user.is_superuser or request.user.is_staff:
+        # Superusers/staff can approve any pending assignment
+        pass  # Include all pending assignments
+    else:
+        # Regular users can approve if:
+        # - They are set as the approver (approved_by field)
+        # - They are the system owner
+        # - No specific approver is set (approved_by is null - general approval needed)
+        pending_assignments = pending_assignments.filter(
+            Q(approved_by=request.user) |
+            Q(approved_by__isnull=True) |
+            Q(system__system_owner=request.user)
+        )
+    
+    # Add simple pending assignments to approvals list
+    for assignment in pending_assignments:
+        # Skip if already in workflow approvals
+        if not any(a.get('access') and a['access'].id == assignment.id for a in my_approvals):
+            my_approvals.append({
+                'workflow': None,
+                'step': None,
+                'access': assignment
+            })
     
     return render(request, 'access_management/approval_dashboard.html', {
         'approvals': my_approvals,
