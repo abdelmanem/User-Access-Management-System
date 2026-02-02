@@ -1,741 +1,363 @@
 {% extends "base.html" %}
 {% load static %}
 {% load dict_extras %}
-
 {% block title %}Cross-System Account Mapping{% endblock %}
 
 {% block extra_css %}
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
 <style>
-  :root {
-    --primary-color: #2563eb;
-    --primary-hover: #1d4ed8;
-    --success-color: #10b981;
-    --danger-color: #ef4444;
-    --warning-color: #f59e0b;
-    --info-color: #06b6d4;
-    --background-light: #f8fafc;
-    --surface-white: #ffffff;
-    --border-color: #e2e8f0;
-    --text-primary: #0f172a;
-    --text-secondary: #64748b;
-    --text-muted: #94a3b8;
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-    --radius-sm: 0.375rem;
-    --radius-md: 0.5rem;
-    --radius-lg: 0.75rem;
-    --radius-xl: 1rem;
+  :root{
+    --primary:#2563eb;
+    --bg1:#f8fafc;
+    --bg2:#e0e7ff;
+    --border:#e2e8f0;
+    --text:#0f172a;
+    --muted:#64748b;
+    --muted2:#94a3b8;
+
+    --shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow2: 0 20px 25px -5px rgb(0 0 0 / 0.12), 0 8px 10px -6px rgb(0 0 0 / 0.12);
+
+    /* Sticky left columns widths (keep consistent with table col sizes) */
+    --col-emp: 220px;
+    --col-eid: 140px;
+    --col-dept: 170px;
+
+    /* Matrix panel height (prevents page stretching) */
+    --matrix-height: min(65vh, 650px);
   }
 
-  * {
-    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  }
+  * { font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  body { background: linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%); color: var(--text); }
 
-  body {
-    background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
-    color: var(--text-primary);
-  }
-
-  .page-header {
-    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-    color: white;
-    padding: 2.5rem 0;
-    margin-bottom: 2rem;
-    box-shadow: var(--shadow-lg);
-    border-radius: 0 0 var(--radius-xl) var(--radius-xl);
-    animation: slideDown 0.6s ease-out;
-  }
-
-  @keyframes slideDown {
-    from {
-      transform: translateY(-30px);
-      opacity: 0;
-    }
-    to {
-      transform: translateY(0);
-      opacity: 1;
-    }
-  }
-
-  @keyframes fadeInUp {
-    from {
-      transform: translateY(20px);
-      opacity: 0;
-    }
-    to {
-      transform: translateY(0);
-      opacity: 1;
-    }
-  }
-
-  .page-header h1 {
-    font-size: 2rem;
-    font-weight: 700;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .page-header .subtitle {
-    font-size: 0.95rem;
-    opacity: 0.9;
-    margin-top: 0.5rem;
-  }
-
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-  }
-
-  .stat-card {
-    background: var(--surface-white);
-    border-radius: var(--radius-lg);
-    padding: 1.75rem;
-    box-shadow: var(--shadow-md);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-    animation: fadeInUp 0.6s ease-out backwards;
-  }
-
-  .stat-card:nth-child(1) { animation-delay: 0.1s; }
-  .stat-card:nth-child(2) { animation-delay: 0.2s; }
-  .stat-card:nth-child(3) { animation-delay: 0.3s; }
-
-  .stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 4px;
-    height: 100%;
-    transition: width 0.3s ease;
-  }
-
-  .stat-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-xl);
-  }
-
-  .stat-card:hover::before {
-    width: 100%;
-    opacity: 0.05;
-  }
-
-  .stat-card.primary::before { background: var(--primary-color); }
-  .stat-card.success::before { background: var(--success-color); }
-  .stat-card.info::before { background: var(--info-color); }
-
-  .stat-card .icon {
-    width: 48px;
-    height: 48px;
-    border-radius: var(--radius-md);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
+  /* ===== Header (compact so you don't need zoom-out) ===== */
+  .page-header{
+    background: linear-gradient(135deg,#1e40af 0%,#3b82f6 100%);
+    color:#fff;
+    padding: 1.25rem 0;
     margin-bottom: 1rem;
+    border-radius: 0 0 1rem 1rem;
+    box-shadow: var(--shadow);
   }
-
-  .stat-card.primary .icon {
-    background: rgba(37, 99, 235, 0.1);
-    color: var(--primary-color);
-  }
-
-  .stat-card.success .icon {
-    background: rgba(16, 185, 129, 0.1);
-    color: var(--success-color);
-  }
-
-  .stat-card.info .icon {
-    background: rgba(6, 182, 212, 0.1);
-    color: var(--info-color);
-  }
-
-  .stat-card .label {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .stat-card .value {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin-top: 0.5rem;
-    background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .main-card {
-    background: var(--surface-white);
-    border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-lg);
-    overflow: hidden;
-    animation: fadeInUp 0.6s ease-out 0.4s backwards;
-  }
-
-  .filters-section {
-    padding: 1.5rem;
-    background: linear-gradient(to bottom, #f8fafc 0%, white 100%);
-    border-bottom: 1px solid var(--border-color);
-  }
-
-  .filters-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    padding: 0.75rem;
-    border-radius: var(--radius-md);
-    transition: background 0.2s ease;
-  }
-
-  .filters-header:hover {
-    background: rgba(0, 0, 0, 0.02);
-  }
-
-  .filters-header h5 {
+  .page-header h1{
+    font-size: clamp(1.25rem, 2vw, 1.7rem);
+    font-weight: 800;
     margin: 0;
-    font-size: 1.1rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    color: var(--text-primary);
+    display:flex;
+    gap:.75rem;
+    align-items:center;
+  }
+  .page-header .subtitle{ opacity:.9; font-size:.9rem; margin-top:.25rem; }
+
+  .header-actions{
+    display:flex;
+    gap:.5rem;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:flex-end;
+  }
+  .header-actions .btn{
+    border-radius:.6rem;
+    font-weight:700;
   }
 
-  .toggle-btn {
-    background: transparent;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-    color: var(--text-secondary);
+  /* ===== Stats compact ===== */
+  .stats-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin: 1rem 0;
+  }
+  .stat-card{
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius: .9rem;
+    padding: 1rem;
+    box-shadow: 0 6px 12px rgba(0,0,0,.06);
+    transition: transform .2s ease, box-shadow .2s ease;
+  }
+  .stat-card:hover{ transform: translateY(-2px); box-shadow: var(--shadow2); }
+  .stat-card .top{ display:flex; align-items:center; justify-content:space-between; }
+  .stat-icon{
+    width:42px;height:42px;border-radius:.75rem;
+    display:flex;align-items:center;justify-content:center;
+    background: rgba(37,99,235,.12);
+    color: var(--primary);
+    font-size: 1.25rem;
+  }
+  .stat-label{ font-size:.8rem; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; font-weight:700; }
+  .stat-value{ font-size:1.8rem; font-weight:900; margin-top:.25rem; }
+
+  /* ===== Main card layout ===== */
+  .main-card{
+    background:#fff;
+    border-radius: 1rem;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    overflow:hidden;
   }
 
-  .toggle-btn:hover {
-    background: var(--background-light);
-    border-color: var(--primary-color);
-    color: var(--primary-color);
+  /* Filters section */
+  .filters-section{
+    padding: 1rem;
+    background: linear-gradient(to bottom, #f8fafc 0%, #ffffff 100%);
+    border-bottom: 1px solid var(--border);
+  }
+  .filters-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    cursor:pointer;
+    padding:.6rem .75rem;
+    border-radius:.75rem;
+  }
+  .filters-header:hover{ background: rgba(0,0,0,.03); }
+  .filters-header h5{
+    margin:0;
+    font-size:1rem;
+    font-weight:800;
+    display:flex;
+    align-items:center;
+    gap:.6rem;
+  }
+  .toggle-btn{
+    width:34px;height:34px;border-radius:.6rem;
+    border:1px solid var(--border);
+    background:#fff;
+    display:flex;align-items:center;justify-content:center;
+    transition: all .2s ease;
+    color: var(--muted);
+  }
+  .toggle-btn:hover{ border-color: var(--primary); color: var(--primary); }
+  .toggle-btn i{ transition: transform .25s ease; }
+  .toggle-btn.collapsed i{ transform: rotate(180deg); }
+
+  .filters-content{ margin-top: 1rem; }
+  .filters-content.collapsed{ max-height:0; opacity:0; overflow:hidden; margin-top:0; }
+
+  .form-label{ font-weight:800; font-size:.85rem; color:var(--text); }
+  .form-control, .form-select{
+    border-radius:.7rem;
+    border:1px solid var(--border);
+    padding:.6rem .8rem;
+  }
+  .form-control:focus, .form-select:focus{
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+  }
+  .checkbox-wrap{
+    display:flex;
+    gap:.6rem;
+    align-items:center;
+    padding:.65rem .8rem;
+    border-radius:.7rem;
+    border:1px dashed var(--border);
+    background:#fff;
+    height: 100%;
+  }
+  .checkbox-wrap:hover{ background: rgba(0,0,0,.02); }
+
+  /* ===== Matrix area ===== */
+  .table-section{
+    padding: 1rem;
+    display:flex;
+    flex-direction:column;
+    gap: .75rem;
+  }
+  .table-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap: 1rem;
+    flex-wrap:wrap;
+  }
+  .table-header h5{
+    margin:0;
+    font-size:1.05rem;
+    font-weight:900;
+    display:flex;
+    align-items:center;
+    gap:.6rem;
+  }
+  .table-info{ color: var(--muted2); font-size:.85rem; }
+  .table-actions{ display:flex; gap:.5rem; flex-wrap:wrap; }
+
+  /* The “separated card panel” you requested */
+  .matrix-panel{
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: .9rem;
+    padding: .5rem;
   }
 
-  .toggle-btn i {
-    transition: transform 0.3s ease;
-  }
-
-  .toggle-btn.collapsed i {
-    transform: rotate(180deg);
-  }
-
-  .filters-content {
-    margin-top: 1.5rem;
-    transition: all 0.3s ease;
-    overflow: hidden;
-  }
-
-  .filters-content.collapsed {
-    max-height: 0;
-    margin-top: 0;
-    opacity: 0;
-  }
-
-  .form-label {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 0.5rem;
-    display: block;
-  }
-
-  .form-control, .form-select {
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    padding: 0.625rem 0.875rem;
-    font-size: 0.9375rem;
-    transition: all 0.2s ease;
-    background: white;
-  }
-
-  .form-control:focus, .form-select:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-    outline: none;
-  }
-
-  .custom-checkbox {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    border-radius: var(--radius-md);
-    transition: background 0.2s ease;
-    cursor: pointer;
-  }
-
-  .custom-checkbox:hover {
-    background: var(--background-light);
-  }
-
-  .custom-checkbox input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-    accent-color: var(--primary-color);
-  }
-
-  .custom-checkbox label {
-    margin: 0;
-    cursor: pointer;
-    font-size: 0.9375rem;
-    font-weight: 500;
-  }
-
-  .btn {
-    padding: 0.625rem 1.25rem;
-    border-radius: var(--radius-md);
-    font-weight: 600;
-    font-size: 0.9375rem;
-    transition: all 0.2s ease;
-    border: none;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .btn-primary {
-    background: linear-gradient(135deg, var(--primary-color) 0%, #1d4ed8 100%);
-    color: white;
-    box-shadow: var(--shadow-sm);
-  }
-
-  .btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
-  }
-
-  .btn-outline-secondary {
-    background: white;
-    color: var(--text-secondary);
-    border: 1px solid var(--border-color);
-  }
-
-  .btn-outline-secondary:hover {
-    background: var(--background-light);
-    border-color: var(--text-secondary);
-  }
-
-  .btn-outline-primary {
-    background: white;
-    color: var(--primary-color);
-    border: 1px solid var(--primary-color);
-  }
-
-  .btn-outline-primary:hover {
-    background: var(--primary-color);
-    color: white;
-  }
-
-  .btn-outline-success {
-    background: white;
-    color: var(--success-color);
-    border: 1px solid var(--success-color);
-  }
-
-  .btn-outline-success:hover {
-    background: var(--success-color);
-    color: white;
-  }
-
-  .table-section {
-    padding: 1.5rem;
-  }
-
-  .table-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid var(--border-color);
-  }
-
-  .table-header h5 {
-    margin: 0;
-    font-size: 1.1rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  .table-info {
-    font-size: 0.875rem;
-    color: var(--text-muted);
-  }
-
-  .table-container {
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border-color);
-    overflow: hidden;
-  }
-
-  .table-responsive {
-    max-height: 600px;
+  /* ✅ Self-contained scroll container (both directions) */
+  .matrix-scroll{
+    height: var(--matrix-height);
     overflow: auto;
-    position: relative;
+    background:#fff;
+    border-radius: .75rem;
+    border: 1px solid var(--border);
   }
 
-  /* Custom scrollbar */
-  .table-responsive::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-  }
+  /* Scrollbar */
+  .matrix-scroll::-webkit-scrollbar{ width:10px; height:10px; }
+  .matrix-scroll::-webkit-scrollbar-track{ background:#f1f5f9; }
+  .matrix-scroll::-webkit-scrollbar-thumb{ background:#cbd5e1; border-radius: 8px; }
+  .matrix-scroll::-webkit-scrollbar-thumb:hover{ background:#94a3b8; }
 
-  .table-responsive::-webkit-scrollbar-track {
-    background: var(--background-light);
-  }
-
-  .table-responsive::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 5px;
-  }
-
-  .table-responsive::-webkit-scrollbar-thumb:hover {
-    background: var(--text-muted);
-  }
-
-  .data-table {
-    width: 100%;
+  /* Table sizing */
+  table.matrix{
     border-collapse: separate;
     border-spacing: 0;
-    font-size: 0.875rem;
+    font-size: .85rem;
+    width: max(100%, 1200px);   /* allows horizontal scroll if needed */
+    table-layout: fixed;         /* prevents column explosion */
   }
 
-  .data-table thead {
+  table.matrix thead th{
     position: sticky;
     top: 0;
-    z-index: 10;
+    z-index: 20;
     background: linear-gradient(to bottom, #f1f5f9 0%, #e2e8f0 100%);
+    border-bottom: 2px solid var(--border);
+    padding: .55rem .6rem;
+    text-align:left;
+    font-weight:900;
+    color: var(--text);
+    white-space: normal;
+    line-height: 1.2;
   }
 
-  .data-table thead th {
-    padding: 1rem 0.875rem;
-    text-align: left;
-    font-weight: 600;
-    color: var(--text-primary);
-    border-bottom: 2px solid var(--border-color);
-    white-space: nowrap;
-    user-select: none;
-  }
-
-  .data-table thead th.sortable {
-    cursor: pointer;
-    transition: background 0.2s ease;
-  }
-
-  .data-table thead th.sortable:hover {
-    background: rgba(37, 99, 235, 0.05);
-  }
-
-  .data-table thead th.sort-asc::after {
-    content: " ↑";
-    color: var(--primary-color);
-    font-weight: bold;
-  }
-
-  .data-table thead th.sort-desc::after {
-    content: " ↓";
-    color: var(--primary-color);
-    font-weight: bold;
-  }
-
-  .data-table thead th.resizable {
-    position: relative;
-  }
-
-  .resize-handle {
-    position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 4px;
-    height: 60%;
-    background: var(--border-color);
-    cursor: col-resize;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-    border-radius: 2px;
-  }
-
-  .data-table thead th:hover .resize-handle {
-    opacity: 1;
-  }
-
-  .resize-handle:hover {
-    background: var(--primary-color);
-  }
-
-  .data-table tbody tr {
-    transition: all 0.2s ease;
-    border-bottom: 1px solid var(--border-color);
-  }
-
-  .data-table tbody tr:hover {
-    background: linear-gradient(to right, rgba(37, 99, 235, 0.03) 0%, rgba(37, 99, 235, 0.01) 100%);
-  }
-
-  .data-table tbody td {
-    padding: 0.875rem;
+  table.matrix tbody td{
+    border-bottom: 1px solid #edf2f7;
+    padding: .55rem .6rem;
     vertical-align: middle;
+    white-space: normal;
   }
 
-  .user-cell {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
+  table.matrix tbody tr:hover{
+    background: rgba(37,99,235,.03);
   }
 
-  .user-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--primary-color) 0%, #3b82f6 100%);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 0.875rem;
-    flex-shrink: 0;
+  /* Sticky first 3 columns for horizontal scroll */
+  table.matrix thead th:nth-child(1),
+  table.matrix tbody td:nth-child(1){
+    position: sticky;
+    left: 0;
+    z-index: 30;
+    background: #fff;
+    min-width: var(--col-emp);
+    width: var(--col-emp);
+    border-right: 1px solid var(--border);
+  }
+  table.matrix thead th:nth-child(1){ background: linear-gradient(to bottom, #f1f5f9 0%, #e2e8f0 100%); }
+
+  table.matrix thead th:nth-child(2),
+  table.matrix tbody td:nth-child(2){
+    position: sticky;
+    left: var(--col-emp);
+    z-index: 30;
+    background: #fff;
+    min-width: var(--col-eid);
+    width: var(--col-eid);
+    border-right: 1px solid var(--border);
+  }
+  table.matrix thead th:nth-child(2){ background: linear-gradient(to bottom, #f1f5f9 0%, #e2e8f0 100%); }
+
+  table.matrix thead th:nth-child(3),
+  table.matrix tbody td:nth-child(3){
+    position: sticky;
+    left: calc(var(--col-emp) + var(--col-eid));
+    z-index: 30;
+    background: #fff;
+    min-width: var(--col-dept);
+    width: var(--col-dept);
+    border-right: 2px solid var(--border);
+  }
+  table.matrix thead th:nth-child(3){ background: linear-gradient(to bottom, #f1f5f9 0%, #e2e8f0 100%); }
+
+  /* User cell */
+  .user-cell{ display:flex; gap:.65rem; align-items:center; }
+  .avatar{
+    width:36px;height:36px;border-radius:50%;
+    background: linear-gradient(135deg, var(--primary), #3b82f6);
+    color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:900;
+    flex:0 0 auto;
+  }
+  .user-name{ font-weight:900; }
+  .user-meta{ font-size:.75rem; color: var(--muted2); }
+
+  /* Account cell */
+  .username{
+    font-family:'JetBrains Mono', monospace;
+    font-weight:700;
+    font-size:.82rem;
+    color: var(--text);
+  }
+  .meta-row{ margin-top:.25rem; display:flex; flex-wrap:wrap; gap:.25rem; justify-content:center; }
+  .pill{
+    font-family:'JetBrains Mono', monospace;
+    font-size:.72rem;
+    font-weight:800;
+    padding:.2rem .5rem;
+    border-radius:.55rem;
+    display:inline-flex; align-items:center; gap:.25rem;
+    white-space:nowrap;
+  }
+  .pill-generic{ background: rgba(239,68,68,.12); color:#ef4444; }
+  .pill-verified{ background: rgba(16,185,129,.12); color:#10b981; }
+  .pill-info{ background: rgba(6,182,212,.12); color:#06b6d4; }
+  .pill-warn{ background: rgba(245,158,11,.14); color:#f59e0b; }
+  .pill-ok{ background: rgba(16,185,129,.12); color:#10b981; }
+
+  .empty{
+    text-align:center;
+    color: var(--muted2);
+    padding: 2.5rem 1rem;
   }
 
-  .user-info .name {
-    font-weight: 600;
-    color: var(--text-primary);
+  /* Fullscreen matrix */
+  .fullscreen{
+    position: fixed;
+    inset: 1rem;
+    z-index: 1050;
+    box-shadow: var(--shadow2);
+  }
+  .fullscreen .matrix-scroll{
+    height: calc(100dvh - 260px);
   }
 
-  .user-info .meta {
-    font-size: 0.8125rem;
-    color: var(--text-muted);
-  }
-
-  .badge {
-    padding: 0.25rem 0.625rem;
-    border-radius: var(--radius-sm);
-    font-size: 0.75rem;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    font-family: 'JetBrains Mono', monospace;
-  }
-
-  .badge-success {
-    background: rgba(16, 185, 129, 0.1);
-    color: var(--success-color);
-  }
-
-  .badge-warning {
-    background: rgba(245, 158, 11, 0.1);
-    color: var(--warning-color);
-  }
-
-  .badge-info {
-    background: rgba(6, 182, 212, 0.1);
-    color: var(--info-color);
-  }
-
-  .badge-generic {
-    background: rgba(239, 68, 68, 0.1);
-    color: var(--danger-color);
-  }
-
-  .username-cell {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-
-  .username {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--text-primary);
-  }
-
-  .username-meta {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
-  }
-
-  .verification-icon {
-    color: var(--success-color);
-  }
-
-  .empty-state {
-    text-align: center;
-    padding: 3rem 2rem;
-    color: var(--text-muted);
-  }
-
-  .empty-state i {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    opacity: 0.3;
-  }
-
-  .pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 1.5rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--border-color);
-  }
-
-  .pagination .page-link {
-    padding: 0.5rem 0.875rem;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    color: var(--text-primary);
-    text-decoration: none;
-    transition: all 0.2s ease;
-    font-weight: 500;
-    background: white;
-  }
-
-  .pagination .page-link:hover {
-    background: var(--background-light);
-    border-color: var(--primary-color);
-    color: var(--primary-color);
-  }
-
-  .pagination .page-link.active {
-    background: var(--primary-color);
-    border-color: var(--primary-color);
-    color: white;
-  }
-
-  .pagination .page-link.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .action-buttons {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .tooltip-wrapper {
-    position: relative;
-    display: inline-block;
-  }
-
-  .tooltip-text {
-    visibility: hidden;
-    background-color: var(--text-primary);
-    color: white;
-    text-align: center;
-    border-radius: var(--radius-sm);
-    padding: 0.5rem 0.75rem;
-    position: absolute;
-    z-index: 1000;
-    bottom: 125%;
-    left: 50%;
-    transform: translateX(-50%);
-    white-space: nowrap;
-    opacity: 0;
-    transition: opacity 0.3s;
-    font-size: 0.8125rem;
-  }
-
-  .tooltip-wrapper:hover .tooltip-text {
-    visibility: visible;
-    opacity: 1;
-  }
-
-  @media (max-width: 768px) {
-    .page-header {
-      padding: 1.5rem 0;
-    }
-
-    .page-header h1 {
-      font-size: 1.5rem;
-    }
-
-    .stats-grid {
-      grid-template-columns: 1fr;
-      gap: 1rem;
-    }
-
-    .stat-card .value {
-      font-size: 2rem;
-    }
-
-    .filters-content .row {
-      flex-direction: column;
-    }
-
-    .action-buttons {
-      flex-direction: column;
-    }
-  }
-
-  /* Loading skeleton */
-  @keyframes shimmer {
-    0% { background-position: -1000px 0; }
-    100% { background-position: 1000px 0; }
-  }
-
-  .skeleton {
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-    background-size: 1000px 100%;
-    animation: shimmer 2s infinite;
-    border-radius: var(--radius-sm);
+  @media(max-width: 768px){
+    :root{ --matrix-height: min(70vh, 620px); }
+    .header-actions{ justify-content:flex-start; }
   }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Page Header -->
+<!-- Header -->
 <div class="page-header">
   <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
       <div>
-        <h1>
-          <i class="fas fa-network-wired"></i>
-          Cross-System Account Mapping
-        </h1>
+        <h1><i class="fas fa-network-wired"></i> Cross-System Account Mapping</h1>
         <div class="subtitle">View and manage user accounts across all systems</div>
       </div>
-      <div class="action-buttons">
-        <a href="{% url 'access_management:access_assignment_list' %}" class="btn btn-outline-secondary" style="border-color: rgba(255, 255, 255, 0.3); color: white;">
-          <i class="fas fa-arrow-left"></i> Back to Assignments
+
+      <div class="header-actions">
+        <a href="{% url 'access_management:access_assignment_list' %}" class="btn btn-outline-light">
+          <i class="fas fa-arrow-left me-1"></i> Back
         </a>
-        <button type="button" class="btn btn-outline-primary" onclick="exportMapping('csv')" style="border-color: rgba(255, 255, 255, 0.3); color: white;">
-          <i class="fas fa-file-csv"></i> Export CSV
+
+        <button type="button" class="btn btn-outline-light" onclick="exportMapping('csv')">
+          <i class="fas fa-file-csv me-1"></i> CSV
         </button>
-        <button type="button" class="btn btn-outline-success" onclick="exportMapping('xlsx')" style="border-color: rgba(255, 255, 255, 0.3); color: white;">
-          <i class="fas fa-file-excel"></i> Export Excel
+
+        <button type="button" class="btn btn-outline-light" onclick="exportMapping('xlsx')">
+          <i class="fas fa-file-excel me-1"></i> Excel
         </button>
       </div>
     </div>
@@ -743,350 +365,276 @@
 </div>
 
 <div class="container-fluid">
-  <!-- Statistics Cards -->
+
+  <!-- Stats -->
   <div class="stats-grid">
-    <div class="stat-card primary">
-      <div class="icon">
-        <i class="fas fa-users"></i>
+    <div class="stat-card">
+      <div class="top">
+        <div>
+          <div class="stat-label">Total Users</div>
+          <div class="stat-value">{{ total_users }}</div>
+        </div>
+        <div class="stat-icon"><i class="fas fa-users"></i></div>
       </div>
-      <div class="label">Total Users</div>
-      <div class="value">{{ total_users }}</div>
     </div>
-    <div class="stat-card success">
-      <div class="icon">
-        <i class="fas fa-check-circle"></i>
+
+    <div class="stat-card">
+      <div class="top">
+        <div>
+          <div class="stat-label">Users with Access</div>
+          <div class="stat-value">{{ users_with_access }}</div>
+        </div>
+        <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
       </div>
-      <div class="label">Users with Access</div>
-      <div class="value">{{ users_with_access }}</div>
     </div>
-    <div class="stat-card info">
-      <div class="icon">
-        <i class="fas fa-server"></i>
+
+    <div class="stat-card">
+      <div class="top">
+        <div>
+          <div class="stat-label">Total Systems</div>
+          <div class="stat-value">{{ total_systems }}</div>
+        </div>
+        <div class="stat-icon"><i class="fas fa-server"></i></div>
       </div>
-      <div class="label">Total Systems</div>
-      <div class="value">{{ total_systems }}</div>
     </div>
   </div>
 
-  <!-- Main Card -->
-  <div class="main-card">
-    <!-- Filters Section -->
+  <!-- Main -->
+  <div class="main-card" id="matrixCard">
+
+    <!-- Filters -->
     <div class="filters-section">
       <div class="filters-header" id="filtersToggle">
-        <h5>
-          <i class="fas fa-sliders-h"></i>
-          Filters & Search
-        </h5>
-        <button type="button" class="toggle-btn" id="filtersCollapseBtn">
-          <i class="fas fa-chevron-up"></i>
-        </button>
+        <h5><i class="fas fa-sliders-h"></i> Filters & Search</h5>
+        <button type="button" class="toggle-btn" id="filtersCollapseBtn"><i class="fas fa-chevron-up"></i></button>
       </div>
+
       <div class="filters-content" id="filtersContent">
-        <form method="get" class="row g-3">
+        <form method="get" class="row g-3 mt-1">
+
           <div class="col-md-3">
-            <label for="search" class="form-label">
-              <i class="fas fa-search"></i> Search
-            </label>
-            <input 
-              type="text" 
-              class="form-control" 
-              id="search" 
-              name="search" 
-              value="{{ search }}" 
-              placeholder="Name, Username, Employee ID...">
+            <label for="search" class="form-label"><i class="fas fa-search me-1"></i> Search</label>
+            <input type="text" class="form-control" id="search" name="search" value="{{ search }}"
+                   placeholder="Name, username, employee ID...">
           </div>
+
           <div class="col-md-3">
-            <label for="department" class="form-label">
-              <i class="fas fa-building"></i> Department
-            </label>
+            <label for="department" class="form-label"><i class="fas fa-building me-1"></i> Department</label>
             <select class="form-select" id="department" name="department">
               <option value="">All Departments</option>
               {% for dept in departments %}
-              <option value="{{ dept.pk }}" {% if selected_department_id == dept.pk|stringformat:"s" %}selected{% endif %}>
-                {{ dept.name }}
-              </option>
+                <option value="{{ dept.pk }}" {% if selected_department_id == dept.pk|stringformat:"s" %}selected{% endif %}>
+                  {{ dept.name }}
+                </option>
               {% endfor %}
             </select>
           </div>
+
           <div class="col-md-3">
-            <label for="system" class="form-label">
-              <i class="fas fa-server"></i> System
-            </label>
+            <label for="system" class="form-label"><i class="fas fa-server me-1"></i> System</label>
             <select class="form-select" id="system" name="system">
               <option value="">All Systems</option>
               {% for sys in systems %}
-              <option value="{{ sys.pk }}" {% if selected_system_id == sys.pk|stringformat:"s" %}selected{% endif %}>
-                {{ sys.name }}
-              </option>
+                <option value="{{ sys.pk }}" {% if selected_system_id == sys.pk|stringformat:"s" %}selected{% endif %}>
+                  {{ sys.name }}
+                </option>
               {% endfor %}
             </select>
           </div>
+
           <div class="col-md-3">
             <label class="form-label">&nbsp;</label>
-            <div class="custom-checkbox">
-              <input 
-                class="form-check-input" 
-                type="checkbox" 
-                id="show_only_with_access" 
-                name="show_only_with_access" 
-                value="true" 
-                {% if show_only_with_access %}checked{% endif %}>
-              <label class="form-check-label" for="show_only_with_access">
-                Only users with access
-              </label>
+            <div class="checkbox-wrap">
+              <input class="form-check-input" type="checkbox" id="show_only_with_access"
+                     name="show_only_with_access" value="true" {% if show_only_with_access %}checked{% endif %}>
+              <label class="form-check-label fw-semibold" for="show_only_with_access">Only users with access</label>
             </div>
           </div>
-          <div class="col-12">
+
+          <div class="col-12 d-flex gap-2 flex-wrap">
             <button type="submit" class="btn btn-primary">
-              <i class="fas fa-search"></i> Apply Filters
+              <i class="fas fa-filter me-1"></i> Apply
             </button>
             <a href="{% url 'access_management:cross_system_account_mapping' %}" class="btn btn-outline-secondary">
-              <i class="fas fa-times"></i> Clear Filters
+              <i class="fas fa-times me-1"></i> Clear
             </a>
           </div>
+
         </form>
       </div>
     </div>
 
-    <!-- Table Section -->
+    <!-- Matrix -->
     <div class="table-section">
       <div class="table-header">
-        <h5>
-          <i class="fas fa-table"></i>
-          Account Mapping Matrix
-        </h5>
-        <div class="table-info">
-          Showing {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ page_obj.paginator.count }} users
+        <div>
+          <h5><i class="fas fa-table"></i> Account Mapping Matrix</h5>
+          <div class="table-info">Showing {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ page_obj.paginator.count }} users</div>
+        </div>
+
+        <div class="table-actions">
+          <button type="button" class="btn btn-outline-primary" id="fullscreenBtn">
+            <i class="fas fa-expand me-1"></i> Fullscreen
+          </button>
         </div>
       </div>
 
       {% if page_obj %}
-      <div class="table-container">
-        <div class="table-responsive">
-          <table class="data-table sortable-table">
-            <thead>
-              <tr>
-                <th rowspan="2" class="sortable resizable" style="min-width: 220px;">
-                  <i class="fas fa-user"></i> Employee
-                  <div class="resize-handle"></div>
-                </th>
-                <th rowspan="2" class="sortable resizable" style="min-width: 140px;">
-                  <i class="fas fa-id-badge"></i> Employee ID
-                  <div class="resize-handle"></div>
-                </th>
-                <th rowspan="2" class="sortable resizable" style="min-width: 160px;">
-                  <i class="fas fa-building"></i> Department
-                  <div class="resize-handle"></div>
-                </th>
-                <th colspan="{{ systems.count }}" class="text-center" style="border-left: 2px solid var(--border-color);">
-                  <i class="fas fa-server"></i> System Accounts
-                </th>
-              </tr>
-              <tr>
-                {% for system in systems %}
-                <th class="text-center resizable" style="min-width: 180px; border-left: 1px solid var(--border-color);">
-                  {{ system.name }}
-                  <div class="resize-handle"></div>
-                </th>
-                {% endfor %}
-              </tr>
-            </thead>
-            <tbody>
-              {% for user in page_obj %}
-              <tr>
-                <td>
-                  <div class="user-cell">
-                    <div class="user-avatar">
-                      {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
-                    </div>
-                    <div class="user-info">
-                      <div class="name">{{ user.full_name }}</div>
-                      <div class="meta">{{ user.email }}</div>
-                    </div>
-                  </div>
-                </td>
-                <td>
-                  <span class="badge badge-info">{{ user.employee_id|default:"-" }}</span>
-                </td>
-                <td>{{ user.department.name|default:"-" }}</td>
-                {% for system in systems %}
-                <td class="text-center" style="border-left: 1px solid var(--border-color);">
-                  {% with access=user_system_mapping|get_item:user.id|get_item:system.id %}
-                  {% if access %}
-                    <div class="username-cell">
-                      <div class="username">{{ access.username }}</div>
-                      <div class="username-meta">
-                        {% if access.is_generic %}
-                        <span class="badge badge-generic">
-                          <i class="fas fa-exclamation-triangle"></i> Generic
-                        </span>
-                        {% endif %}
-                        {% if access.has_verification %}
-                        <span class="tooltip-wrapper">
-                          <i class="fas fa-check-circle verification-icon"></i>
-                          <span class="tooltip-text">Verified by {{ access.verified_by }}</span>
-                        </span>
-                        {% endif %}
-                        <span class="badge badge-{{ access.status|lower }}">{{ access.access_type }}</span>
+        <div class="matrix-panel">
+          <div class="matrix-scroll" id="matrixScroll">
+            <table class="matrix">
+              <thead>
+                <tr>
+                  <th rowspan="2"><i class="fas fa-user me-1"></i> Employee</th>
+                  <th rowspan="2"><i class="fas fa-id-badge me-1"></i> Employee ID</th>
+                  <th rowspan="2"><i class="fas fa-building me-1"></i> Department</th>
+                  <th colspan="{{ systems.count }}" class="text-center" style="border-left:2px solid var(--border);">
+                    <i class="fas fa-server me-1"></i> System Accounts
+                  </th>
+                </tr>
+                <tr>
+                  {% for system in systems %}
+                    <th class="text-center" style="min-width:140px; border-left:1px solid var(--border);">
+                      {{ system.name }}
+                    </th>
+                  {% endfor %}
+                </tr>
+              </thead>
+
+              <tbody>
+                {% for user in page_obj %}
+                <tr>
+                  <td>
+                    <div class="user-cell">
+                      <div class="avatar">
+                        {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+                      </div>
+                      <div>
+                        <div class="user-name">{{ user.full_name }}</div>
+                        <div class="user-meta">{{ user.email }}</div>
                       </div>
                     </div>
-                  {% else %}
-                    <span style="color: var(--text-muted); font-size: 0.875rem;">—</span>
-                  {% endif %}
-                  {% endwith %}
-                </td>
+                  </td>
+
+                  <td>
+                    <span class="pill pill-info">{{ user.employee_id|default:"-" }}</span>
+                  </td>
+
+                  <td>{{ user.department.name|default:"-" }}</td>
+
+                  {% for system in systems %}
+                    <td class="text-center" style="border-left:1px solid var(--border);">
+                      {% with access=user_system_mapping|get_item:user.id|get_item:system.id %}
+                        {% if access %}
+                          <div class="username">{{ access.username }}</div>
+                          <div class="meta-row">
+                            {% if access.is_generic %}
+                              <span class="pill pill-generic"><i class="fas fa-exclamation-triangle"></i> Generic</span>
+                            {% endif %}
+                            {% if access.has_verification %}
+                              <span class="pill pill-verified"><i class="fas fa-check-circle"></i> Verified</span>
+                            {% endif %}
+
+                            {# status pill (use your existing values) #}
+                            <span class="pill {% if access.status|lower == 'active' %}pill-ok{% elif access.status|lower == 'pending' %}pill-warn{% else %}pill-info{% endif %}">
+                              {{ access.access_type }}
+                            </span>
+                          </div>
+                        {% else %}
+                          <span style="color:var(--muted2);">—</span>
+                        {% endif %}
+                      {% endwith %}
+                    </td>
+                  {% endfor %}
+
+                </tr>
                 {% endfor %}
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
 
-      <!-- Pagination -->
-      {% if page_obj.has_other_pages %}
-      <div class="pagination">
-        {% if page_obj.has_previous %}
-        <a href="?page=1{% if search %}&search={{ search }}{% endif %}{% if selected_department_id %}&department={{ selected_department_id }}{% endif %}{% if selected_system_id %}&system={{ selected_system_id }}{% endif %}{% if show_only_with_access %}&show_only_with_access=true{% endif %}" class="page-link">
-          <i class="fas fa-angle-double-left"></i>
-        </a>
-        <a href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if selected_department_id %}&department={{ selected_department_id }}{% endif %}{% if selected_system_id %}&system={{ selected_system_id }}{% endif %}{% if show_only_with_access %}&show_only_with_access=true{% endif %}" class="page-link">
-          <i class="fas fa-angle-left"></i>
-        </a>
-        {% else %}
-        <span class="page-link disabled"><i class="fas fa-angle-double-left"></i></span>
-        <span class="page-link disabled"><i class="fas fa-angle-left"></i></span>
+        {% if page_obj.has_other_pages %}
+          <div class="pagination">
+            {% if page_obj.has_previous %}
+              <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}{% if selected_department_id %}&department={{ selected_department_id }}{% endif %}{% if selected_system_id %}&system={{ selected_system_id }}{% endif %}{% if show_only_with_access %}&show_only_with_access=true{% endif %}">
+                <i class="fas fa-angle-double-left"></i>
+              </a>
+              <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if selected_department_id %}&department={{ selected_department_id }}{% endif %}{% if selected_system_id %}&system={{ selected_system_id }}{% endif %}{% if show_only_with_access %}&show_only_with_access=true{% endif %}">
+                <i class="fas fa-angle-left"></i>
+              </a>
+            {% else %}
+              <span class="page-link disabled"><i class="fas fa-angle-double-left"></i></span>
+              <span class="page-link disabled"><i class="fas fa-angle-left"></i></span>
+            {% endif %}
+
+            <span class="page-link active">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+
+            {% if page_obj.has_next %}
+              <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if selected_department_id %}&department={{ selected_department_id }}{% endif %}{% if selected_system_id %}&system={{ selected_system_id }}{% endif %}{% if show_only_with_access %}&show_only_with_access=true{% endif %}">
+                <i class="fas fa-angle-right"></i>
+              </a>
+              <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if selected_department_id %}&department={{ selected_department_id }}{% endif %}{% if selected_system_id %}&system={{ selected_system_id }}{% endif %}{% if show_only_with_access %}&show_only_with_access=true{% endif %}">
+                <i class="fas fa-angle-double-right"></i>
+              </a>
+            {% else %}
+              <span class="page-link disabled"><i class="fas fa-angle-right"></i></span>
+              <span class="page-link disabled"><i class="fas fa-angle-double-right"></i></span>
+            {% endif %}
+          </div>
         {% endif %}
-
-        <span class="page-link active">
-          Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
-        </span>
-
-        {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if selected_department_id %}&department={{ selected_department_id }}{% endif %}{% if selected_system_id %}&system={{ selected_system_id }}{% endif %}{% if show_only_with_access %}&show_only_with_access=true{% endif %}" class="page-link">
-          <i class="fas fa-angle-right"></i>
-        </a>
-        <a href="?page={{ page_obj.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if selected_department_id %}&department={{ selected_department_id }}{% endif %}{% if selected_system_id %}&system={{ selected_system_id }}{% endif %}{% if show_only_with_access %}&show_only_with_access=true{% endif %}" class="page-link">
-          <i class="fas fa-angle-double-right"></i>
-        </a>
-        {% else %}
-        <span class="page-link disabled"><i class="fas fa-angle-right"></i></span>
-        <span class="page-link disabled"><i class="fas fa-angle-double-right"></i></span>
-        {% endif %}
-      </div>
-      {% endif %}
       {% else %}
-      <div class="empty-state">
-        <i class="fas fa-inbox"></i>
-        <h5>No data available</h5>
-        <p>Try adjusting your filters or search criteria.</p>
-      </div>
+        <div class="empty">
+          <i class="fas fa-inbox fa-2x mb-2"></i>
+          <div class="fw-bold">No data available</div>
+          <div>Try adjusting filters.</div>
+        </div>
       {% endif %}
     </div>
   </div>
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Filter Toggle
+document.addEventListener('DOMContentLoaded', function () {
+  // Filters collapse toggle
   const filtersToggle = document.getElementById('filtersToggle');
   const filtersContent = document.getElementById('filtersContent');
-  const filtersCollapseBtn = document.getElementById('filtersCollapseBtn');
+  const btn = document.getElementById('filtersCollapseBtn');
 
   if (filtersToggle && filtersContent) {
-    // Restore saved state
-    const isCollapsed = localStorage.getItem('csm-filters-collapsed') === 'true';
-    if (isCollapsed) {
+    const collapsed = localStorage.getItem('csm-filters-collapsed') === 'true';
+    if (collapsed) {
       filtersContent.classList.add('collapsed');
-      filtersCollapseBtn.classList.add('collapsed');
+      btn.classList.add('collapsed');
     }
 
-    filtersToggle.addEventListener('click', function() {
+    filtersToggle.addEventListener('click', function () {
       const willCollapse = !filtersContent.classList.contains('collapsed');
-      
-      if (willCollapse) {
-        filtersContent.classList.add('collapsed');
-        filtersCollapseBtn.classList.add('collapsed');
-      } else {
-        filtersContent.classList.remove('collapsed');
-        filtersCollapseBtn.classList.remove('collapsed');
-      }
-      
+      filtersContent.classList.toggle('collapsed');
+      btn.classList.toggle('collapsed');
       localStorage.setItem('csm-filters-collapsed', willCollapse);
     });
   }
 
-  // Sortable Table
-  const sortableTable = document.querySelector('.sortable-table');
-  if (sortableTable) {
-    const headers = sortableTable.querySelectorAll('thead th.sortable');
-    headers.forEach((header, idx) => {
-      header.addEventListener('click', function() {
-        sortTable(sortableTable, idx);
-      });
+  // Fullscreen matrix
+  const fullscreenBtn = document.getElementById('fullscreenBtn');
+  const matrixCard = document.getElementById('matrixCard');
+
+  if (fullscreenBtn && matrixCard) {
+    fullscreenBtn.addEventListener('click', function () {
+      const isFull = matrixCard.classList.toggle('fullscreen');
+      fullscreenBtn.innerHTML = isFull
+        ? '<i class="fas fa-compress me-1"></i> Exit Fullscreen'
+        : '<i class="fas fa-expand me-1"></i> Fullscreen';
+      document.body.style.overflow = isFull ? 'hidden' : '';
     });
-  }
-
-  function sortTable(table, columnIdx) {
-    const tbody = table.querySelector('tbody');
-    const rows = Array.from(tbody.querySelectorAll('tr'));
-    const header = table.querySelectorAll('thead th.sortable')[columnIdx];
-    
-    const isAsc = !header.classList.contains('sort-asc');
-    
-    // Remove all sort indicators
-    table.querySelectorAll('thead th').forEach(h => {
-      h.classList.remove('sort-asc', 'sort-desc');
-    });
-
-    rows.sort((a, b) => {
-      const aVal = a.children[columnIdx].textContent.trim().toLowerCase();
-      const bVal = b.children[columnIdx].textContent.trim().toLowerCase();
-      return isAsc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
-    });
-
-    header.classList.add(isAsc ? 'sort-asc' : 'sort-desc');
-    rows.forEach(row => tbody.appendChild(row));
-  }
-
-  // Resizable Columns
-  const resizeHandles = document.querySelectorAll('.resize-handle');
-  resizeHandles.forEach(handle => {
-    handle.addEventListener('mousedown', startResize);
-  });
-
-  function startResize(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const th = e.target.closest('th');
-    const startX = e.clientX;
-    const startWidth = th.offsetWidth;
-
-    function doResize(e) {
-      const delta = e.clientX - startX;
-      const newWidth = Math.max(100, startWidth + delta);
-      th.style.minWidth = newWidth + 'px';
-      th.style.width = newWidth + 'px';
-    }
-
-    function stopResize() {
-      document.removeEventListener('mousemove', doResize);
-      document.removeEventListener('mouseup', stopResize);
-      document.body.style.cursor = 'auto';
-      document.body.style.userSelect = 'auto';
-    }
-
-    document.body.style.cursor = 'col-resize';
-    document.body.style.userSelect = 'none';
-    document.addEventListener('mousemove', doResize);
-    document.addEventListener('mouseup', stopResize);
   }
 });
 
+// ✅ fixed export format handling
 function exportMapping(format) {
   const params = new URLSearchParams(window.location.search);
-  params.set('export', format || 'csv');
+  params.set('export', format); // csv | xlsx
   window.location.href = '?' + params.toString();
 }
 </script>
