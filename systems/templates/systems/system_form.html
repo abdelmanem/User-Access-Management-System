@@ -1,168 +1,237 @@
 {% extends 'base.html' %}
 {% load static form_extras %}
-
 {% block title %}{% if form.instance.pk %}Edit System{% else %}Create System{% endif %}{% endblock %}
 
 {% block content %}
 <div id="content-main">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h3 class="card-title mb-0">
-                            {% if form.instance.pk %}
-                                Edit System: {{ form.instance.name }}
-                            {% else %}
-                                Create New System
-                            {% endif %}
-                        </h3>
-                        {% if form.instance.pk %}
-                        <a class="btn btn-sm btn-outline-primary" href="{% url 'systems:system_contract_edit' form.instance.pk %}">
-                            <i class="fas fa-file-contract me-1"></i>Contract & Renewal
-                        </a>
-                        {% else %}
-                        <span class="text-muted small">Contract & Renewal available after save</span>
-                        {% endif %}
-                    </div>
-                    <div class="card-body">
-                        <form method="post" novalidate>
-                            {% csrf_token %}
-                            {% if form.errors %}
-                            <div class="alert alert-danger">
-                                <strong>Please correct the errors below.</strong>
-                                {% if form.non_field_errors %}
-                                <div class="mt-2">{{ form.non_field_errors }}</div>
-                                {% endif %}
-                            </div>
-                            {% endif %}
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="{{ form.name.id_for_label }}">Name <span class="text-danger">*</span></label>
-                                        {{ form.name|add_error_class:"is-invalid"|add_class:"form-control" }}
-                                        {% if form.errors.name %}<div class="invalid-feedback d-block">{{ form.errors.name.0 }}</div>{% endif %}
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="{{ form.code.id_for_label }}">Code <span class="text-danger">*</span></label>
-                                        {{ form.code|add_error_class:"is-invalid"|add_class:"form-control" }}
-                                        {% if form.errors.code %}<div class="invalid-feedback d-block">{{ form.errors.code.0 }}</div>{% endif %}
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="{{ form.description.id_for_label }}">Description</label>
-                                        {{ form.description|add_error_class:"is-invalid"|add_class:"form-control" }}
-                                        {% if form.errors.description %}<div class="invalid-feedback d-block">{{ form.errors.description.0 }}</div>{% endif %}
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="{{ form.system_type.id_for_label }}">System Type</label>
-                                        {{ form.system_type|add_error_class:"is-invalid"|add_class:"form-select" }}
-                                        {% if form.errors.system_type %}<div class="invalid-feedback d-block">{{ form.errors.system_type.0 }}</div>{% endif %}
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="{{ form.environment_type.id_for_label }}">Environment</label>
-                                        {{ form.environment_type|add_error_class:"is-invalid"|add_class:"form-select" }}
-                                        {% if form.errors.environment_type %}<div class="invalid-feedback d-block">{{ form.errors.environment_type.0 }}</div>{% endif %}
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="{{ form.criticality_level.id_for_label }}">Criticality</label>
-                                        {{ form.criticality_level|add_error_class:"is-invalid"|add_class:"form-select" }}
-                                        {% if form.errors.criticality_level %}<div class="invalid-feedback d-block">{{ form.errors.criticality_level.0 }}</div>{% endif %}
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="{{ form.system_owner.id_for_label }}">Owner</label>
-                                        {{ form.system_owner|add_error_class:"is-invalid"|add_class:"form-select" }}
-                                        {% if form.errors.system_owner %}<div class="invalid-feedback d-block">{{ form.errors.system_owner.0 }}</div>{% endif %}
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="{{ form.technical_lead.id_for_label }}">Technical Lead</label>
-                                        {{ form.technical_lead|add_error_class:"is-invalid"|add_class:"form-select" }}
-                                        {% if form.errors.technical_lead %}<div class="invalid-feedback d-block">{{ form.errors.technical_lead.0 }}</div>{% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="{{ form.url.id_for_label }}">URL</label>
-                                        {{ form.url|add_error_class:"is-invalid"|add_class:"form-control" }}
-                                        {% if form.errors.url %}<div class="invalid-feedback d-block">{{ form.errors.url.0 }}</div>{% endif %}
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="{{ form.ip_address.id_for_label }}">IP Address</label>
-                                        {{ form.ip_address|add_error_class:"is-invalid"|add_class:"form-control" }}
-                                        {% if form.errors.ip_address %}<div class="invalid-feedback d-block">{{ form.errors.ip_address.0 }}</div>{% endif %}
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="{{ form.version.id_for_label }}">Version</label>
-                                        {{ form.version|add_error_class:"is-invalid"|add_class:"form-control" }}
-                                        {% if form.errors.version %}<div class="invalid-feedback d-block">{{ form.errors.version.0 }}</div>{% endif %}
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="{{ form.support_contact.id_for_label }}">Support Contact</label>
-                                        {{ form.support_contact|add_error_class:"is-invalid"|add_class:"form-control" }}
-                                        {% if form.errors.support_contact %}<div class="invalid-feedback d-block">{{ form.errors.support_contact.0 }}</div>{% endif %}
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="{{ form.vendor.id_for_label }}">Vendor</label>
-                                        {{ form.vendor|add_error_class:"is-invalid"|add_class:"form-control" }}
-                                        {% if form.errors.vendor %}<div class="invalid-feedback d-block">{{ form.errors.vendor.0 }}</div>{% endif %}
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="{{ form.documentation_url.id_for_label }}">Documentation URL</label>
-                                        {{ form.documentation_url|add_error_class:"is-invalid"|add_class:"form-control" }}
-                                        {% if form.errors.documentation_url %}<div class="invalid-feedback d-block">{{ form.errors.documentation_url.0 }}</div>{% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                            <hr>
-                            <div class="row">
-                                <div class="col-12">
-                                    <h5 class="mb-3">Advanced Settings</h5>
-                                </div>
-                                {% comment %} Render any remaining fields not explicitly shown above {% endcomment %}
-                                {% for field in form %}
-                                    {% if field.name not in 'name,code,description,system_type,environment_type,criticality_level,system_owner,technical_lead,url,ip_address,version,support_contact,vendor,documentation_url' %}
-                                        {% if field.field.widget.input_type == 'checkbox' %}
-                                        <div class="col-md-6">
-                                            <div class="form-check mb-3">
-                                                {{ field|add_error_class:"is-invalid"|add_class:"form-check-input" }}
-                                                <label class="form-check-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                                                {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors.0 }}</div>{% endif %}
-                                                {% if field.help_text %}<small class="form-text text-muted">{{ field.help_text }}</small>{% endif %}
-                                            </div>
-                                        </div>
-                                        {% else %}
-                                        <div class="col-md-6">
-                                            <div class="form-group mb-3">
-                                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                                                {{ field|add_error_class:"is-invalid"|add_class:"form-control" }}
-                                                {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors.0 }}</div>{% endif %}
-                                                {% if field.help_text %}<small class="form-text text-muted">{{ field.help_text }}</small>{% endif %}
-                                            </div>
-                                        </div>
-                                        {% endif %}
-                                    {% endif %}
-                                {% endfor %}
-                            </div>
-                            <div class="row">
-                                <div class="col-12">
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-save"></i> Save System
-                                    </button>
-                                    <a href="{% url 'systems:system_list' %}" class="btn btn-secondary">
-                                        <i class="fas fa-arrow-left"></i> Cancel
-                                    </a>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
+  <div class="container-fluid">
+
+    <!-- Header -->
+    <div class="card shadow-sm mb-3">
+      <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div>
+          <h3 class="mb-0">
+            {% if form.instance.pk %}
+              Edit System: {{ form.instance.name }}
+            {% else %}
+              Create New System
+            {% endif %}
+          </h3>
+          <div class="text-muted small">Fill the details below. Required fields are marked with *</div>
         </div>
+
+        <div class="d-flex align-items-center gap-2">
+          {% if form.instance.pk %}
+            <a class="btn btn-outline-primary" href="{% url 'systems:system_contract_edit' form.instance.pk %}">
+              <i class="fas fa-file-contract me-1"></i> Contract & Renewal
+            </a>
+          {% else %}
+            <span class="text-muted small">Contract & Renewal available after save</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="card-body">
+
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          {% if form.errors %}
+            <div class="alert alert-danger">
+              <div class="fw-semibold mb-1">Please correct the errors below.</div>
+              {% if form.non_field_errors %}
+                <div class="mt-2">{{ form.non_field_errors }}</div>
+              {% endif %}
+            </div>
+          {% endif %}
+
+          <!-- Tabs -->
+          <ul class="nav nav-tabs mb-3" id="systemFormTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="tab-basic" data-bs-toggle="tab" data-bs-target="#pane-basic" type="button" role="tab">
+                <i class="fas fa-id-card me-1"></i> Basic
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="tab-ownership" data-bs-toggle="tab" data-bs-target="#pane-ownership" type="button" role="tab">
+                <i class="fas fa-user-tie me-1"></i> Ownership
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="tab-technical" data-bs-toggle="tab" data-bs-target="#pane-technical" type="button" role="tab">
+                <i class="fas fa-network-wired me-1"></i> Technical
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="tab-advanced" data-bs-toggle="tab" data-bs-target="#pane-advanced" type="button" role="tab">
+                <i class="fas fa-sliders-h me-1"></i> Advanced
+              </button>
+            </li>
+          </ul>
+
+          <div class="tab-content">
+
+            <!-- BASIC -->
+            <div class="tab-pane fade show active" id="pane-basic" role="tabpanel" aria-labelledby="tab-basic">
+              <div class="row g-3">
+
+                <div class="col-12 col-md-6">
+                  <label for="{{ form.name.id_for_label }}" class="form-label">Name <span class="text-danger">*</span></label>
+                  {{ form.name|add_error_class:"is-invalid"|add_class:"form-control" }}
+                  {% if form.errors.name %}<div class="invalid-feedback d-block">{{ form.errors.name.0 }}</div>{% endif %}
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <label for="{{ form.code.id_for_label }}" class="form-label">Code <span class="text-danger">*</span></label>
+                  {{ form.code|add_error_class:"is-invalid"|add_class:"form-control" }}
+                  <div class="form-text">Short unique identifier (e.g., HRMS, CRM, FIN-CORE).</div>
+                  {% if form.errors.code %}<div class="invalid-feedback d-block">{{ form.errors.code.0 }}</div>{% endif %}
+                </div>
+
+                <div class="col-12">
+                  <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                  {{ form.description|add_error_class:"is-invalid"|add_class:"form-control" }}
+                  {% if form.errors.description %}<div class="invalid-feedback d-block">{{ form.errors.description.0 }}</div>{% endif %}
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <label for="{{ form.system_type.id_for_label }}" class="form-label">System Type</label>
+                  {{ form.system_type|add_error_class:"is-invalid"|add_class:"form-select" }}
+                  {% if form.errors.system_type %}<div class="invalid-feedback d-block">{{ form.errors.system_type.0 }}</div>{% endif %}
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <label for="{{ form.environment_type.id_for_label }}" class="form-label">Environment</label>
+                  {{ form.environment_type|add_error_class:"is-invalid"|add_class:"form-select" }}
+                  {% if form.errors.environment_type %}<div class="invalid-feedback d-block">{{ form.errors.environment_type.0 }}</div>{% endif %}
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <label for="{{ form.criticality_level.id_for_label }}" class="form-label">Criticality</label>
+                  {{ form.criticality_level|add_error_class:"is-invalid"|add_class:"form-select" }}
+                  {% if form.errors.criticality_level %}<div class="invalid-feedback d-block">{{ form.errors.criticality_level.0 }}</div>{% endif %}
+                </div>
+
+              </div>
+            </div>
+
+            <!-- OWNERSHIP -->
+            <div class="tab-pane fade" id="pane-ownership" role="tabpanel" aria-labelledby="tab-ownership">
+              <div class="row g-3">
+
+                <div class="col-12 col-md-6">
+                  <label for="{{ form.system_owner.id_for_label }}" class="form-label">Owner</label>
+                  {{ form.system_owner|add_error_class:"is-invalid"|add_class:"form-select" }}
+                  {% if form.errors.system_owner %}<div class="invalid-feedback d-block">{{ form.errors.system_owner.0 }}</div>{% endif %}
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <label for="{{ form.technical_lead.id_for_label }}" class="form-label">Technical Lead</label>
+                  {{ form.technical_lead|add_error_class:"is-invalid"|add_class:"form-select" }}
+                  {% if form.errors.technical_lead %}<div class="invalid-feedback d-block">{{ form.errors.technical_lead.0 }}</div>{% endif %}
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <label for="{{ form.support_contact.id_for_label }}" class="form-label">Support Contact</label>
+                  {{ form.support_contact|add_error_class:"is-invalid"|add_class:"form-control" }}
+                  {% if form.errors.support_contact %}<div class="invalid-feedback d-block">{{ form.errors.support_contact.0 }}</div>{% endif %}
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <label for="{{ form.vendor.id_for_label }}" class="form-label">Vendor</label>
+                  {{ form.vendor|add_error_class:"is-invalid"|add_class:"form-control" }}
+                  {% if form.errors.vendor %}<div class="invalid-feedback d-block">{{ form.errors.vendor.0 }}</div>{% endif %}
+                </div>
+
+              </div>
+            </div>
+
+            <!-- TECHNICAL -->
+            <div class="tab-pane fade" id="pane-technical" role="tabpanel" aria-labelledby="tab-technical">
+              <div class="row g-3">
+
+                <div class="col-12 col-md-6">
+                  <label for="{{ form.url.id_for_label }}" class="form-label">URL</label>
+                  {{ form.url|add_error_class:"is-invalid"|add_class:"form-control" }}
+                  <div class="form-text">If available, include the main application URL.</div>
+                  {% if form.errors.url %}<div class="invalid-feedback d-block">{{ form.errors.url.0 }}</div>{% endif %}
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <label for="{{ form.ip_address.id_for_label }}" class="form-label">IP Address</label>
+                  {{ form.ip_address|add_error_class:"is-invalid"|add_class:"form-control" }}
+                  {% if form.errors.ip_address %}<div class="invalid-feedback d-block">{{ form.errors.ip_address.0 }}</div>{% endif %}
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <label for="{{ form.version.id_for_label }}" class="form-label">Version</label>
+                  {{ form.version|add_error_class:"is-invalid"|add_class:"form-control" }}
+                  {% if form.errors.version %}<div class="invalid-feedback d-block">{{ form.errors.version.0 }}</div>{% endif %}
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <label for="{{ form.documentation_url.id_for_label }}" class="form-label">Documentation URL</label>
+                  {{ form.documentation_url|add_error_class:"is-invalid"|add_class:"form-control" }}
+                  {% if form.errors.documentation_url %}<div class="invalid-feedback d-block">{{ form.errors.documentation_url.0 }}</div>{% endif %}
+                </div>
+
+              </div>
+            </div>
+
+            <!-- ADVANCED -->
+            <div class="tab-pane fade" id="pane-advanced" role="tabpanel" aria-labelledby="tab-advanced">
+              <div class="row g-3">
+                <div class="col-12">
+                  <div class="alert alert-info mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Advanced fields are optional. Use them only if needed.
+                  </div>
+                </div>
+
+                {# Render remaining fields not explicitly shown above #}
+                {% for field in form %}
+                  {% if field.name not in 'name,code,description,system_type,environment_type,criticality_level,system_owner,technical_lead,url,ip_address,version,support_contact,vendor,documentation_url' %}
+                    {% if field.field.widget.input_type == 'checkbox' %}
+                      <div class="col-12 col-md-6">
+                        <div class="form-check">
+                          {{ field|add_error_class:"is-invalid"|add_class:"form-check-input" }}
+                          <label class="form-check-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                          {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors.0 }}</div>{% endif %}
+                          {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                        </div>
+                      </div>
+                    {% else %}
+                      <div class="col-12 col-md-6">
+                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                        {{ field|add_error_class:"is-invalid"|add_class:"form-control" }}
+                        {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors.0 }}</div>{% endif %}
+                        {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                      </div>
+                    {% endif %}
+                  {% endif %}
+                {% endfor %}
+
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Actions -->
+          <div class="d-flex flex-wrap gap-2 justify-content-end mt-4 pt-3 border-top">
+            <a href="{% url 'systems:system_list' %}" class="btn btn-outline-secondary">
+              <i class="fas fa-arrow-left me-1"></i> Cancel
+            </a>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save me-1"></i> Save System
+            </button>
+          </div>
+
+        </form>
+
+      </div>
     </div>
+
+  </div>
 </div>
 {% endblock %}
+``

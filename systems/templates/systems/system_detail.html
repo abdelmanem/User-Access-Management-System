@@ -1,624 +1,677 @@
 {% extends 'base.html' %}
 {% load static form_extras %}
-
 {% block title %}{{ system.name }} - System Details{% endblock %}
 
 {% block content %}
 <div id="content-main">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">System Details: {{ system.name }}</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h4>Basic Information</h4>
-                                <table class="table table-bordered">
-                                    <tr>
-                                        <th>Name:</th>
-                                        <td>{{ system.name }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Code:</th>
-                                        <td>{{ system.code }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Description:</th>
-                                        <td>{{ system.description|default:"-" }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>System Type:</th>
-                                        <td>
-                                            <span class="badge bg-info">{{ system.get_system_type_display }}</span>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th>Status:</th>
-                                        <td>
-                                            {% if system.is_active %}
-                                                <span class="badge bg-success">Active</span>
-                                            {% else %}
-                                                <span class="badge bg-danger">Inactive</span>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th>Criticality:</th>
-                                        <td>
-                                            <span class="badge {% if system.criticality_level == 'Critical' %}bg-danger{% elif system.criticality_level == 'High' %}bg-warning text-dark{% elif system.criticality_level == 'Medium' %}bg-info{% else %}bg-secondary{% endif %}">
-                                                {{ system.get_criticality_level_display }}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </div>
-                            <div class="col-md-6">
-                                <h4>Contact Information</h4>
-                                <table class="table table-bordered">
-                                    <tr>
-                                        <th>Owner:</th>
-                                        <td>
-                                            {% if system.system_owner %}
-                                                <a href="{% url 'accounts:user_detail' system.system_owner.pk %}">
-                                                    {{ system.system_owner.get_full_name }}
-                                                </a>
-                                            {% else %}
-                                                <span class="text-muted">-</span>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th>Technical Lead:</th>
-                                        <td>
-                                            {% if system.technical_lead %}
-                                                <a href="{% url 'accounts:user_detail' system.technical_lead.pk %}">
-                                                    {{ system.technical_lead.get_full_name }}
-                                                </a>
-                                            {% else %}
-                                                <span class="text-muted">-</span>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th>Support Contact:</th>
-                                        <td>{{ system.support_contact|default:"-" }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Documentation URL:</th>
-                                        <td>
-                                            {% if system.documentation_url %}
-                                                <a href="{{ system.documentation_url }}" target="_blank">
-                                                    {{ system.documentation_url }}
-                                                </a>
-                                            {% else %}
-                                                <span class="text-muted">-</span>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                </table>
-                            </div>
-                        </div>
-                        
-                        <div class="row mt-4">
-                            <div class="col-md-6">
-                                <h4>Technical Details</h4>
-                                <table class="table table-bordered">
-                                    <tr>
-                                        <th>Version:</th>
-                                        <td>{{ system.version|default:"-" }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>URL:</th>
-                                        <td>
-                                            {% if system.url %}
-                                                <a href="{{ system.url }}" target="_blank">
-                                                    {{ system.url }}
-                                                </a>
-                                            {% else %}
-                                                <span class="text-muted">-</span>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th>IP Address:</th>
-                                        <td>{{ system.ip_address|default:"-" }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Last Maintenance:</th>
-                                        <td>{{ system.last_maintenance_date|default:"-" }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Next Maintenance:</th>
-                                        <td>{{ system.next_maintenance_date|default:"-" }}</td>
-                                    </tr>
-                                </table>
-                            </div>
-                            <div class="col-md-6">
-                                <h4>Statistics</h4>
-                                <table class="table table-bordered">
-                                    <tr>
-                                        <th>Active Users:</th>
-                                        <td>
-                                            <span class="badge bg-primary">{{ system.get_active_user_count }}</span>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th>Uptime:</th>
-                                        <td>{{ system.uptime_percentage_display }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Created:</th>
-                                        <td>{{ system.created_at|date:"Y-m-d H:i" }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Updated:</th>
-                                        <td>{{ system.updated_at|date:"Y-m-d H:i" }}</td>
-                                    </tr>
-                                </table>
-                            </div>
-                        </div>
-                        <div class="row mt-4">
-                            <div class="col-12">
-                                <div class="card border-0 shadow-sm">
-                                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                                        <h4 class="card-title mb-0">
-                                            <i class="fas fa-file-contract me-2"></i>Contract & Renewal
-                                        </h4>
-                                        {% if contract %}
-                                            {% with status=contract.renewal_status %}
-                                                {% if status == 'overdue' %}
-                                                    <span class="badge bg-danger">Overdue</span>
-                                                {% elif status == 'due_soon' %}
-                                                    <span class="badge bg-warning text-dark">Due Soon</span>
-                                                {% elif status == 'current' %}
-                                                    <span class="badge bg-success">Current</span>
-                                                {% else %}
-                                                    <span class="badge bg-secondary">Not Set</span>
-                                                {% endif %}
-                                            {% endwith %}
-                                        {% else %}
-                                            <span class="badge bg-secondary">Not Configured</span>
-                                        {% endif %}
-                                    </div>
-                                    <div class="card-body">
-                                        <h6 class="fw-semibold mb-3">Summary</h6>
-                                        {% if contract %}
-                                        <table class="table table-bordered">
-                                            <tr>
-                                                <th>Support Contact</th>
-                                                <td>
-                                                    {% if contract.support_contact_name %}
-                                                        <div class="fw-semibold">{{ contract.support_contact_name }}</div>
-                                                        <div class="text-muted small">
-                                                            {{ contract.support_contact_role|default:"" }}
-                                                            {% if contract.support_contact_email %}<br>{{ contract.support_contact_email }}{% endif %}
-                                                            {% if contract.support_contact_phone %}<br>{{ contract.support_contact_phone }}{% endif %}
-                                                        </div>
-                                                    {% else %}
-                                                        <span class="text-muted">—</span>
-                                                    {% endif %}
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <th>Renewal Date</th>
-                                                <td>{{ contract.renewal_date|default:"—" }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th>Duration</th>
-                                                <td>{{ contract.renewal_duration_value }} {{ contract.get_renewal_duration_unit_display|default:"" }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th>Fees</th>
-                                                <td>
-                                                    {% if contract.contract_fee_amount %}
-                                                        <div class="fw-semibold">Billing currency</div>
-                                                        <div class="text-muted small">
-                                                            Base: {{ contract.contract_fee_amount|floatformat:2 }} {{ contract.contract_fee_currency }}
-                                                            <br>VAT {% if contract.vat_included %}included{% else %}excluded{% endif %}{% if contract.vat_rate %} ({{ contract.vat_rate|floatformat:2 }}%){% endif %}{% if contract.vat_amount %}: {{ contract.vat_amount|floatformat:2 }} {{ contract.contract_fee_currency }}{% endif %}
-                                                            <br>Total: {% if contract.fee_amount_including_vat %}{{ contract.fee_amount_including_vat|floatformat:2 }} {{ contract.contract_fee_currency }}{% else %}—{% endif %}
-                                                        </div>
-                                                        <div class="fw-semibold mt-2">Local currency</div>
-                                                        <div class="text-muted small">
-                                                            Base: {% if contract.fee_amount_local %}{{ contract.fee_amount_local|floatformat:2 }} {{ contract.local_currency }}{% else %}—{% endif %}
-                                                            <br>VAT: {% if contract.vat_amount_local %}{{ contract.vat_amount_local|floatformat:2 }} {{ contract.local_currency }}{% elif contract.vat_amount %}~{{ contract.vat_amount|floatformat:2 }} {{ contract.contract_fee_currency }}{% else %}—{% endif %}
-                                                            <br>Total: {% if contract.fee_amount_local_including_vat %}{{ contract.fee_amount_local_including_vat|floatformat:2 }} {{ contract.local_currency }}{% else %}—{% endif %}
-                                                        </div>
-                                                    {% else %}
-                                                        <span class="text-muted">—</span>
-                                                    {% endif %}
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <th>Due Amounts</th>
-                                                <td>
-                                                    <div class="text-muted small mb-1">
-                                                        Monthly: {% if contract.due_amount_monthly %}{{ contract.due_amount_monthly|floatformat:2 }} {{ contract.contract_fee_currency }}{% else %}—{% endif %}
-                                                    </div>
-                                                    <div class="text-muted small">
-                                                        Yearly: {% if contract.due_amount_yearly %}{{ contract.due_amount_yearly|floatformat:2 }} {{ contract.contract_fee_currency }}{% else %}—{% endif %}
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <th>Contract Fee (Local)</th>
-                                                <td>
-                                                    {% if contract.fee_amount_local %}
-                                                        {{ contract.fee_amount_local }} {{ contract.local_currency }}
-                                                        {% if contract.fee_amount_local_including_vat %}
-                                                            <div class="text-muted small">With VAT: {{ contract.fee_amount_local_including_vat }} {{ contract.local_currency }}</div>
-                                                        {% endif %}
-                                                    {% else %}
-                                                        <span class="text-muted">— (set exchange rate)</span>
-                                                    {% endif %}
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <th>Payment Terms</th>
-                                                <td>{{ contract.payment_terms|default:"—" }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th>Renewal Copy</th>
-                                                <td>
-                                                    {% if contract.renewal_copy %}
-                                                        <a href="{{ contract.renewal_copy.url }}" target="_blank">
-                                                            <i class="fas fa-download me-1"></i>Download current copy
-                                                        </a>
-                                                    {% else %}
-                                                        <span class="text-muted">No file uploaded</span>
-                                                    {% endif %}
-                                                </td>
-                                            </tr>
-                                        </table>
-                                        {% else %}
-                                            <div class="alert alert-info mb-0">
-                                                <i class="fas fa-info-circle me-2"></i>
-                                                No contract data captured yet. Use the button above to add details.
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {% if assign_form %}
-                        <div class="row mt-4">
-                            <div class="col-12">
-                                <div class="card border-0 shadow-sm">
-                                    <div class="card-header bg-white">
-                                        <h4 class="card-title mb-0">
-                                            <i class="fas fa-user-plus me-2"></i>Manage System Users
-                                        </h4>
-                                    </div>
-                                    <div class="card-body">
-                                        <form method="post" novalidate>
-                                            {% csrf_token %}
-                                            <input type="hidden" name="manage_users" value="1">
-                                            {% if assign_form.non_field_errors %}
-                                            <div class="alert alert-danger">
-                                                {{ assign_form.non_field_errors }}
-                                            </div>
-                                            {% endif %}
-                                            <div class="row g-3 align-items-stretch">
-                                                <div class="col-12 col-lg-8">
-                                                    <label class="form-label fw-semibold">
-                                                        {{ assign_form.users.label }}
-                                                    </label>
-                                                    {% with all_users=assign_form.fields.users.queryset selected_ids=assign_form.users.value %}
-                                                    <div class="row g-2 align-items-center">
-                                                        <div class="col-12 col-md-5">
-                                                            <label class="form-label small fw-semibold">Available Users</label>
-                                                            <select id="available-users" class="form-select" size="12" multiple>
-                                                                {% for user in all_users %}
-                                                                    {% if not selected_ids or user.id|stringformat:"s" not in selected_ids %}
-                                                                        <option value="{{ user.id }}">
-                                                                            {{ user.get_full_name }} ({{ user.username }})
-                                                                        </option>
-                                                                    {% endif %}
-                                                                {% endfor %}
-                                                            </select>
-                                                        </div>
-                                                        <div class="col-12 col-md-2 d-flex flex-column justify-content-center align-items-center gap-2 my-2">
-                                                            <button type="button" id="btn-add-user" class="btn btn-outline-primary btn-sm w-100">
-                                                                &gt;&gt;
-                                                            </button>
-                                                            <button type="button" id="btn-remove-user" class="btn btn-outline-secondary btn-sm w-100 mt-1">
-                                                                &lt;&lt;
-                                                            </button>
-                                                        </div>
-                                                        <div class="col-12 col-md-5">
-                                                            <label class="form-label small fw-semibold">Selected Users</label>
-                                                            <select id="selected-users" name="{{ assign_form.users.html_name }}" class="form-select" size="12" multiple>
-                                                                {% for user in all_users %}
-                                                                    {% if selected_ids and user.id|stringformat:"s" in selected_ids %}
-                                                                        <option value="{{ user.id }}" selected>
-                                                                            {{ user.get_full_name }} ({{ user.username }})
-                                                                        </option>
-                                                                    {% endif %}
-                                                                {% endfor %}
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                    {% endwith %}
-                                                    {{ assign_form.users }} {# hidden original field for validation #}
-                                                    <div class="form-text mt-2">
-                                                        {{ assign_form.users.help_text }}
-                                                    </div>
-                                                    {% for error in assign_form.users.errors %}
-                                                        <div class="invalid-feedback d-block">{{ error }}</div>
-                                                    {% endfor %}
-                                                </div>
-                                                <div class="col-12 col-lg-4">
-                                                    <div class="alert alert-info small">
-                                                        <strong>Tips:</strong>
-                                                        <ul class="mb-0 ps-3">
-                                                            <li>Select one or more users in a box, then use the buttons to add or remove.</li>
-                                                            <li>Users not in the <em>Selected Users</em> box will have their assignments removed.</li>
-                                                            <li>New assignments default to read-only access.</li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="d-flex justify-content-end mt-3">
-                                                <button type="submit" class="btn btn-primary">
-                                                    <i class="fas fa-save me-1"></i>Save User Assignments
-                                                </button>
-                                            </div>
-                                            <script>
-                                                (function() {
-                                                    const available = document.getElementById('available-users');
-                                                    const selected = document.getElementById('selected-users');
-                                                    const addBtn = document.getElementById('btn-add-user');
-                                                    const removeBtn = document.getElementById('btn-remove-user');
+  <div class="container-fluid">
 
-                                                    function moveOptions(source, target) {
-                                                        const moving = Array.from(source.selectedOptions);
-                                                        moving.forEach(opt => {
-                                                            opt.selected = false;
-                                                            target.add(opt);
-                                                        });
-                                                    }
+    <!-- HERO HEADER -->
+    <div class="card shadow-sm mb-3">
+      <div class="card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
 
-                                                    if (addBtn && removeBtn && available && selected) {
-                                                        addBtn.addEventListener('click', function() {
-                                                            moveOptions(available, selected);
-                                                        });
-                                                        removeBtn.addEventListener('click', function() {
-                                                            moveOptions(selected, available);
-                                                        });
+          <div>
+            <h2 class="mb-1">{{ system.name }}</h2>
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+              <span class="badge bg-info-subtle text-info border border-info-subtle">
+                {{ system.get_system_type_display }}
+              </span>
 
-                                                        // Ensure all options in selected box are marked selected on submit
-                                                        const form = addBtn.closest('form');
-                                                        if (form) {
-                                                            form.addEventListener('submit', function() {
-                                                                Array.from(selected.options).forEach(opt => {
-                                                                    opt.selected = true;
-                                                                });
-                                                            });
-                                                        }
-                                                    }
-                                                })();
-                                            </script>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
+              {% if system.is_active %}
+                <span class="badge bg-success">Active</span>
+              {% else %}
+                <span class="badge bg-danger">Inactive</span>
+              {% endif %}
 
-                        {% if hardware_form %}
-                        <div class="row mt-4">
-                            <div class="col-12">
-                                <div class="card border-0 shadow-sm">
-                                    <div class="card-header bg-white">
-                                        <h4 class="card-title mb-0">
-                                            <i class="fas fa-server me-2"></i>Manage Hardware Assets
-                                        </h4>
-                                    </div>
-                                    <div class="card-body">
-                                        <form method="post" novalidate>
-                                            {% csrf_token %}
-                                            <input type="hidden" name="manage_hardware" value="1">
-                                            {% if hardware_form.non_field_errors %}
-                                            <div class="alert alert-danger">
-                                                {{ hardware_form.non_field_errors }}
-                                            </div>
-                                            {% endif %}
-                                            <div class="row g-3">
-                                                <div class="col-12 col-lg-8">
-                                                    <label for="{{ hardware_form.hardware_assets.id_for_label }}" class="form-label fw-semibold">
-                                                        {{ hardware_form.hardware_assets.label }}
-                                                    </label>
-                                                    {{ hardware_form.hardware_assets }}
-                                                    <div class="form-text">
-                                                        {{ hardware_form.hardware_assets.help_text }}
-                                                    </div>
-                                                    {% for error in hardware_form.hardware_assets.errors %}
-                                                        <div class="invalid-feedback d-block">{{ error }}</div>
-                                                    {% endfor %}
-                                                </div>
-                                                <div class="col-12 col-lg-4">
-                                                    <div class="alert alert-info small">
-                                                        <strong>Tips:</strong>
-                                                        <ul class="mb-0 ps-3">
-                                                            <li>Use Ctrl/Command + Click to select multiple hardware assets.</li>
-                                                            <li>Link hardware that hosts or is associated with this system.</li>
-                                                            <li>This helps track infrastructure dependencies.</li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="d-flex justify-content-end mt-3">
-                                                <button type="submit" class="btn btn-primary">
-                                                    <i class="fas fa-save me-1"></i>Save Hardware Assignments
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
+              <span class="badge
+                {% if system.criticality_level == 'Critical' %}bg-danger
+                {% elif system.criticality_level == 'High' %}bg-warning text-dark
+                {% elif system.criticality_level == 'Medium' %}bg-info
+                {% else %}bg-secondary{% endif %}">
+                {{ system.get_criticality_level_display }}
+              </span>
 
-                        <div class="row mt-4">
-                            <div class="col-12">
-                                <h4>Related Hardware Assets</h4>
-                                {% if system.hardware_assets.exists %}
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered table-striped align-middle">
-                                            <thead>
-                                                <tr>
-                                                    <th>Asset Name</th>
-                                                    <th>Asset Tag</th>
-                                                    <th>Type</th>
-                                                    <th>Status</th>
-                                                    <th>Department</th>
-                                                    <th>Primary User</th>
-                                                    <th>Location</th>
-                                                    <th>Actions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {% for hardware in system.hardware_assets.all %}
-                                                <tr>
-                                                    <td>
-                                                        <div class="fw-semibold">
-                                                            <a href="{% url 'hardware:hardware_detail' hardware.pk %}">
-                                                                {{ hardware.name }}
-                                                            </a>
-                                                        </div>
-                                                    </td>
-                                                    <td>{{ hardware.asset_tag }}</td>
-                                                    <td>
-                                                        <span class="badge bg-secondary">{{ hardware.get_hardware_type_display }}</span>
-                                                    </td>
-                                                    <td>
-                                                        <span class="badge bg-{{ hardware.lifecycle_state_color }}">
-                                                            {{ hardware.status }}
-                                                        </span>
-                                                    </td>
-                                                    <td>
-                                                        {% if hardware.department %}
-                                                            {{ hardware.department.name }}
-                                                        {% else %}
-                                                            <span class="text-muted">—</span>
-                                                        {% endif %}
-                                                    </td>
-                                                    <td>
-                                                        {% if hardware.primary_user %}
-                                                            <a href="{% url 'accounts:user_detail' hardware.primary_user.pk %}">
-                                                                {{ hardware.primary_user.get_full_name }}
-                                                            </a>
-                                                        {% else %}
-                                                            <span class="text-muted">—</span>
-                                                        {% endif %}
-                                                    </td>
-                                                    <td>{{ hardware.location|default:"—" }}</td>
-                                                    <td>
-                                                        <a href="{% url 'hardware:hardware_detail' hardware.pk %}" class="btn btn-sm btn-outline-primary">
-                                                            <i class="fas fa-eye"></i> View
-                                                        </a>
-                                                    </td>
-                                                </tr>
-                                                {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                {% else %}
-                                    <div class="alert alert-info">
-                                        <i class="fas fa-info-circle me-2"></i>
-                                        No hardware assets are currently linked to this system. Use the "Manage Hardware Assets" form above to link hardware.
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="row mt-4">
-                            <div class="col-12">
-                                <h4>Assigned Users</h4>
-                                <div class="table-responsive">
-                                    <table class="table table-bordered table-striped align-middle">
-                                        <thead>
-                                            <tr>
-                                                <th>User</th>
-                                                <th>Access Type</th>
-                                                <th>Status</th>
-                                                <th>Priority</th>
-                                                <th>Approved By</th>
-                                                <th>Updated</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for assignment in assignments %}
-                                            <tr>
-                                                <td>
-                                                    <div class="fw-semibold">
-                                                        <a href="{% url 'accounts:user_detail' assignment.user.pk %}">
-                                                            {{ assignment.user.get_full_name }}
-                                                        </a>
-                                                    </div>
-                                                    <div class="text-muted small">{{ assignment.user.username }}</div>
-                                                </td>
-                                                <td>{{ assignment.access_type }}</td>
-                                                <td>
-                                                    <span class="badge bg-{{ assignment.get_status_color }}">
-                                                        {{ assignment.status }}
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    <span class="badge bg-{{ assignment.get_priority_color }}">
-                                                        {{ assignment.priority }}
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    {% if assignment.approved_by %}
-                                                        {{ assignment.approved_by.get_full_name }}
-                                                    {% else %}
-                                                        <span class="text-muted">—</span>
-                                                    {% endif %}
-                                                </td>
-                                                <td>{{ assignment.updated_at|date:"Y-m-d H:i" }}</td>
-                                                <td>
-                                                    <div class="btn-group btn-group-sm">
-                                                        <a href="{% url 'access_management:access_assignment_detail' assignment.pk %}" class="btn btn-outline-primary">
-                                                            <i class="fas fa-eye"></i>
-                                                        </a>
-                                                        <a href="{% url 'access_management:access_assignment_update' assignment.pk %}" class="btn btn-outline-secondary">
-                                                            <i class="fas fa-edit"></i>
-                                                        </a>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            {% empty %}
-                                            <tr>
-                                                <td colspan="7" class="text-center text-muted">No user assignments found for this system.</td>
-                                            </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row mt-4">
-                            <div class="col-12">
-                                <a href="{% url 'systems:system_update' system.pk %}" class="btn btn-warning">
-                                    <i class="fas fa-edit"></i> Edit System
-                                </a>
-                                <a href="{% url 'systems:system_delete' system.pk %}" class="btn btn-danger">
-                                    <i class="fas fa-trash"></i> Delete System
-                                </a>
-                                <a href="{% url 'systems:system_list' %}" class="btn btn-secondary">
-                                    <i class="fas fa-arrow-left"></i> Back to List
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+              <span class="text-muted small">
+                Code: <span class="fw-semibold">{{ system.code }}</span>
+              </span>
             </div>
+
+            {% if system.description %}
+              <div class="text-muted mt-2">{{ system.description }}</div>
+            {% endif %}
+          </div>
+
+          <div class="d-flex flex-wrap gap-2">
+            <a href="{% url 'systems:system_update' system.pk %}" class="btn btn-warning">
+              <i class="fas fa-edit me-1"></i> Edit
+            </a>
+            <a href="{% url 'systems:system_delete' system.pk %}" class="btn btn-outline-danger">
+              <i class="fas fa-trash me-1"></i> Delete
+            </a>
+            <a href="{% url 'systems:system_list' %}" class="btn btn-outline-secondary">
+              <i class="fas fa-arrow-left me-1"></i> Back
+            </a>
+          </div>
+
         </div>
+
+        <hr class="my-3">
+
+        <!-- Quick stats -->
+        <div class="row g-3">
+          <div class="col-12 col-md-3">
+            <div class="p-3 border rounded bg-light">
+              <div class="text-muted small">Active Users</div>
+              <div class="fs-4 fw-bold">
+                <span class="badge bg-primary">{{ system.get_active_user_count }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-3">
+            <div class="p-3 border rounded bg-light">
+              <div class="text-muted small">Uptime</div>
+              <div class="fs-4 fw-bold">{{ system.uptime_percentage_display }}</div>
+            </div>
+          </div>
+          <div class="col-12 col-md-3">
+            <div class="p-3 border rounded bg-light">
+              <div class="text-muted small">Created</div>
+              <div class="fw-semibold">{{ system.created_at|date:"Y-m-d H:i" }}</div>
+            </div>
+          </div>
+          <div class="col-12 col-md-3">
+            <div class="p-3 border rounded bg-light">
+              <div class="text-muted small">Updated</div>
+              <div class="fw-semibold">{{ system.updated_at|date:"Y-m-d H:i" }}</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
+
+    <!-- INFO CARDS -->
+    <div class="row g-3">
+      <div class="col-12 col-lg-6">
+        <div class="card shadow-sm h-100">
+          <div class="card-header bg-white fw-semibold">
+            <i class="fas fa-circle-info me-2 text-muted"></i> Basic Information
+          </div>
+          <div class="card-body">
+            <dl class="row mb-0">
+              <dt class="col-sm-4 text-muted">Name</dt>
+              <dd class="col-sm-8">{{ system.name }}</dd>
+
+              <dt class="col-sm-4 text-muted">Code</dt>
+              <dd class="col-sm-8">{{ system.code }}</dd>
+
+              <dt class="col-sm-4 text-muted">Type</dt>
+              <dd class="col-sm-8">
+                <span class="badge bg-info">{{ system.get_system_type_display }}</span>
+              </dd>
+
+              <dt class="col-sm-4 text-muted">Status</dt>
+              <dd class="col-sm-8">
+                {% if system.is_active %}
+                  <span class="badge bg-success">Active</span>
+                {% else %}
+                  <span class="badge bg-danger">Inactive</span>
+                {% endif %}
+              </dd>
+
+              <dt class="col-sm-4 text-muted">Criticality</dt>
+              <dd class="col-sm-8">
+                <span class="badge
+                  {% if system.criticality_level == 'Critical' %}bg-danger
+                  {% elif system.criticality_level == 'High' %}bg-warning text-dark
+                  {% elif system.criticality_level == 'Medium' %}bg-info
+                  {% else %}bg-secondary{% endif %}">
+                  {{ system.get_criticality_level_display }}
+                </span>
+              </dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-lg-6">
+        <div class="card shadow-sm h-100">
+          <div class="card-header bg-white fw-semibold">
+            <i class="fas fa-address-card me-2 text-muted"></i> Contact & Links
+          </div>
+          <div class="card-body">
+            <dl class="row mb-0">
+              <dt class="col-sm-4 text-muted">Owner</dt>
+              <dd class="col-sm-8">
+                {% if system.system_owner %}
+                  <a href="{% url 'accounts:user_detail' system.system_owner.pk %}">
+                    {{ system.system_owner.get_full_name }}
+                  </a>
+                {% else %}
+                  <span class="text-muted">—</span>
+                {% endif %}
+              </dd>
+
+              <dt class="col-sm-4 text-muted">Technical Lead</dt>
+              <dd class="col-sm-8">
+                {% if system.technical_lead %}
+                  <a href="{% url 'accounts:user_detail' system.technical_lead.pk %}">
+                    {{ system.technical_lead.get_full_name }}
+                  </a>
+                {% else %}
+                  <span class="text-muted">—</span>
+                {% endif %}
+              </dd>
+
+              <dt class="col-sm-4 text-muted">Support Contact</dt>
+              <dd class="col-sm-8">{{ system.support_contact|default:"—" }}</dd>
+
+              <dt class="col-sm-4 text-muted">Documentation</dt>
+              <dd class="col-sm-8">
+                {% if system.documentation_url %}
+                  <a href="{{ system.documentation_url }}" target="_blank" rel="noopener">
+                    <i class="fas fa-up-right-from-square me-1"></i> Open
+                  </a>
+                {% else %}
+                  <span class="text-muted">—</span>
+                {% endif %}
+              </dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TECHNICAL DETAILS -->
+    <div class="card shadow-sm mt-3">
+      <div class="card-header bg-white fw-semibold">
+        <i class="fas fa-gear me-2 text-muted"></i> Technical Details
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-12 col-md-4">
+            <div class="p-3 border rounded">
+              <div class="text-muted small">Version</div>
+              <div class="fw-semibold">{{ system.version|default:"—" }}</div>
+            </div>
+          </div>
+          <div class="col-12 col-md-4">
+            <div class="p-3 border rounded">
+              <div class="text-muted small">URL</div>
+              <div class="fw-semibold">
+                {% if system.url %}
+                  <a href="{{ system.url }}" target="_blank" rel="noopener">{{ system.url }}</a>
+                {% else %}
+                  <span class="text-muted">—</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-4">
+            <div class="p-3 border rounded">
+              <div class="text-muted small">IP Address</div>
+              <div class="fw-semibold">{{ system.ip_address|default:"—" }}</div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <div class="p-3 border rounded">
+              <div class="text-muted small">Last Maintenance</div>
+              <div class="fw-semibold">{{ system.last_maintenance_date|default:"—" }}</div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <div class="p-3 border rounded">
+              <div class="text-muted small">Next Maintenance</div>
+              <div class="fw-semibold">{{ system.next_maintenance_date|default:"—" }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACCORDION: Contract / Manage Users / Manage Hardware -->
+    <div class="accordion mt-3" id="systemAccordion">
+
+      <!-- CONTRACT -->
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="headingContract">
+          <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseContract" aria-expanded="true">
+            <i class="fas fa-file-contract me-2"></i> Contract & Renewal
+            <span class="ms-3">
+              {% if contract %}
+                {% with status=contract.renewal_status %}
+                  {% if status == 'overdue' %}
+                    <span class="badge bg-danger">Overdue</span>
+                  {% elif status == 'due_soon' %}
+                    <span class="badge bg-warning text-dark">Due Soon</span>
+                  {% elif status == 'current' %}
+                    <span class="badge bg-success">Current</span>
+                  {% else %}
+                    <span class="badge bg-secondary">Not Set</span>
+                  {% endif %}
+                {% endwith %}
+              {% else %}
+                <span class="badge bg-secondary">Not Configured</span>
+              {% endif %}
+            </span>
+          </button>
+        </h2>
+        <div id="collapseContract" class="accordion-collapse collapse show" data-bs-parent="#systemAccordion">
+          <div class="accordion-body">
+
+            {% if contract %}
+              <div class="table-responsive">
+                <table class="table table-bordered align-middle mb-0">
+                  <tbody>
+                    <tr>
+                      <th style="width: 220px;">Support Contact</th>
+                      <td>
+                        {% if contract.support_contact_name %}
+                          <div class="fw-semibold">{{ contract.support_contact_name }}</div>
+                          <div class="text-muted small">
+                            {{ contract.support_contact_role|default:"" }}
+                            {% if contract.support_contact_email %}<br>{{ contract.support_contact_email }}{% endif %}
+                            {% if contract.support_contact_phone %}<br>{{ contract.support_contact_phone }}{% endif %}
+                          </div>
+                        {% else %}
+                          <span class="text-muted">—</span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                    <tr>
+                      <th>Renewal Date</th>
+                      <td>{{ contract.renewal_date|default:"—" }}</td>
+                    </tr>
+                    <tr>
+                      <th>Duration</th>
+                      <td>{{ contract.renewal_duration_value }} {{ contract.get_renewal_duration_unit_display|default:"" }}</td>
+                    </tr>
+                    <tr>
+                      <th>Fees</th>
+                      <td>
+                        {% if contract.contract_fee_amount %}
+                          <div class="fw-semibold">Billing currency</div>
+                          <div class="text-muted small">
+                            Base: {{ contract.contract_fee_amount|floatformat:2 }} {{ contract.contract_fee_currency }}<br>
+                            VAT {% if contract.vat_included %}included{% else %}excluded{% endif %}
+                            {% if contract.vat_rate %} ({{ contract.vat_rate|floatformat:2 }}%){% endif %}
+                            {% if contract.vat_amount %}: {{ contract.vat_amount|floatformat:2 }} {{ contract.contract_fee_currency }}{% endif %}<br>
+                            Total:
+                            {% if contract.fee_amount_including_vat %}
+                              {{ contract.fee_amount_including_vat|floatformat:2 }} {{ contract.contract_fee_currency }}
+                            {% else %}—{% endif %}
+                          </div>
+
+                          <div class="fw-semibold mt-2">Local currency</div>
+                          <div class="text-muted small">
+                            Base:
+                            {% if contract.fee_amount_local %}
+                              {{ contract.fee_amount_local|floatformat:2 }} {{ contract.local_currency }}
+                            {% else %}—{% endif %}<br>
+                            VAT:
+                            {% if contract.vat_amount_local %}
+                              {{ contract.vat_amount_local|floatformat:2 }} {{ contract.local_currency }}
+                            {% elif contract.vat_amount %}
+                              ~{{ contract.vat_amount|floatformat:2 }} {{ contract.contract_fee_currency }}
+                            {% else %}—{% endif %}<br>
+                            Total:
+                            {% if contract.fee_amount_local_including_vat %}
+                              {{ contract.fee_amount_local_including_vat|floatformat:2 }} {{ contract.local_currency }}
+                            {% else %}—{% endif %}
+                          </div>
+                        {% else %}
+                          <span class="text-muted">—</span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                    <tr>
+                      <th>Due Amounts</th>
+                      <td>
+                        <div class="text-muted small mb-1">
+                          Monthly:
+                          {% if contract.due_amount_monthly %}
+                            {{ contract.due_amount_monthly|floatformat:2 }} {{ contract.contract_fee_currency }}
+                          {% else %}—{% endif %}
+                        </div>
+                        <div class="text-muted small">
+                          Yearly:
+                          {% if contract.due_amount_yearly %}
+                            {{ contract.due_amount_yearly|floatformat:2 }} {{ contract.contract_fee_currency }}
+                          {% else %}—{% endif %}
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <th>Payment Terms</th>
+                      <td>{{ contract.payment_terms|default:"—" }}</td>
+                    </tr>
+                    <tr>
+                      <th>Renewal Copy</th>
+                      <td>
+                        {% if contract.renewal_copy %}
+                          <a href="{{ contract.renewal_copy.url }}" target="_blank" rel="noopener">
+                            <i class="fas fa-download me-1"></i> Download current copy
+                          </a>
+                        {% else %}
+                          <span class="text-muted">No file uploaded</span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <div class="alert alert-info mb-0">
+                <i class="fas fa-info-circle me-2"></i>
+                No contract data captured yet. Use the Contract & Renewal button on the edit page to add details.
+              </div>
+            {% endif %}
+
+          </div>
+        </div>
+      </div>
+
+      <!-- MANAGE USERS -->
+      {% if assign_form %}
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="headingUsers">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUsers">
+            <i class="fas fa-user-plus me-2"></i> Manage System Users
+          </button>
+        </h2>
+        <div id="collapseUsers" class="accordion-collapse collapse" data-bs-parent="#systemAccordion">
+          <div class="accordion-body">
+
+            <form method="post" novalidate>
+              {% csrf_token %}
+              <input type="hidden" name="manage_users" value="1">
+
+              {% if assign_form.non_field_errors %}
+                <div class="alert alert-danger">{{ assign_form.non_field_errors }}</div>
+              {% endif %}
+
+              <div class="row g-3 align-items-stretch">
+                <div class="col-12 col-lg-8">
+                  <label class="form-label fw-semibold">{{ assign_form.users.label }}</label>
+
+                  {% with all_users=assign_form.fields.users.queryset selected_ids=assign_form.users.value %}
+                    <div class="row g-2 align-items-center">
+                      <div class="col-12 col-md-5">
+                        <label class="form-label small fw-semibold">Available Users</label>
+                        <select id="available-users" class="form-select" size="12" multiple>
+                          {% for user in all_users %}
+                            {% if not selected_ids or user.id|stringformat:"s" not in selected_ids %}
+                              <option value="{{ user.id }}">{{ user.get_full_name }} ({{ user.username }})</option>
+                            {% endif %}
+                          {% endfor %}
+                        </select>
+                      </div>
+
+                      <div class="col-12 col-md-2 d-flex flex-column justify-content-center align-items-center gap-2 my-2">
+                        <button type="button" id="btn-add-user" class="btn btn-outline-primary btn-sm w-100"> &gt;&gt; </button>
+                        <button type="button" id="btn-remove-user" class="btn btn-outline-secondary btn-sm w-100"> &lt;&lt; </button>
+                      </div>
+
+                      <div class="col-12 col-md-5">
+                        <label class="form-label small fw-semibold">Selected Users</label>
+                        <select id="selected-users" name="{{ assign_form.users.html_name }}" class="form-select" size="12" multiple>
+                          {% for user in all_users %}
+                            {% if selected_ids and user.id|stringformat:"s" in selected_ids %}
+                              <option value="{{ user.id }}" selected>{{ user.get_full_name }} ({{ user.username }})</option>
+                            {% endif %}
+                          {% endfor %}
+                        </select>
+                      </div>
+                    </div>
+                  {% endwith %}
+
+                  {{ assign_form.users }} {# hidden original field for validation #}
+
+                  <div class="form-text mt-2">{{ assign_form.users.help_text }}</div>
+                  {% for error in assign_form.users.errors %}
+                    <div class="invalid-feedback d-block">{{ error }}</div>
+                  {% endfor %}
+                </div>
+
+                <div class="col-12 col-lg-4">
+                  <div class="alert alert-info small mb-0">
+                    <strong>Tips:</strong>
+                    <ul class="mb-0 ps-3">
+                      <li>Select users then use buttons to add/remove.</li>
+                      <li>Users not in Selected Users will be unassigned.</li>
+                      <li>New assignments default to read-only access.</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-end mt-3">
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-save me-1"></i> Save User Assignments
+                </button>
+              </div>
+
+              <script>
+                (function() {
+                  const available = document.getElementById('available-users');
+                  const selected = document.getElementById('selected-users');
+                  const addBtn = document.getElementById('btn-add-user');
+                  const removeBtn = document.getElementById('btn-remove-user');
+
+                  function moveOptions(source, target) {
+                    const moving = Array.from(source.selectedOptions);
+                    moving.forEach(opt => {
+                      opt.selected = false;
+                      target.add(opt);
+                    });
+                  }
+
+                  if (addBtn && removeBtn && available && selected) {
+                    addBtn.addEventListener('click', function() { moveOptions(available, selected); });
+                    removeBtn.addEventListener('click', function() { moveOptions(selected, available); });
+
+                    const form = addBtn.closest('form');
+                    if (form) {
+                      form.addEventListener('submit', function() {
+                        Array.from(selected.options).forEach(opt => { opt.selected = true; });
+                      });
+                    }
+                  }
+                })();
+              </script>
+
+            </form>
+
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- MANAGE HARDWARE -->
+      {% if hardware_form %}
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="headingHardware">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseHardware">
+            <i class="fas fa-server me-2"></i> Manage Hardware Assets
+          </button>
+        </h2>
+        <div id="collapseHardware" class="accordion-collapse collapse" data-bs-parent="#systemAccordion">
+          <div class="accordion-body">
+
+            <form method="post" novalidate>
+              {% csrf_token %}
+              <input type="hidden" name="manage_hardware" value="1">
+
+              {% if hardware_form.non_field_errors %}
+                <div class="alert alert-danger">{{ hardware_form.non_field_errors }}</div>
+              {% endif %}
+
+              <div class="row g-3">
+                <div class="col-12 col-lg-8">
+                  <label for="{{ hardware_form.hardware_assets.id_for_label }}" class="form-label fw-semibold">
+                    {{ hardware_form.hardware_assets.label }}
+                  </label>
+                  {{ hardware_form.hardware_assets }}
+                  <div class="form-text">{{ hardware_form.hardware_assets.help_text }}</div>
+                  {% for error in hardware_form.hardware_assets.errors %}
+                    <div class="invalid-feedback d-block">{{ error }}</div>
+                  {% endfor %}
+                </div>
+
+                <div class="col-12 col-lg-4">
+                  <div class="alert alert-info small mb-0">
+                    <strong>Tips:</strong>
+                    <ul class="mb-0 ps-3">
+                      <li>Use Ctrl/Command + Click to select multiple assets.</li>
+                      <li>Link hardware that hosts or supports this system.</li>
+                      <li>Helpful for dependency tracking.</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-end mt-3">
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-save me-1"></i> Save Hardware Assignments
+                </button>
+              </div>
+
+            </form>
+
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+
+    <!-- RELATED HARDWARE -->
+    <div class="card shadow-sm mt-3">
+      <div class="card-header bg-white fw-semibold">
+        <i class="fas fa-link me-2 text-muted"></i> Related Hardware Assets
+      </div>
+      <div class="card-body p-0">
+        {% if system.hardware_assets.exists %}
+          <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Asset Name</th>
+                  <th>Asset Tag</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Department</th>
+                  <th>Primary User</th>
+                  <th>Location</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for hardware in system.hardware_assets.all %}
+                  <tr>
+                    <td class="fw-semibold">
+                      <a href="{% url 'hardware:hardware_detail' hardware.pk %}">{{ hardware.name }}</a>
+                    </td>
+                    <td>{{ hardware.asset_tag }}</td>
+                    <td><span class="badge bg-secondary">{{ hardware.get_hardware_type_display }}</span></td>
+                    <td><span class="badge bg-{{ hardware.lifecycle_state_color }}">{{ hardware.status }}</span></td>
+                    <td>{% if hardware.department %}{{ hardware.department.name }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                    <td>
+                      {% if hardware.primary_user %}
+                        <a href="{% url 'accounts:user_detail' hardware.primary_user.pk %}">{{ hardware.primary_user.get_full_name }}</a>
+                      {% else %}
+                        <span class="text-muted">—</span>
+                      {% endif %}
+                    </td>
+                    <td>{{ hardware.location|default:"—" }}</td>
+                    <td class="text-end">
+                      <a href="{% url 'hardware:hardware_detail' hardware.pk %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-eye me-1"></i> View
+                      </a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="p-4">
+            <div class="alert alert-info mb-0">
+              <i class="fas fa-info-circle me-2"></i>
+              No hardware assets linked to this system yet.
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- ASSIGNED USERS -->
+    <div class="card shadow-sm mt-3">
+      <div class="card-header bg-white fw-semibold">
+        <i class="fas fa-users me-2 text-muted"></i> Assigned Users
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>User</th>
+                <th>Access Type</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Approved By</th>
+                <th>Updated</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for assignment in assignments %}
+                <tr>
+                  <td>
+                    <div class="fw-semibold">
+                      <a href="{% url 'accounts:user_detail' assignment.user.pk %}">
+                        {{ assignment.user.get_full_name }}
+                      </a>
+                    </div>
+                    <div class="text-muted small">{{ assignment.user.username }}</div>
+                  </td>
+                  <td>{{ assignment.access_type }}</td>
+                  <td><span class="badge bg-{{ assignment.get_status_color }}">{{ assignment.status }}</span></td>
+                  <td><span class="badge bg-{{ assignment.get_priority_color }}">{{ assignment.priority }}</span></td>
+                  <td>
+                    {% if assignment.approved_by %}
+                      {{ assignment.approved_by.get_full_name }}
+                    {% else %}
+                      <span class="text-muted">—</span>
+                    {% endif %}
+                  </td>
+                  <td>{{ assignment.updated_at|date:"Y-m-d H:i" }}</td>
+                  <td class="text-end">
+                    <div class="btn-group btn-group-sm">
+                      <a href="{% url 'access_management:access_assignment_detail' assignment.pk %}" class="btn btn-outline-primary" title="View">
+                        <i class="fas fa-eye"></i>
+                      </a>
+                      <a href="{% url 'access_management:access_assignment_update' assignment.pk %}" class="btn btn-outline-secondary" title="Edit">
+                        <i class="fas fa-edit"></i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="7" class="text-center text-muted py-4">
+                    No user assignments found for this system.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
 </div>
 {% endblock %}
+``
