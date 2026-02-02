@@ -638,23 +638,43 @@ def export_quarterly_reviews_to_csv(queryset):
 def export_cross_system_mapping_to_csv(users, systems, user_system_mapping):
     """
     Export cross-system mapping as CSV in matrix format:
-    Columns: Employee, Employee ID, Department, then one column per system
+    Columns: Employee, Employee ID, Department, Account Status, Employment Status, 
+    Assignment Status, Metrics, then one column per system
     Rows: One per user
     """
     output = StringIO()
     writer = csv.writer(output)
     
-    # Build headers: Employee, Employee ID, Department, then system names
-    headers = ["Employee", "Employee ID", "Department"]
+    # Build headers: Employee, Employee ID, Department, Account Status, Employment Status, 
+    # Assignment Status, Metrics, then system names
+    headers = ["Employee", "Employee ID", "Department", "Account Status", 
+               "Employment Status", "Assignment Status", "Metrics"]
     headers.extend([system.name for system in systems])
     writer.writerow(headers)
     
     # Write one row per user
     for user in users:
+        # Get assignment statuses for this user (may have multiple assignments with different statuses)
+        user_assignments = user_system_mapping.get(user.id, {})
+        assignment_statuses = set()
+        for system_id, access_info in user_assignments.items():
+            if access_info and access_info.get('status'):
+                assignment_statuses.add(access_info['status'])
+        
+        # Format assignment status: show unique statuses or "None" if no assignments
+        if assignment_statuses:
+            assignment_status_str = ', '.join(sorted(assignment_statuses))
+        else:
+            assignment_status_str = 'None'
+        
         row = [
             user.full_name,
             user.employee_id or '',
             user.department.name if user.department else '',
+            'Active' if user.is_active else 'Inactive',
+            user.employment_status or '',
+            assignment_status_str,
+            'Exclude from Metrics' if user.exclude_from_metrics else 'Include in Metrics',
         ]
         # Add username for each system (or empty if no access)
         for system in systems:
@@ -673,15 +693,18 @@ def export_cross_system_mapping_to_csv(users, systems, user_system_mapping):
 def export_cross_system_mapping_to_excel(users, systems, user_system_mapping):
     """
     Export cross-system mapping as Excel in matrix format:
-    Columns: Employee, Employee ID, Department, then one column per system
+    Columns: Employee, Employee ID, Department, Account Status, Employment Status, 
+    Assignment Status, Metrics, then one column per system
     Rows: One per user
     """
     workbook = Workbook()
     worksheet = workbook.active
     worksheet.title = "Cross-System Mapping"
     
-    # Build headers: Employee, Employee ID, Department, then system names
-    headers = ["Employee", "Employee ID", "Department"]
+    # Build headers: Employee, Employee ID, Department, Account Status, Employment Status, 
+    # Assignment Status, Metrics, then system names
+    headers = ["Employee", "Employee ID", "Department", "Account Status", 
+               "Employment Status", "Assignment Status", "Metrics"]
     headers.extend([system.name for system in systems])
     worksheet.append(headers)
     
@@ -698,10 +721,27 @@ def export_cross_system_mapping_to_excel(users, systems, user_system_mapping):
     
     # Write one row per user
     for user in users:
+        # Get assignment statuses for this user (may have multiple assignments with different statuses)
+        user_assignments = user_system_mapping.get(user.id, {})
+        assignment_statuses = set()
+        for system_id, access_info in user_assignments.items():
+            if access_info and access_info.get('status'):
+                assignment_statuses.add(access_info['status'])
+        
+        # Format assignment status: show unique statuses or "None" if no assignments
+        if assignment_statuses:
+            assignment_status_str = ', '.join(sorted(assignment_statuses))
+        else:
+            assignment_status_str = 'None'
+        
         row = [
             user.full_name,
             user.employee_id or '',
             user.department.name if user.department else '',
+            'Active' if user.is_active else 'Inactive',
+            user.employment_status or '',
+            assignment_status_str,
+            'Exclude from Metrics' if user.exclude_from_metrics else 'Include in Metrics',
         ]
         # Add username for each system (or empty if no access)
         for system in systems:
@@ -716,9 +756,13 @@ def export_cross_system_mapping_to_excel(users, systems, user_system_mapping):
     from openpyxl.utils import get_column_letter
     for col_num, header in enumerate(headers, 1):
         col_letter = get_column_letter(col_num)
-        if col_num <= 3:
-            # Fixed width for first 3 columns
-            worksheet.column_dimensions[col_letter].width = 20
+        if col_num <= 7:
+            # Fixed width for first 7 columns (Employee, Employee ID, Department, Account Status, 
+            # Employment Status, Assignment Status, Metrics)
+            if col_num <= 3:
+                worksheet.column_dimensions[col_letter].width = 20
+            else:
+                worksheet.column_dimensions[col_letter].width = 18
         else:
             # Auto-width for system columns
             max_length = max(
