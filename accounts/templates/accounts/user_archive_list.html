@@ -1,103 +1,120 @@
 {% extends 'base.html' %}
 {% load static %}
-
 {% block title %}Archived Users{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-3">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-        <div>
-            <h1 class="h4 mb-0">Archived Users</h1>
-            <p class="text-muted mb-0">Historical snapshots of deleted user accounts remain available for compliance and reference.</p>
-        </div>
-        <a href="{% url 'accounts:user_list' %}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-1"></i>Back to Users
-        </a>
-    </div>
 
-    <div class="card shadow-sm border-0 mb-4">
-        <div class="card-body">
-            <form method="get" class="row g-3 align-items-end">
-                <div class="col-lg-6">
-                    <label for="search" class="form-label fw-semibold">Search archive records</label>
-                    <input type="text" id="search" name="q" value="{{ query }}" class="form-control" placeholder="Username, employee ID, department…">
-                </div>
-                <div class="col-lg-6 text-lg-end">
-                    <div class="btn-group">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-search me-1"></i>Search
-                        </button>
-                        {% if query %}
-                        <a href="{% url 'accounts:user_archive_list' %}" class="btn btn-outline-secondary">
-                            Clear
-                        </a>
-                        {% endif %}
-                    </div>
-                    <div class="btn-group ms-lg-2 mt-3 mt-lg-0">
-                        <a href="{% url 'accounts:user_archive_export_excel' %}{% if query %}?q={{ query|urlencode }}{% endif %}" class="btn btn-success">
-                            <i class="fas fa-file-excel me-1"></i>Export Excel
-                        </a>
-                        <a href="{% url 'accounts:user_archive_export_pdf' %}{% if query %}?q={{ query|urlencode }}{% endif %}" class="btn btn-danger">
-                            <i class="fas fa-file-pdf me-1"></i>Export PDF
-                        </a>
-                    </div>
-                </div>
-            </form>
-        </div>
+  <!-- Header -->
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+    <div>
+      <h2 class="mb-0">Archived Users</h2>
+      <div class="text-muted small">
+        Historical snapshots of deleted users retained for audit and compliance.
+      </div>
     </div>
+    <div>
+      <a href="{% url 'accounts:user_list' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i> Back to Users
+      </a>
+    </div>
+  </div>
 
-    <div class="card shadow-sm border-0">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-striped align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>User</th>
-                            <th>Employee ID</th>
-                            <th>Department</th>
-                            <th>Archived At</th>
-                            <th>Archived By</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for archive in archives %}
-                        <tr>
-                            <td>
-                                <strong>{{ archive.full_name|default:archive.username }}</strong>
-                                <div class="text-muted small">{{ archive.username }}</div>
-                            </td>
-                            <td>{{ archive.employee_id|default:"—" }}</td>
-                            <td>{{ archive.department_name|default:"—" }}</td>
-                            <td>{{ archive.archived_at|date:"M d, Y H:i" }}</td>
-                            <td>
-                                {% with archived_user=archive.archived_by %}
-                                    {% if archived_user %}
-                                        {{ archived_user.get_full_name|default:archived_user.username }}
-                                    {% else %}
-                                        System
-                                    {% endif %}
-                                {% endwith %}
-                            </td>
-                            <td>
-                                <a href="{% url 'accounts:user_archive_detail' archive.id %}" class="btn btn-sm btn-outline-primary">
-                                    View
-                                </a>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="6" class="text-center text-muted py-4">
-                                <i class="fas fa-archive fa-2x mb-2"></i>
-                                <div>No archived users found.</div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+  <!-- Search + Export -->
+  <div class="card shadow-sm mb-3">
+    <div class="card-body">
+      <form method="get" class="row g-3 align-items-end">
+
+        <div class="col-12 col-lg-6">
+          <label class="form-label fw-semibold">Search archive</label>
+          <input type="text"
+                 name="q"
+                 value="{{ query }}"
+                 class="form-control"
+                 placeholder="Username, employee ID, department">
         </div>
+
+        <div class="col-12 col-lg-6 d-flex flex-wrap justify-content-lg-end gap-2">
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-search me-1"></i> Search
+          </button>
+
+          {% if query %}
+            <a href="{% url 'accounts:user_archive_list' %}" class="btn btn-outline-secondary">
+              Clear
+            </a>
+          {% endif %}
+
+          <a href="{% url 'accounts:user_archive_export_excel' %}{% if query %}?q={{ query|urlencode }}{% endif %}"
+             class="btn btn-success">
+            <i class="fas fa-file-excel me-1"></i> Excel
+          </a>
+
+          <a href="{% url 'accounts:user_archive_export_pdf' %}{% if query %}?q={{ query|urlencode }}{% endif %}"
+             class="btn btn-danger">
+            <i class="fas fa-file-pdf me-1"></i> PDF
+          </a>
+        </div>
+
+      </form>
     </div>
+  </div>
+
+  <!-- Table -->
+  <div class="card shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>User</th>
+              <th>Employee ID</th>
+              <th>Department</th>
+              <th>Archived At</th>
+              <th>Archived By</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+
+            {% for archive in archives %}
+            <tr>
+              <td>
+                <div class="fw-semibold">{{ archive.full_name|default:archive.username }}</div>
+                <div class="text-muted small">{{ archive.username }}</div>
+              </td>
+              <td>{{ archive.employee_id|default:"—" }}</td>
+              <td>{{ archive.department_name|default:"—" }}</td>
+              <td>{{ archive.archived_at|date:"M d, Y H:i" }}</td>
+              <td>
+                {% if archive.archived_by %}
+                  {{ archive.archived_by.get_full_name|default:archive.archived_by.username }}
+                {% else %}
+                  System
+                {% endif %}
+              </td>
+              <td class="text-end">
+                <a href="{% url 'accounts:user_archive_detail' archive.id %}"
+                   class="btn btn-sm btn-outline-primary">
+                  View
+                </a>
+              </td>
+            </tr>
+
+            {% empty %}
+            <tr>
+              <td colspan="6" class="text-center text-muted py-5">
+                <i class="fas fa-archive fa-2x mb-2"></i>
+                <div class="fw-semibold">No archived users found</div>
+              </td>
+            </tr>
+            {% endfor %}
+
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
 </div>
 {% endblock %}
-

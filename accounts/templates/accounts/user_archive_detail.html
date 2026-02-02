@@ -41,7 +41,7 @@
                         <dd class="col-sm-8">{{ archive.department_name|default:"—" }}</dd>
 
                         <dt class="col-sm-4 text-muted">Archived By</dt>
-                        <dd class="col-sm-8">{{ archive.archived_by.get_full_name|default:archive.archived_by.username|default:"System" }}</dd>
+                        <dd class="col-sm-8">{% if archive.archived_by %}{{ archive.archived_by.get_full_name|default:archive.archived_by.username }}{% else %}System{% endif %}</dd>
 
                         <dt class="col-sm-4 text-muted">Archived At</dt>
                         <dd class="col-sm-8">{{ archive.archived_at|date:"M d, Y H:i" }}</dd>
