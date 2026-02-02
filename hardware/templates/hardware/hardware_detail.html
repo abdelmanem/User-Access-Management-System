@@ -1,246 +1,281 @@
 {% extends 'base.html' %}
 {% load static %}
-
 {% block title %}{{ asset.name }}{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h3 mb-1">{{ asset.name }}</h1>
+<div id="content-main">
+  <div class="container-fluid">
+
+    <!-- HERO -->
+    <div class="card shadow-sm mb-3">
+      <div class="card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+
+          <div>
+            <h2 class="mb-1">{{ asset.name }}</h2>
             <div class="text-muted">
-                Asset Tag: <span class="fw-semibold">{{ asset.asset_tag }}</span>
-                {% if asset.serial_number %}
-                · Serial No: <span class="fw-semibold">{{ asset.serial_number }}</span>
+              Asset Tag: <span class="fw-semibold">{{ asset.asset_tag }}</span>
+              {% if asset.serial_number %}
+                <span class="text-muted"> · </span>
+                Serial No: <span class="fw-semibold">{{ asset.serial_number }}</span>
+              {% endif %}
+            </div>
+
+            <div class="d-flex flex-wrap gap-2 mt-2">
+              <span class="badge bg-{{ asset.lifecycle_state_color }}">{{ asset.status }}</span>
+              <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">
+                {{ asset.get_hardware_type_display }}
+              </span>
+              {% if asset.is_virtual %}
+                <span class="badge bg-info text-dark">Virtual</span>
+              {% endif %}
+              {% if asset.requires_patch_management %}
+                <span class="badge bg-success-subtle text-success border border-success-subtle">Patch Mgmt: Enabled</span>
+              {% else %}
+                <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Patch Mgmt: Disabled</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="d-flex flex-wrap gap-2">
+            <a href="{% url 'hardware:hardware_update' asset.pk %}" class="btn btn-outline-secondary">
+              <i class="fa-solid fa-pen me-1"></i> Edit
+            </a>
+            <a href="{% url 'hardware:hardware_delete' asset.pk %}" class="btn btn-outline-danger">
+              <i class="fa-solid fa-trash me-1"></i> Delete
+            </a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3">
+
+      <!-- LEFT -->
+      <div class="col-12 col-lg-8">
+
+        <!-- Overview -->
+        <div class="card shadow-sm">
+          <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <div class="fw-semibold">
+              <i class="fa-solid fa-circle-info me-2 text-muted"></i> Asset Overview
+            </div>
+            <span class="badge bg-{{ asset.lifecycle_state_color }}">{{ asset.status }}</span>
+          </div>
+
+          <div class="card-body">
+            <dl class="row mb-0">
+
+              <dt class="col-sm-4 text-muted">Hardware Type</dt>
+              <dd class="col-sm-8">{{ asset.get_hardware_type_display }}</dd>
+
+              <dt class="col-sm-4 text-muted">Department</dt>
+              <dd class="col-sm-8">
+                {% if asset.department %}{{ asset.department.name }}{% else %}<span class="text-muted">Unassigned</span>{% endif %}
+              </dd>
+
+              <dt class="col-sm-4 text-muted">Primary User</dt>
+              <dd class="col-sm-8">
+                {% if asset.primary_user %}
+                  {{ asset.primary_user.full_name }}
+                  {% if asset.primary_user.position %}
+                    <span class="text-muted small">({{ asset.primary_user.position }})</span>
+                  {% endif %}
+                {% else %}
+                  <span class="text-muted">Unassigned</span>
                 {% endif %}
-            </div>
+              </dd>
+
+              <dt class="col-sm-4 text-muted">Location</dt>
+              <dd class="col-sm-8">{{ asset.location|default:"-" }}</dd>
+
+              <dt class="col-sm-4 text-muted">Manufacturer / Model</dt>
+              <dd class="col-sm-8">
+                {% if asset.manufacturer or asset.model_number %}
+                  {{ asset.manufacturer|default:"?" }} {{ asset.model_number|default:"" }}
+                {% else %}
+                  <span class="text-muted">Not specified</span>
+                {% endif %}
+              </dd>
+
+              <dt class="col-sm-4 text-muted">Specifications</dt>
+              <dd class="col-sm-8">
+                <ul class="list-unstyled mb-0">
+                  <li>Operating System: {{ asset.operating_system|default:"-" }}</li>
+                  <li>CPU: {{ asset.cpu|default:"-" }}</li>
+                  <li>Memory: {{ asset.memory_gb|default:"-" }}{% if asset.memory_gb %} GB{% endif %}</li>
+                  <li>Storage: {{ asset.storage_capacity_gb|default:"-" }}{% if asset.storage_capacity_gb %} GB{% endif %}</li>
+                </ul>
+              </dd>
+
+              <dt class="col-sm-4 text-muted">Network</dt>
+              <dd class="col-sm-8">
+                <div>IP Address: {{ asset.ip_address|default:"-" }}</div>
+                <div>MAC Address: {{ asset.mac_address|default:"-" }}</div>
+              </dd>
+
+              <dt class="col-sm-4 text-muted">Notes</dt>
+              <dd class="col-sm-8">
+                {% if asset.notes %}
+                  <pre class="mb-0 small bg-light border rounded p-2">{{ asset.notes }}</pre>
+                {% else %}
+                  <span class="text-muted">No notes recorded.</span>
+                {% endif %}
+              </dd>
+
+            </dl>
+          </div>
         </div>
-        <div class="btn-group">
-            <a href="{% url 'hardware:hardware_update' asset.pk %}" class="btn btn-secondary">
-                <i class="fa-solid fa-pen me-2"></i>Edit
-            </a>
-            <a href="{% url 'hardware:hardware_delete' asset.pk %}" class="btn btn-danger">
-                <i class="fa-solid fa-trash me-2"></i>Delete
-            </a>
-        </div>
-    </div>
 
-    <div class="row g-4">
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Asset Overview</h5>
-                    <span class="badge bg-{{ asset.lifecycle_state_color }}">{{ asset.status }}</span>
+        <!-- Lifecycle -->
+        <div class="card shadow-sm mt-3">
+          <div class="card-header bg-white fw-semibold">
+            <i class="fa-solid fa-arrows-rotate me-2 text-muted"></i> Lifecycle
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+
+              <div class="col-md-4">
+                <div class="border rounded p-3 bg-light h-100">
+                  <div class="text-uppercase small text-muted fw-semibold">Purchase Date</div>
+                  <div class="fw-bold">{{ asset.purchase_date|date:"M d, Y"|default:"-" }}</div>
                 </div>
-                <div class="card-body">
-                    <dl class="row">
-                        <dt class="col-sm-4 text-muted">Hardware Type</dt>
-                        <dd class="col-sm-8">{{ asset.get_hardware_type_display }}</dd>
+              </div>
 
-                        <dt class="col-sm-4 text-muted">Department</dt>
-                        <dd class="col-sm-8">
-                            {% if asset.department %}
-                                {{ asset.department.name }}
-                            {% else %}
-                                <span class="text-muted">Unassigned</span>
-                            {% endif %}
-                        </dd>
+              <div class="col-md-4">
+                <div class="border rounded p-3 bg-light h-100">
+                  <div class="text-uppercase small text-muted fw-semibold">Warranty Expires</div>
+                  <div class="fw-bold">{{ asset.warranty_expiration|date:"M d, Y"|default:"-" }}</div>
 
-                        <dt class="col-sm-4 text-muted">Primary User</dt>
-                        <dd class="col-sm-8">
-                            {% if asset.primary_user %}
-                                {{ asset.primary_user.full_name }}
-                                {% if asset.primary_user.position %}
-                                    <span class="text-muted small">({{ asset.primary_user.position }})</span>
-                                {% endif %}
-                            {% else %}
-                                <span class="text-muted">Unassigned</span>
-                            {% endif %}
-                        </dd>
-
-                        <dt class="col-sm-4 text-muted">Location</dt>
-                        <dd class="col-sm-8">{{ asset.location|default:"-" }}</dd>
-
-                        <dt class="col-sm-4 text-muted">Manufacturer / Model</dt>
-                        <dd class="col-sm-8">
-                            {% if asset.manufacturer or asset.model_number %}
-                                {{ asset.manufacturer|default:"?" }} {{ asset.model_number|default:"" }}
-                            {% else %}
-                                <span class="text-muted">Not specified</span>
-                            {% endif %}
-                        </dd>
-
-                        <dt class="col-sm-4 text-muted">Specifications</dt>
-                        <dd class="col-sm-8">
-                            <ul class="list-unstyled mb-0">
-                                <li>Operating System: {{ asset.operating_system|default:"-" }}</li>
-                                <li>CPU: {{ asset.cpu|default:"-" }}</li>
-                                <li>Memory: {{ asset.memory_gb|default:"-" }}{% if asset.memory_gb %} GB{% endif %}</li>
-                                <li>Storage: {{ asset.storage_capacity_gb|default:"-" }}{% if asset.storage_capacity_gb %} GB{% endif %}</li>
-                                <li>Virtualized: {% if asset.is_virtual %}<span class="badge bg-info text-dark">Yes</span>{% else %}No{% endif %}</li>
-                                <li>Patch Management: {% if asset.requires_patch_management %}Enabled{% else %}<span class="text-danger">Disabled</span>{% endif %}</li>
-                            </ul>
-                        </dd>
-
-                        <dt class="col-sm-4 text-muted">Network</dt>
-                        <dd class="col-sm-8">
-                            <div>IP Address: {{ asset.ip_address|default:"-" }}</div>
-                            <div>MAC Address: {{ asset.mac_address|default:"-" }}</div>
-                        </dd>
-
-                        <dt class="col-sm-4 text-muted">Notes</dt>
-                        <dd class="col-sm-8">
-                            {% if asset.notes %}
-                                <pre class="mb-0 small">{{ asset.notes }}</pre>
-                            {% else %}
-                                <span class="text-muted">No notes recorded.</span>
-                            {% endif %}
-                        </dd>
-                    </dl>
+                  {% if asset.days_until_warranty_expires is not None %}
+                    {% if asset.days_until_warranty_expires < 0 %}
+                      <div class="small text-danger mt-1">Expired {{ asset.warranty_overdue_days }} days ago</div>
+                    {% elif asset.days_until_warranty_expires == 0 %}
+                      <div class="small text-warning mt-1">Expires today</div>
+                    {% else %}
+                      <div class="small text-muted mt-1">{{ asset.days_until_warranty_expires }} days remaining</div>
+                    {% endif %}
+                  {% endif %}
                 </div>
+              </div>
+
+              <div class="col-md-4">
+                <div class="border rounded p-3 bg-light h-100">
+                  <div class="text-uppercase small text-muted fw-semibold">Next Inventory Check</div>
+                  <div class="fw-bold">{{ asset.next_inventory_check|date:"M d, Y"|default:"-" }}</div>
+                </div>
+              </div>
+
             </div>
+          </div>
+        </div>
 
-            <div class="card mt-4">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Lifecycle</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="border rounded p-3 h-100">
-                                <small class="text-muted text-uppercase d-block mb-2">Purchase Date</small>
-                                <span class="fw-semibold">{{ asset.purchase_date|date:"M d, Y"|default:"-" }}</span>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mt-3 mt-md-0">
-                            <div class="border rounded p-3 h-100">
-                                <small class="text-muted text-uppercase d-block mb-2">Warranty Expires</small>
-                                <span class="fw-semibold">{{ asset.warranty_expiration|date:"M d, Y"|default:"-" }}</span>
-                                {% if asset.days_until_warranty_expires is not None %}
-                                    {% if asset.days_until_warranty_expires < 0 %}
-                                        <div class="small text-danger">Expired {{ asset.warranty_overdue_days }} days ago</div>
-                                    {% elif asset.days_until_warranty_expires == 0 %}
-                                        <div class="small text-warning">Expires today</div>
-                                    {% else %}
-                                        <div class="small text-muted">{{ asset.days_until_warranty_expires }} days remaining</div>
-                                    {% endif %}
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div class="col-md-4 mt-3 mt-md-0">
-                            <div class="border rounded p-3 h-100">
-                                <small class="text-muted text-uppercase d-block mb-2">Next Inventory Check</small>
-                                <span class="fw-semibold">{{ asset.next_inventory_check|date:"M d, Y"|default:"-" }}</span>
-                            </div>
-                        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="col-12 col-lg-4">
+
+        <!-- Assigned Users -->
+        <div class="card shadow-sm">
+          <div class="card-header bg-white fw-semibold">
+            <i class="fa-solid fa-user-group me-2 text-muted"></i> Assigned Users
+          </div>
+          <div class="card-body">
+            {% if asset.assigned_users.exists %}
+              <ul class="list-group list-group-flush">
+                {% for user in asset.assigned_users.all %}
+                  <li class="list-group-item px-0">
+                    <div class="fw-semibold">{{ user.full_name }}</div>
+                    <div class="small text-muted">
+                      {{ user.position|default:"-" }}
+                      {% if user.department %} · {{ user.department.name }}{% endif %}
                     </div>
-                </div>
-            </div>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <div class="text-muted">No additional users assigned.</div>
+            {% endif %}
+          </div>
         </div>
-        <div class="col-lg-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Assigned Users</h5>
-                </div>
-                <div class="card-body">
-                    {% if asset.assigned_users.exists %}
-                        <ul class="list-group list-group-flush">
-                            {% for user in asset.assigned_users.all %}
-                            <li class="list-group-item px-0">
-                                <div class="fw-semibold">{{ user.full_name }}</div>
-                                <div class="small text-muted">
-                                    {{ user.position|default:'-' }}
-                                    {% if user.department %}
-                                        · {{ user.department.name }}
-                                    {% endif %}
-                                </div>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    {% else %}
-                        <p class="text-muted mb-0">No additional users assigned.</p>
-                    {% endif %}
-                </div>
-            </div>
 
-            <div class="card mt-4">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Related Systems</h5>
-                    <span class="badge bg-primary">{{ asset.related_systems.count }}</span>
-                </div>
-                <div class="card-body">
-                    {% if asset.related_systems.exists %}
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>System Name</th>
-                                        <th>Code</th>
-                                        <th>Type</th>
-                                        <th>Status</th>
-                                        <th>Criticality</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for system in asset.related_systems.all %}
-                                    <tr>
-                                        <td>
-                                            <div class="fw-semibold">
-                                                <a href="{% url 'systems:system_detail' system.pk %}" class="text-decoration-none">
-                                                    {{ system.name }}
-                                                </a>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-secondary">{{ system.code }}</span>
-                                        </td>
-                                        <td>{{ system.get_system_type_display }}</td>
-                                        <td>
-                                            {% if system.is_active %}
-                                                <span class="badge bg-success">Active</span>
-                                            {% else %}
-                                                <span class="badge bg-danger">Inactive</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <span class="badge {% if system.criticality_level == 'Critical' %}bg-danger{% elif system.criticality_level == 'High' %}bg-warning text-dark{% elif system.criticality_level == 'Medium' %}bg-info{% else %}bg-secondary{% endif %}">
-                                                {{ system.get_criticality_level_display }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <a href="{% url 'systems:system_detail' system.pk %}" class="btn btn-sm btn-outline-primary">
-                                                <i class="fa-solid fa-eye"></i> View
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <p class="text-muted mb-0">
-                            <i class="fa-solid fa-info-circle me-2"></i>
-                            No systems linked to this asset. Edit the asset to link systems.
-                        </p>
-                    {% endif %}
-                </div>
+        <!-- Related Systems -->
+        <div class="card shadow-sm mt-3">
+          <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <div class="fw-semibold">
+              <i class="fa-solid fa-diagram-project me-2 text-muted"></i> Related Systems
             </div>
-
-            <div class="card mt-4">
-                <div class="card-header">
-                    <h5 class="mb-0">Audit</h5>
-                </div>
-                <div class="card-body small text-muted">
-                    <div>Created: {{ asset.created_at|date:"M d, Y H:i" }}</div>
-                    <div>Created By: {{ asset.created_by.full_name|default:'-' }}</div>
-                    <div class="mt-2">Last Updated: {{ asset.updated_at|date:"M d, Y H:i" }}</div>
-                    <div>Updated By: {{ asset.updated_by.full_name|default:'-' }}</div>
-                    <div class="mt-2">Last Inventory Check: {{ asset.last_inventory_check|date:"M d, Y"|default:"-" }}</div>
-                </div>
-            </div>
+            <span class="badge bg-primary">{{ asset.related_systems.count }}</span>
+          </div>
+          <div class="card-body">
+            {% if asset.related_systems.exists %}
+              <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>System</th>
+                      <th class="text-nowrap">Code</th>
+                      <th class="text-nowrap">Status</th>
+                      <th class="text-end">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for system in asset.related_systems.all %}
+                      <tr>
+                        <td class="fw-semibold">
+                          <a href="{% url 'systems:system_detail' system.pk %}" class="text-decoration-none">
+                            {{ system.name }}
+                          </a>
+                          <div class="text-muted small">{{ system.get_system_type_display }}</div>
+                        </td>
+                        <td><span class="badge bg-secondary">{{ system.code }}</span></td>
+                        <td>
+                          {% if system.is_active %}
+                            <span class="badge bg-success">Active</span>
+                          {% else %}
+                            <span class="badge bg-danger">Inactive</span>
+                          {% endif %}
+                        </td>
+                        <td class="text-end">
+                          <a href="{% url 'systems:system_detail' system.pk %}" class="btn btn-sm btn-outline-primary">
+                            <i class="fa-solid fa-eye"></i>
+                          </a>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <div class="text-muted">
+                <i class="fa-solid fa-info-circle me-2"></i>
+                No systems linked to this asset. Edit the asset to link systems.
+              </div>
+            {% endif %}
+          </div>
         </div>
+
+        <!-- Audit -->
+        <div class="card shadow-sm mt-3">
+          <div class="card-header bg-white fw-semibold">
+            <i class="fa-solid fa-shield-halved me-2 text-muted"></i> Audit
+          </div>
+          <div class="card-body small text-muted">
+            <div>Created: {{ asset.created_at|date:"M d, Y H:i" }}</div>
+            <div>Created By: {{ asset.created_by.full_name|default:"-" }}</div>
+
+            <div class="mt-2">Last Updated: {{ asset.updated_at|date:"M d, Y H:i" }}</div>
+            <div>Updated By: {{ asset.updated_by.full_name|default:"-" }}</div>
+
+            <div class="mt-2">Last Inventory Check: {{ asset.last_inventory_check|date:"M d, Y"|default:"-" }}</div>
+          </div>
+        </div>
+
+      </div>
+
     </div>
+
+  </div>
 </div>
 {% endblock %}
-

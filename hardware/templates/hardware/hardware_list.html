@@ -1,191 +1,263 @@
 {% extends 'base.html' %}
 {% load static %}
-
 {% block title %}Hardware Assets{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h3 mb-0">Hardware Inventory</h1>
-            <p class="text-muted mb-0">Track physical and virtual infrastructure assigned to users, systems, and departments.</p>
+<div id="content-main">
+  <div class="container-fluid">
+
+    <!-- Page Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+      <div>
+        <h2 class="mb-0">Hardware Inventory</h2>
+        <div class="text-muted small">
+          Track physical and virtual infrastructure assigned to users, systems, and departments.
         </div>
+      </div>
+      <div class="d-flex gap-2">
+        {# Optional: add create button only if you have the URL name #}
+        {# <a href="{% url 'hardware:hardware_create' %}" class="btn btn-sm btn-primary">
+            <i class="fa-solid fa-plus me-1"></i> New Asset
+           </a> #}
+        <a href="{% url 'hardware:hardware_list' %}" class="btn btn-sm btn-outline-secondary" title="Reset filters">
+          <i class="fa-solid fa-rotate-left me-1"></i> Reset
+        </a>
+      </div>
     </div>
 
-    <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="card border-0 bg-primary text-white">
-                <div class="card-body">
-                    <h6 class="text-uppercase text-white-50 mb-1">Total Assets</h6>
-                    <h2 class="fw-bold mb-0">{{ total_assets }}</h2>
-                </div>
-            </div>
+    <!-- Summary Cards -->
+    <div class="row row-cols-1 row-cols-md-4 g-3 mb-4">
+      <div class="col">
+        <div class="card border-0 shadow-sm bg-primary text-white h-100 hover-shadow">
+          <div class="card-body">
+            <div class="text-uppercase small text-white-50 fw-semibold">Total Assets</div>
+            <div class="display-6 fw-bold mb-0">{{ total_assets }}</div>
+            <div class="small text-white-50 mt-2">All hardware records</div>
+          </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-0 bg-success text-white">
-                <div class="card-body">
-                    <h6 class="text-uppercase text-white-50 mb-1">In Service</h6>
-                    <h2 class="fw-bold mb-0">{{ active_assets }}</h2>
-                </div>
-            </div>
+      </div>
+
+      <div class="col">
+        <div class="card border-0 shadow-sm bg-success text-white h-100 hover-shadow">
+          <div class="card-body">
+            <div class="text-uppercase small text-white-50 fw-semibold">In Service</div>
+            <div class="display-6 fw-bold mb-0">{{ active_assets }}</div>
+            <div class="small text-white-50 mt-2">Currently active</div>
+          </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-0 bg-secondary text-white">
-                <div class="card-body">
-                    <h6 class="text-uppercase text-white-50 mb-1">In Storage</h6>
-                    <h2 class="fw-bold mb-0">{{ in_storage_assets }}</h2>
-                </div>
-            </div>
+      </div>
+
+      <div class="col">
+        <div class="card border-0 shadow-sm bg-secondary text-white h-100 hover-shadow">
+          <div class="card-body">
+            <div class="text-uppercase small text-white-50 fw-semibold">In Storage</div>
+            <div class="display-6 fw-bold mb-0">{{ in_storage_assets }}</div>
+            <div class="small text-white-50 mt-2">Not assigned / stored</div>
+          </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-0 bg-dark text-white">
-                <div class="card-body">
-                    <h6 class="text-uppercase text-white-50 mb-1">Retired / Disposed</h6>
-                    <h2 class="fw-bold mb-0">{{ retired_assets }}</h2>
-                </div>
-            </div>
+      </div>
+
+      <div class="col">
+        <div class="card border-0 shadow-sm bg-dark text-white h-100 hover-shadow">
+          <div class="card-body">
+            <div class="text-uppercase small text-white-50 fw-semibold">Retired / Disposed</div>
+            <div class="display-6 fw-bold mb-0">{{ retired_assets }}</div>
+            <div class="small text-white-50 mt-2">End-of-life assets</div>
+          </div>
         </div>
+      </div>
     </div>
 
-    <div class="card">
-        <div class="card-header">
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-                <div>
-                    <h5 class="mb-0">Assets</h5>
-                    <small class="text-muted">Showing {{ assets|length }} asset{% if assets|length != 1 %}s{% endif %}</small>
-                </div>
-                <form method="get" class="w-100 w-md-auto">
-                    <div class="row g-2 align-items-end">
-                        <div class="col-md-4">
-                            <label for="id_q" class="form-label mb-1 small text-muted">Search</label>
-                            <input id="id_q"
-                                   type="text"
-                                   name="q"
-                                   value="{{ search_query }}"
-                                   class="form-control form-control-sm"
-                                   placeholder="Name, tag, serial, location, IP">
-                        </div>
-                        <div class="col-md-3">
-                            <label for="id_hardware_type" class="form-label mb-1 small text-muted">Type</label>
-                            <select id="id_hardware_type"
-                                    name="hardware_type"
-                                    class="form-select form-select-sm">
-                                <option value="">All types</option>
-                                {% for value,label in hardware_type_choices %}
-                                    <option value="{{ value }}" {% if value == filter_hardware_type %}selected{% endif %}>{{ label }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label for="id_status" class="form-label mb-1 small text-muted">Status</label>
-                            <select id="id_status"
-                                    name="status"
-                                    class="form-select form-select-sm">
-                                <option value="">All statuses</option>
-                                {% for value,label in status_choices %}
-                                    <option value="{{ value }}" {% if value == filter_status %}selected{% endif %}>{{ label }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-2 d-flex gap-1">
-                            <button type="submit" class="btn btn-sm btn-primary w-100">
-                                <i class="fa-solid fa-magnifying-glass me-1"></i>Filter
-                            </button>
-                            <a href="{% url 'hardware:hardware_list' %}" class="btn btn-sm btn-outline-secondary" title="Clear filters">
-                                <i class="fa-solid fa-xmark"></i>
-                            </a>
-                        </div>
-                    </div>
-                </form>
+    <!-- Filters (Sticky) -->
+    <div class="card shadow-sm mb-3 sticky-top" style="top: .75rem; z-index: 10;">
+      <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+
+          <div class="col-12 col-md-4 col-lg-4">
+            <label for="id_q" class="form-label mb-1 small text-muted">Search</label>
+            <div class="input-group input-group-sm">
+              <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
+              <input id="id_q"
+                     type="text"
+                     name="q"
+                     value="{{ search_query }}"
+                     class="form-control"
+                     placeholder="Name, tag, serial, location, IP">
             </div>
+          </div>
+
+          <div class="col-6 col-md-3 col-lg-2">
+            <label for="id_hardware_type" class="form-label mb-1 small text-muted">Type</label>
+            <select id="id_hardware_type" name="hardware_type" class="form-select form-select-sm">
+              <option value="">All types</option>
+              {% for value,label in hardware_type_choices %}
+                <option value="{{ value }}" {% if value == filter_hardware_type %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-6 col-md-3 col-lg-2">
+            <label for="id_status" class="form-label mb-1 small text-muted">Status</label>
+            <select id="id_status" name="status" class="form-select form-select-sm">
+              <option value="">All statuses</option>
+              {% for value,label in status_choices %}
+                <option value="{{ value }}" {% if value == filter_status %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-12 col-md-2 col-lg-2 d-flex gap-2">
+            <button type="submit" class="btn btn-sm btn-primary flex-grow-1">
+              <i class="fa-solid fa-filter me-1"></i> Apply
+            </button>
+            <a href="{% url 'hardware:hardware_list' %}" class="btn btn-sm btn-outline-secondary" title="Clear filters">
+              <i class="fa-solid fa-xmark"></i>
+            </a>
+          </div>
+
+          <div class="col-12 col-lg-2 text-muted small">
+            Showing <span class="fw-semibold">{{ assets|length }}</span> asset{% if assets|length != 1 %}s{% endif %}
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card shadow-sm">
+      <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div class="fw-semibold">
+          <i class="fa-solid fa-desktop me-2 text-muted"></i> Assets
         </div>
+        <div class="text-muted small">
+          Tip: Use filters to narrow results.
+        </div>
+      </div>
+
+      <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th scope="col">Asset</th>
-                        <th scope="col">Type</th>
-                        <th scope="col">Status</th>
-                        <th scope="col">Department</th>
-                        <th scope="col">Primary User</th>
-                        <th scope="col">Assigned Users</th>
-                        <th scope="col">Related Systems</th>
-                        <th scope="col" class="text-end">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% if assets %}
-                        {% for asset in assets %}
-                        <tr>
-                            <td>
-                                <a href="{% url 'hardware:hardware_detail' asset.pk %}" class="fw-semibold text-decoration-none">
-                                    {{ asset.name }}
-                                </a>
-                                <div class="small text-muted">Tag: {{ asset.asset_tag }}</div>
-                                {% if asset.serial_number %}
-                                <div class="small text-muted">S/N: {{ asset.serial_number }}</div>
-                                {% endif %}
-                            </td>
-                            <td>{{ asset.get_hardware_type_display }}</td>
-                            <td>
-                                <span class="badge bg-{{ asset.lifecycle_state_color }}">{{ asset.status }}</span>
-                            </td>
-                            <td>
-                                {% if asset.department %}
-                                    <span class="fw-semibold">{{ asset.department.name }}</span>
-                                {% else %}
-                                    <span class="text-muted">Unassigned</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if asset.primary_user %}
-                                    <span class="fw-semibold">{{ asset.primary_user.full_name }}</span>
-                                    <div class="small text-muted">{{ asset.primary_user.department.name|default:'-' }}</div>
-                                {% else %}
-                                    <span class="text-muted">Unassigned</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if asset.user_count %}
-                                    <span class="badge bg-primary">{{ asset.user_count }}</span>
-                                {% else %}
-                                    <span class="text-muted">None</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if asset.related_systems.all %}
-                                    {% for system in asset.related_systems.all %}
-                                        <span class="badge bg-info text-dark me-1 mb-1">{{ system.name }}</span>
-                                    {% empty %}
-                                        <span class="text-muted">None</span>
-                                    {% endfor %}
-                                {% else %}
-                                    <span class="text-muted">None</span>
-                                {% endif %}
-                            </td>
-                            <td class="text-end">
-                                <a href="{% url 'hardware:hardware_detail' asset.pk %}" class="btn btn-sm btn-outline-primary">
-                                    <i class="fa-solid fa-eye"></i>
-                                </a>
-                                <a href="{% url 'hardware:hardware_update' asset.pk %}" class="btn btn-sm btn-outline-secondary">
-                                    <i class="fa-solid fa-pen"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    {% else %}
-                    <tr>
-                        <td colspan="8" class="text-center py-4 text-muted">
-                            <i class="fa-solid fa-desktop fa-2x mb-2"></i>
-                            <p class="mb-0">No hardware assets recorded yet.</p>
-                            <p class="small text-muted">Start by creating a new asset to track inventory.</p>
-                        </td>
-                    </tr>
-                    {% endif %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-{% endblock %}
+          <table class="table table-hover table-striped align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th scope="col">Asset</th>
+                <th scope="col" class="text-nowrap">Type</th>
+                <th scope="col" class="text-nowrap">Status</th>
+                <th scope="col">Department</th>
+                <th scope="col">Primary User</th>
+                <th scope="col" class="text-center text-nowrap">Assigned Users</th>
+                <th scope="col">Related Systems</th>
+                <th scope="col" class="text-end text-nowrap">Actions</th>
+              </tr>
+            </thead>
 
+            <tbody>
+              {% if assets %}
+                {% for asset in assets %}
+                <tr>
+                  <td>
+                    <div class="fw-semibold">
+                      <a href="{% url 'hardware:hardware_detail' asset.pk %}" class="text-decoration-none">
+                        {{ asset.name }}
+                      </a>
+                    </div>
+                    <div class="text-muted small">Tag: {{ asset.asset_tag }}</div>
+                    {% if asset.serial_number %}
+                      <div class="text-muted small">S/N: {{ asset.serial_number }}</div>
+                    {% endif %}
+                    {% if asset.ip_address %}
+                      <div class="text-muted small">IP: {{ asset.ip_address }}</div>
+                    {% endif %}
+                  </td>
+
+                  <td class="text-nowrap">{{ asset.get_hardware_type_display }}</td>
+
+                  <td class="text-nowrap">
+                    <span class="badge bg-{{ asset.lifecycle_state_color }}">{{ asset.status }}</span>
+                    {% if asset.is_virtual %}
+                      <span class="badge bg-info text-dark ms-1">Virtual</span>
+                    {% endif %}
+                  </td>
+
+                  <td>
+                    {% if asset.department %}
+                      <span class="fw-semibold">{{ asset.department.name }}</span>
+                    {% else %}
+                      <span class="text-muted">Unassigned</span>
+                    {% endif %}
+                  </td>
+
+                  <td>
+                    {% if asset.primary_user %}
+                      <div class="fw-semibold">{{ asset.primary_user.full_name }}</div>
+                      <div class="text-muted small">
+                        {{ asset.primary_user.department.name|default:"-" }}
+                      </div>
+                    {% else %}
+                      <span class="text-muted">Unassigned</span>
+                    {% endif %}
+                  </td>
+
+                  <td class="text-center">
+                    {% if asset.user_count %}
+                      <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+                        {{ asset.user_count }}
+                      </span>
+                    {% else %}
+                      <span class="text-muted">—</span>
+                    {% endif %}
+                  </td>
+
+                  <td>
+                    {% if asset.related_systems.all %}
+                      <div class="d-flex flex-wrap gap-1">
+                        {% for system in asset.related_systems.all %}
+                          <span class="badge bg-info-subtle text-info border border-info-subtle">
+                            {{ system.name }}
+                          </span>
+                        {% empty %}
+                          <span class="text-muted">—</span>
+                        {% endfor %}
+                      </div>
+                    {% else %}
+                      <span class="text-muted">—</span>
+                    {% endif %}
+                  </td>
+
+                  <td class="text-end">
+                    <div class="btn-group btn-group-sm">
+                      <a href="{% url 'hardware:hardware_detail' asset.pk %}" class="btn btn-outline-primary" title="View">
+                        <i class="fa-solid fa-eye"></i>
+                      </a>
+                      <a href="{% url 'hardware:hardware_update' asset.pk %}" class="btn btn-outline-secondary" title="Edit">
+                        <i class="fa-solid fa-pen"></i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              {% else %}
+                <tr>
+                  <td colspan="8" class="text-center py-5 text-muted">
+                    <div class="mb-2">
+                      <i class="fa-solid fa-desktop fa-2x"></i>
+                    </div>
+                    <div class="fw-semibold">No hardware assets recorded yet</div>
+                    <div class="small">Start by creating a new asset to track inventory.</div>
+                  </td>
+                </tr>
+              {% endif %}
+            </tbody>
+
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<style>
+  .hover-shadow { transition: box-shadow .2s ease, transform .2s ease; }
+  .hover-shadow:hover { box-shadow: 0 .5rem 1.25rem rgba(0,0,0,.12); transform: translateY(-2px); }
+</style>
+{% endblock %}
