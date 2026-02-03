@@ -1,0 +1,44 @@
+{% load static %}
+
+<div class="top-navbar" id="topNavbar">
+  <div class="d-flex align-items-center justify-content-between gap-3">
+
+    <!-- Mobile sidebar toggle (uses your existing sidebar-open class behavior) -->
+    <button class="btn btn-outline-primary d-lg-none" id="sidebarToggle" type="button">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <!-- Search -->
+    <div class="flex-grow-1 d-none d-md-block" style="max-width: 520px;">
+      <div class="input-group">
+        <span class="input-group-text bg-light border-end-0">
+          <i class="fa-solid fa-magnifying-glass text-muted"></i>
+        </span>
+        <input type="text"
+               class="form-control bg-light border-start-0"
+               placeholder="Search..."
+               aria-label="Search">
+      </div>
+    </div>
+
+    <!-- Right side actions -->
+    <div class="d-flex align-items-center gap-3">
+
+      <!-- Notifications -->
+      <button class="btn btn-link position-relative p-0" type="button" aria-label="Notifications">
+        <i class="fa-solid fa-bell fa-lg text-muted"></i>
+        <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+      </button>
+
+      <!-- User avatar -->
+      <div class="d-flex align-items-center gap-2">
+        <img src="{% static 'img/user-avatar.png' %}"
+             class="rounded-circle"
+             width="40"
+             height="40"
+             alt="User">
+      </div>
+
+    </div>
+  </div>
+</div>
