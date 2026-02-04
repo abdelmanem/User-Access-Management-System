@@ -164,7 +164,15 @@
                     {% if asset.serial_number %}
                       <div class="text-muted small">S/N: {{ asset.serial_number }}</div>
                     {% endif %}
-                    {% if asset.ip_address %}
+                    {% if asset.operating_system %}
+                      <div class="text-muted small">OS: {{ asset.operating_system }}</div>
+                    {% endif %}
+                    {% if asset.operating_system_version %}
+                      <div class="text-muted small">OS Ver: {{ asset.operating_system_version }}</div>
+                    {% endif %}
+                    {% if asset.ipv4_address %}
+                      <div class="text-muted small">IPv4: {{ asset.ipv4_address }}</div>
+                    {% elif asset.ip_address %}
                       <div class="text-muted small">IP: {{ asset.ip_address }}</div>
                     {% endif %}
                   </td>
@@ -175,6 +183,13 @@
                     <span class="badge bg-{{ asset.lifecycle_state_color }}">{{ asset.status }}</span>
                     {% if asset.is_virtual %}
                       <span class="badge bg-info text-dark ms-1">Virtual</span>
+                    {% endif %}
+                    {% if asset.is_enabled is not None %}
+                      {% if asset.is_enabled %}
+                        <span class="badge bg-success-subtle text-success border border-success-subtle ms-1">Enabled</span>
+                      {% else %}
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle ms-1">Disabled</span>
+                      {% endif %}
                     {% endif %}
                   </td>
 

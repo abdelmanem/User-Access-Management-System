@@ -740,6 +740,12 @@ class LDAPComputerSync:
                         or computer_data.get('operatingsystem')
                     )
 
+                    # Operating system version / build
+                    operating_system_version = (
+                        computer_data.get('operatingSystemVersion')
+                        or computer_data.get('operatingsystemversion')
+                    )
+
                     # Heuristic: classify as Server vs Desktop based on OS string
                     hardware_type = "Desktop"
                     if isinstance(operating_system, str):
@@ -763,6 +769,25 @@ class LDAPComputerSync:
                             if any('vm' in part.lower() or 'virtual' in part.lower() for part in ou_parts):
                                 is_virtual = True
 
+                    # Determine enabled/disabled from userAccountControl if present
+                    is_enabled = True
+                    uac = computer_data.get('userAccountControl') or computer_data.get('useraccountcontrol')
+                    try:
+                        if uac is not None:
+                            uac_int = int(uac)
+                            # Bit 2 (0x2) means the account is disabled
+                            if uac_int & 0x2:
+                                is_enabled = False
+                    except Exception:
+                        # If parsing fails, fall back to default True
+                        pass
+
+                    # Extract IPv4 address if available
+                    ipv4_address = (
+                        computer_data.get('IPv4Address')
+                        or computer_data.get('ipv4address')
+                    )
+
                     # Build a notes field with useful AD metadata for hardware owners
                     description = computer_data.get('description') or computer_data.get('Description')
                     dns_hostname = computer_data.get('dNSHostName') or computer_data.get('dnshostname')
@@ -782,9 +807,13 @@ class LDAPComputerSync:
                             'name': display_name,
                             'hardware_type': hardware_type,
                             'operating_system': operating_system or '',
+                            'operating_system_version': operating_system_version or '',
                             'location': location,
                             'status': 'In Service',
+                            'ip_address': ipv4_address or None,
+                            'ipv4_address': ipv4_address or None,
                             'is_virtual': is_virtual,
+                            'is_enabled': is_enabled,
                             'requires_patch_management': True,
                             'notes': notes,
                         },

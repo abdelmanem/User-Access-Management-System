@@ -76,6 +76,12 @@ class HardwareAsset(models.Model):
         null=True,
         help_text="Installed operating system (if applicable).",
     )
+    operating_system_version = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text="Operating system version / build (e.g., 10.0.19045).",
+    )
     cpu = models.CharField(
         max_length=100,
         blank=True,
@@ -117,6 +123,12 @@ class HardwareAsset(models.Model):
         blank=True,
         null=True,
         help_text="Primary IP address assigned to the asset.",
+    )
+    ipv4_address = models.GenericIPAddressField(
+        blank=True,
+        null=True,
+        help_text="Primary IPv4 address (if available).",
+        protocol="IPv4",
     )
     mac_address = models.CharField(
         max_length=50,
@@ -162,6 +174,10 @@ class HardwareAsset(models.Model):
     is_virtual = models.BooleanField(
         default=False,
         help_text="Indicates if the asset is virtualized (VM, container, etc.).",
+    )
+    is_enabled = models.BooleanField(
+        default=True,
+        help_text="Indicates if the associated directory/computer account is enabled.",
     )
     requires_patch_management = models.BooleanField(
         default=True,

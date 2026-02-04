@@ -183,6 +183,12 @@
                     </div>
 
                     <div class="col-md-4">
+                      <label class="form-label" for="{{ form.operating_system_version.id_for_label }}">OS Version</label>
+                      {{ form.operating_system_version|add_error_class:"is-invalid"|add_class:"form-control" }}
+                      {% if form.errors.operating_system_version %}<div class="invalid-feedback d-block">{{ form.errors.operating_system_version.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="col-md-4">
                       <label class="form-label" for="{{ form.cpu.id_for_label }}">CPU</label>
                       {{ form.cpu|add_error_class:"is-invalid"|add_class:"form-control" }}
                       {% if form.errors.cpu %}<div class="invalid-feedback d-block">{{ form.errors.cpu.0 }}</div>{% endif %}
@@ -251,9 +257,24 @@
                     </div>
 
                     <div class="col-md-4">
+                      <label class="form-label" for="{{ form.ipv4_address.id_for_label }}">IPv4 Address</label>
+                      {{ form.ipv4_address|add_error_class:"is-invalid"|add_class:"form-control" }}
+                      {% if form.errors.ipv4_address %}<div class="invalid-feedback d-block">{{ form.errors.ipv4_address.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="col-md-4">
                       <label class="form-label" for="{{ form.mac_address.id_for_label }}">MAC Address</label>
                       {{ form.mac_address|add_error_class:"is-invalid"|add_class:"form-control" }}
                       {% if form.errors.mac_address %}<div class="invalid-feedback d-block">{{ form.errors.mac_address.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="col-md-4">
+                      <label class="form-label" for="{{ form.is_enabled.id_for_label }}">Directory Enabled</label>
+                      <div class="form-check mt-1">
+                        {{ form.is_enabled|add_error_class:"is-invalid"|add_class:"form-check-input" }}
+                        <label class="form-check-label" for="{{ form.is_enabled.id_for_label }}">Account is enabled</label>
+                      </div>
+                      {% if form.errors.is_enabled %}<div class="invalid-feedback d-block">{{ form.errors.is_enabled.0 }}</div>{% endif %}
                     </div>
 
                     <div class="col-12">

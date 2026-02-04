@@ -29,6 +29,11 @@
               {% if asset.is_virtual %}
                 <span class="badge bg-info text-dark">Virtual</span>
               {% endif %}
+              {% if asset.is_enabled %}
+                <span class="badge bg-success-subtle text-success border border-success-subtle">Directory: Enabled</span>
+              {% else %}
+                <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Directory: Disabled</span>
+              {% endif %}
               {% if asset.requires_patch_management %}
                 <span class="badge bg-success-subtle text-success border border-success-subtle">Patch Mgmt: Enabled</span>
               {% else %}
@@ -103,6 +108,7 @@
               <dd class="col-sm-8">
                 <ul class="list-unstyled mb-0">
                   <li>Operating System: {{ asset.operating_system|default:"-" }}</li>
+                  <li>OS Version: {{ asset.operating_system_version|default:"-" }}</li>
                   <li>CPU: {{ asset.cpu|default:"-" }}</li>
                   <li>Memory: {{ asset.memory_gb|default:"-" }}{% if asset.memory_gb %} GB{% endif %}</li>
                   <li>Storage: {{ asset.storage_capacity_gb|default:"-" }}{% if asset.storage_capacity_gb %} GB{% endif %}</li>
@@ -111,6 +117,7 @@
 
               <dt class="col-sm-4 text-muted">Network</dt>
               <dd class="col-sm-8">
+                <div>IPv4 Address: {{ asset.ipv4_address|default:"-" }}</div>
                 <div>IP Address: {{ asset.ip_address|default:"-" }}</div>
                 <div>MAC Address: {{ asset.mac_address|default:"-" }}</div>
               </dd>
