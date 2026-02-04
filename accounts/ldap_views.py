@@ -11,7 +11,7 @@ from .forms import (
     LDAPTestLoginForm,
     LDAPBindPasswordForm,
 )
-from .ldap_backend import LDAPSync
+from .ldap_backend import LDAPSync, LDAPComputerSync
 
 
 @login_required
@@ -165,6 +165,36 @@ def ldap_sync_users(request):
             messages.success(request, f"✓ {result['message']}")
         else:
             messages.error(request, f"✗ Sync failed: {result['message']}")
+
+    return redirect('accounts:ldap_configuration')
+
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def ldap_sync_computers(request):
+    """
+    Sync computer objects from LDAP/AD into the hardware inventory.
+    """
+    ldap_config = LDAPConfiguration.get_active_config()
+
+    if not ldap_config:
+        messages.error(request, 'LDAP is not configured. Please configure LDAP settings first.')
+        return redirect('accounts:ldap_configuration')
+
+    if request.method == 'POST':
+        form = LDAPBindPasswordForm(request.POST)
+        if not form.is_valid():
+            messages.error(request, 'Please provide a valid LDAP bind password to start computer sync.')
+            return redirect('accounts:ldap_configuration')
+
+        bind_password = form.cleaned_data['bind_password']
+        messages.info(request, 'Starting LDAP computer sync...')
+        result = LDAPComputerSync.sync_all_computers(ldap_config, bind_password=bind_password)
+
+        if result.get('success'):
+            messages.success(request, f"✓ {result.get('message')}")
+        else:
+            messages.error(request, f"✗ Computer sync failed: {result.get('message')}")
 
     return redirect('accounts:ldap_configuration')
 

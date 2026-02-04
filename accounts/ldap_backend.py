@@ -6,6 +6,7 @@ import logging
 from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 try:
     from ldap3 import Server, Connection, ALL, NTLM, SIMPLE, Tls, SUBTREE
     from ldap3.core.exceptions import LDAPException, LDAPBindError
@@ -17,6 +18,13 @@ except ImportError:
     LDAP_AVAILABLE = False
 import ssl
 from .models import LDAPConfiguration
+try:
+    # Optional dependency: only required if hardware sync is used
+    from hardware.models import HardwareAsset
+    HARDWARE_AVAILABLE = True
+except Exception:
+    HardwareAsset = None
+    HARDWARE_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -617,6 +625,192 @@ class LDAPSync:
 
         except Exception as e:
             logger.error(f"Error during LDAP sync: {str(e)}")
+            return {'success': False, 'message': str(e)}
+
+
+class LDAPComputerSync:
+    """
+    Utility class for syncing computer objects from LDAP/AD into HardwareAsset.
+
+    This is intentionally separate from user sync logic to keep responsibilities
+    clear and to avoid impacting existing user sync behavior.
+    """
+
+    @staticmethod
+    def sync_all_computers(ldap_config=None, bind_password=None):
+        """
+        Sync computer accounts from LDAP/AD directory into HardwareAsset.
+
+        Computer accounts are identified using a computer-specific LDAP filter
+        and mapped to hardware assets by asset_tag (derived from sAMAccountName
+        without the trailing '$' character).
+        """
+        if not HARDWARE_AVAILABLE:
+            logger.warning("Hardware app is not available; cannot sync computers")
+            return {
+                'success': False,
+                'message': 'Hardware module is not available; cannot sync computers from LDAP.',
+            }
+
+        if not ldap_config:
+            ldap_config = LDAPConfiguration.get_active_config()
+
+        if not ldap_config or not ldap_config.ldap_enabled:
+            logger.warning("LDAP is not enabled, cannot sync computers")
+            return {'success': False, 'message': 'LDAP is not enabled'}
+
+        if not bind_password:
+            logger.warning("No LDAP bind password provided for sync_all_computers")
+            return {
+                'success': False,
+                'message': 'Bind password is required for LDAP computer sync but was not provided.',
+            }
+
+        try:
+            # Setup connection (mirrors LDAPSync.sync_all_users)
+            tls_config = None
+            if ldap_config.use_tls or ldap_config.ldap_server.startswith('ldaps://'):
+                tls_config = Tls(
+                    validate=ssl.CERT_REQUIRED if not ldap_config.allow_invalid_ssl else ssl.CERT_NONE,
+                    version=ssl.PROTOCOL_TLSv1_2,
+                )
+
+            server = Server(
+                ldap_config.ldap_server,
+                get_info=ALL,
+                tls=tls_config,
+                use_ssl=ldap_config.ldap_server.startswith('ldaps://'),
+            )
+
+            conn = Connection(
+                server,
+                user=ldap_config.bind_username,
+                password=bind_password,
+                authentication=SIMPLE,
+                auto_bind=True,
+            )
+
+            # Basic filter for computer objects in AD
+            computer_filter = '(&(objectClass=computer)(objectCategory=computer))'
+
+            conn.search(
+                search_base=ldap_config.base_dn,
+                search_filter=computer_filter,
+                search_scope=SUBTREE,
+                attributes='*',
+            )
+
+            synced_count = 0
+            updated_count = 0
+            error_count = 0
+
+            for entry in conn.entries:
+                try:
+                    # Convert entry to dict (case-insensitive keys)
+                    computer_data = {}
+                    for attr in entry.entry_attributes:
+                        computer_data[attr] = entry[attr].value
+                        computer_data[attr.lower()] = entry[attr].value
+
+                    # Determine asset_tag from sAMAccountName (strip trailing '$')
+                    sam = (
+                        computer_data.get('sAMAccountName')
+                        or computer_data.get('samaccountname')
+                        or ''
+                    )
+                    if sam.endswith('$'):
+                        asset_tag = sam[:-1]
+                    else:
+                        asset_tag = sam or computer_data.get('name') or computer_data.get('cn') or ''
+
+                    if not asset_tag:
+                        logger.debug("Skipping computer entry without identifiable asset_tag")
+                        continue
+
+                    # Name for display
+                    display_name = (
+                        computer_data.get('name')
+                        or computer_data.get('cn')
+                        or asset_tag
+                    )
+
+                    # Operating system
+                    operating_system = (
+                        computer_data.get('operatingSystem')
+                        or computer_data.get('operatingsystem')
+                    )
+
+                    # Heuristic: classify as Server vs Desktop based on OS string
+                    hardware_type = "Desktop"
+                    if isinstance(operating_system, str):
+                        if 'server' in operating_system.lower():
+                            hardware_type = "Server"
+
+                    # Heuristic: determine if likely virtual
+                    is_virtual = False
+                    if isinstance(operating_system, str) and 'virtual' in operating_system.lower():
+                        is_virtual = True
+
+                    # Attempt to map a simple location from the DN (OU path)
+                    location = None
+                    dn = computer_data.get('distinguishedName') or computer_data.get('distinguishedname')
+                    if isinstance(dn, str) and 'OU=' in dn:
+                        # Extract OU segments and join them as a path
+                        ou_parts = [part[3:] for part in dn.split(',') if part.startswith('OU=')]
+                        if ou_parts:
+                            location = " / ".join(reversed(ou_parts))
+                            # If OU path suggests virtualization, mark as virtual
+                            if any('vm' in part.lower() or 'virtual' in part.lower() for part in ou_parts):
+                                is_virtual = True
+
+                    # Build a notes field with useful AD metadata for hardware owners
+                    description = computer_data.get('description') or computer_data.get('Description')
+                    dns_hostname = computer_data.get('dNSHostName') or computer_data.get('dnshostname')
+                    notes_parts = []
+                    if description:
+                        notes_parts.append(f"AD description: {description}")
+                    if dns_hostname:
+                        notes_parts.append(f"AD DNS hostname: {dns_hostname}")
+                    if dn:
+                        notes_parts.append(f"AD DN: {dn}")
+                    notes = "\n".join(notes_parts) if notes_parts else ""
+
+                    # Update or create HardwareAsset by asset_tag
+                    obj, created = HardwareAsset.objects.update_or_create(
+                        asset_tag=asset_tag,
+                        defaults={
+                            'name': display_name,
+                            'hardware_type': hardware_type,
+                            'operating_system': operating_system or '',
+                            'location': location,
+                            'status': 'In Service',
+                            'is_virtual': is_virtual,
+                            'requires_patch_management': True,
+                            'notes': notes,
+                        },
+                    )
+
+                    if created:
+                        synced_count += 1
+                    else:
+                        updated_count += 1
+
+                except Exception as e:
+                    logger.error(f"Error syncing computer asset from LDAP: {str(e)}", exc_info=True)
+                    error_count += 1
+
+            conn.unbind()
+
+            return {
+                'success': True,
+                'synced_count': synced_count,
+                'updated_count': updated_count,
+                'error_count': error_count,
+                'message': f'Synced {synced_count} new computer assets, updated {updated_count}, {error_count} errors',
+            }
+
+        except Exception as e:
+            logger.error(f"Error during LDAP computer sync: {str(e)}", exc_info=True)
             return {'success': False, 'message': str(e)}
 
     @staticmethod

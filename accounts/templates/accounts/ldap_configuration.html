@@ -627,9 +627,9 @@
                 </div>
             </div>
 
-            <!-- Sync Users -->
+            <!-- Sync Users & Computers -->
             <div class="row">
-                <div class="col-12">
+                <div class="col-md-6 mb-3">
                     <div class="card border-warning">
                         <div class="card-body">
                             <h6 class="card-title"><i class="fas fa-sync"></i> Sync All Users from LDAP</h6>
@@ -644,6 +644,26 @@
                                 </div>
                                 <button type="submit" class="btn btn-warning">
                                     <i class="fas fa-users"></i> Sync All Users
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="card border-primary">
+                        <div class="card-body">
+                            <h6 class="card-title"><i class="fas fa-desktop"></i> Sync AD Computers to Hardware</h6>
+                            <p class="card-text">
+                                Import/sync computer accounts from your Active Directory into the hardware inventory.
+                                New computer objects will be created as hardware assets and existing ones updated where possible.
+                            </p>
+                            <form method="post" action="{% url 'accounts:ldap_sync_computers' %}" onsubmit="return confirm('This will sync computer objects from LDAP into the hardware inventory. Continue?');">
+                                {% csrf_token %}
+                                <div class="mb-2">
+                                    {{ bind_password_form.bind_password }}
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-computer"></i> Sync AD Computers
                                 </button>
                             </form>
                         </div>
