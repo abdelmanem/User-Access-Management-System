@@ -16,10 +16,12 @@ def hardware_list(request):
         .annotate(user_count=Count("assigned_users", distinct=True))
     )
 
-    # Simple search and filters
+    # Filters
     search_query = request.GET.get("q", "").strip()
     filter_hardware_type = request.GET.get("hardware_type", "").strip()
     filter_status = request.GET.get("status", "").strip()
+    filter_operating_system = request.GET.get("operating_system", "").strip()
+    filter_os_version = request.GET.get("os_version", "").strip()
 
     if search_query:
         assets = assets.filter(
@@ -28,6 +30,9 @@ def hardware_list(request):
             | Q(serial_number__icontains=search_query)
             | Q(location__icontains=search_query)
             | Q(ip_address__icontains=search_query)
+            | Q(ipv4_address__icontains=search_query)
+            | Q(operating_system__icontains=search_query)
+            | Q(operating_system_version__icontains=search_query)
         )
 
     if filter_hardware_type:
@@ -35,6 +40,27 @@ def hardware_list(request):
 
     if filter_status:
         assets = assets.filter(status=filter_status)
+
+    if filter_operating_system:
+        assets = assets.filter(operating_system=filter_operating_system)
+
+    if filter_os_version:
+        assets = assets.filter(operating_system_version=filter_os_version)
+
+    # Choices for dropdowns
+    operating_system_choices = (
+        HardwareAsset.objects.values_list("operating_system", flat=True)
+        .distinct()
+        .order_by("operating_system")
+    )
+    operating_system_choices = [os for os in operating_system_choices if os]
+
+    os_version_choices = (
+        HardwareAsset.objects.values_list("operating_system_version", flat=True)
+        .distinct()
+        .order_by("operating_system_version")
+    )
+    os_version_choices = [ver for ver in os_version_choices if ver]
 
     context = {
         "assets": assets,
@@ -47,6 +73,10 @@ def hardware_list(request):
         "filter_status": filter_status,
         "hardware_type_choices": HardwareAsset.HARDWARE_TYPE_CHOICES,
         "status_choices": HardwareAsset.STATUS_CHOICES,
+        "operating_system_choices": operating_system_choices,
+        "filter_operating_system": filter_operating_system,
+        "os_version_choices": os_version_choices,
+        "filter_os_version": filter_os_version,
     }
     return render(request, "hardware/hardware_list.html", context)
 

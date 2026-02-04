@@ -82,7 +82,7 @@
                      name="q"
                      value="{{ search_query }}"
                      class="form-control"
-                     placeholder="Name, tag, serial, location, IP">
+                     placeholder="Name, tag, serial, location, IP, OS, OS Version">
             </div>
           </div>
 
@@ -92,6 +92,26 @@
               <option value="">All types</option>
               {% for value,label in hardware_type_choices %}
                 <option value="{{ value }}" {% if value == filter_hardware_type %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-6 col-md-3 col-lg-2">
+            <label for="id_operating_system" class="form-label mb-1 small text-muted">Operating System</label>
+            <select id="id_operating_system" name="operating_system" class="form-select form-select-sm">
+              <option value="">All operating systems</option>
+              {% for os in operating_system_choices %}
+                <option value="{{ os }}" {% if os == filter_operating_system %}selected{% endif %}>{{ os|default:'(None)' }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-6 col-md-3 col-lg-2">
+            <label for="id_os_version" class="form-label mb-1 small text-muted">OS Version</label>
+            <select id="id_os_version" name="os_version" class="form-select form-select-sm">
+              <option value="">All versions</option>
+              {% for ver in os_version_choices %}
+                <option value="{{ ver }}" {% if ver == filter_os_version %}selected{% endif %}>{{ ver|default:'(None)' }}</option>
               {% endfor %}
             </select>
           </div>
