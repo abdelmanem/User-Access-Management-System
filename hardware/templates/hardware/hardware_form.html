@@ -73,19 +73,32 @@
                 <div class="tab-pane fade show active" id="pane-id" role="tabpanel" aria-labelledby="tab-id">
                   <div class="row g-3">
 
-                    <div class="col-md-6">
+
+                    <div class="col-md-4">
                       <label class="form-label" for="{{ form.name.id_for_label }}">Name <span class="text-danger">*</span></label>
                       {{ form.name|add_error_class:"is-invalid"|add_class:"form-control" }}
                       {% if form.errors.name %}<div class="invalid-feedback d-block">{{ form.errors.name.0 }}</div>{% endif %}
                     </div>
 
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                       <label class="form-label" for="{{ form.asset_tag.id_for_label }}">Asset Tag <span class="text-danger">*</span></label>
                       {{ form.asset_tag|add_error_class:"is-invalid"|add_class:"form-control" }}
                       {% if form.errors.asset_tag %}<div class="invalid-feedback d-block">{{ form.errors.asset_tag.0 }}</div>{% endif %}
                     </div>
 
-                    <div class="col-md-3">
+                    <div class="col-md-2">
+                      <label class="form-label" for="{{ form.local_asset_tag.id_for_label }}">Local Asset Tag</label>
+                      {{ form.local_asset_tag|add_error_class:"is-invalid"|add_class:"form-control" }}
+                      {% if form.errors.local_asset_tag %}<div class="invalid-feedback d-block">{{ form.errors.local_asset_tag.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="col-md-2">
+                      <label class="form-label" for="{{ form.tm_id.id_for_label }}">TM ID</label>
+                      {{ form.tm_id|add_error_class:"is-invalid"|add_class:"form-control" }}
+                      {% if form.errors.tm_id %}<div class="invalid-feedback d-block">{{ form.errors.tm_id.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="col-md-2">
                       <label class="form-label" for="{{ form.serial_number.id_for_label }}">Serial Number</label>
                       {{ form.serial_number|add_error_class:"is-invalid"|add_class:"form-control" }}
                       {% if form.errors.serial_number %}<div class="invalid-feedback d-block">{{ form.errors.serial_number.0 }}</div>{% endif %}

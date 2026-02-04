@@ -15,6 +15,14 @@
             <h2 class="mb-1">{{ asset.name }}</h2>
             <div class="text-muted">
               Asset Tag: <span class="fw-semibold">{{ asset.asset_tag }}</span>
+              {% if asset.local_asset_tag %}
+                <span class="text-muted"> · </span>
+                Local Asset Tag: <span class="fw-semibold">{{ asset.local_asset_tag }}</span>
+              {% endif %}
+              {% if asset.tm_id %}
+                <span class="text-muted"> · </span>
+                TM ID: <span class="fw-semibold">{{ asset.tm_id }}</span>
+              {% endif %}
               {% if asset.serial_number %}
                 <span class="text-muted"> · </span>
                 Serial No: <span class="fw-semibold">{{ asset.serial_number }}</span>
@@ -74,6 +82,12 @@
 
           <div class="card-body">
             <dl class="row mb-0">
+
+              <dt class="col-sm-4 text-muted">TM ID</dt>
+              <dd class="col-sm-8">{{ asset.tm_id|default:"-" }}</dd>
+
+              <dt class="col-sm-4 text-muted">Local Asset Tag</dt>
+              <dd class="col-sm-8">{{ asset.local_asset_tag|default:"-" }}</dd>
 
               <dt class="col-sm-4 text-muted">Hardware Type</dt>
               <dd class="col-sm-8">{{ asset.get_hardware_type_display }}</dd>

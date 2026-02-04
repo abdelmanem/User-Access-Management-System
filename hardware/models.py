@@ -30,6 +30,18 @@ class HardwareAsset(models.Model):
         ("Disposed", "Disposed"),
     ]
 
+    tm_id = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text="TM ID for asset tracking (if applicable).",
+    )
+    local_asset_tag = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text="Local asset tag or secondary inventory ID.",
+    )
     name = models.CharField(
         max_length=255,
         help_text="Friendly asset name (e.g., Finance-SQL01, John Doe Laptop).",
@@ -215,10 +227,10 @@ class HardwareAsset(models.Model):
         verbose_name = "Hardware Asset"
         verbose_name_plural = "Hardware Assets"
         ordering = ["name", "asset_tag"]
-        unique_together = [("name", "asset_tag")]
+        unique_together = [("name", "asset_tag", "tm_id", "local_asset_tag")]
 
     def __str__(self):
-        return f"{self.name} [{self.asset_tag}]"
+        return f"{self.name} [{self.asset_tag}] (TM ID: {self.tm_id or '-'}, Local Tag: {self.local_asset_tag or '-'})"
 
     @property
     def is_active_asset(self):

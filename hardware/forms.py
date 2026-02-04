@@ -8,6 +8,8 @@ class HardwareAssetForm(forms.ModelForm):
         fields = [
             "name",
             "asset_tag",
+            "local_asset_tag",
+            "tm_id",
             "serial_number",
             "hardware_type",
             "status",
