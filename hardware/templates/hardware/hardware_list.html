@@ -140,6 +140,10 @@
             <thead class="table-light">
               <tr>
                 <th scope="col">Asset</th>
+                <th scope="col">Serial Number</th>
+                <th scope="col">Operating System</th>
+                <th scope="col">OS Version</th>
+                <th scope="col">IPv4 Address</th>
                 <th scope="col" class="text-nowrap">Type</th>
                 <th scope="col" class="text-nowrap">Status</th>
                 <th scope="col">Department</th>
@@ -161,24 +165,38 @@
                       </a>
                     </div>
                     <div class="text-muted small">Tag: {{ asset.asset_tag }}</div>
+                  </td>
+                  <td>
                     {% if asset.serial_number %}
-                      <div class="text-muted small">S/N: {{ asset.serial_number }}</div>
-                    {% endif %}
-                    {% if asset.operating_system %}
-                      <div class="text-muted small">OS: {{ asset.operating_system }}</div>
-                    {% endif %}
-                    {% if asset.operating_system_version %}
-                      <div class="text-muted small">OS Ver: {{ asset.operating_system_version }}</div>
-                    {% endif %}
-                    {% if asset.ipv4_address %}
-                      <div class="text-muted small">IPv4: {{ asset.ipv4_address }}</div>
-                    {% elif asset.ip_address %}
-                      <div class="text-muted small">IP: {{ asset.ip_address }}</div>
+                      {{ asset.serial_number }}
+                    {% else %}
+                      <span class="text-muted">—</span>
                     {% endif %}
                   </td>
-
+                  <td>
+                    {% if asset.operating_system %}
+                      {{ asset.operating_system }}
+                    {% else %}
+                      <span class="text-muted">—</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if asset.operating_system_version %}
+                      {{ asset.operating_system_version }}
+                    {% else %}
+                      <span class="text-muted">—</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if asset.ipv4_address %}
+                      {{ asset.ipv4_address }}
+                    {% elif asset.ip_address %}
+                      {{ asset.ip_address }}
+                    {% else %}
+                      <span class="text-muted">—</span>
+                    {% endif %}
+                  </td>
                   <td class="text-nowrap">{{ asset.get_hardware_type_display }}</td>
-
                   <td class="text-nowrap">
                     <span class="badge bg-{{ asset.lifecycle_state_color }}">{{ asset.status }}</span>
                     {% if asset.is_virtual %}
@@ -192,7 +210,6 @@
                       {% endif %}
                     {% endif %}
                   </td>
-
                   <td>
                     {% if asset.department %}
                       <span class="fw-semibold">{{ asset.department.name }}</span>
@@ -200,7 +217,6 @@
                       <span class="text-muted">Unassigned</span>
                     {% endif %}
                   </td>
-
                   <td>
                     {% if asset.primary_user %}
                       <div class="fw-semibold">{{ asset.primary_user.full_name }}</div>
@@ -211,7 +227,6 @@
                       <span class="text-muted">Unassigned</span>
                     {% endif %}
                   </td>
-
                   <td class="text-center">
                     {% if asset.user_count %}
                       <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
@@ -221,7 +236,6 @@
                       <span class="text-muted">—</span>
                     {% endif %}
                   </td>
-
                   <td>
                     {% if asset.related_systems.all %}
                       <div class="d-flex flex-wrap gap-1">
@@ -237,7 +251,6 @@
                       <span class="text-muted">—</span>
                     {% endif %}
                   </td>
-
                   <td class="text-end">
                     <div class="btn-group btn-group-sm">
                       <a href="{% url 'hardware:hardware_detail' asset.pk %}" class="btn btn-outline-primary" title="View">
