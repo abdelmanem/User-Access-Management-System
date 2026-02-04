@@ -47,6 +47,19 @@ def hardware_list(request):
     if filter_os_version:
         assets = assets.filter(operating_system_version=filter_os_version)
 
+    # Sorting
+    sort = request.GET.get("sort", "")
+    order = request.GET.get("order", "asc")
+    valid_sort_fields = [
+        "name", "serial_number", "operating_system", "operating_system_version", "ipv4_address",
+        "hardware_type", "status", "department__name", "primary_user__full_name", "user_count"
+    ]
+    if sort in valid_sort_fields:
+        if order == "desc":
+            assets = assets.order_by(f"-{sort}")
+        else:
+            assets = assets.order_by(sort)
+
     # Choices for dropdowns
     operating_system_choices = (
         HardwareAsset.objects.values_list("operating_system", flat=True)

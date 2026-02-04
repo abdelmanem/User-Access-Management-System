@@ -159,16 +159,86 @@
           <table class="table table-hover table-striped align-middle mb-0">
             <thead class="table-light">
               <tr>
-                <th scope="col">Asset</th>
-                <th scope="col">Serial Number</th>
-                <th scope="col">Operating System</th>
-                <th scope="col">OS Version</th>
-                <th scope="col">IPv4 Address</th>
-                <th scope="col" class="text-nowrap">Type</th>
-                <th scope="col" class="text-nowrap">Status</th>
-                <th scope="col">Department</th>
-                <th scope="col">Primary User</th>
-                <th scope="col" class="text-center text-nowrap">Assigned Users</th>
+                <th scope="col">
+                  <a href="?{% for key, value in request.GET.items %}{% if key != 'sort' and key != 'order' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}sort=name&order={% if request.GET.sort == 'name' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">
+                    Asset
+                    {% if request.GET.sort == 'name' %}
+                      <i class="fa-solid fa-caret-{% if request.GET.order == 'desc' %}down{% else %}up{% endif %}"></i>
+                    {% endif %}
+                  </a>
+                </th>
+                <th scope="col">
+                  <a href="?{% for key, value in request.GET.items %}{% if key != 'sort' and key != 'order' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}sort=serial_number&order={% if request.GET.sort == 'serial_number' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">
+                    Serial Number
+                    {% if request.GET.sort == 'serial_number' %}
+                      <i class="fa-solid fa-caret-{% if request.GET.order == 'desc' %}down{% else %}up{% endif %}"></i>
+                    {% endif %}
+                  </a>
+                </th>
+                <th scope="col">
+                  <a href="?{% for key, value in request.GET.items %}{% if key != 'sort' and key != 'order' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}sort=operating_system&order={% if request.GET.sort == 'operating_system' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">
+                    Operating System
+                    {% if request.GET.sort == 'operating_system' %}
+                      <i class="fa-solid fa-caret-{% if request.GET.order == 'desc' %}down{% else %}up{% endif %}"></i>
+                    {% endif %}
+                  </a>
+                </th>
+                <th scope="col">
+                  <a href="?{% for key, value in request.GET.items %}{% if key != 'sort' and key != 'order' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}sort=operating_system_version&order={% if request.GET.sort == 'operating_system_version' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">
+                    OS Version
+                    {% if request.GET.sort == 'operating_system_version' %}
+                      <i class="fa-solid fa-caret-{% if request.GET.order == 'desc' %}down{% else %}up{% endif %}"></i>
+                    {% endif %}
+                  </a>
+                </th>
+                <th scope="col">
+                  <a href="?{% for key, value in request.GET.items %}{% if key != 'sort' and key != 'order' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}sort=ipv4_address&order={% if request.GET.sort == 'ipv4_address' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">
+                    IPv4 Address
+                    {% if request.GET.sort == 'ipv4_address' %}
+                      <i class="fa-solid fa-caret-{% if request.GET.order == 'desc' %}down{% else %}up{% endif %}"></i>
+                    {% endif %}
+                  </a>
+                </th>
+                <th scope="col" class="text-nowrap">
+                  <a href="?{% for key, value in request.GET.items %}{% if key != 'sort' and key != 'order' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}sort=hardware_type&order={% if request.GET.sort == 'hardware_type' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">
+                    Type
+                    {% if request.GET.sort == 'hardware_type' %}
+                      <i class="fa-solid fa-caret-{% if request.GET.order == 'desc' %}down{% else %}up{% endif %}"></i>
+                    {% endif %}
+                  </a>
+                </th>
+                <th scope="col" class="text-nowrap">
+                  <a href="?{% for key, value in request.GET.items %}{% if key != 'sort' and key != 'order' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}sort=status&order={% if request.GET.sort == 'status' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">
+                    Status
+                    {% if request.GET.sort == 'status' %}
+                      <i class="fa-solid fa-caret-{% if request.GET.order == 'desc' %}down{% else %}up{% endif %}"></i>
+                    {% endif %}
+                  </a>
+                </th>
+                <th scope="col">
+                  <a href="?{% for key, value in request.GET.items %}{% if key != 'sort' and key != 'order' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}sort=department__name&order={% if request.GET.sort == 'department__name' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">
+                    Department
+                    {% if request.GET.sort == 'department__name' %}
+                      <i class="fa-solid fa-caret-{% if request.GET.order == 'desc' %}down{% else %}up{% endif %}"></i>
+                    {% endif %}
+                  </a>
+                </th>
+                <th scope="col">
+                  <a href="?{% for key, value in request.GET.items %}{% if key != 'sort' and key != 'order' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}sort=primary_user__full_name&order={% if request.GET.sort == 'primary_user__full_name' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">
+                    Primary User
+                    {% if request.GET.sort == 'primary_user__full_name' %}
+                      <i class="fa-solid fa-caret-{% if request.GET.order == 'desc' %}down{% else %}up{% endif %}"></i>
+                    {% endif %}
+                  </a>
+                </th>
+                <th scope="col" class="text-center text-nowrap">
+                  <a href="?{% for key, value in request.GET.items %}{% if key != 'sort' and key != 'order' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}sort=user_count&order={% if request.GET.sort == 'user_count' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">
+                    Assigned Users
+                    {% if request.GET.sort == 'user_count' %}
+                      <i class="fa-solid fa-caret-{% if request.GET.order == 'desc' %}down{% else %}up{% endif %}"></i>
+                    {% endif %}
+                  </a>
+                </th>
                 <th scope="col">Related Systems</th>
                 <th scope="col" class="text-end text-nowrap">Actions</th>
               </tr>
