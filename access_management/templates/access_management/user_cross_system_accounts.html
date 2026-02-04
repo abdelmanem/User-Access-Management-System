@@ -4,34 +4,82 @@
 {% block title %}Cross-System Accounts for {{ user.full_name }}{% endblock %}
 
 {% block content %}
+<style>
+    /* Lightweight UX polish (safe, scoped) */
+    .page-title { letter-spacing: .2px; }
+    .subtle { color: rgba(0,0,0,.6); }
+    .card-header .badge { vertical-align: middle; }
+    .table thead th { white-space: nowrap; }
+    .table td { vertical-align: middle; }
+    .sticky-head thead th {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        background: #f8f9fa;
+        box-shadow: 0 1px 0 rgba(0,0,0,.06);
+    }
+    .cell-muted { color: rgba(0,0,0,.55); }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .evidence-links a { display: inline-block; margin-right: .65rem; }
+    .row-hover:hover { background: rgba(13,110,253,.03); }
+    .kpi {
+        border-radius: .75rem;
+        padding: 1rem;
+        background: linear-gradient(135deg, rgba(13,110,253,.08), rgba(25,135,84,.06));
+        border: 1px solid rgba(0,0,0,.06);
+    }
+    .kpi h2 { line-height: 1; }
+    .soft-divider { border-top: 1px dashed rgba(0,0,0,.15); margin: .75rem 0; }
+</style>
+
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
-            <div class="card">
+
+            <div class="card shadow-sm">
+                <!-- Header -->
                 <div class="card-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h3 class="card-title mb-0">
-                            <i class="fas fa-network-wired"></i> Cross-System Accounts for {{ user.full_name }}
-                        </h3>
+                    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+                        <div>
+                            <h3 class="card-title mb-1 page-title">
+                                <i class="fas fa-network-wired text-primary"></i>
+                                Cross-System Accounts
+                            </h3>
+                            <div class="subtle">
+                                Review access coverage, verification evidence, and generic account risk for
+                                <strong>{{ user.full_name }}</strong>.
+                            </div>
+                        </div>
+
                         <div class="btn-group">
                             <a href="{% url 'accounts:user_detail' user.id %}" class="btn btn-outline-secondary">
                                 <i class="fas fa-arrow-left"></i> Back to User Details
                             </a>
-                            <a href="{% url 'access_management:cross_system_account_mapping' %}?user={{ user.id }}" class="btn btn-outline-primary">
+                            <a href="{% url 'access_management:cross_system_account_mapping' %}?user={{ user.id }}"
+                               class="btn btn-outline-primary">
                                 <i class="fas fa-table"></i> View in Matrix
                             </a>
                         </div>
                     </div>
                 </div>
+
                 <div class="card-body">
+
                     <!-- User Information Summary -->
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <div class="card bg-light">
+                    <div class="row mb-4 g-3">
+                        <div class="col-lg-6">
+                            <div class="card bg-light border-0 h-100">
                                 <div class="card-body">
-                                    <h5 class="card-title">
-                                        <i class="fas fa-user"></i> Employee Information
-                                    </h5>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h5 class="card-title mb-0">
+                                            <i class="fas fa-user"></i> Employee Information
+                                        </h5>
+                                        <span class="badge bg-secondary" data-bs-toggle="tooltip"
+                                              title="Primary identity fields used for cross-system correlation">
+                                            Identity
+                                        </span>
+                                    </div>
+
                                     <table class="table table-sm mb-0">
                                         <tr>
                                             <th width="40%">Name:</th>
@@ -39,7 +87,7 @@
                                         </tr>
                                         <tr>
                                             <th>Employee ID:</th>
-                                            <td><code>{{ user.employee_id }}</code></td>
+                                            <td><code class="mono">{{ user.employee_id }}</code></td>
                                         </tr>
                                         <tr>
                                             <th>Username:</th>
@@ -53,173 +101,234 @@
                                             <th>Department:</th>
                                             <td>
                                                 {% if user.department %}
-                                                {{ user.department.name }}
+                                                    {{ user.department.name }}
                                                 {% else %}
-                                                <span class="text-muted">N/A</span>
+                                                    <span class="text-muted">N/A</span>
                                                 {% endif %}
                                             </td>
                                         </tr>
                                     </table>
+
+                                    <div class="soft-divider"></div>
+                                    <div class="small cell-muted">
+                                        Tip: Use “View in Matrix” for a system-by-system audit view.
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="card bg-info text-white">
-                                <div class="card-body">
-                                    <h5 class="card-title">
+
+                        <div class="col-lg-6">
+                            <div class="kpi h-100">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">
                                         <i class="fas fa-chart-pie"></i> Access Summary
                                     </h5>
-                                    <div class="row text-center">
-                                        <div class="col-6">
-                                            <h2 class="mb-0">{{ systems_with_access_count }}</h2>
-                                            <small>Systems with Access</small>
-                                        </div>
-                                        <div class="col-6">
-                                            <h2 class="mb-0">{{ total_systems }}</h2>
-                                            <small>Total Systems</small>
-                                        </div>
+                                    <span class="badge bg-info text-dark" data-bs-toggle="tooltip"
+                                          title="Coverage = Systems with access / Total systems">
+                                        Coverage
+                                    </span>
+                                </div>
+
+                                <div class="row text-center mt-3">
+                                    <div class="col-6">
+                                        <h2 class="mb-0 text-success">{{ systems_with_access_count }}</h2>
+                                        <small class="cell-muted">Systems with Access</small>
                                     </div>
+                                    <div class="col-6">
+                                        <h2 class="mb-0 text-secondary">{{ total_systems }}</h2>
+                                        <small class="cell-muted">Total Systems</small>
+                                    </div>
+                                </div>
+
+                                <div class="soft-divider"></div>
+                                <div class="small cell-muted">
+                                    This view helps validate user provisioning, access verification, and generic-account remediation.
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Systems with Access -->
-                    <div class="card mb-4">
+                    <div class="card mb-4 border-success">
                         <div class="card-header bg-success text-white">
-                            <h5 class="mb-0">
-                                <i class="fas fa-check-circle"></i> Systems with Access
-                                <span class="badge bg-light text-dark">{{ system_accounts|length }}</span>
-                            </h5>
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-check-circle"></i> Systems with Access
+                                    <span class="badge bg-light text-dark">{{ system_accounts|length }}</span>
+                                </h5>
+                                <small class="opacity-75">
+                                    Hover a row for easier scanning. Use actions to view/edit assignments.
+                                </small>
+                            </div>
                         </div>
+
                         <div class="card-body">
                             {% if system_accounts %}
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>System</th>
-                                            <th>System Code</th>
-                                            <th>System Username</th>
-                                            <th>Access Type</th>
-                                            <th>Status</th>
-                                            <th>Generic Account</th>
-                                            <th>Verification</th>
-                                            <th>Access Start</th>
-                                            <th>Access End</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for account in system_accounts %}
-                                        <tr>
-                                            <td>
-                                                <strong>{{ account.system.name }}</strong>
-                                            </td>
-                                            <td>
-                                                <code>{{ account.system.code }}</code>
-                                            </td>
-                                            <td>
-                                                <code class="text-primary">{{ account.system_username }}</code>
-                                                {% if account.is_generic %}
-                                                <br><span class="badge bg-danger">
-                                                    <i class="fas fa-exclamation-triangle"></i> Generic
-                                                </span>
-                                                {% endif %}
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-secondary">{{ account.access_type }}</span>
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-{% if account.status == 'Active' %}success{% elif account.status == 'Approved' %}info{% else %}warning{% endif %}">
-                                                    {{ account.status }}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                {% if account.is_generic %}
-                                                    {% if account.generic_remediated %}
-                                                    <span class="badge bg-success">
-                                                        <i class="fas fa-check"></i> Remediated
+                                <div class="table-responsive sticky-head">
+                                    <table class="table table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>System</th>
+                                                <th>System Code</th>
+                                                <th>System Username</th>
+                                                <th>Access Type</th>
+                                                <th>Status</th>
+                                                <th>Generic Account</th>
+                                                <th>Verification</th>
+                                                <th>Access Start</th>
+                                                <th>Access End</th>
+                                                <th class="text-end">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for account in system_accounts %}
+                                            <tr class="row-hover">
+                                                <td>
+                                                    <strong>{{ account.system.name }}</strong>
+                                                </td>
+                                                <td>
+                                                    <code class="mono">{{ account.system.code }}</code>
+                                                </td>
+                                                <td>
+                                                    <code class="text-primary mono">{{ account.system_username }}</code>
+
+                                                    {% if account.is_generic %}
+                                                        <div class="mt-1">
+                                                            <span class="badge bg-danger" data-bs-toggle="tooltip"
+                                                                  title="Generic accounts increase audit risk and should be remediated when possible">
+                                                                <i class="fas fa-exclamation-triangle"></i> Generic
+                                                            </span>
+                                                        </div>
+                                                    {% endif %}
+                                                </td>
+
+                                                <td>
+                                                    <span class="badge bg-secondary">{{ account.access_type }}</span>
+                                                </td>
+
+                                                <td>
+                                                    <span class="badge bg-{% if account.status == 'Active' %}success{% elif account.status == 'Approved' %}info{% else %}warning{% endif %}">
+                                                        {{ account.status }}
                                                     </span>
+                                                </td>
+
+                                                <td>
+                                                    {% if account.is_generic %}
+                                                        {% if account.generic_remediated %}
+                                                            <span class="badge bg-success">
+                                                                <i class="fas fa-check"></i> Remediated
+                                                            </span>
+                                                        {% else %}
+                                                            <span class="badge bg-warning text-dark">
+                                                                <i class="fas fa-tools"></i> Needs Remediation
+                                                            </span>
+                                                            <div class="small cell-muted mt-1">
+                                                                Suggestion: convert to named account or document exception.
+                                                            </div>
+                                                        {% endif %}
                                                     {% else %}
-                                                    <span class="badge bg-warning">
-                                                        <i class="fas fa-exclamation-triangle"></i> Needs Remediation
-                                                    </span>
+                                                        <span class="text-muted">-</span>
                                                     {% endif %}
-                                                {% else %}
-                                                <span class="text-muted">-</span>
-                                                {% endif %}
-                                            </td>
-                                            <td>
-                                                {% if account.has_verification %}
-                                                    <span class="badge bg-success">
-                                                        <i class="fas fa-user-check"></i> Verified
-                                                    </span>
-                                                    {% if account.verified_by %}
-                                                    <br><small class="text-muted">by {{ account.verified_by }}</small>
+                                                </td>
+
+                                                <td>
+                                                    {% if account.has_verification %}
+                                                        <span class="badge bg-success">
+                                                            <i class="fas fa-user-check"></i> Verified
+                                                        </span>
+
+                                                        {% if account.verified_by %}
+                                                            <div class="small cell-muted mt-1">
+                                                                by {{ account.verified_by }}
+                                                            </div>
+                                                        {% endif %}
+
+                                                        {% if account.verified_date %}
+                                                            <div class="small cell-muted">
+                                                                {{ account.verified_date|date:"Y-m-d" }}
+                                                            </div>
+                                                        {% endif %}
+
+                                                        {% if account.artifact_file_url or account.artifact_external_url %}
+                                                            <div class="evidence-links mt-1">
+                                                                {% if account.artifact_file_url %}
+                                                                    <a href="{{ account.artifact_file_url }}" target="_blank"
+                                                                       class="small" data-bs-toggle="tooltip"
+                                                                       title="Open attached evidence (file)">
+                                                                        <i class="fas fa-paperclip"></i> Attachment
+                                                                    </a>
+                                                                {% endif %}
+                                                                {% if account.artifact_external_url %}
+                                                                    <a href="{{ account.artifact_external_url }}" target="_blank"
+                                                                       class="small" data-bs-toggle="tooltip"
+                                                                       title="Open external evidence link (e.g., ticket or screenshot)">
+                                                                        <i class="fas fa-external-link-alt"></i> Evidence
+                                                                    </a>
+                                                                {% endif %}
+                                                            </div>
+                                                        {% endif %}
+                                                    {% else %}
+                                                        <span class="badge bg-warning text-dark">
+                                                            <i class="fas fa-user-clock"></i> Missing
+                                                        </span>
+                                                        <div class="small cell-muted mt-1">
+                                                            Add verification evidence to close audit gap.
+                                                        </div>
                                                     {% endif %}
-                                                    {% if account.verified_date %}
-                                                    <br><small class="text-muted">{{ account.verified_date|date:"Y-m-d" }}</small>
+                                                </td>
+
+                                                <td>
+                                                    {% if account.access_start_date %}
+                                                        {{ account.access_start_date|date:"Y-m-d" }}
+                                                    {% else %}
+                                                        <span class="text-muted">-</span>
                                                     {% endif %}
-                                                    {% if account.artifact_file_url %}
-                                                    <br><a href="{{ account.artifact_file_url }}" target="_blank">
-                                                        <i class="fas fa-paperclip"></i> Attachment
-                                                    </a>
+                                                </td>
+
+                                                <td>
+                                                    {% if account.access_end_date %}
+                                                        {{ account.access_end_date|date:"Y-m-d" }}
+                                                    {% else %}
+                                                        <span class="text-muted">No expiration</span>
                                                     {% endif %}
-                                                    {% if account.artifact_external_url %}
-                                                    <br><a href="{{ account.artifact_external_url }}" target="_blank">
-                                                        <i class="fas fa-external-link-alt"></i> Evidence
-                                                    </a>
-                                                    {% endif %}
-                                                {% else %}
-                                                    <span class="badge bg-warning text-dark">
-                                                        <i class="fas fa-user-clock"></i> Missing
-                                                    </span>
-                                                {% endif %}
-                                            </td>
-                                            <td>
-                                                {% if account.access_start_date %}
-                                                {{ account.access_start_date|date:"Y-m-d" }}
-                                                {% else %}
-                                                <span class="text-muted">-</span>
-                                                {% endif %}
-                                            </td>
-                                            <td>
-                                                {% if account.access_end_date %}
-                                                {{ account.access_end_date|date:"Y-m-d" }}
-                                                {% else %}
-                                                <span class="text-muted">No expiration</span>
-                                                {% endif %}
-                                            </td>
-                                            <td>
-                                                <div class="btn-group btn-group-sm">
-                                                    <a href="{% url 'access_management:access_assignment_detail' account.access_id %}" 
-                                                       class="btn btn-outline-primary" title="View Details">
-                                                        <i class="fas fa-eye"></i>
-                                                    </a>
-                                                    <a href="{% url 'access_management:access_assignment_update' account.access_id %}" 
-                                                       class="btn btn-outline-warning" title="Edit">
-                                                        <i class="fas fa-edit"></i>
-                                                    </a>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
+                                                </td>
+
+                                                <td class="text-end">
+                                                    <div class="btn-group btn-group-sm">
+                                                        <a href="{% url 'access_management:access_assignment_detail' account.access_id %}"
+                                                           class="btn btn-outline-primary"
+                                                           data-bs-toggle="tooltip"
+                                                           title="View assignment details">
+                                                            <i class="fas fa-eye"></i>
+                                                        </a>
+                                                        <a href="{% url 'access_management:access_assignment_update' account.access_id %}"
+                                                           class="btn btn-outline-warning"
+                                                           data-bs-toggle="tooltip"
+                                                           title="Edit assignment">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
                             {% else %}
-                            <div class="alert alert-warning">
-                                <i class="fas fa-exclamation-triangle"></i> 
-                                This user does not have access to any systems yet.
-                            </div>
+                                <div class="alert alert-warning mb-0">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    This user does not have access to any systems yet.
+                                    <div class="small mt-1">
+                                        If access is expected, create an access assignment or verify onboarding status.
+                                    </div>
+                                </div>
                             {% endif %}
                         </div>
                     </div>
 
                     <!-- Systems without Access -->
                     {% if systems_without_access %}
-                    <div class="card">
+                    <div class="card mb-4">
                         <div class="card-header bg-secondary text-white">
                             <h5 class="mb-0">
                                 <i class="fas fa-times-circle"></i> Systems without Access
@@ -227,32 +336,40 @@
                             </h5>
                         </div>
                         <div class="card-body">
-                            <div class="row">
+                            <div class="row g-2">
                                 {% for system in systems_without_access %}
-                                <div class="col-md-4 mb-2">
-                                    <div class="card border-secondary">
+                                <div class="col-md-4">
+                                    <div class="card border-secondary h-100">
                                         <div class="card-body p-2">
-                                            <strong>{{ system.name }}</strong>
-                                            <br><small class="text-muted">{{ system.code }}</small>
+                                            <strong>{{ system.name }}</strong><br>
+                                            <small class="text-muted">{{ system.code }}</small>
                                         </div>
                                     </div>
                                 </div>
                                 {% endfor %}
                             </div>
+                            <div class="small text-muted mt-2">
+                                These systems currently have no linked account for this user.
+                            </div>
                         </div>
                     </div>
                     {% endif %}
 
-                    <!-- Account Mapping Summary Table -->
+                    <!-- Account Mapping Summary Table (kept + improved readability) -->
                     <div class="card mt-4">
                         <div class="card-header">
-                            <h5 class="mb-0">
-                                <i class="fas fa-table"></i> Account Mapping Summary
-                            </h5>
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-table"></i> Account Mapping Summary
+                                </h5>
+                                <small class="text-muted">
+                                    Quick snapshot for audits and reporting.
+                                </small>
+                            </div>
                         </div>
                         <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-sm">
+                            <div class="table-responsive sticky-head">
+                                <table class="table table-bordered table-sm mb-0">
                                     <thead class="table-light">
                                         <tr>
                                             <th>System</th>
@@ -266,8 +383,11 @@
                                     <tbody>
                                         {% for account in system_accounts %}
                                         <tr>
-                                            <td><strong>{{ account.system.name }}</strong> ({{ account.system.code }})</td>
-                                            <td><code>{{ account.system_username }}</code></td>
+                                            <td>
+                                                <strong>{{ account.system.name }}</strong>
+                                                <span class="text-muted">({{ account.system.code }})</span>
+                                            </td>
+                                            <td><code class="mono">{{ account.system_username }}</code></td>
                                             <td>{{ account.access_type }}</td>
                                             <td>
                                                 <span class="badge bg-{% if account.status == 'Active' %}success{% elif account.status == 'Approved' %}info{% else %}warning{% endif %}">
@@ -277,19 +397,19 @@
                                             <td>
                                                 {% if account.is_generic %}
                                                     {% if account.generic_remediated %}
-                                                    <span class="badge bg-success">Remediated</span>
+                                                        <span class="badge bg-success">Remediated</span>
                                                     {% else %}
-                                                    <span class="badge bg-danger">Generic - Needs Remediation</span>
+                                                        <span class="badge bg-danger">Generic – Needs Remediation</span>
                                                     {% endif %}
                                                 {% else %}
-                                                <span class="text-muted">-</span>
+                                                    <span class="text-muted">-</span>
                                                 {% endif %}
                                             </td>
                                             <td>
                                                 {% if account.has_verification %}
                                                     <span class="badge bg-success">Verified</span>
                                                     {% if account.verified_date %}
-                                                    <br><small>{{ account.verified_date|date:"Y-m-d" }}</small>
+                                                        <br><small>{{ account.verified_date|date:"Y-m-d" }}</small>
                                                     {% endif %}
                                                 {% else %}
                                                     <span class="badge bg-warning text-dark">Missing</span>
@@ -306,10 +426,15 @@
                                     </tbody>
                                 </table>
                             </div>
+
+                            <div class="small text-muted mt-2">
+                                Note: “Missing” verification indicates evidence is not linked to this assignment.
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
+
+                </div><!-- /card-body -->
+            </div><!-- /card -->
         </div>
     </div>
 </div>
@@ -317,10 +442,12 @@
 
 {% block extrajs %}
 <script>
-// Add any additional JavaScript if needed
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize tooltips if needed
+    // Bootstrap tooltips (works if Bootstrap JS is available in base.html)
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
 });
 </script>
 {% endblock %}
-
