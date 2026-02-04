@@ -1,384 +1,440 @@
 {% extends 'base.html' %}
 {% load static %}
-
 {% block title %}User Management{% endblock %}
-
 {% block extra_css %}
 <style>
-  /* -----------------------------
-     Modern Theme Variables
-  ------------------------------ */
-  :root{
-    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-    --danger-gradient: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
-    --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    --card-shadow: 0 2px 10px rgba(0,0,0,0.08);
-    --card-shadow-hover: 0 12px 28px rgba(0,0,0,0.14);
-    --transition: all .25s cubic-bezier(.4,0,.2,1);
-    --border-soft: 1px solid rgba(0,0,0,.06);
-    --text-soft: #64748b;
-  }
+/* ------------------------------
+   Modern Theme Variables
+------------------------------ */
+:root{
+  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  --danger-gradient: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+  --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --card-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  --card-shadow-hover: 0 12px 28px rgba(0,0,0,0.14);
+  --transition: all .25s cubic-bezier(.4,0,.2,1);
+  --border-soft: 1px solid rgba(0,0,0,.06);
+  --text-soft: #64748b;
+}
 
-  /* -----------------------------
-     Page Header
-  ------------------------------ */
-  .page-hero{
-    background: var(--primary-gradient);
-    color: #fff;
-    border-radius: 14px;
-    padding: 1.75rem;
-    box-shadow: var(--card-shadow);
-    position: relative;
-    overflow: hidden;
-  }
-  .page-hero::after{
-    content:"";
-    position:absolute;
-    inset:-60px -60px auto auto;
-    width: 220px;
-    height: 220px;
-    background: rgba(255,255,255,.12);
-    filter: blur(0);
-    border-radius: 50%;
-  }
-  .page-hero h1{
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin: 0;
-  }
-  .page-hero p{
-    margin: .35rem 0 0 0;
-    opacity: .85;
-  }
+/* ------------------------------
+   Page Header
+------------------------------ */
+.page-hero{
+  background: var(--primary-gradient);
+  color: #fff;
+  border-radius: 14px;
+  padding: 1.75rem;
+  box-shadow: var(--card-shadow);
+  position: relative;
+  overflow: hidden;
+}
+.page-hero::after{
+  content:"";
+  position:absolute;
+  inset:-60px -60px auto auto;
+  width: 220px;
+  height: 220px;
+  background: rgba(255,255,255,.12);
+  filter: blur(0);
+  border-radius: 50%;
+}
+.page-hero h1{
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+}
+.page-hero p{
+  margin: .35rem 0 0 0;
+  opacity: .85;
+}
 
-  /* Export buttons */
-  .btn-glass{
-    background: rgba(255,255,255,.18);
-    border: 1px solid rgba(255,255,255,.28);
-    color: #fff !important;
-    backdrop-filter: blur(10px);
-    border-radius: 10px;
-    padding: .55rem .9rem;
-    transition: var(--transition);
-    display: inline-flex;
-    align-items: center;
-    gap: .55rem;
-    text-decoration: none;
-    white-space: nowrap;
-  }
-  .btn-glass:hover{
-    background: rgba(255,255,255,.28);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(0,0,0,.18);
-  }
+/* Export buttons */
+.btn-glass{
+  background: rgba(255,255,255,.18);
+  border: 1px solid rgba(255,255,255,.28);
+  color: #fff !important;
+  backdrop-filter: blur(10px);
+  border-radius: 10px;
+  padding: .55rem .9rem;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn-glass:hover{
+  background: rgba(255,255,255,.28);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(0,0,0,.18);
+}
 
-  /* -----------------------------
-     KPI Cards
-  ------------------------------ */
-  .kpi-grid{
-    display:grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 1rem;
-    margin: 1.5rem 0 1.25rem;
-  }
-  .kpi-card{
-    background: #fff;
-    border-radius: 14px;
-    padding: 1.25rem 1.25rem 1.15rem;
-    box-shadow: var(--card-shadow);
-    border: 2px solid transparent;
-    transition: var(--transition);
-    position:relative;
-    overflow:hidden;
-    cursor: default;
-  }
-  .kpi-card.clickable-kpi{ cursor: pointer; }
-  .kpi-card::before{
-    content:"";
-    position:absolute;
-    left:0; right:0; top:0;
-    height:4px;
-    background: var(--primary-gradient);
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: var(--transition);
-  }
-  .kpi-card:hover{
-    transform: translateY(-4px);
-    box-shadow: var(--card-shadow-hover);
-    border-color: rgba(102,126,234,.18);
-  }
-  .kpi-card:hover::before,
-  .kpi-card.active::before{
-    transform: scaleX(1);
-  }
-  .kpi-card.active{
-    border-color: rgba(102,126,234,.65);
-    background: linear-gradient(to bottom, rgba(102,126,234,.06), #fff);
-  }
-  .kpi-label{
-    font-size: .78rem;
-    letter-spacing: .08em;
-    text-transform: uppercase;
-    color: var(--text-soft);
-    font-weight: 700;
-    margin-bottom: .4rem;
-  }
-  .kpi-value{
-    font-size: 2rem;
-    font-weight: 800;
-    color: #0f172a;
-    line-height: 1.05;
-    margin-bottom: .25rem;
-  }
-  .kpi-description{
-    font-size: .85rem;
-    color: #7c889c;
-  }
-  .kpi-card.clickable-kpi:hover .kpi-description::after{
-    content:" • Click to filter";
-    color: #667eea;
-    font-weight: 600;
-  }
+/* ------------------------------
+   KPI Cards
+------------------------------ */
+.kpi-grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0 1.25rem;
+}
+.kpi-card{
+  background: #fff;
+  border-radius: 14px;
+  padding: 1.25rem 1.25rem 1.15rem;
+  box-shadow: var(--card-shadow);
+  border: 2px solid transparent;
+  transition: var(--transition);
+  position:relative;
+  overflow:hidden;
+  cursor: default;
+}
+.kpi-card.clickable-kpi{ cursor: pointer; }
+.kpi-card::before{
+  content:"";
+  position:absolute;
+  left:0; right:0; top:0;
+  height:4px;
+  background: var(--primary-gradient);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: var(--transition);
+}
+.kpi-card:hover{
+  transform: translateY(-4px);
+  box-shadow: var(--card-shadow-hover);
+  border-color: rgba(102,126,234,.18);
+}
+.kpi-card:hover::before,
+.kpi-card.active::before{
+  transform: scaleX(1);
+}
+.kpi-card.active{
+  border-color: rgba(102,126,234,.65);
+  background: linear-gradient(to bottom, rgba(102,126,234,.06), #fff);
+}
+.kpi-label{
+  font-size: .78rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+  font-weight: 700;
+  margin-bottom: .4rem;
+}
+.kpi-value{
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.05;
+  margin-bottom: .25rem;
+}
+.kpi-description{
+  font-size: .85rem;
+  color: #7c889c;
+}
+.kpi-card.clickable-kpi:hover .kpi-description::after{
+  content:" • Click to filter";
+  color: #667eea;
+  font-weight: 600;
+}
 
-  /* -----------------------------
-     Filter Card (Sticky)
-  ------------------------------ */
-  .filter-card{
-    background:#fff;
-    border-radius: 14px;
-    box-shadow: var(--card-shadow);
-    border: var(--border-soft);
-  }
-  .filter-card.sticky-top{
-    top: .75rem;
-    z-index: 10;
-  }
-  .filter-head{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap: .75rem;
-    padding-bottom: .75rem;
-    border-bottom: 1px solid rgba(0,0,0,.06);
-    margin-bottom: .85rem;
-  }
-  .filter-head h2{
-    margin:0;
-    font-size: 1rem;
-    font-weight: 800;
-    color: #0f172a;
-  }
-  .form-label{
-    font-weight: 700;
-    font-size: .83rem;
-    color: #334155;
-    margin-bottom: .35rem;
-  }
-  .form-control, .form-select{
-    border: 2px solid #e2e8f0;
-    border-radius: 10px;
-    padding: .65rem .85rem;
-    transition: var(--transition);
-  }
-  .form-control:focus, .form-select:focus{
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102,126,234,.12);
-  }
+/* ------------------------------
+   Filter Card (Sticky)
+------------------------------ */
+.filter-card{
+  background:#fff;
+  border-radius: 14px;
+  box-shadow: var(--card-shadow);
+  border: var(--border-soft);
+}
+.filter-card.sticky-top{
+  top: .75rem;
+  z-index: 10;
+}
+.filter-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: .75rem;
+  padding-bottom: .75rem;
+  border-bottom: 1px solid rgba(0,0,0,.06);
+  margin-bottom: .85rem;
+}
+.filter-head h2{
+  margin:0;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+.form-label{
+  font-weight: 700;
+  font-size: .83rem;
+  color: #334155;
+  margin-bottom: .35rem;
+}
+.form-control, .form-select{
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  padding: .65rem .85rem;
+  transition: var(--transition);
+}
+.form-control:focus, .form-select:focus{
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102,126,234,.12);
+}
 
-  /* Active filter chips */
-  .active-filters{
-    display:flex;
-    flex-wrap: wrap;
-    gap: .5rem;
-    margin-top: 1rem;
-    padding-top: .9rem;
-    border-top: 1px solid rgba(0,0,0,.06);
-  }
-  .filter-chip{
-    background: rgba(102,126,234,.10);
-    color: #4f46e5;
-    border: 1px solid rgba(102,126,234,.22);
-    padding: .35rem .7rem;
-    border-radius: 999px;
-    font-size: .82rem;
-    display:inline-flex;
-    align-items:center;
-    gap: .5rem;
-  }
-  .filter-chip button{
-    border:0;
-    background: transparent;
-    color: inherit;
-    opacity: .75;
-    font-weight: 900;
-    cursor:pointer;
-    padding: 0 .15rem;
-  }
-  .filter-chip button:hover{ opacity: 1; }
+/* Active filter chips */
+.active-filters{
+  display:flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-top: 1rem;
+  padding-top: .9rem;
+  border-top: 1px solid rgba(0,0,0,.06);
+}
+.filter-chip{
+  background: rgba(102,126,234,.10);
+  color: #4f46e5;
+  border: 1px solid rgba(102,126,234,.22);
+  padding: .35rem .7rem;
+  border-radius: 999px;
+  font-size: .82rem;
+  display:inline-flex;
+  align-items:center;
+  gap: .5rem;
+}
+.filter-chip button{
+  border:0;
+  background: transparent;
+  color: inherit;
+  opacity: .75;
+  font-weight: 900;
+  cursor:pointer;
+  padding: 0 .15rem;
+}
+.filter-chip button:hover{ opacity: 1; }
 
-  /* -----------------------------
-     Bulk Actions
-  ------------------------------ */
-  .bulk-wrap{
-    background: linear-gradient(135deg, #f8fafc 0%, #eef2f7 100%);
-    border-radius: 14px;
-    border: 2px dashed rgba(0,0,0,.10);
-    padding: 1.25rem;
-  }
-  .selection-pill{
-    display:none;
-    margin-left: .6rem;
-    background: #4f46e5;
-    color: #fff;
-    border-radius: 999px;
-    padding: .25rem .65rem;
-    font-size: .8rem;
-    font-weight: 800;
-  }
-  .selection-pill.active{ display:inline-block; }
+/* ------------------------------
+   Bulk Actions
+------------------------------ */
+.bulk-wrap{
+  background: linear-gradient(135deg, #f8fafc 0%, #eef2f7 100%);
+  border-radius: 14px;
+  border: 2px dashed rgba(0,0,0,.10);
+  padding: 1.25rem;
+}
+.selection-pill{
+  display:none;
+  margin-left: .6rem;
+  background: #4f46e5;
+  color: #fff;
+  border-radius: 999px;
+  padding: .25rem .65rem;
+  font-size: .8rem;
+  font-weight: 800;
+}
+.selection-pill.active{ display:inline-block; }
 
-  /* Make delete option visually dangerous */
-  #bulk-action option[value="delete"]{
-    color: #dc3545;
-    font-weight: 800;
-  }
+/* Make delete option visually dangerous */
+#bulk-action option[value="delete"]{
+  color: #dc3545;
+  font-weight: 800;
+}
 
-  /* -----------------------------
-     Table
-  ------------------------------ */
-  .table-shell{
-    background:#fff;
-    border-radius: 14px;
-    box-shadow: var(--card-shadow);
-    border: var(--border-soft);
-    overflow:hidden;
-  }
-  .table thead{
-    background: linear-gradient(135deg, #f8fafc 0%, #eef2f7 100%);
-  }
-  .table thead th{
-    font-size: .78rem;
-    text-transform: uppercase;
-    letter-spacing: .06em;
-    color: #0f172a;
-    font-weight: 900;
-    padding: 1rem .75rem;
-    border-bottom: 2px solid rgba(0,0,0,.08);
-    position: sticky;
-    top: 0;
-    z-index: 5;
-    white-space: nowrap;
-  }
-  .table thead th a{
-    color: inherit;
-    text-decoration:none;
-    transition: var(--transition);
-  }
-  .table thead th a:hover{ color: #4f46e5; text-decoration: underline; }
-  .table tbody td{
-    padding: .95rem .75rem;
-    vertical-align: middle;
-  }
-  .table tbody tr{
-    transition: var(--transition);
-  }
-  .table tbody tr:hover{
-    background: rgba(79,70,229,.03);
-  }
+/* ------------------------------
+   Table
+------------------------------ */
+.table-shell{
+  background:#fff;
+  border-radius: 14px;
+  box-shadow: var(--card-shadow);
+  border: var(--border-soft);
+  overflow:hidden;
+}
+.table thead{
+  background: linear-gradient(135deg, #f8fafc 0%, #eef2f7 100%);
+}
+.table thead th{
+  font-size: .78rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: #0f172a;
+  font-weight: 900;
+  padding: 1rem .75rem;
+  border-bottom: 2px solid rgba(0,0,0,.08);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  white-space: nowrap;
+}
+.table thead th a{
+  color: inherit;
+  text-decoration:none;
+  transition: var(--transition);
+}
+.table thead th a:hover{ color: #4f46e5; text-decoration: underline; }
+.table tbody td{
+  padding: .95rem .75rem;
+  vertical-align: middle;
+}
+.table tbody tr{ transition: var(--transition); }
+.table tbody tr:hover{ background: rgba(79,70,229,.03); }
 
-  /* Badges */
-  .badge{
-    padding: .38rem .72rem;
-    border-radius: 999px;
-    font-weight: 900;
-    font-size: .74rem;
-  }
-  .badge.bg-success{ background: var(--success-gradient) !important; }
-  .badge.bg-danger{ background: var(--danger-gradient) !important; }
-  .badge.bg-warning{ background: var(--warning-gradient) !important; }
+/* Badges */
+.badge{
+  padding: .38rem .72rem;
+  border-radius: 999px;
+  font-weight: 900;
+  font-size: .74rem;
+}
+.badge.bg-success{ background: var(--success-gradient) !important; }
+.badge.bg-danger{ background: var(--danger-gradient) !important; }
+.badge.bg-warning{ background: var(--warning-gradient) !important; }
 
-  /* Checkboxes */
-  .form-check-input{
-    width: 1.18rem;
-    height: 1.18rem;
-    border: 2px solid #cbd5e1;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-  .form-check-input:checked{
-    background-color:#4f46e5;
-    border-color:#4f46e5;
-  }
+/* Checkboxes */
+.form-check-input{
+  width: 1.18rem;
+  height: 1.18rem;
+  border: 2px solid #cbd5e1;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.form-check-input:checked{
+  background-color:#4f46e5;
+  border-color:#4f46e5;
+}
 
-  /* Actions: hide until hover (cleaner) */
-  .row-actions{
-    opacity: .15;
-    transition: opacity .15s ease-in-out;
-  }
-  tr:hover .row-actions{ opacity: 1; }
+/* Actions: hide until hover (cleaner) */
+.row-actions{
+  opacity: .15;
+  transition: opacity .15s ease-in-out;
+}
+tr:hover .row-actions{ opacity: 1; }
 
-  /* Buttons */
-  .btn{
-    border-radius: 10px;
-    font-weight: 700;
-    padding: .62rem 1.1rem;
-    transition: var(--transition);
-  }
-  .btn-primary{
-    background: var(--primary-gradient);
-    border: none;
-  }
-  .btn-primary:hover{
-    transform: translateY(-2px);
-    box-shadow: 0 10px 22px rgba(102,126,234,.30);
-  }
-  .btn-outline-secondary{
-    border: 2px solid #e2e8f0;
-    background: #fff;
-    color: #334155;
-  }
-  .btn-outline-secondary:hover{
-    background: #f8fafc;
-    border-color: #cbd5e1;
-  }
+/* Buttons */
+.btn{
+  border-radius: 10px;
+  font-weight: 700;
+  padding: .62rem 1.1rem;
+  transition: var(--transition);
+}
+.btn-primary{
+  background: var(--primary-gradient);
+  border: none;
+}
+.btn-primary:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(102,126,234,.30);
+}
+.btn-outline-secondary{
+  border: 2px solid #e2e8f0;
+  background: #fff;
+  color: #334155;
+}
+.btn-outline-secondary:hover{
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
 
-  /* Stats bar */
-  .stats-bar{
-    background:#fff;
-    border-radius: 12px;
-    padding: 1rem 1.25rem;
-    box-shadow: var(--card-shadow);
-    border: var(--border-soft);
-    display:flex;
-    justify-content: space-between;
-    align-items:center;
-    gap: 1rem;
-    margin-top: 1rem;
-    flex-wrap: wrap;
-  }
-  .pagination .page-link{
-    border: 2px solid #e2e8f0;
-    border-radius: 10px;
-    color: #334155;
-    padding: .5rem .9rem;
-    margin: 0 .2rem;
-    transition: var(--transition);
-  }
-  .pagination .page-link:hover{
-    background: #4f46e5;
-    border-color: #4f46e5;
-    color: #fff;
-  }
+/* Stats bar */
+.stats-bar{
+  background:#fff;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  box-shadow: var(--card-shadow);
+  border: var(--border-soft);
+  display:flex;
+  justify-content: space-between;
+  align-items:center;
+  gap: 1rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+.pagination .page-link{
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  color: #334155;
+  padding: .5rem .9rem;
+  margin: 0 .2rem;
+  transition: var(--transition);
+}
+.pagination .page-link:hover{
+  background: #4f46e5;
+  border-color: #4f46e5;
+  color: #fff;
+}
 
-  /* Mobile */
-  @media (max-width: 768px){
-    .page-hero{ padding: 1.25rem; }
-    .page-hero h1{ font-size: 1.25rem; }
-    .kpi-grid{ grid-template-columns: 1fr; }
-  }
+/* Mobile */
+@media (max-width: 768px){
+  .page-hero{ padding: 1.25rem; }
+  .page-hero h1{ font-size: 1.25rem; }
+  .kpi-grid{ grid-template-columns: 1fr; }
+}
+
+/* ===========================================================
+   ✅ COMPACT OVERRIDES (make UI like hardware_list.html)
+   =========================================================== */
+
+/* HERO: smaller icon + tighter padding */
+.card.bg-primary.text-white.mb-4 .card-body{
+  padding: 1rem 1.25rem;
+}
+.card.bg-primary.text-white.mb-4 i.fas.fa-users{
+  font-size: 1.5rem !important;
+}
+
+/* KPI smaller */
+.kpi-grid{
+  gap: .75rem;
+  margin: 1rem 0 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+.kpi-card{
+  padding: .95rem 1rem .9rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,.06);
+}
+.kpi-card:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(0,0,0,.12);
+}
+.kpi-label{
+  font-size: .72rem;
+  margin-bottom: .25rem;
+}
+.kpi-value{
+  font-size: 1.55rem;
+}
+.kpi-description{
+  font-size: .82rem;
+}
+
+/* Filter compact */
+.filter-card .card-body{
+  padding: 1rem;
+}
+.filter-head{
+  padding-bottom: .6rem;
+  margin-bottom: .7rem;
+}
+
+/* Toggle button alignment */
+#filtersToggleBtn{
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+}
+
+/* Slightly smaller buttons overall */
+.btn{
+  padding: .5rem .9rem;
+}
+.btn-group.btn-group-sm .btn{
+  padding: .35rem .55rem;
+}
 </style>
 {% endblock %}
 
@@ -396,14 +452,15 @@
             <p class="text-white-50 mb-0">Manage system users, permissions, and access.</p>
           </div>
         </div>
+
         <div class="d-flex gap-2 flex-wrap">
           <a class="btn btn-sm btn-light text-primary border-0"
-             href="{% url 'accounts:user_export_excel' %}?{% if base_query %}{{ base_query }}&amp;{% endif %}sort={{ current_sort }}&amp;dir={{ current_dir }}"
+             href="{% url 'accounts:user_export_excel' %}?{% if base_query %}{{ base_query }}&{% endif %}sort={{ current_sort }}&dir={{ current_dir }}"
              aria-label="Export users to Excel">
             <i class="fas fa-file-excel"></i> Export Excel
           </a>
           <a class="btn btn-sm btn-light text-danger border-0"
-             href="{% url 'accounts:user_export_pdf' %}?{% if base_query %}{{ base_query }}&amp;{% endif %}sort={{ current_sort }}&amp;dir={{ current_dir }}"
+             href="{% url 'accounts:user_export_pdf' %}?{% if base_query %}{{ base_query }}&{% endif %}sort={{ current_sort }}&dir={{ current_dir }}"
              aria-label="Export users to PDF">
             <i class="fas fa-file-pdf"></i> Export PDF
           </a>
@@ -414,40 +471,46 @@
     <!-- KPI GRID -->
     <div class="kpi-grid">
       {% for kpi in user_kpis %}
-        <div class="kpi-card {% if kpi.filter_params %}clickable-kpi{% endif %} {% if kpi.is_active %}active{% endif %}"
-             {% if kpi.filter_params %}data-filter-params="{{ kpi.filter_params }}"{% endif %}
-             role="button"
-             tabindex="0"
-             aria-label="{{ kpi.label }} KPI card">
-          <div class="kpi-label">{{ kpi.label }}</div>
-          <div class="kpi-value">{{ kpi.value }}</div>
-          <div class="kpi-description">{{ kpi.description }}</div>
-        </div>
+      <div class="kpi-card {% if kpi.filter_params %}clickable-kpi{% endif %} {% if kpi.is_active %}active{% endif %}"
+           {% if kpi.filter_params %}data-filter-params="{{ kpi.filter_params }}"{% endif %}
+           role="button"
+           tabindex="0"
+           aria-label="{{ kpi.label }} KPI card">
+        <div class="kpi-label">{{ kpi.label }}</div>
+        <div class="kpi-value">{{ kpi.value }}</div>
+        <div class="kpi-description">{{ kpi.description }}</div>
+      </div>
       {% endfor %}
     </div>
 
-    <!-- FILTERS (Sticky + collapsible on mobile) -->
+    <!-- FILTERS (Sticky + collapsible on ALL sizes) -->
     <div class="card filter-card shadow-sm mb-3 sticky-top">
       <div class="card-body">
         <div class="filter-head">
           <h2><i class="fas fa-filter me-2 text-muted"></i>Filter Users</h2>
+
           <div class="d-flex gap-2">
-            <button class="btn btn-outline-secondary btn-sm d-md-none"
+            <!-- ✅ Toggle now works on desktop + mobile -->
+            <button id="filtersToggleBtn"
+                    class="btn btn-outline-secondary btn-sm"
                     type="button"
                     data-bs-toggle="collapse"
                     data-bs-target="#filtersCollapse"
-                    aria-expanded="false"
+                    aria-expanded="true"
                     aria-controls="filtersCollapse">
-              <i class="fas fa-chevron-down me-1"></i> Toggle
+              <i id="filtersToggleIcon" class="fas fa-chevron-up"></i>
+              <span id="filtersToggleText">Collapse</span>
             </button>
+
             <a class="btn btn-outline-secondary btn-sm"
-               href="{% url 'accounts:user_list' %}{% if current_sort or current_dir %}?sort={{ current_sort }}&amp;dir={{ current_dir }}{% endif %}">
+               href="{% url 'accounts:user_list' %}{% if current_sort or current_dir %}?sort={{ current_sort }}&dir={{ current_dir }}{% endif %}">
               <i class="fas fa-rotate-left me-1"></i> Reset
             </a>
           </div>
         </div>
 
-        <div class="collapse d-md-block" id="filtersCollapse">
+        <!-- ✅ Start shown, collapsible everywhere -->
+        <div class="collapse show" id="filtersCollapse">
           <form method="get" id="filterForm">
             <input type="hidden" name="sort" value="{{ current_sort }}">
             <input type="hidden" name="dir" value="{{ current_dir|default:'asc' }}">
@@ -516,10 +579,10 @@
                   <select id="department" name="department" class="form-select">
                     <option value="">All Departments</option>
                     {% for dept in departments %}
-                      <option value="{{ dept.id }}"
-                              {% if department_selected|default:'' == dept.id|stringformat:'s' %}selected{% endif %}>
-                        {{ dept.name }}
-                      </option>
+                    <option value="{{ dept.id }}"
+                      {% if department_selected|default:'' == dept.id|stringformat:'s' %}selected{% endif %}>
+                      {{ dept.name }}
+                    </option>
                     {% endfor %}
                   </select>
                 </div>
@@ -528,7 +591,7 @@
                   <button type="submit" class="btn btn-primary flex-fill">
                     <i class="fas fa-search me-2"></i> Apply
                   </button>
-                  <a href="{% url 'accounts:user_list' %}{% if current_sort or current_dir %}?sort={{ current_sort }}&amp;dir={{ current_dir }}{% endif %}"
+                  <a href="{% url 'accounts:user_list' %}{% if current_sort or current_dir %}?sort={{ current_sort }}&dir={{ current_dir }}{% endif %}"
                      class="btn btn-outline-secondary flex-fill">
                     <i class="fas fa-times me-2"></i> Clear
                   </a>
@@ -538,38 +601,42 @@
 
             <!-- Active Filters Chips -->
             {% if q or status or department_selected or follow_up or metrics %}
-              <div class="active-filters">
-                {% if q %}
-                  <span class="filter-chip">
-                    <i class="fas fa-search"></i> "{{ q }}"
-                    <button type="button" onclick="removeFilter('q')" aria-label="Remove search filter">×</button>
-                  </span>
-                {% endif %}
-                {% if status %}
-                  <span class="filter-chip">
-                    <i class="fas fa-toggle-on"></i> Status: {{ status|title }}
-                    <button type="button" onclick="removeFilter('status')" aria-label="Remove status filter">×</button>
-                  </span>
-                {% endif %}
-                {% if department_selected %}
-                  <span class="filter-chip">
-                    <i class="fas fa-building"></i> Department
-                    <button type="button" onclick="removeFilter('department')" aria-label="Remove department filter">×</button>
-                  </span>
-                {% endif %}
-                {% if follow_up %}
-                  <span class="filter-chip">
-                    <i class="fas fa-flag"></i> Follow-up: {{ follow_up|title }}
-                    <button type="button" onclick="removeFilter('follow_up')" aria-label="Remove follow-up filter">×</button>
-                  </span>
-                {% endif %}
-                {% if metrics %}
-                  <span class="filter-chip">
-                    <i class="fas fa-chart-line"></i> Metrics: {{ metrics|title }}
-                    <button type="button" onclick="removeFilter('metrics')" aria-label="Remove metrics filter">×</button>
-                  </span>
-                {% endif %}
-              </div>
+            <div class="active-filters">
+              {% if q %}
+              <span class="filter-chip">
+                <i class="fas fa-search"></i> "{{ q }}"
+                <button type="button" onclick="removeFilter('q')" aria-label="Remove search filter">×</button>
+              </span>
+              {% endif %}
+
+              {% if status %}
+              <span class="filter-chip">
+                <i class="fas fa-toggle-on"></i> Status: {{ status|title }}
+                <button type="button" onclick="removeFilter('status')" aria-label="Remove status filter">×</button>
+              </span>
+              {% endif %}
+
+              {% if department_selected %}
+              <span class="filter-chip">
+                <i class="fas fa-building"></i> Department
+                <button type="button" onclick="removeFilter('department')" aria-label="Remove department filter">×</button>
+              </span>
+              {% endif %}
+
+              {% if follow_up %}
+              <span class="filter-chip">
+                <i class="fas fa-flag"></i> Follow-up: {{ follow_up|title }}
+                <button type="button" onclick="removeFilter('follow_up')" aria-label="Remove follow-up filter">×</button>
+              </span>
+              {% endif %}
+
+              {% if metrics %}
+              <span class="filter-chip">
+                <i class="fas fa-chart-line"></i> Metrics: {{ metrics|title }}
+                <button type="button" onclick="removeFilter('metrics')" aria-label="Remove metrics filter">×</button>
+              </span>
+              {% endif %}
+            </div>
             {% endif %}
           </form>
         </div>
@@ -608,7 +675,7 @@
                 <option value="activate">Activate</option>
                 <option value="deactivate">Deactivate</option>
                 {% if perms.accounts.delete_customuser %}
-                  <option value="delete">Delete</option>
+                <option value="delete">Delete</option>
                 {% endif %}
                 <option value="assign_department">Assign Department</option>
                 <option value="clear_email">Clear Email</option>
@@ -622,6 +689,7 @@
                 Apply
               </button>
             </div>
+
             <div class="small text-muted mt-2" id="bulkHint">
               Choose an action, then confirm.
             </div>
@@ -632,7 +700,7 @@
             <select id="bulk-department" name="bulk_department_id" class="form-select">
               <option value="">No department</option>
               {% for dept in departments %}
-                <option value="{{ dept.id }}">{{ dept.name }}</option>
+              <option value="{{ dept.id }}">{{ dept.name }}</option>
               {% endfor %}
             </select>
           </div>
@@ -649,25 +717,21 @@
               <th style="width:52px;">
                 <input type="checkbox" id="select-all" class="form-check-input" aria-label="Select all users">
               </th>
-
               <th>
-                <a href="?{% if base_query %}{{ base_query }}&amp;{% endif %}sort=id&amp;dir={% if current_sort == 'id' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
+                <a href="?{% if base_query %}{{ base_query }}&{% endif %}sort=id&dir={% if current_sort == 'id' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
                   ID {% if current_sort == 'id' %}<i class="fas fa-sort-{% if current_dir == 'asc' %}up{% else %}down{% endif %}"></i>{% endif %}
                 </a>
               </th>
-
               <th>
-                <a href="?{% if base_query %}{{ base_query }}&amp;{% endif %}sort=username&amp;dir={% if current_sort == 'username' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
+                <a href="?{% if base_query %}{{ base_query }}&{% endif %}sort=username&dir={% if current_sort == 'username' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
                   Username {% if current_sort == 'username' %}<i class="fas fa-sort-{% if current_dir == 'asc' %}up{% else %}down{% endif %}"></i>{% endif %}
                 </a>
               </th>
-
               <th>
-                <a href="?{% if base_query %}{{ base_query }}&amp;{% endif %}sort=full_name&amp;dir={% if current_sort == 'full_name' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
+                <a href="?{% if base_query %}{{ base_query }}&{% endif %}sort=full_name&dir={% if current_sort == 'full_name' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
                   Full Name {% if current_sort == 'full_name' %}<i class="fas fa-sort-{% if current_dir == 'asc' %}up{% else %}down{% endif %}"></i>{% endif %}
                 </a>
               </th>
-
               <th>Email</th>
               <th>Department</th>
               <th>Position</th>
@@ -680,84 +744,82 @@
 
           <tbody>
             {% for user in users %}
-              <tr>
-                <td>
-                  <input type="checkbox"
-                         form="bulk-action-form"
-                         name="selected"
-                         value="{{ user.id }}"
-                         class="form-check-input row-checkbox"
-                         aria-label="Select user {{ user.username }}">
-                </td>
+            <tr>
+              <td>
+                <input type="checkbox"
+                       form="bulk-action-form"
+                       name="selected"
+                       value="{{ user.id }}"
+                       class="form-check-input row-checkbox"
+                       aria-label="Select user {{ user.username }}">
+              </td>
 
-                <td class="text-muted fw-bold">#{{ user.id }}</td>
+              <td class="text-muted fw-bold">#{{ user.id }}</td>
 
-                <td>
-                  <div class="fw-bold">{{ user.username }}</div>
-                  <div class="small text-muted">{{ user.get_full_name|default:"—" }}</div>
-                </td>
+              <td>
+                <div class="fw-bold">{{ user.username }}</div>
+                <div class="small text-muted">{{ user.get_full_name|default:"—" }}</div>
+              </td>
 
-                <td class="text-muted">{{ user.get_full_name|default:"—" }}</td>
+              <td class="text-muted">{{ user.get_full_name|default:"—" }}</td>
+              <td class="text-muted">{{ user.email|default:"—" }}</td>
+              <td>{{ user.department.name|default:"N/A" }}</td>
+              <td class="text-muted">{{ user.position|default:"—" }}</td>
 
-                <td class="text-muted">{{ user.email|default:"—" }}</td>
+              <td>
+                {% if user.flag_for_follow_up %}
+                <span class="badge bg-warning text-dark"><i class="fas fa-flag me-1"></i>Yes</span>
+                {% else %}
+                <span class="text-muted">—</span>
+                {% endif %}
+              </td>
 
-                <td>{{ user.department.name|default:"N/A" }}</td>
+              <td>
+                {% if user.exclude_from_metrics %}
+                <span class="badge bg-secondary">Excluded</span>
+                {% else %}
+                <span class="badge bg-success"><i class="fas fa-check me-1"></i>Reportable</span>
+                {% endif %}
+              </td>
 
-                <td class="text-muted">{{ user.position|default:"—" }}</td>
+              <td>
+                {% if user.is_active %}
+                <span class="badge bg-success"><i class="fas fa-check me-1"></i>Active</span>
+                {% else %}
+                <span class="badge bg-danger"><i class="fas fa-times me-1"></i>Inactive</span>
+                {% endif %}
+              </td>
 
-                <td>
-                  {% if user.flag_for_follow_up %}
-                    <span class="badge bg-warning text-dark"><i class="fas fa-flag me-1"></i>Yes</span>
-                  {% else %}
-                    <span class="text-muted">—</span>
+              <td class="text-end">
+                <div class="btn-group btn-group-sm row-actions" role="group" aria-label="User row actions">
+                  <a href="{% url 'accounts:user_detail' user.id %}" class="btn btn-info btn-sm" title="View" aria-label="View user">
+                    <i class="fas fa-eye"></i>
+                  </a>
+                  <a href="{% url 'accounts:user_update' user.id %}" class="btn btn-warning btn-sm" title="Edit" aria-label="Edit user">
+                    <i class="fas fa-edit"></i>
+                  </a>
+                  {% if perms.accounts.change_customuser %}
+                  <a href="{% url 'accounts:user_reset_password' user.id %}" class="btn btn-secondary btn-sm" title="Reset Password" aria-label="Reset password">
+                    <i class="fas fa-key"></i>
+                  </a>
                   {% endif %}
-                </td>
+                  <a href="{% url 'accounts:user_delete' user.id %}" class="btn btn-danger btn-sm" title="Delete" aria-label="Delete user">
+                    <i class="fas fa-trash"></i>
+                  </a>
+                </div>
+              </td>
+            </tr>
 
-                <td>
-                  {% if user.exclude_from_metrics %}
-                    <span class="badge bg-secondary">Excluded</span>
-                  {% else %}
-                    <span class="badge bg-success"><i class="fas fa-check me-1"></i>Reportable</span>
-                  {% endif %}
-                </td>
-
-                <td>
-                  {% if user.is_active %}
-                    <span class="badge bg-success"><i class="fas fa-check me-1"></i>Active</span>
-                  {% else %}
-                    <span class="badge bg-danger"><i class="fas fa-times me-1"></i>Inactive</span>
-                  {% endif %}
-                </td>
-
-                <td class="text-end">
-                  <div class="btn-group btn-group-sm row-actions" role="group" aria-label="User row actions">
-                    <a href="{% url 'accounts:user_detail' user.id %}" class="btn btn-info btn-sm" title="View" aria-label="View user">
-                      <i class="fas fa-eye"></i>
-                    </a>
-                    <a href="{% url 'accounts:user_update' user.id %}" class="btn btn-warning btn-sm" title="Edit" aria-label="Edit user">
-                      <i class="fas fa-edit"></i>
-                    </a>
-                    {% if perms.accounts.change_customuser %}
-                      <a href="{% url 'accounts:user_reset_password' user.id %}" class="btn btn-secondary btn-sm" title="Reset Password" aria-label="Reset password">
-                        <i class="fas fa-key"></i>
-                      </a>
-                    {% endif %}
-                    <a href="{% url 'accounts:user_delete' user.id %}" class="btn btn-danger btn-sm" title="Delete" aria-label="Delete user">
-                      <i class="fas fa-trash"></i>
-                    </a>
-                  </div>
-                </td>
-              </tr>
             {% empty %}
-              <tr>
-                <td colspan="11" class="text-center py-5">
-                  <i class="fas fa-users-slash fa-3x text-muted mb-3"></i>
-                  <h5 class="text-muted mb-1">No Users Found</h5>
-                  <p class="text-muted mb-0">
-                    Try adjusting your filters or <a href="{% url 'accounts:user_list' %}">reset the view</a>.
-                  </p>
-                </td>
-              </tr>
+            <tr>
+              <td colspan="11" class="text-center py-5">
+                <i class="fas fa-users-slash fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted mb-1">No Users Found</h5>
+                <p class="text-muted mb-0">
+                  Try adjusting your filters or <a href="{% url 'accounts:user_list' %}">reset the view</a>.
+                </p>
+              </td>
+            </tr>
             {% endfor %}
           </tbody>
         </table>
@@ -772,35 +834,35 @@
       </div>
 
       {% if page_obj %}
-        <nav aria-label="User pagination">
-          <ul class="pagination mb-0">
-            {% if page_obj.has_previous %}
-              <li class="page-item">
-                <a class="page-link"
-                   href="?page={{ page_obj.previous_page_number }}&amp;q={{ q }}&amp;status={{ status }}&amp;department={{ department_selected }}&amp;follow_up={{ follow_up }}&amp;metrics={{ metrics }}&amp;page_size={{ page_size }}">
-                  <i class="fas fa-chevron-left"></i>
-                </a>
-              </li>
-            {% else %}
-              <li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-left"></i></span></li>
-            {% endif %}
+      <nav aria-label="User pagination">
+        <ul class="pagination mb-0">
+          {% if page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link"
+               href="?page={{ page_obj.previous_page_number }}&q={{ q }}&status={{ status }}&department={{ department_selected }}&follow_up={{ follow_up }}&metrics={{ metrics }}&page_size={{ page_size }}">
+              <i class="fas fa-chevron-left"></i>
+            </a>
+          </li>
+          {% else %}
+          <li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-left"></i></span></li>
+          {% endif %}
 
-            <li class="page-item disabled">
-              <span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
-            </li>
+          <li class="page-item disabled">
+            <span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+          </li>
 
-            {% if page_obj.has_next %}
-              <li class="page-item">
-                <a class="page-link"
-                   href="?page={{ page_obj.next_page_number }}&amp;q={{ q }}&amp;status={{ status }}&amp;department={{ department_selected }}&amp;follow_up={{ follow_up }}&amp;metrics={{ metrics }}&amp;page_size={{ page_size }}">
-                  <i class="fas fa-chevron-right"></i>
-                </a>
-              </li>
-            {% else %}
-              <li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-right"></i></span></li>
-            {% endif %}
-          </ul>
-        </nav>
+          {% if page_obj.has_next %}
+          <li class="page-item">
+            <a class="page-link"
+               href="?page={{ page_obj.next_page_number }}&q={{ q }}&status={{ status }}&department={{ department_selected }}&follow_up={{ follow_up }}&metrics={{ metrics }}&page_size={{ page_size }}">
+              <i class="fas fa-chevron-right"></i>
+            </a>
+          </li>
+          {% else %}
+          <li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-right"></i></span></li>
+          {% endif %}
+        </ul>
+      </nav>
       {% endif %}
     </div>
 
@@ -818,15 +880,16 @@
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
+
       <div class="modal-body">
         You are about to apply a bulk action to
         <strong><span id="modalSelectionCount">0</span></strong> users.
         <div class="mt-2 small text-muted" id="modalActionHint"></div>
-
         <div class="alert alert-warning mt-3 mb-0" role="alert">
           <strong>Warning:</strong> Some actions cannot be undone.
         </div>
       </div>
+
       <div class="modal-footer">
         <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
         <button class="btn btn-danger" id="confirmBulkBtn">Confirm & Apply</button>
@@ -839,12 +902,55 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+
+  /* ===========================================================
+     ✅ Filters Collapse/Expand (ALL sizes) + Remember state
+     =========================================================== */
+  const filtersCollapseEl = document.getElementById('filtersCollapse');
+  const toggleIcon = document.getElementById('filtersToggleIcon');
+  const toggleText = document.getElementById('filtersToggleText');
+
+  function setToggleUI(isShown){
+    if (!toggleIcon || !toggleText) return;
+    toggleIcon.classList.toggle('fa-chevron-up', isShown);
+    toggleIcon.classList.toggle('fa-chevron-down', !isShown);
+    toggleText.textContent = isShown ? 'Collapse' : 'Expand';
+  }
+
+  if (filtersCollapseEl && window.bootstrap && bootstrap.Collapse) {
+    const saved = localStorage.getItem('userListFiltersCollapsed'); // "1" = collapsed
+    const shouldCollapse = (saved === "1");
+
+    const bsCollapse = bootstrap.Collapse.getOrCreateInstance(filtersCollapseEl, { toggle: false });
+
+    if (shouldCollapse) {
+      bsCollapse.hide();
+      setToggleUI(false);
+    } else {
+      bsCollapse.show();
+      setToggleUI(true);
+    }
+
+    filtersCollapseEl.addEventListener('shown.bs.collapse', function () {
+      localStorage.setItem('userListFiltersCollapsed', "0");
+      setToggleUI(true);
+    });
+
+    filtersCollapseEl.addEventListener('hidden.bs.collapse', function () {
+      localStorage.setItem('userListFiltersCollapsed', "1");
+      setToggleUI(false);
+    });
+  }
+
+  /* ===========================================================
+     Existing bulk actions + KPI filters logic (your original)
+     =========================================================== */
+
   const selectAll = document.getElementById('select-all');
   const checkboxes = document.querySelectorAll('.row-checkbox');
   const countEl = document.getElementById('selectionCount');
   const applyBtn = document.getElementById('applyBulk');
   const bulkAction = document.getElementById('bulk-action');
-
   const modalCount = document.getElementById('modalSelectionCount');
   const modalHint = document.getElementById('modalActionHint');
   const confirmBtn = document.getElementById('confirmBulkBtn');
@@ -857,10 +963,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const count = selectedCount();
     countEl.textContent = `${count} selected`;
     countEl.classList.toggle('active', count > 0);
-
     // Enable apply only if there are selections AND an action chosen
     applyBtn.disabled = !(count > 0 && bulkAction.value);
-
     // Update modal count if opened
     if (modalCount) modalCount.textContent = count;
   }
@@ -888,10 +992,8 @@ document.addEventListener('DOMContentLoaded', function() {
   modalEl?.addEventListener('show.bs.modal', () => {
     const count = selectedCount();
     modalCount.textContent = count;
-
     const action = bulkAction.value || "(no action selected)";
     const actionText = bulkAction.options[bulkAction.selectedIndex]?.text || action;
-
     let hint = `Action: <strong>${actionText}</strong>`;
     if (action === 'delete') {
       hint += `<div class="mt-2 text-danger fw-bold"><i class="fas fa-trash me-1"></i>Delete is permanent.</div>`;
@@ -907,25 +1009,20 @@ document.addEventListener('DOMContentLoaded', function() {
       try {
         const filters = JSON.parse(params);
         const url = new URLSearchParams(window.location.search);
-
         // Clear filters
         ['status', 'metrics', 'department', 'follow_up', 'q', 'page'].forEach(k => url.delete(k));
-
         // Apply filters
         Object.entries(filters).forEach(([k,v]) => url.set(k, v));
-
         // Keep sort/dir if present
         const sort = new URLSearchParams(window.location.search).get('sort');
         const dir = new URLSearchParams(window.location.search).get('dir');
         if (sort) url.set('sort', sort);
         if (dir) url.set('dir', dir);
-
         window.location.href = '?' + url.toString();
       } catch(e) {
         console.error(e);
       }
     };
-
     card.addEventListener('click', go);
     card.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
