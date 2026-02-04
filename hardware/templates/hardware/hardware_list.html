@@ -7,19 +7,21 @@
   <div class="container-fluid">
 
     <!-- Page Header -->
-    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
       <div>
-        <h2 class="mb-0">Hardware Inventory</h2>
-        <div class="text-muted small">
+        <h1 class="h4 fw-bold mb-1">Hardware Inventory</h1>
+        <p class="text-muted small mb-0">
           Track physical and virtual infrastructure assigned to users, systems, and departments.
-        </div>
+        </p>
       </div>
+
       <div class="d-flex gap-2">
         {# Optional: add create button only if you have the URL name #}
         {# <a href="{% url 'hardware:hardware_create' %}" class="btn btn-sm btn-primary">
             <i class="fa-solid fa-plus me-1"></i> New Asset
            </a> #}
-        <a href="{% url 'hardware:hardware_list' %}" class="btn btn-sm btn-outline-secondary" title="Reset filters">
+
+        <a href="{% url 'hardware:hardware_list' %}" class="btn btn-sm btn-outline-secondary" title="Reset filters" aria-label="Reset filters">
           <i class="fa-solid fa-rotate-left me-1"></i> Reset
         </a>
       </div>
@@ -28,118 +30,170 @@
     <!-- Summary Cards -->
     <div class="row row-cols-1 row-cols-md-4 g-3 mb-4">
       <div class="col">
-        <div class="card border-0 shadow-sm bg-primary text-white h-100 hover-shadow">
-          <div class="card-body">
-            <div class="text-uppercase small text-white-50 fw-semibold">Total Assets</div>
-            <div class="display-6 fw-bold mb-0">{{ total_assets }}</div>
-            <div class="small text-white-50 mt-2">All hardware records</div>
+        <div class="card border-0 shadow-sm bg-primary text-white h-100 hover-lift">
+          <div class="card-body d-flex align-items-center justify-content-between">
+            <div>
+              <div class="text-uppercase small text-white-50 fw-semibold">Total Assets</div>
+              <div class="display-6 fw-bold mb-0">{{ total_assets }}</div>
+              <div class="small text-white-50 mt-1">All hardware records</div>
+            </div>
+            <i class="fa-solid fa-boxes-stacked fa-2x text-white-50"></i>
           </div>
         </div>
       </div>
 
       <div class="col">
-        <div class="card border-0 shadow-sm bg-success text-white h-100 hover-shadow">
-          <div class="card-body">
-            <div class="text-uppercase small text-white-50 fw-semibold">In Service</div>
-            <div class="display-6 fw-bold mb-0">{{ active_assets }}</div>
-            <div class="small text-white-50 mt-2">Currently active</div>
+        <div class="card border-0 shadow-sm bg-success text-white h-100 hover-lift">
+          <div class="card-body d-flex align-items-center justify-content-between">
+            <div>
+              <div class="text-uppercase small text-white-50 fw-semibold">In Service</div>
+              <div class="display-6 fw-bold mb-0">{{ active_assets }}</div>
+              <div class="small text-white-50 mt-1">Currently active</div>
+            </div>
+            <i class="fa-solid fa-circle-check fa-2x text-white-50"></i>
           </div>
         </div>
       </div>
 
       <div class="col">
-        <div class="card border-0 shadow-sm bg-secondary text-white h-100 hover-shadow">
-          <div class="card-body">
-            <div class="text-uppercase small text-white-50 fw-semibold">In Storage</div>
-            <div class="display-6 fw-bold mb-0">{{ in_storage_assets }}</div>
-            <div class="small text-white-50 mt-2">Not assigned / stored</div>
+        <div class="card border-0 shadow-sm bg-secondary text-white h-100 hover-lift">
+          <div class="card-body d-flex align-items-center justify-content-between">
+            <div>
+              <div class="text-uppercase small text-white-50 fw-semibold">In Storage</div>
+              <div class="display-6 fw-bold mb-0">{{ in_storage_assets }}</div>
+              <div class="small text-white-50 mt-1">Not assigned / stored</div>
+            </div>
+            <i class="fa-solid fa-warehouse fa-2x text-white-50"></i>
           </div>
         </div>
       </div>
 
       <div class="col">
-        <div class="card border-0 shadow-sm bg-dark text-white h-100 hover-shadow">
-          <div class="card-body">
-            <div class="text-uppercase small text-white-50 fw-semibold">Retired / Disposed</div>
-            <div class="display-6 fw-bold mb-0">{{ retired_assets }}</div>
-            <div class="small text-white-50 mt-2">End-of-life assets</div>
+        <div class="card border-0 shadow-sm bg-dark text-white h-100 hover-lift">
+          <div class="card-body d-flex align-items-center justify-content-between">
+            <div>
+              <div class="text-uppercase small text-white-50 fw-semibold">Retired / Disposed</div>
+              <div class="display-6 fw-bold mb-0">{{ retired_assets }}</div>
+              <div class="small text-white-50 mt-1">End-of-life assets</div>
+            </div>
+            <i class="fa-solid fa-trash-can fa-2x text-white-50"></i>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Filters (Sticky) -->
-    <div class="card shadow-sm mb-3 sticky-top" style="top: .75rem; z-index: 10;">
+    <div class="card shadow-sm mb-3 sticky-top filter-sticky">
       <div class="card-body">
-        <form method="get" class="row g-2 align-items-end">
 
-          <div class="col-12 col-md-4 col-lg-4">
-            <label for="id_q" class="form-label mb-1 small text-muted">Search</label>
-            <div class="input-group input-group-sm">
-              <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
-              <input id="id_q"
-                     type="text"
-                     name="q"
-                     value="{{ search_query }}"
-                     class="form-control"
-                     placeholder="Name, tag, serial, location, IP, OS, OS Version">
-            </div>
+        <!-- Filters Header (mobile friendly) -->
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="fw-semibold">
+            <i class="fa-solid fa-sliders me-2 text-muted"></i> Filters
           </div>
 
-          <div class="col-6 col-md-3 col-lg-2">
-            <label for="id_hardware_type" class="form-label mb-1 small text-muted">Type</label>
-            <select id="id_hardware_type" name="hardware_type" class="form-select form-select-sm">
-              <option value="">All types</option>
-              {% for value,label in hardware_type_choices %}
-                <option value="{{ value }}" {% if value == filter_hardware_type %}selected{% endif %}>{{ label }}</option>
-              {% endfor %}
-            </select>
-          </div>
-
-          <div class="col-6 col-md-3 col-lg-2">
-            <label for="id_operating_system" class="form-label mb-1 small text-muted">Operating System</label>
-            <select id="id_operating_system" name="operating_system" class="form-select form-select-sm">
-              <option value="">All operating systems</option>
-              {% for os in operating_system_choices %}
-                <option value="{{ os }}" {% if os == filter_operating_system %}selected{% endif %}>{{ os|default:'(None)' }}</option>
-              {% endfor %}
-            </select>
-          </div>
-
-          <div class="col-6 col-md-3 col-lg-2">
-            <label for="id_os_version" class="form-label mb-1 small text-muted">OS Version</label>
-            <select id="id_os_version" name="os_version" class="form-select form-select-sm">
-              <option value="">All versions</option>
-              {% for ver in os_version_choices %}
-                <option value="{{ ver }}" {% if ver == filter_os_version %}selected{% endif %}>{{ ver|default:'(None)' }}</option>
-              {% endfor %}
-            </select>
-          </div>
-
-          <div class="col-6 col-md-3 col-lg-2">
-            <label for="id_status" class="form-label mb-1 small text-muted">Status</label>
-            <select id="id_status" name="status" class="form-select form-select-sm">
-              <option value="">All statuses</option>
-              {% for value,label in status_choices %}
-                <option value="{{ value }}" {% if value == filter_status %}selected{% endif %}>{{ label }}</option>
-              {% endfor %}
-            </select>
-          </div>
-
-          <div class="col-12 col-md-2 col-lg-2 d-flex gap-2">
-            <button type="submit" class="btn btn-sm btn-primary flex-grow-1">
-              <i class="fa-solid fa-filter me-1"></i> Apply
+          <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-secondary d-md-none" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#filtersCollapse"
+                    aria-expanded="false" aria-controls="filtersCollapse">
+              <i class="fa-solid fa-chevron-down me-1"></i> Toggle
             </button>
-            <a href="{% url 'hardware:hardware_list' %}" class="btn btn-sm btn-outline-secondary" title="Clear filters">
+
+            <a href="{% url 'hardware:hardware_list' %}" class="btn btn-sm btn-outline-secondary" title="Clear filters" aria-label="Clear filters">
               <i class="fa-solid fa-xmark"></i>
             </a>
           </div>
+        </div>
 
-          <div class="col-12 col-lg-2 text-muted small">
-            Showing <span class="fw-semibold">{{ assets|length }}</span> asset{% if assets|length != 1 %}s{% endif %}
+        <div class="collapse d-md-block" id="filtersCollapse">
+          <form method="get" class="row g-2 align-items-end">
+
+            <div class="col-12 col-md-4 col-lg-4">
+              <label for="id_q" class="form-label mb-1 small text-muted">Search</label>
+              <div class="input-group input-group-sm">
+                <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
+                <input id="id_q"
+                       type="text"
+                       name="q"
+                       value="{{ search_query }}"
+                       class="form-control"
+                       placeholder="Name, tag, serial, location, IP, OS, OS Version"
+                       autocomplete="off">
+              </div>
+            </div>
+
+            <div class="col-6 col-md-3 col-lg-2">
+              <label for="id_hardware_type" class="form-label mb-1 small text-muted">Type</label>
+              <select id="id_hardware_type" name="hardware_type" class="form-select form-select-sm">
+                <option value="">All types</option>
+                {% for value,label in hardware_type_choices %}
+                  <option value="{{ value }}" {% if value == filter_hardware_type %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-6 col-md-3 col-lg-2">
+              <label for="id_operating_system" class="form-label mb-1 small text-muted">Operating System</label>
+              <select id="id_operating_system" name="operating_system" class="form-select form-select-sm">
+                <option value="">All operating systems</option>
+                {% for os in operating_system_choices %}
+                  <option value="{{ os }}" {% if os == filter_operating_system %}selected{% endif %}>
+                    {{ os|default:'(None)' }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-6 col-md-3 col-lg-2">
+              <label for="id_os_version" class="form-label mb-1 small text-muted">OS Version</label>
+              <select id="id_os_version" name="os_version" class="form-select form-select-sm">
+                <option value="">All versions</option>
+                {% for ver in os_version_choices %}
+                  <option value="{{ ver }}" {% if ver == filter_os_version %}selected{% endif %}>
+                    {{ ver|default:'(None)' }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-6 col-md-3 col-lg-2">
+              <label for="id_status" class="form-label mb-1 small text-muted">Status</label>
+              <select id="id_status" name="status" class="form-select form-select-sm">
+                <option value="">All statuses</option>
+                {% for value,label in status_choices %}
+                  <option value="{{ value }}" {% if value == filter_status %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-12 col-md-2 col-lg-2 d-flex gap-2">
+              <button type="submit" class="btn btn-sm btn-primary flex-grow-1">
+                <i class="fa-solid fa-filter me-1"></i> Apply
+              </button>
+              <a href="{% url 'hardware:hardware_list' %}" class="btn btn-sm btn-outline-secondary" title="Clear filters" aria-label="Clear filters">
+                <i class="fa-solid fa-xmark"></i>
+              </a>
+            </div>
+
+            <div class="col-12 col-lg-2 text-muted small">
+              Showing <span class="fw-semibold">{{ assets|length }}</span> asset{% if assets|length != 1 %}s{% endif %}
+            </div>
+
+          </form>
+
+          <!-- Active Filters Chips -->
+          <div class="mt-3 d-flex flex-wrap gap-2">
+            {% for key, value in request.GET.items %}
+              {% if value and key != 'page' and key != 'sort' and key != 'order' %}
+                <span class="badge rounded-pill bg-secondary-subtle text-secondary border filter-chip">
+                  <i class="fa-solid fa-tag me-1"></i>{{ key|capfirst }}: {{ value }}
+                </span>
+              {% endif %}
+            {% empty %}
+              {# nothing #}
+            {% endfor %}
           </div>
-
-        </form>
+        </div>
       </div>
     </div>
 
@@ -150,96 +204,106 @@
           <i class="fa-solid fa-desktop me-2 text-muted"></i> Assets
         </div>
         <div class="text-muted small">
-          Tip: Use filters to narrow results.
+          Tip: Use filters to narrow results. Click headers to sort.
         </div>
       </div>
 
       <div class="card-body p-0">
         <div class="table-responsive">
-          <table class="table table-hover table-striped align-middle mb-0">
-            <thead class="table-light">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light table-sticky-head">
               <tr>
                 <th scope="col">
-                  <a href="?{% for key, value in request.GET.items %}{% if key != 'sort' and key != 'order' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}sort=name&order={% if request.GET.sort == 'name' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">
+                  <a class="sort-link" href="?{% for key, value in request.GET.items %}{% if key != 'sort' and key != 'order' %}{{ key }}={{ value|urlencode }}&amp;{% endif %}{% endfor %}sort=name&amp;order={% if request.GET.sort == 'name' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">
                     Asset
                     {% if request.GET.sort == 'name' %}
-                      <i class="fa-solid fa-caret-{% if request.GET.order == 'desc' %}down{% else %}up{% endif %}"></i>
+                      <i class="fa-solid fa-caret-{% if request.GET.order == 'desc' %}down{% else %}up{% endif %} ms-1"></i>
                     {% endif %}
                   </a>
                 </th>
-                <th scope="col">
-                  <a href="?{% for key, value in request.GET.items %}{% if key != 'sort' and key != 'order' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}sort=serial_number&order={% if request.GET.sort == 'serial_number' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">
-                    Serial Number
+
+                <th scope="col" class="text-nowrap">
+                  <a class="sort-link" href="?{% for key, value in request.GET.items %}{% if key != 'sort' and key != 'order' %}{{ key }}={{ value|urlencode }}&amp;{% endif %}{% endfor %}sort=serial_number&amp;order={% if request.GET.sort == 'serial_number' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">
+                    Serial
                     {% if request.GET.sort == 'serial_number' %}
-                      <i class="fa-solid fa-caret-{% if request.GET.order == 'desc' %}down{% else %}up{% endif %}"></i>
+                      <i class="fa-solid fa-caret-{% if request.GET.order == 'desc' %}down{% else %}up{% endif %} ms-1"></i>
                     {% endif %}
                   </a>
                 </th>
-                <th scope="col">
-                  <a href="?{% for key, value in request.GET.items %}{% if key != 'sort' and key != 'order' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}sort=operating_system&order={% if request.GET.sort == 'operating_system' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">
-                    Operating System
+
+                <th scope="col" class="text-nowrap">
+                  <a class="sort-link" href="?{% for key, value in request.GET.items %}{% if key != 'sort' and key != 'order' %}{{ key }}={{ value|urlencode }}&amp;{% endif %}{% endfor %}sort=operating_system&amp;order={% if request.GET.sort == 'operating_system' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">
+                    OS
                     {% if request.GET.sort == 'operating_system' %}
-                      <i class="fa-solid fa-caret-{% if request.GET.order == 'desc' %}down{% else %}up{% endif %}"></i>
+                      <i class="fa-solid fa-caret-{% if request.GET.order == 'desc' %}down{% else %}up{% endif %} ms-1"></i>
                     {% endif %}
                   </a>
                 </th>
-                <th scope="col">
-                  <a href="?{% for key, value in request.GET.items %}{% if key != 'sort' and key != 'order' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}sort=operating_system_version&order={% if request.GET.sort == 'operating_system_version' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">
+
+                <th scope="col" class="text-nowrap">
+                  <a class="sort-link" href="?{% for key, value in request.GET.items %}{% if key != 'sort' and key != 'order' %}{{ key }}={{ value|urlencode }}&amp;{% endif %}{% endfor %}sort=operating_system_version&amp;order={% if request.GET.sort == 'operating_system_version' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">
                     OS Version
                     {% if request.GET.sort == 'operating_system_version' %}
-                      <i class="fa-solid fa-caret-{% if request.GET.order == 'desc' %}down{% else %}up{% endif %}"></i>
+                      <i class="fa-solid fa-caret-{% if request.GET.order == 'desc' %}down{% else %}up{% endif %} ms-1"></i>
                     {% endif %}
                   </a>
                 </th>
-                <th scope="col">
-                  <a href="?{% for key, value in request.GET.items %}{% if key != 'sort' and key != 'order' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}sort=ipv4_address&order={% if request.GET.sort == 'ipv4_address' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">
-                    IPv4 Address
-                    {% if request.GET.sort == 'ipv4_address' %}
-                      <i class="fa-solid fa-caret-{% if request.GET.order == 'desc' %}down{% else %}up{% endif %}"></i>
-                    {% endif %}
-                  </a>
-                </th>
+
                 <th scope="col" class="text-nowrap">
-                  <a href="?{% for key, value in request.GET.items %}{% if key != 'sort' and key != 'order' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}sort=hardware_type&order={% if request.GET.sort == 'hardware_type' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">
+                  <a class="sort-link" href="?{% for key, value in request.GET.items %}{% if key != 'sort' and key != 'order' %}{{ key }}={{ value|urlencode }}&amp;{% endif %}{% endfor %}sort=ipv4_address&amp;order={% if request.GET.sort == 'ipv4_address' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">
+                    IPv4
+                    {% if request.GET.sort == 'ipv4_address' %}
+                      <i class="fa-solid fa-caret-{% if request.GET.order == 'desc' %}down{% else %}up{% endif %} ms-1"></i>
+                    {% endif %}
+                  </a>
+                </th>
+
+                <th scope="col" class="text-nowrap">
+                  <a class="sort-link" href="?{% for key, value in request.GET.items %}{% if key != 'sort' and key != 'order' %}{{ key }}={{ value|urlencode }}&amp;{% endif %}{% endfor %}sort=hardware_type&amp;order={% if request.GET.sort == 'hardware_type' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">
                     Type
                     {% if request.GET.sort == 'hardware_type' %}
-                      <i class="fa-solid fa-caret-{% if request.GET.order == 'desc' %}down{% else %}up{% endif %}"></i>
+                      <i class="fa-solid fa-caret-{% if request.GET.order == 'desc' %}down{% else %}up{% endif %} ms-1"></i>
                     {% endif %}
                   </a>
                 </th>
+
                 <th scope="col" class="text-nowrap">
-                  <a href="?{% for key, value in request.GET.items %}{% if key != 'sort' and key != 'order' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}sort=status&order={% if request.GET.sort == 'status' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">
+                  <a class="sort-link" href="?{% for key, value in request.GET.items %}{% if key != 'sort' and key != 'order' %}{{ key }}={{ value|urlencode }}&amp;{% endif %}{% endfor %}sort=status&amp;order={% if request.GET.sort == 'status' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">
                     Status
                     {% if request.GET.sort == 'status' %}
-                      <i class="fa-solid fa-caret-{% if request.GET.order == 'desc' %}down{% else %}up{% endif %}"></i>
+                      <i class="fa-solid fa-caret-{% if request.GET.order == 'desc' %}down{% else %}up{% endif %} ms-1"></i>
                     {% endif %}
                   </a>
                 </th>
+
                 <th scope="col">
-                  <a href="?{% for key, value in request.GET.items %}{% if key != 'sort' and key != 'order' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}sort=department__name&order={% if request.GET.sort == 'department__name' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">
+                  <a class="sort-link" href="?{% for key, value in request.GET.items %}{% if key != 'sort' and key != 'order' %}{{ key }}={{ value|urlencode }}&amp;{% endif %}{% endfor %}sort=department__name&amp;order={% if request.GET.sort == 'department__name' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">
                     Department
                     {% if request.GET.sort == 'department__name' %}
-                      <i class="fa-solid fa-caret-{% if request.GET.order == 'desc' %}down{% else %}up{% endif %}"></i>
+                      <i class="fa-solid fa-caret-{% if request.GET.order == 'desc' %}down{% else %}up{% endif %} ms-1"></i>
                     {% endif %}
                   </a>
                 </th>
-                <th scope="col">
-                  <a href="?{% for key, value in request.GET.items %}{% if key != 'sort' and key != 'order' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}sort=primary_user__full_name&order={% if request.GET.sort == 'primary_user__full_name' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">
+
+                <th scope="col" class="text-nowrap">
+                  <a class="sort-link" href="?{% for key, value in request.GET.items %}{% if key != 'sort' and key != 'order' %}{{ key }}={{ value|urlencode }}&amp;{% endif %}{% endfor %}sort=primary_user__full_name&amp;order={% if request.GET.sort == 'primary_user__full_name' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">
                     Primary User
                     {% if request.GET.sort == 'primary_user__full_name' %}
-                      <i class="fa-solid fa-caret-{% if request.GET.order == 'desc' %}down{% else %}up{% endif %}"></i>
+                      <i class="fa-solid fa-caret-{% if request.GET.order == 'desc' %}down{% else %}up{% endif %} ms-1"></i>
                     {% endif %}
                   </a>
                 </th>
+
                 <th scope="col" class="text-center text-nowrap">
-                  <a href="?{% for key, value in request.GET.items %}{% if key != 'sort' and key != 'order' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}sort=user_count&order={% if request.GET.sort == 'user_count' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">
-                    Assigned Users
+                  <a class="sort-link" href="?{% for key, value in request.GET.items %}{% if key != 'sort' and key != 'order' %}{{ key }}={{ value|urlencode }}&amp;{% endif %}{% endfor %}sort=user_count&amp;order={% if request.GET.sort == 'user_count' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">
+                    Users
                     {% if request.GET.sort == 'user_count' %}
-                      <i class="fa-solid fa-caret-{% if request.GET.order == 'desc' %}down{% else %}up{% endif %}"></i>
+                      <i class="fa-solid fa-caret-{% if request.GET.order == 'desc' %}down{% else %}up{% endif %} ms-1"></i>
                     {% endif %}
                   </a>
                 </th>
-                <th scope="col">Related Systems</th>
+
+                <th scope="col" class="text-nowrap">Related Systems</th>
                 <th scope="col" class="text-end text-nowrap">Actions</th>
               </tr>
             </thead>
@@ -247,120 +311,150 @@
             <tbody>
               {% if assets %}
                 {% for asset in assets %}
-                <tr>
-                  <td>
-                    <div class="fw-semibold">
-                      <a href="{% url 'hardware:hardware_detail' asset.pk %}" class="text-decoration-none">
-                        {{ asset.name }}
-                      </a>
-                    </div>
-                    <div class="text-muted small">Tag: {{ asset.asset_tag }}</div>
-                  </td>
-                  <td>
-                    {% if asset.serial_number %}
-                      {{ asset.serial_number }}
-                    {% else %}
-                      <span class="text-muted">—</span>
-                    {% endif %}
-                  </td>
-                  <td>
-                    {% if asset.operating_system %}
-                      {{ asset.operating_system }}
-                    {% else %}
-                      <span class="text-muted">—</span>
-                    {% endif %}
-                  </td>
-                  <td>
-                    {% if asset.operating_system_version %}
-                      {{ asset.operating_system_version }}
-                    {% else %}
-                      <span class="text-muted">—</span>
-                    {% endif %}
-                  </td>
-                  <td>
-                    {% if asset.ipv4_address %}
-                      {{ asset.ipv4_address }}
-                    {% elif asset.ip_address %}
-                      {{ asset.ip_address }}
-                    {% else %}
-                      <span class="text-muted">—</span>
-                    {% endif %}
-                  </td>
-                  <td class="text-nowrap">{{ asset.get_hardware_type_display }}</td>
-                  <td class="text-nowrap">
-                    <span class="badge bg-{{ asset.lifecycle_state_color }}">{{ asset.status }}</span>
-                    {% if asset.is_virtual %}
-                      <span class="badge bg-info text-dark ms-1">Virtual</span>
-                    {% endif %}
-                    {% if asset.is_enabled is not None %}
-                      {% if asset.is_enabled %}
-                        <span class="badge bg-success-subtle text-success border border-success-subtle ms-1">Enabled</span>
+                  <tr class="asset-row">
+                    <td>
+                      <div class="d-flex align-items-start gap-2">
+                        <i class="fa-solid fa-desktop text-muted mt-1"></i>
+                        <div class="min-w-0">
+                          <div class="fw-semibold text-truncate">
+                            <a href="{% url 'hardware:hardware_detail' asset.pk %}" class="text-decoration-none">
+                              {{ asset.name }}
+                            </a>
+                          </div>
+                          <div class="text-muted small">
+                            Tag: <span class="fw-medium">{{ asset.asset_tag|default:"—" }}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+
+                    <td class="text-muted small">
+                      {{ asset.serial_number|default:"—" }}
+                    </td>
+
+                    <td class="text-muted small">
+                      {{ asset.operating_system|default:"—" }}
+                    </td>
+
+                    <td class="text-muted small">
+                      {{ asset.operating_system_version|default:"—" }}
+                    </td>
+
+                    <td class="text-muted small">
+                      {% if asset.ipv4_address %}
+                        {{ asset.ipv4_address }}
+                      {% elif asset.ip_address %}
+                        {{ asset.ip_address }}
                       {% else %}
-                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle ms-1">Disabled</span>
+                        —
                       {% endif %}
-                    {% endif %}
-                  </td>
-                  <td>
-                    {% if asset.department %}
-                      <span class="fw-semibold">{{ asset.department.name }}</span>
-                    {% else %}
-                      <span class="text-muted">Unassigned</span>
-                    {% endif %}
-                  </td>
-                  <td>
-                    {% if asset.primary_user %}
-                      <div class="fw-semibold">{{ asset.primary_user.full_name }}</div>
-                      <div class="text-muted small">
-                        {{ asset.primary_user.department.name|default:"-" }}
-                      </div>
-                    {% else %}
-                      <span class="text-muted">Unassigned</span>
-                    {% endif %}
-                  </td>
-                  <td class="text-center">
-                    {% if asset.user_count %}
-                      <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
-                        {{ asset.user_count }}
+                    </td>
+
+                    <td class="text-nowrap">
+                      <span class="badge bg-light text-dark border">
+                        {{ asset.get_hardware_type_display }}
                       </span>
-                    {% else %}
-                      <span class="text-muted">—</span>
-                    {% endif %}
-                  </td>
-                  <td>
-                    {% if asset.related_systems.all %}
-                      <div class="d-flex flex-wrap gap-1">
-                        {% for system in asset.related_systems.all %}
-                          <span class="badge bg-info-subtle text-info border border-info-subtle">
-                            {{ system.name }}
+                    </td>
+
+                    <td class="text-nowrap">
+                      <span class="badge bg-{{ asset.lifecycle_state_color }}">
+                        <i class="fa-solid fa-circle-dot me-1"></i>{{ asset.status }}
+                      </span>
+
+                      {% if asset.is_virtual %}
+                        <span class="badge bg-info-subtle text-info border border-info-subtle ms-1">
+                          <i class="fa-solid fa-cloud me-1"></i>Virtual
+                        </span>
+                      {% endif %}
+
+                      {% if asset.is_enabled is not None %}
+                        {% if asset.is_enabled %}
+                          <span class="badge bg-success-subtle text-success border border-success-subtle ms-1">
+                            <i class="fa-solid fa-toggle-on me-1"></i>Enabled
                           </span>
-                        {% empty %}
-                          <span class="text-muted">—</span>
-                        {% endfor %}
+                        {% else %}
+                          <span class="badge bg-danger-subtle text-danger border border-danger-subtle ms-1">
+                            <i class="fa-solid fa-toggle-off me-1"></i>Disabled
+                          </span>
+                        {% endif %}
+                      {% endif %}
+                    </td>
+
+                    <td>
+                      {% if asset.department %}
+                        <span class="fw-semibold">{{ asset.department.name }}</span>
+                      {% else %}
+                        <span class="text-muted">Unassigned</span>
+                      {% endif %}
+                    </td>
+
+                    <td>
+                      {% if asset.primary_user %}
+                        <div class="fw-semibold">{{ asset.primary_user.full_name }}</div>
+                        <div class="text-muted small">
+                          {{ asset.primary_user.department.name|default:"-" }}
+                        </div>
+                      {% else %}
+                        <span class="text-muted">Unassigned</span>
+                      {% endif %}
+                    </td>
+
+                    <td class="text-center">
+                      {% if asset.user_count %}
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+                          {{ asset.user_count }}
+                        </span>
+                      {% else %}
+                        <span class="text-muted">—</span>
+                      {% endif %}
+                    </td>
+
+                    <td>
+                      {% if asset.related_systems.all %}
+                        <div class="d-flex flex-wrap gap-1">
+                          {% for system in asset.related_systems.all %}
+                            <span class="badge bg-info-subtle text-info border border-info-subtle">
+                              {{ system.name }}
+                            </span>
+                          {% empty %}
+                            <span class="text-muted">—</span>
+                          {% endfor %}
+                        </div>
+                      {% else %}
+                        <span class="text-muted">—</span>
+                      {% endif %}
+                    </td>
+
+                    <td class="text-end">
+                      <div class="action-buttons d-inline-flex gap-1">
+                        <a href="{% url 'hardware:hardware_detail' asset.pk %}"
+                           class="btn btn-sm btn-outline-primary"
+                           title="View" aria-label="View">
+                          <i class="fa-solid fa-eye"></i>
+                        </a>
+                        <a href="{% url 'hardware:hardware_update' asset.pk %}"
+                           class="btn btn-sm btn-outline-secondary"
+                           title="Edit" aria-label="Edit">
+                          <i class="fa-solid fa-pen"></i>
+                        </a>
                       </div>
-                    {% else %}
-                      <span class="text-muted">—</span>
-                    {% endif %}
-                  </td>
-                  <td class="text-end">
-                    <div class="btn-group btn-group-sm">
-                      <a href="{% url 'hardware:hardware_detail' asset.pk %}" class="btn btn-outline-primary" title="View">
-                        <i class="fa-solid fa-eye"></i>
-                      </a>
-                      <a href="{% url 'hardware:hardware_update' asset.pk %}" class="btn btn-outline-secondary" title="Edit">
-                        <i class="fa-solid fa-pen"></i>
-                      </a>
-                    </div>
-                  </td>
-                </tr>
+                    </td>
+                  </tr>
                 {% endfor %}
               {% else %}
                 <tr>
-                  <td colspan="8" class="text-center py-5 text-muted">
-                    <div class="mb-2">
-                      <i class="fa-solid fa-desktop fa-2x"></i>
+                  <td colspan="12" class="text-center py-5">
+                    <div class="mb-3">
+                      <i class="fa-solid fa-desktop fa-3x text-muted"></i>
                     </div>
-                    <div class="fw-semibold">No hardware assets recorded yet</div>
-                    <div class="small">Start by creating a new asset to track inventory.</div>
+                    <div class="fw-semibold fs-5">No hardware assets recorded yet</div>
+                    <div class="text-muted mb-3">
+                      Start by creating a new asset to track inventory.
+                    </div>
+                    {# Optional: enable if you have create url #}
+                    {# <a href="{% url 'hardware:hardware_create' %}" class="btn btn-sm btn-primary">
+                         <i class="fa-solid fa-plus me-1"></i> Add First Asset
+                       </a> #}
                   </td>
                 </tr>
               {% endif %}
@@ -375,7 +469,53 @@
 </div>
 
 <style>
-  .hover-shadow { transition: box-shadow .2s ease, transform .2s ease; }
-  .hover-shadow:hover { box-shadow: 0 .5rem 1.25rem rgba(0,0,0,.12); transform: translateY(-2px); }
+  /* Sticky filter card positioning */
+  .filter-sticky {
+    top: .75rem;
+    z-index: 10;
+  }
+
+  /* Card hover lift */
+  .hover-lift {
+    transition: box-shadow .2s ease, transform .2s ease;
+  }
+  .hover-lift:hover {
+    box-shadow: 0 .5rem 1.25rem rgba(0,0,0,.12);
+    transform: translateY(-2px);
+  }
+
+  /* Sticky table header */
+  .table-sticky-head th {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+  }
+
+  /* Sort link styling */
+  .sort-link {
+    color: inherit;
+    text-decoration: none;
+  }
+  .sort-link:hover {
+    text-decoration: underline;
+  }
+
+  /* Cleaner action buttons: fade in on row hover (desktop) */
+  .action-buttons {
+    opacity: .15;
+    transition: opacity .15s ease-in-out;
+  }
+  .asset-row:hover .action-buttons {
+    opacity: 1;
+  }
+
+  /* Minor chip styling */
+  .filter-chip {
+    padding: .35rem .6rem;
+  }
+
+  /* Prevent long text from breaking layout */
+  .min-w-0 { min-width: 0; }
 </style>
 {% endblock %}
+``
