@@ -667,6 +667,7 @@ class LDAPComputerSync:
             }
 
         try:
+            import socket
             # Setup connection (mirrors LDAPSync.sync_all_users)
             tls_config = None
             if ldap_config.use_tls or ldap_config.ldap_server.startswith('ldaps://'):
@@ -697,7 +698,7 @@ class LDAPComputerSync:
                 search_base=ldap_config.base_dn,
                 search_filter=computer_filter,
                 search_scope=SUBTREE,
-                attributes='*',
+                attributes=['*', 'networkAddress', 'dNSHostName'],
             )
 
             synced_count = 0
@@ -782,11 +783,27 @@ class LDAPComputerSync:
                         # If parsing fails, fall back to default True
                         pass
 
-                    # Extract IPv4 address if available
-                    ipv4_address = (
-                        computer_data.get('IPv4Address')
-                        or computer_data.get('ipv4address')
-                    )
+                    # Extract IPv4 address: try networkAddress, then resolve dNSHostName
+                    ipv4_address = None
+                    # Try networkAddress (may be a list)
+                    net_addrs = computer_data.get('networkAddress') or computer_data.get('networkaddress')
+                    if net_addrs:
+                        if isinstance(net_addrs, (list, tuple)):
+                            # Find first IPv4-like address
+                            for addr in net_addrs:
+                                if isinstance(addr, str) and addr.count('.') == 3:
+                                    ipv4_address = addr
+                                    break
+                        elif isinstance(net_addrs, str) and net_addrs.count('.') == 3:
+                            ipv4_address = net_addrs
+                    # If not found, try to resolve dNSHostName
+                    if not ipv4_address:
+                        dns_hostname = computer_data.get('dNSHostName') or computer_data.get('dnshostname')
+                        if dns_hostname:
+                            try:
+                                ipv4_address = socket.gethostbyname(dns_hostname)
+                            except Exception as e:
+                                logger.debug(f"Could not resolve {dns_hostname} to IPv4: {e}")
 
                     # Build a notes field with useful AD metadata for hardware owners
                     description = computer_data.get('description') or computer_data.get('Description')
