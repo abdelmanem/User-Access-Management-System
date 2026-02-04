@@ -152,6 +152,142 @@
         });
     }
 
+    function createSidebarFlyout() {
+        let flyout = document.getElementById('sidebarFlyout');
+        if (flyout) {
+            return flyout;
+        }
+        flyout = document.createElement('div');
+        flyout.id = 'sidebarFlyout';
+        flyout.className = 'sidebar-flyout';
+        document.body.appendChild(flyout);
+        return flyout;
+    }
+
+    function isDesktop() {
+        return window.innerWidth >= 992;
+    }
+
+    function isSidebarCollapsed() {
+        const sidebar = document.getElementById(SIDEBAR_ID);
+        return (
+            (sidebar && sidebar.classList.contains(COLLAPSED_CLASS)) ||
+            document.body.classList.contains(BODY_COLLAPSED_CLASS)
+        );
+    }
+
+    function positionFlyoutRelativeToButton(flyout, button) {
+        const btnRect = button.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+
+        const marginLeft = 8;
+        const topSpace = btnRect.top;
+        const bottomSpace = viewportHeight - btnRect.bottom;
+
+        // Default top aligned with button
+        let top = btnRect.top;
+
+        // Adjust if near bottom to keep it in viewport
+        const estimatedHeight = Math.min(flyout.offsetHeight || 260, 360);
+        if (bottomSpace < estimatedHeight / 2 && topSpace > bottomSpace) {
+            top = Math.max(8, viewportHeight - estimatedHeight - 8);
+        } else {
+            top = Math.max(8, Math.min(top, viewportHeight - estimatedHeight - 8));
+        }
+
+        const left = btnRect.right + marginLeft;
+
+        flyout.style.top = top + 'px';
+        flyout.style.left = left + 'px';
+    }
+
+    function showSidebarFlyoutForToggle(toggleBtn) {
+        if (!isSidebarCollapsed()) {
+            return;
+        }
+        const targetSelector = toggleBtn.getAttribute('data-bs-target');
+        if (!targetSelector) {
+            return;
+        }
+        const submenu = document.querySelector(targetSelector);
+        if (!submenu) {
+            return;
+        }
+
+        const flyout = createSidebarFlyout();
+
+        // Build flyout content: header label + submenu links
+        const labelSpan = toggleBtn.querySelector('span');
+        const labelText = labelSpan ? labelSpan.textContent.trim() : '';
+
+        let innerHtml = '';
+        if (labelText) {
+            innerHtml += '<div class="sidebar-flyout-header">' + labelText + '</div>';
+        }
+        innerHtml += submenu.innerHTML;
+
+        flyout.innerHTML = innerHtml;
+
+        // Ensure links inside flyout behave like normal sidebar links
+        flyout.querySelectorAll('a.sidebar-sublink[data-sidebar-close="true"]').forEach(function (link) {
+            link.addEventListener('click', function () {
+                document.body.classList.remove('sidebar-open');
+            }, { once: true });
+        });
+
+        flyout.classList.add('show');
+        positionFlyoutRelativeToButton(flyout, toggleBtn);
+    }
+
+    function hideSidebarFlyout() {
+        const flyout = document.getElementById('sidebarFlyout');
+        if (flyout) {
+            flyout.classList.remove('show');
+        }
+    }
+
+    function initCollapsedSubmenuNavigation() {
+        const sidebarNav = document.getElementById('sidebarNav');
+        if (!sidebarNav) {
+            return;
+        }
+
+        // When sidebar is collapsed on desktop, show submenu as a flyout next to the icons.
+        sidebarNav.addEventListener('click', function (e) {
+            const target = e.target;
+            if (!target) return;
+
+            const toggleBtn = target.closest('button.sidebar-link[data-bs-toggle="collapse"]');
+            if (!toggleBtn) return;
+
+            if (!isSidebarCollapsed()) {
+                return; // normal behavior: expand/collapse submenu
+            }
+
+            e.preventDefault();
+            e.stopPropagation();
+            hideSidebarFlyout();
+            showSidebarFlyoutForToggle(toggleBtn);
+        }, true);
+
+        // Hide flyout on outside click / escape / resize / scroll
+        document.addEventListener('click', function (e) {
+            const flyout = document.getElementById('sidebarFlyout');
+            if (!flyout || !flyout.classList.contains('show')) return;
+            if (e.target.closest('#appSidebar') || e.target.closest('#sidebarFlyout')) return;
+            hideSidebarFlyout();
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                hideSidebarFlyout();
+            }
+        });
+
+        window.addEventListener('resize', hideSidebarFlyout);
+        window.addEventListener('scroll', hideSidebarFlyout, true);
+    }
+
     function initSidebarCollapse() {
         applySidebarState();
         const toggleBtn = ensureToggleButton();
@@ -166,6 +302,7 @@
 
         addSidebarTooltips();
         expandActiveSidebarSections();
+        initCollapsedSubmenuNavigation();
     }
 
     window.toggleSidebarCollapse = toggleSidebarCollapse;

@@ -1461,3 +1461,82 @@ html.dark-mode .bg-light.text-muted,
 body.dark-mode .bg-light.text-muted {
     color: var(--text-secondary) !important;
 }
+
+/* Fix all heading classes and bold text in dark mode */
+html[data-theme="dark"] .h1,
+html[data-theme="dark"] .h2,
+html[data-theme="dark"] .h3,
+html[data-theme="dark"] .h4,
+html[data-theme="dark"] .h5,
+html[data-theme="dark"] .h6,
+html.dark-mode .h1,
+html.dark-mode .h2,
+html.dark-mode .h3,
+html.dark-mode .h4,
+html.dark-mode .h5,
+html.dark-mode .h6,
+body.dark-mode .h1,
+body.dark-mode .h2,
+body.dark-mode .h3,
+body.dark-mode .h4,
+body.dark-mode .h5,
+body.dark-mode .h6 {
+    color: var(--text-primary) !important;
+}
+
+html[data-theme="dark"] .fw-bold,
+html.dark-mode .fw-bold,
+body.dark-mode .fw-bold {
+    color: var(--text-primary) !important;
+}
+
+html[data-theme="dark"] .text-uppercase,
+html.dark-mode .text-uppercase,
+body.dark-mode .text-uppercase {
+    color: var(--text-primary) !important;
+}
+
+/* Fix card body div text */
+html[data-theme="dark"] .card-body div,
+html.dark-mode .card-body div,
+body.dark-mode .card-body div {
+    color: var(--text-primary) !important;
+}
+
+/* Preserve text-muted styling */
+html[data-theme="dark"] .card-body .text-muted,
+html.dark-mode .card-body .text-muted,
+body.dark-mode .card-body .text-muted {
+    color: var(--text-muted) !important;
+}
+
+/* Preserve colored text classes */
+html[data-theme="dark"] .text-primary,
+html.dark-mode .text-primary,
+body.dark-mode .text-primary {
+    color: var(--primary-color) !important;
+}
+
+html[data-theme="dark"] .text-success,
+html.dark-mode .text-success,
+body.dark-mode .text-success {
+    color: #28a745 !important;
+}
+
+html[data-theme="dark"] .text-danger,
+html.dark-mode .text-danger,
+body.dark-mode .text-danger {
+    color: #dc3545 !important;
+}
+
+html[data-theme="dark"] .text-warning,
+html.dark-mode .text-warning,
+body.dark-mode .text-warning {
+    color: #ffc107 !important;
+}
+
+html[data-theme="dark"] .text-info,
+html.dark-mode .text-info,
+body.dark-mode .text-info {
+    color: #17a2b8 !important;
+}

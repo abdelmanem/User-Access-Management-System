@@ -28,7 +28,10 @@
             </a>
 
             {% nav_active_class 'accounts:user_list' 'accounts:user_create' 'accounts:user_detail' 'accounts:user_update' 'accounts:user_delete' as users_active %}
-            <button class="sidebar-link{{ users_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarUsers" aria-expanded="{% if users_active %}true{% else %}false{% endif %}" aria-controls="sidebarUsers">
+            <button class="sidebar-link{{ users_active }}" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#sidebarUsers"
+                    data-main-href="{% url 'accounts:user_list' %}"
+                    aria-expanded="{% if users_active %}true{% else %}false{% endif %}" aria-controls="sidebarUsers">
                 <span><i class="fa-solid fa-users"></i> Users</span>
                 <i class="fa-solid fa-angle-down collapse-arrow"></i>
             </button>
@@ -44,7 +47,10 @@
             </div>
 
             {% nav_active_class 'departments:department_*' 'departments:department_list' 'departments:department_detail' 'departments:department_update' 'departments:department_delete' 'departments:department_create' as dept_active %}
-            <button class="sidebar-link{{ dept_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarDepartments" aria-expanded="{% if dept_active %}true{% else %}false{% endif %}" aria-controls="sidebarDepartments">
+            <button class="sidebar-link{{ dept_active }}" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#sidebarDepartments"
+                    data-main-href="{% url 'departments:department_list' %}"
+                    aria-expanded="{% if dept_active %}true{% else %}false{% endif %}" aria-controls="sidebarDepartments">
                 <span><i class="fa-solid fa-sitemap"></i> Departments</span>
                 <i class="fa-solid fa-angle-down collapse-arrow"></i>
             </button>
@@ -60,7 +66,10 @@
             </div>
 
             {% nav_active_class 'systems:system_*' 'systems:system_list' 'systems:system_detail' 'systems:system_update' 'systems:system_delete' 'systems:system_create' 'systems:system_type_management' 'systems:system_notifications' as systems_active %}
-            <button class="sidebar-link{{ systems_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarSystems" aria-expanded="{% if systems_active %}true{% else %}false{% endif %}" aria-controls="sidebarSystems">
+            <button class="sidebar-link{{ systems_active }}" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#sidebarSystems"
+                    data-main-href="{% url 'systems:system_list' %}"
+                    aria-expanded="{% if systems_active %}true{% else %}false{% endif %}" aria-controls="sidebarSystems">
                 <span><i class="fa-solid fa-server"></i> Systems</span>
                 <i class="fa-solid fa-angle-down collapse-arrow"></i>
             </button>
@@ -88,7 +97,10 @@
             </div>
 
             {% nav_active_class 'hardware:hardware_*' 'hardware:hardware_list' 'hardware:hardware_detail' 'hardware:hardware_update' 'hardware:hardware_delete' 'hardware:hardware_create' as hardware_active %}
-            <button class="sidebar-link{{ hardware_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarHardware" aria-expanded="{% if hardware_active %}true{% else %}false{% endif %}" aria-controls="sidebarHardware">
+            <button class="sidebar-link{{ hardware_active }}" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#sidebarHardware"
+                    data-main-href="{% url 'hardware:hardware_list' %}"
+                    aria-expanded="{% if hardware_active %}true{% else %}false{% endif %}" aria-controls="sidebarHardware">
                 <span><i class="fa-solid fa-desktop"></i> Hardware</span>
                 <i class="fa-solid fa-angle-down collapse-arrow"></i>
             </button>
@@ -104,7 +116,10 @@
             </div>
 
             {% nav_active_class 'service_accounts:service_account_*' 'service_accounts:service_account_list' 'service_accounts:service_account_detail' 'service_accounts:service_account_update' 'service_accounts:service_account_delete' 'service_accounts:service_account_create' 'service_accounts:service_account_compliance_report' as svc_active %}
-            <button class="sidebar-link{{ svc_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarServiceAccounts" aria-expanded="{% if svc_active %}true{% else %}false{% endif %}" aria-controls="sidebarServiceAccounts">
+            <button class="sidebar-link{{ svc_active }}" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#sidebarServiceAccounts"
+                    data-main-href="{% url 'service_accounts:service_account_list' %}"
+                    aria-expanded="{% if svc_active %}true{% else %}false{% endif %}" aria-controls="sidebarServiceAccounts">
                 <span><i class="fa-solid fa-user-shield"></i> Service Accounts 4.2</span>
                 <i class="fa-solid fa-angle-down collapse-arrow"></i>
             </button>
@@ -128,7 +143,10 @@
             </div>
 
             {% nav_active_class 'accounts:user_deactivation_audit_*' 'accounts:user_archive_*' 'accounts:user_deactivation_audit_list' 'accounts:user_deactivation_audit_detail' 'accounts:user_archive_list' 'accounts:user_archive_detail' as audit_active %}
-            <button class="sidebar-link{{ audit_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarAudit" aria-expanded="{% if audit_active %}true{% else %}false{% endif %}" aria-controls="sidebarAudit">
+            <button class="sidebar-link{{ audit_active }}" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#sidebarAudit"
+                    data-main-href="{% url 'accounts:user_deactivation_audit_list' %}"
+                    aria-expanded="{% if audit_active %}true{% else %}false{% endif %}" aria-controls="sidebarAudit">
                 <span><i class="fa-solid fa-clipboard-list"></i> Audit</span>
                 <i class="fa-solid fa-angle-down collapse-arrow"></i>
             </button>
@@ -144,7 +162,10 @@
             </div>
 
 {% nav_active_class 'access_management:access_assignment_*' 'access_management:user_access_*' 'access_management:system_access_*' 'access_management:access_history_*' 'access_management:approve_access_assignment' 'access_management:reject_access_assignment' 'access_management:cross_system_account_mapping' 'access_management:generic_accounts_report' 'access_management:user_cross_system_accounts' 'access_management:mark_generic_account_remediated' 'access_management:policy_drift_monitoring' 'access_management:admin_accounts_report' 'access_management:quarterly_access_review_dashboard' 'access_management:quarterly_access_review_bulk' 'access_management:access_approval_compliance' 'access_management:my_pending_approvals' 'access_management:approval_summary_dashboard' 'access_management:unapproved_access_list' 'access_management:my_unapproved_access_gaps' 'default_accounts:default_account_*' 'default_accounts:default_account_dashboard' 'default_accounts:default_account_detail' 'default_accounts:default_account_update' 'default_accounts:default_account_templates' 'default_accounts:default_account_create' 'change_management:change_request_*' 'change_management:change_request_list' 'change_management:change_request_create' 'change_management:change_request_detail' 'change_management:change_request_update' as access_active %}
-            <button class="sidebar-link{{ access_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarAccess" aria-expanded="{% if access_active %}true{% else %}false{% endif %}" aria-controls="sidebarAccess">
+            <button class="sidebar-link{{ access_active }}" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#sidebarAccess"
+                    data-main-href="{% url 'access_management:access_assignment_list' %}"
+                    aria-expanded="{% if access_active %}true{% else %}false{% endif %}" aria-controls="sidebarAccess">
                 <span><i class="fa-solid fa-key"></i> Access</span>
                 <i class="fa-solid fa-angle-down collapse-arrow"></i>
             </button>
