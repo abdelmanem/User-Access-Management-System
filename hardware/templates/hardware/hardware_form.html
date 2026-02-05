@@ -153,6 +153,12 @@
                           <label class="form-check-label" for="{{ form.requires_patch_management.id_for_label }}">Requires Patch Management</label>
                           {% if form.errors.requires_patch_management %}<div class="invalid-feedback d-block">{{ form.errors.requires_patch_management.0 }}</div>{% endif %}
                         </div>
+                        <div class="form-check mt-2">
+                          {{ form.is_sync_enabled|add_error_class:"is-invalid"|add_class:"form-check-input" }}
+                          <label class="form-check-label" for="{{ form.is_sync_enabled.id_for_label }}">Enable LDAP Sync</label>
+                          {% if form.errors.is_sync_enabled %}<div class="invalid-feedback d-block">{{ form.errors.is_sync_enabled.0 }}</div>{% endif %}
+                          <div class="form-text small">If unchecked, LDAP sync will not update this asset's fields.</div>
+                        </div>
                       </div>
                     </div>
 

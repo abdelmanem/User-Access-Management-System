@@ -195,6 +195,10 @@ class HardwareAsset(models.Model):
         default=True,
         help_text="Whether the asset participates in patch management cycles.",
     )
+    is_sync_enabled = models.BooleanField(
+        default=True,
+        help_text="If enabled, LDAP sync will update this asset. Disable to manually manage this asset.",
+    )
     last_inventory_check = models.DateField(
         blank=True,
         null=True,

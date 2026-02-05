@@ -35,6 +35,7 @@ class HardwareAssetForm(forms.ModelForm):
             "is_virtual",
             "is_enabled",
             "requires_patch_management",
+            "is_sync_enabled",
             "last_inventory_check",
             "next_inventory_check",
         ]

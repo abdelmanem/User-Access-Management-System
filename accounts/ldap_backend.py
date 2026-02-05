@@ -818,28 +818,52 @@ class LDAPComputerSync:
                     notes = "\n".join(notes_parts) if notes_parts else ""
 
                     # Update or create HardwareAsset by asset_tag
-                    obj, created = HardwareAsset.objects.update_or_create(
-                        asset_tag=asset_tag,
-                        defaults={
-                            'name': display_name,
-                            'hardware_type': hardware_type,
-                            'operating_system': operating_system or '',
-                            'operating_system_version': operating_system_version or '',
-                            'location': location,
-                            'status': 'In Service',
-                            'ip_address': ipv4_address or None,
-                            'ipv4_address': ipv4_address or None,
-                            'is_virtual': is_virtual,
-                            'is_enabled': is_enabled,
-                            'requires_patch_management': True,
-                            'notes': notes,
-                        },
-                    )
+                    # Only update if sync is enabled or if it's a new asset
+                    try:
+                        obj = HardwareAsset.objects.get(asset_tag=asset_tag)
+                        # Asset exists - only update if sync is enabled
+                        if obj.is_sync_enabled:
+                            obj.name = display_name
+                            obj.hardware_type = hardware_type
+                            obj.operating_system = operating_system or ''
+                            obj.operating_system_version = operating_system_version or ''
+                            obj.location = location
+                            obj.ip_address = ipv4_address or None
+                            obj.ipv4_address = ipv4_address or None
+                            obj.is_virtual = is_virtual
+                            obj.is_enabled = is_enabled
+                            obj.notes = notes
+                            obj.save()
+                            updated_count += 1
+                        else:
+                            # Sync disabled for this asset, skip update
+                            logger.debug(f"Skipping sync for asset {asset_tag} (sync_enabled=False)")
+                        created = False
+                    except HardwareAsset.DoesNotExist:
+                        # New asset - create it
+                        obj = HardwareAsset.objects.create(
+                            asset_tag=asset_tag,
+                            name=display_name,
+                            hardware_type=hardware_type,
+                            operating_system=operating_system or '',
+                            operating_system_version=operating_system_version or '',
+                            location=location,
+                            status='In Service',
+                            ip_address=ipv4_address or None,
+                            ipv4_address=ipv4_address or None,
+                            is_virtual=is_virtual,
+                            is_enabled=is_enabled,
+                            requires_patch_management=True,
+                            notes=notes,
+                            is_sync_enabled=True,
+                        )
+                        created = True
+                        synced_count += 1
 
                     if created:
-                        synced_count += 1
+                        pass  # Already counted
                     else:
-                        updated_count += 1
+                        pass  # Already counted in loop above
 
                 except Exception as e:
                     logger.error(f"Error syncing computer asset from LDAP: {str(e)}", exc_info=True)
