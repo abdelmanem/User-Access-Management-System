@@ -17,9 +17,9 @@
 
       <div class="d-flex gap-2">
         {# Optional: add create button only if you have the URL name #}
-        {# <a href="{% url 'hardware:hardware_create' %}" class="btn btn-sm btn-primary">
+        <a href="{% url 'hardware:hardware_create' %}" class="btn btn-sm btn-primary">
             <i class="fa-solid fa-plus me-1"></i> New Asset
-           </a> #}
+           </a> 
 
         <a href="{% url 'hardware:hardware_list' %}" class="btn btn-sm btn-outline-secondary" title="Reset filters" aria-label="Reset filters">
           <i class="fa-solid fa-rotate-left me-1"></i> Reset
@@ -117,7 +117,7 @@
                        name="q"
                        value="{{ search_query }}"
                        class="form-control"
-                       placeholder="Name, tag, serial, location, IP, OS, OS Version"
+                       placeholder="Name, tag, local tag, TM ID, serial, location, IP, OS, OS Version"
                        autocomplete="off">
               </div>
             </div>
@@ -217,6 +217,22 @@
                   <a class="sort-link" href="?{% for key, value in request.GET.items %}{% if key != 'sort' and key != 'order' %}{{ key }}={{ value|urlencode }}&amp;{% endif %}{% endfor %}sort=name&amp;order={% if request.GET.sort == 'name' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">
                     Asset
                     {% if request.GET.sort == 'name' %}
+                      <i class="fa-solid fa-caret-{% if request.GET.order == 'desc' %}down{% else %}up{% endif %} ms-1"></i>
+                    {% endif %}
+                  </a>
+                </th>
+                <th scope="col" class="text-nowrap" data-col="local-asset-tag">
+                  <a class="sort-link" href="?{% for key, value in request.GET.items %}{% if key != 'sort' and key != 'order' %}{{ key }}={{ value|urlencode }}&amp;{% endif %}{% endfor %}sort=local_asset_tag&amp;order={% if request.GET.sort == 'local_asset_tag' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">
+                    Local Asset Tag
+                    {% if request.GET.sort == 'local_asset_tag' %}
+                      <i class="fa-solid fa-caret-{% if request.GET.order == 'desc' %}down{% else %}up{% endif %} ms-1"></i>
+                    {% endif %}
+                  </a>
+                </th>
+                <th scope="col" class="text-nowrap" data-col="tm-id">
+                  <a class="sort-link" href="?{% for key, value in request.GET.items %}{% if key != 'sort' and key != 'order' %}{{ key }}={{ value|urlencode }}&amp;{% endif %}{% endfor %}sort=tm_id&amp;order={% if request.GET.sort == 'tm_id' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">
+                    TM ID
+                    {% if request.GET.sort == 'tm_id' %}
                       <i class="fa-solid fa-caret-{% if request.GET.order == 'desc' %}down{% else %}up{% endif %} ms-1"></i>
                     {% endif %}
                   </a>
@@ -326,6 +342,13 @@
                           </div>
                         </div>
                       </div>
+                    </td>
+
+                    <td class="text-muted small" data-col="local-asset-tag">
+                      {{ asset.local_asset_tag|default:"—" }}
+                    </td>
+                    <td class="text-muted small" data-col="tm-id">
+                      {{ asset.tm_id|default:"—" }}
                     </td>
 
                     <td class="text-muted small">
@@ -465,6 +488,21 @@
       </div>
     </div>
 
+    <!-- Column Visibility Toggle -->
+    <div class="mb-2">
+      <div class="dropdown">
+        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="columnToggleBtn" data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="fa-solid fa-table-columns me-1"></i> Show/Hide Columns
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="columnToggleBtn">
+          <li><a class="dropdown-item toggle-col" href="#" data-col="local-asset-tag"><input type="checkbox" checked> Local Asset Tag</a></li>
+          <li><a class="dropdown-item toggle-col" href="#" data-col="tm-id"><input type="checkbox" checked> TM ID</a></li>
+          <li><a class="dropdown-item toggle-col" href="#" data-col="serial"><input type="checkbox" checked> Serial</a></li>
+          <!-- Add more as needed -->
+        </ul>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -518,4 +556,26 @@
   .min-w-0 { min-width: 0; }
 </style>
 {% endblock %}
-``
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+// Column show/hide logic
+(function() {
+  function setColVisibility(col, visible) {
+    document.querySelectorAll('[data-col="' + col + '"]').forEach(function(el) {
+      el.style.display = visible ? '' : 'none';
+    });
+  }
+  document.querySelectorAll('.toggle-col').forEach(function(link) {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      var col = this.getAttribute('data-col');
+      var checkbox = this.querySelector('input[type="checkbox"]');
+      checkbox.checked = !checkbox.checked;
+      setColVisibility(col, checkbox.checked);
+    });
+  });
+})();
+</script>
+{% endblock %}
