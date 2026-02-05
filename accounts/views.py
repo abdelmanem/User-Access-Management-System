@@ -319,7 +319,7 @@ def _build_filtered_users_queryset(request):
     return users_qs.order_by(order_field, 'id')
 
 
-def _filtered_deactivation_audits(query: str = ''):
+def _filtered_deactivation_audits(query: str = '', start_date=None, end_date=None):
     audits = UserDeactivationAudit.objects.select_related('user', 'admin').order_by('-deactivated_at')
     if query:
         audits = audits.filter(
@@ -330,10 +330,14 @@ def _filtered_deactivation_audits(query: str = ''):
             | Q(admin__first_name__icontains=query)
             | Q(admin__last_name__icontains=query)
         )
+    if start_date:
+        audits = audits.filter(deactivated_at__date__gte=start_date)
+    if end_date:
+        audits = audits.filter(deactivated_at__date__lte=end_date)
     return audits
 
 
-def _filtered_user_archives(query: str = ''):
+def _filtered_user_archives(query: str = '', start_date=None, end_date=None):
     archives = UserArchive.objects.select_related('archived_by').order_by('-archived_at')
     if query:
         archives = archives.filter(
@@ -342,6 +346,10 @@ def _filtered_user_archives(query: str = ''):
             | Q(employee_id__icontains=query)
             | Q(department_name__icontains=query)
         )
+    if start_date:
+        archives = archives.filter(archived_at__date__gte=start_date)
+    if end_date:
+        archives = archives.filter(archived_at__date__lte=end_date)
     return archives
 
 
@@ -1091,13 +1099,36 @@ def user_assign_department(request, pk):
 @user_passes_test(lambda u: u.is_staff)
 def user_deactivation_audit_list(request):
     query = (request.GET.get('q') or '').strip()
-    audits = _filtered_deactivation_audits(query)
+    start_date_str = (request.GET.get('start_date') or '').strip()
+    end_date_str = (request.GET.get('end_date') or '').strip()
+    
+    start_date = None
+    end_date = None
+    
+    # Parse dates
+    if start_date_str:
+        try:
+            from datetime import datetime
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            pass
+    
+    if end_date_str:
+        try:
+            from datetime import datetime
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            pass
+    
+    audits = _filtered_deactivation_audits(query, start_date, end_date)
     return render(
         request,
         'accounts/user_deactivation_audit_list.html',
         {
             'audits': audits,
             'query': query,
+            'start_date': start_date_str,
+            'end_date': end_date_str,
         },
     )
 
@@ -1119,13 +1150,36 @@ def user_deactivation_audit_detail(request, pk):
 @user_passes_test(lambda u: u.is_staff)
 def user_archive_list(request):
     query = (request.GET.get('q') or '').strip()
-    archives = _filtered_user_archives(query)
+    start_date_str = (request.GET.get('start_date') or '').strip()
+    end_date_str = (request.GET.get('end_date') or '').strip()
+    
+    start_date = None
+    end_date = None
+    
+    # Parse dates
+    if start_date_str:
+        try:
+            from datetime import datetime
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            pass
+    
+    if end_date_str:
+        try:
+            from datetime import datetime
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            pass
+    
+    archives = _filtered_user_archives(query, start_date, end_date)
     return render(
         request,
         'accounts/user_archive_list.html',
         {
             'archives': archives,
             'query': query,
+            'start_date': start_date_str,
+            'end_date': end_date_str,
         },
     )
 
@@ -1147,7 +1201,28 @@ def user_archive_detail(request, pk):
 @user_passes_test(lambda u: u.is_staff)
 def user_deactivation_audit_export_excel(request):
     query = (request.GET.get('q') or '').strip()
-    audits = _filtered_deactivation_audits(query)
+    start_date_str = (request.GET.get('start_date') or '').strip()
+    end_date_str = (request.GET.get('end_date') or '').strip()
+    
+    start_date = None
+    end_date = None
+    
+    # Parse dates
+    if start_date_str:
+        try:
+            from datetime import datetime
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            pass
+    
+    if end_date_str:
+        try:
+            from datetime import datetime
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            pass
+    
+    audits = _filtered_deactivation_audits(query, start_date, end_date)
 
     headers = [
         'User',
@@ -1178,6 +1253,8 @@ def user_deactivation_audit_export_excel(request):
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
     filename_suffix = f"_q_{query}" if query else ""
+    if start_date_str and end_date_str:
+        filename_suffix += f"_{start_date_str}_to_{end_date_str}"
     response['Content-Disposition'] = f'attachment; filename="user_deactivation_audit{filename_suffix}.xlsx"'
     wb.save(response)
     return response
@@ -1187,7 +1264,28 @@ def user_deactivation_audit_export_excel(request):
 @user_passes_test(lambda u: u.is_staff)
 def user_deactivation_audit_export_pdf(request):
     query = (request.GET.get('q') or '').strip()
-    audits = _filtered_deactivation_audits(query)
+    start_date_str = (request.GET.get('start_date') or '').strip()
+    end_date_str = (request.GET.get('end_date') or '').strip()
+    
+    start_date = None
+    end_date = None
+    
+    # Parse dates
+    if start_date_str:
+        try:
+            from datetime import datetime
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            pass
+    
+    if end_date_str:
+        try:
+            from datetime import datetime
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            pass
+    
+    audits = _filtered_deactivation_audits(query, start_date, end_date)
 
     data = [['User', 'Employee ID', 'Admin', 'Deactivated At', 'Systems', 'Hardware', 'Hardware Action']]
     for audit in audits:
@@ -1232,7 +1330,28 @@ def user_deactivation_audit_export_pdf(request):
 @user_passes_test(lambda u: u.is_staff)
 def user_archive_export_excel(request):
     query = (request.GET.get('q') or '').strip()
-    archives = _filtered_user_archives(query)
+    start_date_str = (request.GET.get('start_date') or '').strip()
+    end_date_str = (request.GET.get('end_date') or '').strip()
+    
+    start_date = None
+    end_date = None
+    
+    # Parse dates
+    if start_date_str:
+        try:
+            from datetime import datetime
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            pass
+    
+    if end_date_str:
+        try:
+            from datetime import datetime
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            pass
+    
+    archives = _filtered_user_archives(query, start_date, end_date)
 
     headers = ['Username', 'Full Name', 'Employee ID', 'Department', 'Archived By', 'Archived At']
 
@@ -1254,6 +1373,8 @@ def user_archive_export_excel(request):
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
     filename_suffix = f"_q_{query}" if query else ""
+    if start_date_str and end_date_str:
+        filename_suffix += f"_{start_date_str}_to_{end_date_str}"
     response['Content-Disposition'] = f'attachment; filename="archived_users{filename_suffix}.xlsx"'
     wb.save(response)
     return response
@@ -1263,7 +1384,28 @@ def user_archive_export_excel(request):
 @user_passes_test(lambda u: u.is_staff)
 def user_archive_export_pdf(request):
     query = (request.GET.get('q') or '').strip()
-    archives = _filtered_user_archives(query)
+    start_date_str = (request.GET.get('start_date') or '').strip()
+    end_date_str = (request.GET.get('end_date') or '').strip()
+    
+    start_date = None
+    end_date = None
+    
+    # Parse dates
+    if start_date_str:
+        try:
+            from datetime import datetime
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            pass
+    
+    if end_date_str:
+        try:
+            from datetime import datetime
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            pass
+    
+    archives = _filtered_user_archives(query, start_date, end_date)
 
     data = [['Username', 'Full Name', 'Employee ID', 'Department', 'Archived By', 'Archived At']]
     for record in archives:
@@ -1278,6 +1420,8 @@ def user_archive_export_pdf(request):
 
     buffer_response = HttpResponse(content_type='application/pdf')
     filename_suffix = f"_q_{query}" if query else ""
+    if start_date_str and end_date_str:
+        filename_suffix += f"_{start_date_str}_to_{end_date_str}"
     buffer_response['Content-Disposition'] = f'attachment; filename="archived_users{filename_suffix}.pdf"'
 
     page_size = landscape(A4)

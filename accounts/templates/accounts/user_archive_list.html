@@ -25,7 +25,7 @@
     <div class="card-body">
       <form method="get" class="row g-3 align-items-end">
 
-        <div class="col-12 col-lg-6">
+        <div class="col-12 col-lg-3">
           <label class="form-label fw-semibold">Search archive</label>
           <input type="text"
                  name="q"
@@ -34,23 +34,39 @@
                  placeholder="Username, employee ID, department">
         </div>
 
-        <div class="col-12 col-lg-6 d-flex flex-wrap justify-content-lg-end gap-2">
+        <div class="col-12 col-lg-2">
+          <label class="form-label fw-semibold">Start Date</label>
+          <input type="date"
+                 name="start_date"
+                 value="{{ start_date }}"
+                 class="form-control">
+        </div>
+
+        <div class="col-12 col-lg-2">
+          <label class="form-label fw-semibold">End Date</label>
+          <input type="date"
+                 name="end_date"
+                 value="{{ end_date }}"
+                 class="form-control">
+        </div>
+
+        <div class="col-12 col-lg-5 d-flex flex-wrap justify-content-lg-end gap-2">
           <button type="submit" class="btn btn-primary">
             <i class="fas fa-search me-1"></i> Search
           </button>
 
-          {% if query %}
+          {% if query or start_date or end_date %}
             <a href="{% url 'accounts:user_archive_list' %}" class="btn btn-outline-secondary">
               Clear
             </a>
           {% endif %}
 
-          <a href="{% url 'accounts:user_archive_export_excel' %}{% if query %}?q={{ query|urlencode }}{% endif %}"
+          <a href="{% url 'accounts:user_archive_export_excel' %}{% if query %}?q={{ query|urlencode }}{% endif %}{% if start_date %}{% if query %}&{% else %}?{% endif %}start_date={{ start_date }}{% endif %}{% if end_date %}{% if query or start_date %}&{% else %}?{% endif %}end_date={{ end_date }}{% endif %}"
              class="btn btn-success">
             <i class="fas fa-file-excel me-1"></i> Excel
           </a>
 
-          <a href="{% url 'accounts:user_archive_export_pdf' %}{% if query %}?q={{ query|urlencode }}{% endif %}"
+          <a href="{% url 'accounts:user_archive_export_pdf' %}{% if query %}?q={{ query|urlencode }}{% endif %}{% if start_date %}{% if query %}&{% else %}?{% endif %}start_date={{ start_date }}{% endif %}{% if end_date %}{% if query or start_date %}&{% else %}?{% endif %}end_date={{ end_date }}{% endif %}"
              class="btn btn-danger">
             <i class="fas fa-file-pdf me-1"></i> PDF
           </a>
