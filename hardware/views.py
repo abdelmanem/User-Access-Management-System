@@ -352,12 +352,12 @@ def related_asset_delete(request, pk):
 
 @login_required
 def bulk_accessory_create(request):
-    """Bulk create accessories from CSV/tab-separated data."""
+    """Bulk create accessories with individual form fields."""
     if request.method == "POST":
         form = BulkAccessoryForm(request.POST)
         if form.is_valid():
             try:
-                accessories_data = form.parse_accessories()
+                accessories_data = form.generate_accessories()
                 created_accessories = []
                 
                 for acc_data in accessories_data:

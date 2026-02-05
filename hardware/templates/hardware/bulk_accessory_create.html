@@ -6,173 +6,256 @@
 <div id="content-main">
   <div class="container-fluid">
     <div class="row justify-content-center">
-      <div class="col-12 col-lg-10">
+      <div class="col-12 col-lg-8">
 
         <!-- Header -->
-        <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-4">
           <div>
             <h2 class="mb-0">Bulk Create Accessories</h2>
-            <div class="text-muted small">Add multiple accessories at once using tab-separated values</div>
+            <div class="text-muted small">Quickly create multiple identical accessories with auto-generated asset tags</div>
           </div>
           <div>
             <a href="{% url 'hardware:accessory_list' %}" class="btn btn-sm btn-outline-secondary">
-              <i class="fa-solid fa-arrow-left me-1"></i> Back to list
+              <i class="fa-solid fa-arrow-left me-1"></i> Back
             </a>
           </div>
         </div>
 
-        <div class="row g-3">
+        <!-- Main Form Card -->
+        <div class="card shadow-sm">
+          <div class="card-body">
 
-          <!-- Instructions Panel -->
-          <div class="col-12 col-lg-5">
-            <div class="card shadow-sm h-100">
-              <div class="card-header bg-light fw-semibold">
-                <i class="fa-solid fa-circle-info me-2 text-info"></i> How to Use
+            {% if form.errors %}
+              <div class="alert alert-danger">
+                <div class="fw-semibold mb-2">⚠️ Please fix the errors below:</div>
+                {% for field, errors in form.errors.items %}
+                  <div class="ms-2 mb-2">
+                    {% if field != '__all__' %}
+                      <strong>{{ field }}:</strong>
+                    {% endif %}
+                    <ul class="mb-0 ps-3 small">
+                      {% for error in errors %}
+                        <li>{{ error|safe }}</li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                {% endfor %}
               </div>
-              <div class="card-body small">
-                
-                <h6 class="mt-3 mb-2"><i class="fa-solid fa-list me-2"></i> Format</h6>
-                <p class="mb-2">Enter one accessory per line with these columns separated by tabs or spaces:</p>
-                <div class="bg-light border rounded p-2 mb-2" style="font-family: monospace; font-size: 11px; overflow-x: auto;">
-                  Name | Asset Tag | Type | Manufacturer | Model | Serial | Status | Location
-                </div>
+            {% endif %}
 
-                <h6 class="mt-3 mb-2"><i class="fa-solid fa-check me-2"></i> Required Fields</h6>
-                <ul class="mb-2 ps-3">
-                  <li><strong>Name:</strong> Accessory name (e.g., "Dell Monitor 27")</li>
-                  <li><strong>Asset Tag:</strong> Unique identifier (e.g., "MON-001")</li>
-                </ul>
+            <form method="post" novalidate>
+              {% csrf_token %}
 
-                <h6 class="mt-3 mb-2"><i class="fa-solid fa-lightbulb me-2"></i> Optional Fields</h6>
-                <ul class="mb-2 ps-3">
-                  <li><strong>Type:</strong> Monitor, Keyboard, Mouse, Dock, etc. (default: Monitor)</li>
-                  <li><strong>Manufacturer:</strong> Brand name</li>
-                  <li><strong>Model:</strong> Model number</li>
-                  <li><strong>Serial:</strong> Serial number</li>
-                  <li><strong>Status:</strong> In Service, In Storage, etc. (default: In Service)</li>
-                  <li><strong>Location:</strong> Physical location</li>
-                </ul>
-
-                <h6 class="mt-3 mb-2"><i class="fa-solid fa-copy me-2"></i> Example</h6>
-                <div class="bg-light border rounded p-2" style="font-family: monospace; font-size: 11px; overflow-x: auto;">
-                  <div>Dell Monitor	MON-001	Monitor	Dell	27"</div>
-                  <div>Logitech Keyboard	KEY-001	Keyboard	Logitech	K840</div>
-                  <div>Mouse	MOU-001	Mouse	Logitech	M705</div>
-                </div>
-
-                <div class="alert alert-warning mt-3 mb-0 small">
-                  <i class="fa-solid fa-circle-exclamation me-1"></i>
-                  <strong>Note:</strong> Asset tags must be unique. Duplicates will be rejected.
-                </div>
-
+              <!-- Basic Information Section -->
+              <div class="section-title fw-semibold text-primary mb-3 pb-2 border-bottom">
+                <i class="fa-solid fa-circle-info me-2"></i> Basic Information
               </div>
-            </div>
+
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <label class="form-label" for="{{ form.name.id_for_label }}">
+                    {{ form.name.label }} <span class="text-danger">*</span>
+                  </label>
+                  {{ form.name|add_error_class:"is-invalid"|add_class:"form-control" }}
+                  {% if form.errors.name %}<div class="invalid-feedback d-block">{{ form.errors.name.0 }}</div>{% endif %}
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label" for="{{ form.accessory_type.id_for_label }}">
+                    {{ form.accessory_type.label }}
+                  </label>
+                  {{ form.accessory_type|add_error_class:"is-invalid"|add_class:"form-select" }}
+                  {% if form.errors.accessory_type %}<div class="invalid-feedback d-block">{{ form.errors.accessory_type.0 }}</div>{% endif %}
+                </div>
+              </div>
+
+              <!-- Asset Tag Generation Section -->
+              <div class="section-title fw-semibold text-primary mb-3 pb-2 border-bottom">
+                <i class="fa-solid fa-barcode me-2"></i> Auto-Generate Asset Tags
+              </div>
+
+              <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                  <label class="form-label" for="{{ form.asset_tag_prefix.id_for_label }}">
+                    {{ form.asset_tag_prefix.label }} <span class="text-danger">*</span>
+                  </label>
+                  {{ form.asset_tag_prefix|add_error_class:"is-invalid"|add_class:"form-control" }}
+                  <div class="form-text">e.g., "MON" creates MON-001, MON-002, etc.</div>
+                  {% if form.errors.asset_tag_prefix %}<div class="invalid-feedback d-block">{{ form.errors.asset_tag_prefix.0 }}</div>{% endif %}
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label" for="{{ form.asset_tag_start.id_for_label }}">
+                    {{ form.asset_tag_start.label }}
+                  </label>
+                  {{ form.asset_tag_start|add_error_class:"is-invalid"|add_class:"form-control" }}
+                  <div class="form-text">Starting number (default: 1)</div>
+                  {% if form.errors.asset_tag_start %}<div class="invalid-feedback d-block">{{ form.errors.asset_tag_start.0 }}</div>{% endif %}
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label" for="{{ form.quantity.id_for_label }}">
+                    {{ form.quantity.label }} <span class="text-danger">*</span>
+                  </label>
+                  {{ form.quantity|add_error_class:"is-invalid"|add_class:"form-control" }}
+                  <div class="form-text">{{ form.quantity.help_text }}</div>
+                  {% if form.errors.quantity %}<div class="invalid-feedback d-block">{{ form.errors.quantity.0 }}</div>{% endif %}
+                </div>
+              </div>
+
+              <div class="alert alert-info mb-3">
+                <i class="fa-solid fa-lightbulb me-2"></i>
+                <strong>Example:</strong> Prefix "MON" + Start "1" + Quantity "5" = MON-001, MON-002, MON-003, MON-004, MON-005
+              </div>
+
+              <!-- Product Details Section -->
+              <div class="section-title fw-semibold text-primary mb-3 pb-2 border-bottom">
+                <i class="fa-solid fa-box me-2"></i> Product Details
+              </div>
+
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <label class="form-label" for="{{ form.manufacturer.id_for_label }}">
+                    {{ form.manufacturer.label }}
+                  </label>
+                  {{ form.manufacturer|add_error_class:"is-invalid"|add_class:"form-control" }}
+                  {% if form.errors.manufacturer %}<div class="invalid-feedback d-block">{{ form.errors.manufacturer.0 }}</div>{% endif %}
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label" for="{{ form.model_number.id_for_label }}">
+                    {{ form.model_number.label }}
+                  </label>
+                  {{ form.model_number|add_error_class:"is-invalid"|add_class:"form-control" }}
+                  {% if form.errors.model_number %}<div class="invalid-feedback d-block">{{ form.errors.model_number.0 }}</div>{% endif %}
+                </div>
+              </div>
+
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <label class="form-label" for="{{ form.serial_number.id_for_label }}">
+                    {{ form.serial_number.label }}
+                  </label>
+                  {{ form.serial_number|add_error_class:"is-invalid"|add_class:"form-control" }}
+                  <div class="form-text">Serial for the first item only (system prevents duplicates)</div>
+                  {% if form.errors.serial_number %}<div class="invalid-feedback d-block">{{ form.errors.serial_number.0 }}</div>{% endif %}
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label" for="{{ form.status.id_for_label }}">
+                    {{ form.status.label }}
+                  </label>
+                  {{ form.status|add_error_class:"is-invalid"|add_class:"form-select" }}
+                  {% if form.errors.status %}<div class="invalid-feedback d-block">{{ form.errors.status.0 }}</div>{% endif %}
+                </div>
+              </div>
+
+              <!-- Location & Department Section -->
+              <div class="section-title fw-semibold text-primary mb-3 pb-2 border-bottom">
+                <i class="fa-solid fa-location-dot me-2"></i> Location & Organization
+              </div>
+
+              <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                  <label class="form-label" for="{{ form.location.id_for_label }}">
+                    {{ form.location.label }}
+                  </label>
+                  {{ form.location|add_error_class:"is-invalid"|add_class:"form-control" }}
+                  {% if form.errors.location %}<div class="invalid-feedback d-block">{{ form.errors.location.0 }}</div>{% endif %}
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label" for="{{ form.department.id_for_label }}">
+                    {{ form.department.label }}
+                  </label>
+                  {{ form.department|add_error_class:"is-invalid"|add_class:"form-select" }}
+                  {% if form.errors.department %}<div class="invalid-feedback d-block">{{ form.errors.department.0 }}</div>{% endif %}
+                </div>
+              </div>
+
+              <!-- Actions -->
+              <div class="d-flex flex-wrap gap-2 justify-content-end pt-3 border-top">
+                <a href="{% url 'hardware:accessory_list' %}" class="btn btn-outline-secondary">
+                  Cancel
+                </a>
+                <button type="submit" class="btn btn-primary btn-lg">
+                  <i class="fa-solid fa-circle-check me-1"></i> Create Accessories
+                </button>
+              </div>
+
+            </form>
+
           </div>
+        </div>
 
-          <!-- Form Panel -->
-          <div class="col-12 col-lg-7">
-            <div class="card shadow-sm">
-              <div class="card-header bg-white fw-semibold">
-                <i class="fa-solid fa-keyboard me-2 text-muted"></i> Accessory Data
-              </div>
-              <div class="card-body">
+        <!-- Examples Card -->
+        <div class="card shadow-sm mt-4 bg-light">
+          <div class="card-header bg-light fw-semibold border-0">
+            <i class="fa-solid fa-book me-2 text-info"></i> Examples
+          </div>
+          <div class="card-body small">
 
-                {% if form.errors %}
-                  <div class="alert alert-danger">
-                    <div class="fw-semibold mb-2">⚠️ Please fix the errors below:</div>
-                    {% for field, errors in form.errors.items %}
-                      <div class="ms-2 mb-2">
-                        {% if field != '__all__' %}
-                          <strong>{{ field }}:</strong>
-                        {% endif %}
-                        <ul class="mb-0 ps-3 small">
-                          {% for error in errors %}
-                            <li>{{ error|safe }}</li>
-                          {% endfor %}
-                        </ul>
-                      </div>
-                    {% endfor %}
-                  </div>
-                {% endif %}
-
-                <form method="post" novalidate>
-                  {% csrf_token %}
-
-                  <div class="mb-3">
-                    <label class="form-label" for="{{ form.bulk_data.id_for_label }}">
-                      Accessory Data <span class="text-danger">*</span>
-                    </label>
-                    {{ form.bulk_data|add_error_class:"is-invalid"|add_class:"form-control" }}
-                    <div class="form-text">
-                      {{ form.bulk_data.help_text }}
-                    </div>
-                    {% if form.errors.bulk_data %}<div class="invalid-feedback d-block">{{ form.errors.bulk_data.0 }}</div>{% endif %}
-                  </div>
-
-                  <hr>
-
-                  <div class="row g-3 mb-3">
-                    <div class="col-md-6">
-                      <label class="form-label" for="{{ form.default_type.id_for_label }}">
-                        {{ form.default_type.label }}
-                      </label>
-                      {{ form.default_type|add_error_class:"is-invalid"|add_class:"form-select" }}
-                      <div class="form-text">Used when Type column is empty</div>
-                      {% if form.errors.default_type %}<div class="invalid-feedback d-block">{{ form.errors.default_type.0 }}</div>{% endif %}
-                    </div>
-
-                    <div class="col-md-6">
-                      <label class="form-label" for="{{ form.default_status.id_for_label }}">
-                        {{ form.default_status.label }}
-                      </label>
-                      {{ form.default_status|add_error_class:"is-invalid"|add_class:"form-select" }}
-                      <div class="form-text">Used when Status column is empty</div>
-                      {% if form.errors.default_status %}<div class="invalid-feedback d-block">{{ form.errors.default_status.0 }}</div>{% endif %}
-                    </div>
-                  </div>
-
-                  <div class="mb-3">
-                    <label class="form-label" for="{{ form.department.id_for_label }}">
-                      {{ form.department.label }}
-                    </label>
-                    {{ form.department|add_error_class:"is-invalid"|add_class:"form-select" }}
-                    <div class="form-text">Assign all accessories to a department (optional)</div>
-                    {% if form.errors.department %}<div class="invalid-feedback d-block">{{ form.errors.department.0 }}</div>{% endif %}
-                  </div>
-
-                  <!-- Actions -->
-                  <div class="d-flex flex-wrap gap-2 justify-content-end pt-3 border-top">
-                    <a href="{% url 'hardware:accessory_list' %}" class="btn btn-outline-secondary">
-                      Cancel
-                    </a>
-                    <button type="submit" class="btn btn-primary">
-                      <i class="fa-solid fa-upload me-1"></i> Create Accessories
-                    </button>
-                  </div>
-
-                </form>
-
-              </div>
+            <div class="mb-3">
+              <h6 class="mb-2"><i class="fa-solid fa-check text-success me-1"></i> Example 1: Create 5 Dell Monitors</h6>
+              <table class="table table-sm table-borderless mb-0">
+                <tr>
+                  <td><strong>Name:</strong></td>
+                  <td>Dell 27" Monitor</td>
+                </tr>
+                <tr>
+                  <td><strong>Type:</strong></td>
+                  <td>Monitor</td>
+                </tr>
+                <tr>
+                  <td><strong>Prefix:</strong></td>
+                  <td>MON</td>
+                </tr>
+                <tr>
+                  <td><strong>Start:</strong></td>
+                  <td>1</td>
+                </tr>
+                <tr>
+                  <td><strong>Quantity:</strong></td>
+                  <td><strong>5</strong></td>
+                </tr>
+                <tr>
+                  <td><strong>Result:</strong></td>
+                  <td class="text-success fw-semibold">MON-001 to MON-005</td>
+                </tr>
+              </table>
             </div>
 
-            <!-- Quick Template Panel -->
-            <div class="card shadow-sm mt-3">
-              <div class="card-header bg-light fw-semibold">
-                <i class="fa-solid fa-clone me-2 text-secondary"></i> Quick Template
-              </div>
-              <div class="card-body">
-                <p class="small mb-2">Copy and paste this template, then fill in your data:</p>
-                <div class="bg-light border rounded p-2" style="font-family: monospace; font-size: 11px; overflow-x: auto;">
-                  <div>Name	Asset Tag	Type	Manufacturer	Model	Serial	Status	Location</div>
-                  <div>Monitor 1	MON-001	Monitor	Dell	27"	ABC123		In Service	Desk A</div>
-                  <div>Keyboard 1	KEY-001	Keyboard	Logitech	K840	XYZ789		In Service	Desk A</div>
-                  <div>Mouse 1	MOU-001	Mouse	Logitech	M705	DEF456		In Service	Desk A</div>
-                </div>
-              </div>
+            <div class="mb-3">
+              <h6 class="mb-2"><i class="fa-solid fa-check text-success me-1"></i> Example 2: Create 10 Keyboards (starting at 100)</h6>
+              <table class="table table-sm table-borderless mb-0">
+                <tr>
+                  <td><strong>Name:</strong></td>
+                  <td>Logitech K840 Keyboard</td>
+                </tr>
+                <tr>
+                  <td><strong>Type:</strong></td>
+                  <td>Keyboard</td>
+                </tr>
+                <tr>
+                  <td><strong>Prefix:</strong></td>
+                  <td>KEY</td>
+                </tr>
+                <tr>
+                  <td><strong>Start:</strong></td>
+                  <td><strong>100</strong></td>
+                </tr>
+                <tr>
+                  <td><strong>Quantity:</strong></td>
+                  <td><strong>10</strong></td>
+                </tr>
+                <tr>
+                  <td><strong>Result:</strong></td>
+                  <td class="text-success fw-semibold">KEY-100 to KEY-109</td>
+                </tr>
+              </table>
             </div>
 
           </div>
-
         </div>
 
       </div>
@@ -180,3 +263,4 @@
   </div>
 </div>
 {% endblock %}
+

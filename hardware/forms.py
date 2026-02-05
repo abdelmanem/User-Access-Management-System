@@ -130,32 +130,74 @@ class RelatedAssetForm(forms.ModelForm):
 
 
 class BulkAccessoryForm(forms.Form):
-    """Form for bulk creating accessories."""
+    """Form for bulk creating accessories with individual fields."""
     
     ACCESSORY_TYPE_CHOICES = Accessory.ACCESSORY_TYPE_CHOICES
     STATUS_CHOICES = Accessory.STATUS_CHOICES
     
-    bulk_data = forms.CharField(
-        widget=forms.Textarea(attrs={
-            "rows": 15,
-            "placeholder": "Name\tAsset Tag\tType\tManufacturer\tModel\nMonitor 1\tMON-001\tMonitor\tDell\t27\"\nKeyboard 1\tKEY-001\tKeyboard\tLogitech\tK840",
-            "style": "font-family: monospace; font-size: 12px;"
-        }),
-        help_text="Enter accessories as tab-separated values. Headers: Name, Asset Tag, Type, Manufacturer, Model, Serial, Status, Location (optional)"
+    name = forms.CharField(
+        max_length=255,
+        label="Accessory Name",
+        widget=forms.TextInput(attrs={"placeholder": "e.g., Dell 27\" Monitor"})
     )
     
-    default_type = forms.ChoiceField(
+    asset_tag_prefix = forms.CharField(
+        max_length=100,
+        label="Asset Tag Prefix",
+        widget=forms.TextInput(attrs={"placeholder": "e.g., MON", "help_text": "Will auto-generate with numbers"})
+    )
+    
+    asset_tag_start = forms.IntegerField(
+        initial=1,
+        label="Starting Number",
+        widget=forms.NumberInput(attrs={"min": "1", "placeholder": "e.g., 1"})
+    )
+    
+    accessory_type = forms.ChoiceField(
         choices=ACCESSORY_TYPE_CHOICES,
         initial="Monitor",
-        label="Default Type (if not specified)",
-        required=False
+        label="Type"
     )
     
-    default_status = forms.ChoiceField(
+    manufacturer = forms.CharField(
+        max_length=100,
+        label="Manufacturer",
+        required=False,
+        widget=forms.TextInput(attrs={"placeholder": "e.g., Dell, Logitech"})
+    )
+    
+    model_number = forms.CharField(
+        max_length=100,
+        label="Model",
+        required=False,
+        widget=forms.TextInput(attrs={"placeholder": "e.g., 27\", K840"})
+    )
+    
+    serial_number = forms.CharField(
+        max_length=100,
+        label="Serial Number",
+        required=False,
+        widget=forms.TextInput(attrs={"placeholder": "e.g., ABC123456"})
+    )
+    
+    status = forms.ChoiceField(
         choices=STATUS_CHOICES,
         initial="In Service",
-        label="Default Status (if not specified)",
-        required=False
+        label="Status"
+    )
+    
+    location = forms.CharField(
+        max_length=255,
+        label="Location",
+        required=False,
+        widget=forms.TextInput(attrs={"placeholder": "e.g., Building A - Floor 2"})
+    )
+    
+    quantity = forms.IntegerField(
+        initial=1,
+        label="Quantity",
+        help_text="How many to create (max 100)",
+        widget=forms.NumberInput(attrs={"min": "1", "max": "100"})
     )
     
     department = forms.ModelChoiceField(
@@ -169,76 +211,61 @@ class BulkAccessoryForm(forms.Form):
         from departments.models import Department
         self.fields['department'].queryset = Department.objects.all()
     
-    def clean_bulk_data(self):
-        bulk_data = self.cleaned_data.get('bulk_data', '').strip()
-        if not bulk_data:
-            raise forms.ValidationError("Please enter at least one accessory.")
-        return bulk_data
+    def clean(self):
+        cleaned_data = super().clean()
+        quantity = cleaned_data.get('quantity', 1)
+        
+        if quantity and quantity < 1:
+            raise forms.ValidationError("Quantity must be at least 1")
+        
+        if quantity and quantity > 100:
+            raise forms.ValidationError("Quantity cannot exceed 100")
+        
+        return cleaned_data
     
-    def parse_accessories(self):
-        """Parse the bulk data and return list of accessories to create."""
-        bulk_data = self.cleaned_data.get('bulk_data', '')
+    def generate_accessories(self):
+        """Generate accessories list with auto-incremented asset tags.
+        
+        Note: serial_number has a UNIQUE constraint, so only the first item
+        gets the serial. Remaining items have None (NULL) for serial_number.
+        """
+        name = self.cleaned_data.get('name')
+        prefix = self.cleaned_data.get('asset_tag_prefix')
+        start_num = self.cleaned_data.get('asset_tag_start', 1)
+        quantity = self.cleaned_data.get('quantity', 1)
+        accessory_type = self.cleaned_data.get('accessory_type')
+        manufacturer = self.cleaned_data.get('manufacturer', '')
+        model = self.cleaned_data.get('model_number', '')
+        serial = self.cleaned_data.get('serial_number', '')
+        status = self.cleaned_data.get('status')
+        location = self.cleaned_data.get('location', '')
+        department = self.cleaned_data.get('department')
+        
         accessories = []
-        errors = []
         
-        lines = [line.strip() for line in bulk_data.split('\n') if line.strip()]
-        
-        # Skip header row if it looks like headers
-        if lines and lines[0].lower() in ['name\tasset tag\ttype\tmanufacturer\tmodel', 'name\tasset\ttype\tmfg\tmodel']:
-            lines = lines[1:]
-        
-        for idx, line in enumerate(lines, 1):
-            if not line.strip():
-                continue
+        for i in range(quantity):
+            # Generate asset tag: PREFIX-001, PREFIX-002, etc.
+            num = start_num + i
+            asset_tag = f"{prefix}-{str(num).zfill(3)}"
             
-            parts = [p.strip() for p in line.split('\t')]
+            # Generate name with number suffix if quantity > 1
+            item_name = f"{name} {i+1}" if quantity > 1 else name
             
-            # Minimum required: Name and Asset Tag
-            if len(parts) < 2:
-                errors.append(f"Row {idx}: Need at least Name and Asset Tag")
-                continue
-            
-            name = parts[0]
-            asset_tag = parts[1]
-            accessory_type = parts[2] if len(parts) > 2 and parts[2] else self.cleaned_data.get('default_type', 'Monitor')
-            manufacturer = parts[3] if len(parts) > 3 else ""
-            model = parts[4] if len(parts) > 4 else ""
-            serial = parts[5] if len(parts) > 5 else ""
-            status = parts[6] if len(parts) > 6 and parts[6] else self.cleaned_data.get('default_status', 'In Service')
-            location = parts[7] if len(parts) > 7 else ""
-            
-            # Validate type
-            if accessory_type not in dict(self.ACCESSORY_TYPE_CHOICES):
-                errors.append(f"Row {idx}: Invalid type '{accessory_type}'. Valid types: {', '.join(dict(self.ACCESSORY_TYPE_CHOICES).keys())}")
-                continue
-            
-            # Validate status
-            if status not in dict(self.STATUS_CHOICES):
-                errors.append(f"Row {idx}: Invalid status '{status}'. Valid statuses: {', '.join(dict(self.STATUS_CHOICES).keys())}")
-                continue
-            
-            # Check for duplicate asset tags in the same batch
-            if any(acc['asset_tag'] == asset_tag for acc in accessories):
-                errors.append(f"Row {idx}: Duplicate asset tag '{asset_tag}'")
-                continue
+            # Only use serial_number for first item (unique constraint)
+            # Use None (NULL) for remaining items, not empty string
+            item_serial = serial if i == 0 else None
             
             accessories.append({
-                'name': name,
+                'name': item_name,
                 'asset_tag': asset_tag,
                 'accessory_type': accessory_type,
                 'manufacturer': manufacturer,
                 'model_number': model,
-                'serial_number': serial,
+                'serial_number': item_serial,
                 'status': status,
                 'location': location,
-                'department': self.cleaned_data.get('department'),
+                'department': department,
             })
         
-        if errors:
-            error_text = "Errors found:\n" + "\n".join(errors)
-            raise forms.ValidationError(error_text)
-        
-        if not accessories:
-            raise forms.ValidationError("No valid accessories found in the data.")
-        
         return accessories
+
