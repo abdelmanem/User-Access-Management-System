@@ -793,15 +793,14 @@ class LDAPComputerSync:
                     if isinstance(operating_system, str) and 'virtual' in operating_system.lower():
                         is_virtual = True
 
-                    # Attempt to map a simple location from the DN (OU path)
+                    # Location from OU mapping is disabled - do not extract location from DN/OU path
+                    # Users can manually set hardware location in the system instead
                     location = None
                     dn = computer_data.get('distinguishedName') or computer_data.get('distinguishedname')
-                    if isinstance(dn, str) and 'OU=' in dn:
-                        # Extract OU segments and join them as a path
-                        ou_parts = [part[3:] for part in dn.split(',') if part.startswith('OU=')]
-                        if ou_parts:
-                            location = " / ".join(reversed(ou_parts))
-                            # If OU path suggests virtualization, mark as virtual
+                    if isinstance(dn, str):
+                        # Check if OU path suggests virtualization, but don't use OU for location
+                        if 'OU=' in dn:
+                            ou_parts = [part[3:] for part in dn.split(',') if part.startswith('OU=')]
                             if any('vm' in part.lower() or 'virtual' in part.lower() for part in ou_parts):
                                 is_virtual = True
 

@@ -250,7 +250,7 @@ def dashboard_home(request):
             ),
             distinct=True
         )
-    ).filter(user_count__gt=0).order_by('-user_count')[:10]
+    ).order_by('-user_count')[:10]
     
     system_usage_labels = [s.name for s in system_usage_queryset]
     system_usage_data = [s.user_count for s in system_usage_queryset]

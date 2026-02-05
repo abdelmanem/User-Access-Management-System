@@ -391,7 +391,8 @@ class LDAPSyncComputerFieldSelectionForm(forms.Form):
     
     # Location & status
     sync_location = forms.BooleanField(
-        required=False, initial=False, label="Location", help_text="From OU path"
+        required=False, initial=False, label="Location", help_text="Disabled - Location is manually set and not synced from AD OU",
+        disabled=True  # Location sync from OU is disabled
     )
     sync_enabled_status = forms.BooleanField(
         required=False, initial=True, label="Enabled Status", help_text="From userAccountControl"
