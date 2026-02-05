@@ -211,3 +211,104 @@ def ldap_configuration_list(request):
         'configs': configs,
     })
 
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def ldap_sync_user_fields(request):
+    """
+    Custom LDAP sync page for selecting which user fields to sync
+    """
+    from .forms import LDAPBindPasswordForm, LDAPSyncFieldSelectionForm
+    
+    ldap_config = LDAPConfiguration.get_active_config()
+
+    if not ldap_config:
+        messages.error(request, 'LDAP is not configured. Please configure LDAP settings first.')
+        return redirect('accounts:ldap_configuration')
+
+    if request.method == 'POST':
+        field_form = LDAPSyncFieldSelectionForm(request.POST, prefix='fields')
+        password_form = LDAPBindPasswordForm(request.POST, prefix='password')
+        
+        if field_form.is_valid() and password_form.is_valid():
+            bind_password = password_form.cleaned_data['bind_password']
+            
+            # Get selected fields
+            selected_fields = {
+                key: value for key, value in field_form.cleaned_data.items() 
+                if value is True
+            }
+            
+            messages.info(request, f'Starting user sync with {len(selected_fields)} fields...')
+            result = LDAPSync.sync_all_users(ldap_config, bind_password=bind_password, selected_fields=selected_fields)
+            
+            if result['success']:
+                messages.success(request, f"✓ {result['message']}")
+            else:
+                messages.error(request, f"✗ Sync failed: {result['message']}")
+            
+            return redirect('accounts:ldap_configuration')
+    else:
+        field_form = LDAPSyncFieldSelectionForm(prefix='fields')
+        password_form = LDAPBindPasswordForm(prefix='password')
+    
+    return render(request, 'accounts/ldap_sync_user_fields.html', {
+        'field_form': field_form,
+        'password_form': password_form,
+        'ldap_config': ldap_config,
+    })
+
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def ldap_sync_computer_fields(request):
+    """
+    Custom LDAP sync page for selecting which computer fields to sync
+    """
+    from .forms import LDAPBindPasswordForm, LDAPSyncComputerFieldSelectionForm
+    
+    ldap_config = LDAPConfiguration.get_active_config()
+
+    if not ldap_config:
+        messages.error(request, 'LDAP is not configured. Please configure LDAP settings first.')
+        return redirect('accounts:ldap_configuration')
+
+    if request.method == 'POST':
+        field_form = LDAPSyncComputerFieldSelectionForm(request.POST, prefix='fields')
+        password_form = LDAPBindPasswordForm(request.POST, prefix='password')
+        
+        if field_form.is_valid() and password_form.is_valid():
+            bind_password = password_form.cleaned_data['bind_password']
+            
+            # Get selected fields
+            selected_fields = {
+                key: value for key, value in field_form.cleaned_data.items() 
+                if value is True
+            }
+            
+            messages.info(request, f'Starting computer sync with {len(selected_fields)} fields...')
+            result = LDAPComputerSync.sync_all_computers(ldap_config, bind_password=bind_password, selected_fields=selected_fields)
+            
+            # Clear session (just in case)
+            if 'ldap_sync_computer_fields' in request.session:
+                del request.session['ldap_sync_computer_fields']
+            
+            if result.get('success'):
+                messages.success(request, f"✓ {result.get('message')}")
+            else:
+                messages.error(request, f"✗ Computer sync failed: {result.get('message')}")
+            
+            return redirect('accounts:ldap_configuration')
+    else:
+        field_form = LDAPSyncComputerFieldSelectionForm(prefix='fields')
+        password_form = LDAPBindPasswordForm(prefix='password')
+    
+    return render(request, 'accounts/ldap_sync_computer_fields.html', {
+        'field_form': field_form,
+        'password_form': password_form,
+        'ldap_config': ldap_config,
+    })

@@ -670,6 +670,38 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Custom Field Selection Sync -->
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="card border-success">
+                        <div class="card-body">
+                            <h6 class="card-title"><i class="fas fa-sliders-h"></i> Sync Users (Select Fields)</h6>
+                            <p class="card-text">
+                                Sync users from LDAP while selecting which specific fields to import.
+                                This allows fine-grained control over what data gets synced.
+                            </p>
+                            <a href="{% url 'accounts:ldap_sync_user_fields' %}" class="btn btn-success">
+                                <i class="fas fa-cogs"></i> Configure & Sync Users
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="card border-info">
+                        <div class="card-body">
+                            <h6 class="card-title"><i class="fas fa-sliders-h"></i> Sync Computers (Select Fields)</h6>
+                            <p class="card-text">
+                                Sync computer objects from LDAP while selecting which specific fields to import.
+                                Choose which hardware attributes to update during sync.
+                            </p>
+                            <a href="{% url 'accounts:ldap_sync_computer_fields' %}" class="btn btn-info">
+                                <i class="fas fa-cogs"></i> Configure & Sync Computers
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     {% endif %}

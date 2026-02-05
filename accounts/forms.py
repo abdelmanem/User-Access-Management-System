@@ -280,3 +280,127 @@ class LDAPSyncForm(forms.Form):
         help_text='Force sync all users even if they were recently synced',
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
     )
+
+
+class LDAPSyncFieldSelectionForm(forms.Form):
+    """
+    Form for selecting which LDAP fields to sync for users
+    """
+    
+    # User identification
+    sync_username = forms.BooleanField(
+        required=False, initial=True, label="Username (sAMAccountName)",
+        help_text="Critical: Required for user identification"
+    )
+    
+    # Basic info
+    sync_first_name = forms.BooleanField(
+        required=False, initial=True, label="First Name", help_text="From givenName"
+    )
+    sync_last_name = forms.BooleanField(
+        required=False, initial=True, label="Last Name", help_text="From sn"
+    )
+    sync_email = forms.BooleanField(
+        required=False, initial=True, label="Email", help_text="From mail"
+    )
+    sync_display_name = forms.BooleanField(
+        required=False, initial=True, label="Display Name", help_text="From displayName"
+    )
+    
+    # Employment info
+    sync_employee_id = forms.BooleanField(
+        required=False, initial=True, label="Employee ID", help_text="From employeeNumber"
+    )
+    sync_department = forms.BooleanField(
+        required=False, initial=True, label="Department", help_text="From department"
+    )
+    sync_job_title = forms.BooleanField(
+        required=False, initial=True, label="Job Title", help_text="From title"
+    )
+    sync_position = forms.BooleanField(
+        required=False, initial=False, label="Position", help_text="From custom field"
+    )
+    
+    # Contact info
+    sync_phone = forms.BooleanField(
+        required=False, initial=False, label="Phone", help_text="From telephoneNumber"
+    )
+    sync_mobile = forms.BooleanField(
+        required=False, initial=False, label="Mobile", help_text="From mobile"
+    )
+    
+    # Location info
+    sync_office_location = forms.BooleanField(
+        required=False, initial=False, label="Office Location", help_text="From physicalDeliveryOfficeName"
+    )
+    sync_address = forms.BooleanField(
+        required=False, initial=False, label="Work Address", help_text="From streetAddress"
+    )
+    sync_city = forms.BooleanField(
+        required=False, initial=False, label="City", help_text="From l (locality)"
+    )
+    sync_state = forms.BooleanField(
+        required=False, initial=False, label="State/Province", help_text="From st"
+    )
+    sync_country = forms.BooleanField(
+        required=False, initial=False, label="Country", help_text="From co"
+    )
+    
+    # Account status
+    sync_active_status = forms.BooleanField(
+        required=False, initial=True, label="Active Status", help_text="From userAccountControl"
+    )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.update({'class': 'form-check-input'})
+
+
+class LDAPSyncComputerFieldSelectionForm(forms.Form):
+    """
+    Form for selecting which LDAP fields to sync for computers
+    """
+    
+    # Asset identification
+    sync_name = forms.BooleanField(
+        required=False, initial=True, label="Asset Name", help_text="Critical: From CN or name"
+    )
+    sync_asset_tag = forms.BooleanField(
+        required=False, initial=True, label="Asset Tag", help_text="Critical: From sAMAccountName (without $)"
+    )
+    
+    # Hardware info
+    sync_hardware_type = forms.BooleanField(
+        required=False, initial=True, label="Hardware Type", help_text="Inferred from operatingSystem"
+    )
+    sync_operating_system = forms.BooleanField(
+        required=False, initial=True, label="Operating System", help_text="From operatingSystem"
+    )
+    sync_os_version = forms.BooleanField(
+        required=False, initial=True, label="OS Version", help_text="From operatingSystemVersion"
+    )
+    
+    # Network info
+    sync_ip_address = forms.BooleanField(
+        required=False, initial=True, label="IP Address", help_text="From networkAddress or DNS resolution"
+    )
+    sync_dns_hostname = forms.BooleanField(
+        required=False, initial=False, label="DNS Hostname", help_text="From dNSHostName"
+    )
+    
+    # Location & status
+    sync_location = forms.BooleanField(
+        required=False, initial=False, label="Location", help_text="From OU path"
+    )
+    sync_enabled_status = forms.BooleanField(
+        required=False, initial=True, label="Enabled Status", help_text="From userAccountControl"
+    )
+    sync_description = forms.BooleanField(
+        required=False, initial=False, label="Description/Notes", help_text="From description"
+    )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.update({'class': 'form-check-input'})

@@ -153,4 +153,6 @@ urlpatterns = [
     path('ldap/test-login/', ldap_views.ldap_test_login, name='ldap_test_login'),
     path('ldap/sync-users/', ldap_views.ldap_sync_users, name='ldap_sync_users'),
     path('ldap/sync-computers/', ldap_views.ldap_sync_computers, name='ldap_sync_computers'),
+    path('ldap/sync-user-fields/', ldap_views.ldap_sync_user_fields, name='ldap_sync_user_fields'),
+    path('ldap/sync-computer-fields/', ldap_views.ldap_sync_computer_fields, name='ldap_sync_computer_fields'),
 ]

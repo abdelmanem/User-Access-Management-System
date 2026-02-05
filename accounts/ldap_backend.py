@@ -375,9 +375,18 @@ class LDAPAuthenticationBackend(ModelBackend):
             logger.error(f"Error getting or creating user: {str(e)}")
             return None
     
-    def _update_user_from_ldap(self, user, ldap_user_data, ldap_config, password=None):
+    def _update_user_from_ldap(self, user, ldap_user_data, ldap_config, password=None, selected_fields=None):
         """
-        Update Django user with LDAP data
+        Update Django user with LDAP data.
+        
+        Args:
+            user: User object to update
+            ldap_user_data: User data from LDAP
+            ldap_config: LDAP configuration
+            password: Optional password
+            selected_fields: Dict {field_name: True, ...} to limit which fields are synced.
+                           If None, all fields are synced. Field names are the form field names
+                           like 'sync_first_name', 'sync_email', etc.
         """
         from django.utils import timezone
         from departments.models import Department
@@ -386,6 +395,15 @@ class LDAPAuthenticationBackend(ModelBackend):
             """Get field value case-insensitively"""
             return data.get(field) or data.get(field.lower()) or data.get(field.upper())
         
+        # Helper function to check if field should be synced
+        def should_sync_field(field_name):
+            """Check if field should be synced based on selected_fields"""
+            # If no selected fields, sync everything
+            if selected_fields is None:
+                return True
+            # Check if field is selected
+            return selected_fields.get(field_name, False)
+        
         try:
             # Update basic fields
             firstname_field = ldap_config.ldap_firstname_field or 'givenName'
@@ -393,9 +411,14 @@ class LDAPAuthenticationBackend(ModelBackend):
             email_field = ldap_config.ldap_email_field or 'mail'
             displayname_field = ldap_config.ldap_displayname_field or 'displayName'
             
-            user.first_name = get_field(ldap_user_data, firstname_field) or user.first_name
-            user.last_name = get_field(ldap_user_data, lastname_field) or user.last_name
-            user.email = get_field(ldap_user_data, email_field) or user.email
+            if should_sync_field('sync_first_name'):
+                user.first_name = get_field(ldap_user_data, firstname_field) or user.first_name
+            
+            if should_sync_field('sync_last_name'):
+                user.last_name = get_field(ldap_user_data, lastname_field) or user.last_name
+            
+            if should_sync_field('sync_email'):
+                user.email = get_field(ldap_user_data, email_field) or user.email
             
             # Update extended fields if available (using case-insensitive lookup)
             phone_field = ldap_config.ldap_phone_field or 'telephoneNumber'
@@ -409,21 +432,24 @@ class LDAPAuthenticationBackend(ModelBackend):
             department_field = ldap_config.ldap_department_field or 'department'
             
             # Phone
-            phone_value = get_field(ldap_user_data, phone_field)
-            if phone_value:
-                phone = str(phone_value)
-                if len(phone) >= 7:  # Basic validation
-                    user.phone_primary = phone
+            if should_sync_field('sync_phone'):
+                phone_value = get_field(ldap_user_data, phone_field)
+                if phone_value:
+                    phone = str(phone_value)
+                    if len(phone) >= 7:  # Basic validation
+                        user.phone_primary = phone
             
             # Mobile
-            mobile_value = get_field(ldap_user_data, mobile_field)
-            if mobile_value:
-                user.phone_secondary = str(mobile_value)
+            if should_sync_field('sync_mobile'):
+                mobile_value = get_field(ldap_user_data, mobile_field)
+                if mobile_value:
+                    user.phone_secondary = str(mobile_value)
             
             # Job Title / Position
-            jobtitle_value = get_field(ldap_user_data, jobtitle_field)
-            if jobtitle_value:
-                user.position = str(jobtitle_value)
+            if should_sync_field('sync_job_title'):
+                jobtitle_value = get_field(ldap_user_data, jobtitle_field)
+                if jobtitle_value:
+                    user.position = str(jobtitle_value)
                 user.job_title = str(jobtitle_value)
             
             # Description (from AD description field)
@@ -463,25 +489,27 @@ class LDAPAuthenticationBackend(ModelBackend):
                 user.country = str(country_value)
             
             # Employee Number / ID
-            employee_field = ldap_config.ldap_employeenumber_field or 'employeeNumber'
-            employee_value = get_field(ldap_user_data, employee_field) or get_field(ldap_user_data, 'employeeID')
-            # Note: employee_id is auto-generated, so we store AD employee number in notes if different
-            if employee_value and str(employee_value) != user.employee_id:
-                if user.notes:
-                    if 'AD Employee#' not in user.notes:
-                        user.notes += f"\nAD Employee#: {employee_value}"
-                else:
-                    user.notes = f"AD Employee#: {employee_value}"
+            if should_sync_field('sync_employee_id'):
+                employee_field = ldap_config.ldap_employeenumber_field or 'employeeNumber'
+                employee_value = get_field(ldap_user_data, employee_field) or get_field(ldap_user_data, 'employeeID')
+                # Note: employee_id is auto-generated, so we store AD employee number in notes if different
+                if employee_value and str(employee_value) != user.employee_id:
+                    if user.notes:
+                        if 'AD Employee#' not in user.notes:
+                            user.notes += f"\nAD Employee#: {employee_value}"
+                    else:
+                        user.notes = f"AD Employee#: {employee_value}"
             
             # Update department
-            dept_value = get_field(ldap_user_data, department_field)
-            if dept_value:
-                dept_name = str(dept_value)
-                dept, created = Department.objects.get_or_create(
-                    name=dept_name,
-                    defaults={'description': f'Auto-created from LDAP sync'}
-                )
-                user.department = dept
+            if should_sync_field('sync_department'):
+                dept_value = get_field(ldap_user_data, department_field)
+                if dept_value:
+                    dept_name = str(dept_value)
+                    dept, created = Department.objects.get_or_create(
+                        name=dept_name,
+                        defaults={'description': f'Auto-created from LDAP sync'}
+                    )
+                    user.department = dept
             
             # Update AD sync fields
             user.ad_synced = True
@@ -492,23 +520,24 @@ class LDAPAuthenticationBackend(ModelBackend):
                 user.ad_distinguished_name = str(dn_value)
             
             # Check active flag (userAccountControl for AD)
-            active_flag_field = ldap_config.ldap_active_flag or 'userAccountControl'
-            active_value = get_field(ldap_user_data, active_flag_field)
-            if active_value is not None:
-                # For AD userAccountControl: bit 2 (value 2) means disabled
-                # Normal active account has value like 512, 544, etc.
-                # Disabled account has value like 514, 546, etc.
-                if ldap_config.is_active_directory and active_flag_field.lower() == 'useraccountcontrol':
-                    try:
-                        uac_value = int(active_value)
-                        is_disabled = (uac_value & 2) != 0
-                        user.is_active = not is_disabled if not ldap_config.ldap_invert_active_flag else is_disabled
-                    except (ValueError, TypeError):
-                        pass
-                else:
-                    # Generic boolean check
-                    is_active = bool(active_value) and str(active_value).lower() not in ['0', 'false', 'disabled']
-                    user.is_active = not is_active if ldap_config.ldap_invert_active_flag else is_active
+            if should_sync_field('sync_active_status'):
+                active_flag_field = ldap_config.ldap_active_flag or 'userAccountControl'
+                active_value = get_field(ldap_user_data, active_flag_field)
+                if active_value is not None:
+                    # For AD userAccountControl: bit 2 (value 2) means disabled
+                    # Normal active account has value like 512, 544, etc.
+                    # Disabled account has value like 514, 546, etc.
+                    if ldap_config.is_active_directory and active_flag_field.lower() == 'useraccountcontrol':
+                        try:
+                            uac_value = int(active_value)
+                            is_disabled = (uac_value & 2) != 0
+                            user.is_active = not is_disabled if not ldap_config.ldap_invert_active_flag else is_disabled
+                        except (ValueError, TypeError):
+                            pass
+                    else:
+                        # Generic boolean check
+                        is_active = bool(active_value) and str(active_value).lower() not in ['0', 'false', 'disabled']
+                        user.is_active = not is_active if ldap_config.ldap_invert_active_flag else is_active
             
             # Cache password if enabled
             if ldap_config.cache_passwords and password:
@@ -527,12 +556,18 @@ class LDAPSync:
     """
     
     @staticmethod
-    def sync_all_users(ldap_config=None, bind_password=None):
+    def sync_all_users(ldap_config=None, bind_password=None, selected_fields=None):
         """
         Sync all users from LDAP/AD directory.
 
         A bind_password must be provided at runtime; it is not stored in the
         database.
+        
+        Args:
+            ldap_config: LDAP configuration object
+            bind_password: LDAP bind password (not stored)
+            selected_fields: Dict of field names to sync {field_name: True, ...}
+                            If None, all fields are synced. If dict, only selected fields are synced.
         """
         if not ldap_config:
             ldap_config = LDAPConfiguration.get_active_config()
@@ -608,7 +643,7 @@ class LDAPSync:
                     if username and not username.endswith('$') and username.lower() not in ['krbtgt', 'guest']:
                         user = backend._get_or_create_user(username, user_data, ldap_config)
                         if user:
-                            backend._update_user_from_ldap(user, user_data, ldap_config)
+                            backend._update_user_from_ldap(user, user_data, ldap_config, selected_fields=selected_fields)
                             synced_count += 1
                 except Exception as e:
                     logger.error(f"Error syncing user: {str(e)}")
@@ -637,7 +672,7 @@ class LDAPComputerSync:
     """
 
     @staticmethod
-    def sync_all_computers(ldap_config=None, bind_password=None):
+    def sync_all_computers(ldap_config=None, bind_password=None, selected_fields=None):
         """
         Sync computer accounts from LDAP/AD directory into HardwareAsset.
 
@@ -823,16 +858,29 @@ class LDAPComputerSync:
                         obj = HardwareAsset.objects.get(asset_tag=asset_tag)
                         # Asset exists - only update if sync is enabled
                         if obj.is_sync_enabled:
-                            obj.name = display_name
-                            obj.hardware_type = hardware_type
-                            obj.operating_system = operating_system or ''
-                            obj.operating_system_version = operating_system_version or ''
-                            obj.location = location
-                            obj.ip_address = ipv4_address or None
-                            obj.ipv4_address = ipv4_address or None
-                            obj.is_virtual = is_virtual
-                            obj.is_enabled = is_enabled
-                            obj.notes = notes
+                            # Helper to check if field should be synced
+                            def should_sync_computer_field(field_name):
+                                if selected_fields is None:
+                                    return True
+                                return selected_fields.get(field_name, False)
+                            
+                            if should_sync_computer_field('sync_name'):
+                                obj.name = display_name
+                            if should_sync_computer_field('sync_hardware_type'):
+                                obj.hardware_type = hardware_type
+                            if should_sync_computer_field('sync_operating_system'):
+                                obj.operating_system = operating_system or ''
+                            if should_sync_computer_field('sync_os_version'):
+                                obj.operating_system_version = operating_system_version or ''
+                            if should_sync_computer_field('sync_location'):
+                                obj.location = location
+                            if should_sync_computer_field('sync_ip_address'):
+                                obj.ip_address = ipv4_address or None
+                                obj.ipv4_address = ipv4_address or None
+                            if should_sync_computer_field('sync_enabled_status'):
+                                obj.is_enabled = is_enabled
+                            if should_sync_computer_field('sync_description'):
+                                obj.notes = notes
                             obj.save()
                             updated_count += 1
                         else:
