@@ -535,3 +535,20 @@ class RelatedAsset(models.Model):
     def is_currently_assigned(self):
         """Return True if the accessory is currently assigned (no removal date)."""
         return self.removal_date is None
+    def clean(self):
+        """Validate that accessory is not already assigned to another active hardware."""
+        from django.core.exceptions import ValidationError
+        
+        if self.accessory and not self.removal_date:
+            # Check if this accessory is already assigned to another hardware (without removal date)
+            existing = RelatedAsset.objects.filter(
+                accessory=self.accessory,
+                removal_date__isnull=True
+            ).exclude(pk=self.pk)
+            
+            if existing.exists():
+                other_hardware = existing.first().hardware_asset.name
+                raise ValidationError(
+                    f"This accessory is already assigned to '{other_hardware}'. "
+                    f"Please remove it from there first, or set a removal date for this assignment."
+                )

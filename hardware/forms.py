@@ -104,3 +104,27 @@ class RelatedAssetForm(forms.ModelForm):
             "notes": forms.Textarea(attrs={"rows": 3}),
         }
 
+    def clean(self):
+        """Validate that accessory is not already assigned to another active hardware."""
+        cleaned_data = super().clean()
+        accessory = cleaned_data.get('accessory')
+        removal_date = cleaned_data.get('removal_date')
+        
+        if accessory and not removal_date:
+            # Check if this accessory is already assigned to another hardware without removal date
+            existing = RelatedAsset.objects.filter(
+                accessory=accessory,
+                removal_date__isnull=True
+            ).exclude(pk=self.instance.pk)
+            
+            if existing.exists():
+                other_hardware = existing.first().hardware_asset.name
+                raise forms.ValidationError(
+                    f"❌ This accessory is already assigned to '{other_hardware}'. "
+                    f"You can either:\n"
+                    f"• Remove it from that hardware first (set removal date)\n"
+                    f"• Or set a removal date for this assignment"
+                )
+        
+        return cleaned_data
+

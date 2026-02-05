@@ -235,7 +235,12 @@
             <div class="fw-semibold">
               <i class="fa-solid fa-plug me-2 text-muted"></i> Assigned Accessories
             </div>
-            <span class="badge bg-info">{{ asset.related_accessories.count }}</span>
+            <div class="d-flex gap-2 align-items-center">
+              <span class="badge bg-info">{{ asset.related_accessories.count }}</span>
+              <a href="{% url 'hardware:related_asset_create' %}?hardware={{ asset.pk }}" class="btn btn-sm btn-primary">
+                <i class="fa-solid fa-plus me-1"></i> Add Assignment
+              </a>
+            </div>
           </div>
           <div class="card-body">
             {% if asset.related_accessories.exists %}
@@ -280,9 +285,9 @@
                 </table>
               </div>
             {% else %}
-              <div class="text-muted">
-                <i class="fa-solid fa-info-circle me-2"></i>
-                No accessories assigned to this asset. <a href="{% url 'hardware:related_asset_create' %}?hardware={{ asset.pk }}">Assign one</a>
+              <div class="text-muted text-center py-4">
+                <i class="fa-solid fa-inbox fa-2x mb-2 d-block text-muted-subtle"></i>
+                <div>No accessories assigned to this asset yet.</div>
               </div>
             {% endif %}
           </div>
