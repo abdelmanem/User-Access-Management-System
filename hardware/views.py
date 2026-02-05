@@ -163,7 +163,24 @@ def hardware_delete(request, pk):
 
 @login_required
 def accessory_list(request):
-    """List all accessories with filtering and search."""
+    """List all accessories with filtering, search, and bulk actions."""
+    
+    # Handle bulk actions
+    if request.method == "POST":
+        action = request.POST.get("action", "").strip()
+        selected_ids = request.POST.getlist("selected_ids")
+        
+        if action == "delete" and selected_ids:
+            count = Accessory.objects.filter(pk__in=selected_ids).delete()[0]
+            messages.success(request, f"✅ Successfully deleted {count} accessory/accessories!")
+            return redirect("hardware:accessory_list")
+        elif action == "change_status" and selected_ids:
+            new_status = request.POST.get("status", "").strip()
+            if new_status:
+                count = Accessory.objects.filter(pk__in=selected_ids).update(status=new_status)
+                messages.success(request, f"✅ Updated status for {count} accessory/accessories!")
+                return redirect("hardware:accessory_list")
+    
     accessories = (
         Accessory.objects.all()
         .select_related("department", "primary_user")
