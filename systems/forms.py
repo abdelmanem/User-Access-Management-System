@@ -8,6 +8,17 @@ from hardware.models import HardwareAsset
 
 
 class SystemForm(forms.ModelForm):
+    hardware_assets = forms.ModelMultipleChoiceField(
+        queryset=HardwareAsset.objects.none(),
+        required=False,
+        widget=forms.SelectMultiple(attrs={
+            'class': 'hardware-select-dropdown',
+            'data-placeholder': 'Search and select hardware assets...'
+        }),
+        label='Hardware Assets',
+        help_text='Search and select hardware assets that host or are associated with this system.'
+    )
+
     class Meta:
         model = System
         fields = [
@@ -45,6 +56,7 @@ class SystemForm(forms.ModelForm):
             'sla_resolution_time_hours',
             'system_owner',
             'technical_lead',
+            'hardware_assets',
         ]
         widgets = {
             'last_maintenance_date': forms.DateInput(attrs={'type': 'date'}),
@@ -58,19 +70,29 @@ class SystemForm(forms.ModelForm):
         qs = CustomUser.objects.order_by('first_name', 'last_name')
         self.fields['system_owner'].queryset = qs
         self.fields['technical_lead'].queryset = qs
-        # Populate server_name choices from hardware assets so UI shows a dropdown of servers
+        
+        # Populate server_name with Select2 dropdown
         server_qs = HardwareAsset.objects.filter(
             hardware_type__in=['Server', 'Virtual Server']
         ).order_by('name', 'asset_tag')
-        server_choices = [('', '---------')] + [
-            (asset.name, f"{asset.name} [{asset.asset_tag}]")
-            for asset in server_qs
-        ]
-        self.fields['server_name'] = forms.ChoiceField(
-            choices=server_choices,
+        self.fields['server_name'] = forms.ModelChoiceField(
+            queryset=server_qs,
             required=False,
+            widget=forms.Select(attrs={
+                'class': 'server-select-dropdown',
+                'data-placeholder': 'Search and select server...'
+            }),
             label='Server name',
+            help_text='Search and select the server hosting this system.',
+            empty_label='-- None --'
         )
+        
+        # Populate hardware_assets queryset
+        self.fields['hardware_assets'].queryset = HardwareAsset.objects.order_by('name', 'asset_tag')
+        
+        # Set initial hardware assets if editing an existing system
+        if self.instance and self.instance.pk:
+            self.fields['hardware_assets'].initial = self.instance.hardware_assets.values_list('id', flat=True)
 
     def clean_code(self):
         code = self.cleaned_data.get('code', '').strip()

@@ -207,7 +207,7 @@ def dashboard_home(request):
             ),
             distinct=True
         )
-    ).filter(hardware_count__gt=0).order_by('-hardware_count')[:10]
+    ).order_by('-hardware_count')[:10]
     
     # Recent activity
     recent_activity = [

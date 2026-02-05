@@ -230,6 +230,12 @@ def system_update(request, pk):
             sys_obj = form.save(commit=False)
             sys_obj.updated_by = request.user
             sys_obj.save()
+            
+            # Handle hardware_assets M2M relationship
+            if 'hardware_assets' in form.cleaned_data:
+                selected_hardware = form.cleaned_data['hardware_assets']
+                sys_obj.hardware_assets.set(selected_hardware)
+            
             messages.success(request, 'System updated successfully.')
             return redirect('systems:system_detail', pk=system.pk)
         messages.error(request, 'Please correct the errors below.')
