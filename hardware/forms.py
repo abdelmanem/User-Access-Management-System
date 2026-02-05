@@ -104,6 +104,14 @@ class RelatedAssetForm(forms.ModelForm):
             "notes": forms.Textarea(attrs={"rows": 3}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Customize the accessory field to display with serial number
+        self.fields['accessory'].label_from_instance = lambda obj: (
+            f"{obj.name} - {obj.asset_tag} "
+            f"(SN: {obj.serial_number if obj.serial_number else 'N/A'})"
+        )
+
     def clean(self):
         """Validate that accessory is not already assigned to another active hardware."""
         cleaned_data = super().clean()
