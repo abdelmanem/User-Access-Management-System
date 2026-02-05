@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% load static form_extras %}
+{% block title %}Bulk Create Accessories{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <div class="container-fluid">
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-10">
+
+        <!-- Header -->
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+          <div>
+            <h2 class="mb-0">Bulk Create Accessories</h2>
+            <div class="text-muted small">Add multiple accessories at once using tab-separated values</div>
+          </div>
+          <div>
+            <a href="{% url 'hardware:accessory_list' %}" class="btn btn-sm btn-outline-secondary">
+              <i class="fa-solid fa-arrow-left me-1"></i> Back to list
+            </a>
+          </div>
+        </div>
+
+        <div class="row g-3">
+
+          <!-- Instructions Panel -->
+          <div class="col-12 col-lg-5">
+            <div class="card shadow-sm h-100">
+              <div class="card-header bg-light fw-semibold">
+                <i class="fa-solid fa-circle-info me-2 text-info"></i> How to Use
+              </div>
+              <div class="card-body small">
+                
+                <h6 class="mt-3 mb-2"><i class="fa-solid fa-list me-2"></i> Format</h6>
+                <p class="mb-2">Enter one accessory per line with these columns separated by tabs or spaces:</p>
+                <div class="bg-light border rounded p-2 mb-2" style="font-family: monospace; font-size: 11px; overflow-x: auto;">
+                  Name | Asset Tag | Type | Manufacturer | Model | Serial | Status | Location
+                </div>
+
+                <h6 class="mt-3 mb-2"><i class="fa-solid fa-check me-2"></i> Required Fields</h6>
+                <ul class="mb-2 ps-3">
+                  <li><strong>Name:</strong> Accessory name (e.g., "Dell Monitor 27")</li>
+                  <li><strong>Asset Tag:</strong> Unique identifier (e.g., "MON-001")</li>
+                </ul>
+
+                <h6 class="mt-3 mb-2"><i class="fa-solid fa-lightbulb me-2"></i> Optional Fields</h6>
+                <ul class="mb-2 ps-3">
+                  <li><strong>Type:</strong> Monitor, Keyboard, Mouse, Dock, etc. (default: Monitor)</li>
+                  <li><strong>Manufacturer:</strong> Brand name</li>
+                  <li><strong>Model:</strong> Model number</li>
+                  <li><strong>Serial:</strong> Serial number</li>
+                  <li><strong>Status:</strong> In Service, In Storage, etc. (default: In Service)</li>
+                  <li><strong>Location:</strong> Physical location</li>
+                </ul>
+
+                <h6 class="mt-3 mb-2"><i class="fa-solid fa-copy me-2"></i> Example</h6>
+                <div class="bg-light border rounded p-2" style="font-family: monospace; font-size: 11px; overflow-x: auto;">
+                  <div>Dell Monitor	MON-001	Monitor	Dell	27"</div>
+                  <div>Logitech Keyboard	KEY-001	Keyboard	Logitech	K840</div>
+                  <div>Mouse	MOU-001	Mouse	Logitech	M705</div>
+                </div>
+
+                <div class="alert alert-warning mt-3 mb-0 small">
+                  <i class="fa-solid fa-circle-exclamation me-1"></i>
+                  <strong>Note:</strong> Asset tags must be unique. Duplicates will be rejected.
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- Form Panel -->
+          <div class="col-12 col-lg-7">
+            <div class="card shadow-sm">
+              <div class="card-header bg-white fw-semibold">
+                <i class="fa-solid fa-keyboard me-2 text-muted"></i> Accessory Data
+              </div>
+              <div class="card-body">
+
+                {% if form.errors %}
+                  <div class="alert alert-danger">
+                    <div class="fw-semibold mb-2">⚠️ Please fix the errors below:</div>
+                    {% for field, errors in form.errors.items %}
+                      <div class="ms-2 mb-2">
+                        {% if field != '__all__' %}
+                          <strong>{{ field }}:</strong>
+                        {% endif %}
+                        <ul class="mb-0 ps-3 small">
+                          {% for error in errors %}
+                            <li>{{ error|safe }}</li>
+                          {% endfor %}
+                        </ul>
+                      </div>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+
+                <form method="post" novalidate>
+                  {% csrf_token %}
+
+                  <div class="mb-3">
+                    <label class="form-label" for="{{ form.bulk_data.id_for_label }}">
+                      Accessory Data <span class="text-danger">*</span>
+                    </label>
+                    {{ form.bulk_data|add_error_class:"is-invalid"|add_class:"form-control" }}
+                    <div class="form-text">
+                      {{ form.bulk_data.help_text }}
+                    </div>
+                    {% if form.errors.bulk_data %}<div class="invalid-feedback d-block">{{ form.errors.bulk_data.0 }}</div>{% endif %}
+                  </div>
+
+                  <hr>
+
+                  <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                      <label class="form-label" for="{{ form.default_type.id_for_label }}">
+                        {{ form.default_type.label }}
+                      </label>
+                      {{ form.default_type|add_error_class:"is-invalid"|add_class:"form-select" }}
+                      <div class="form-text">Used when Type column is empty</div>
+                      {% if form.errors.default_type %}<div class="invalid-feedback d-block">{{ form.errors.default_type.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="col-md-6">
+                      <label class="form-label" for="{{ form.default_status.id_for_label }}">
+                        {{ form.default_status.label }}
+                      </label>
+                      {{ form.default_status|add_error_class:"is-invalid"|add_class:"form-select" }}
+                      <div class="form-text">Used when Status column is empty</div>
+                      {% if form.errors.default_status %}<div class="invalid-feedback d-block">{{ form.errors.default_status.0 }}</div>{% endif %}
+                    </div>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label" for="{{ form.department.id_for_label }}">
+                      {{ form.department.label }}
+                    </label>
+                    {{ form.department|add_error_class:"is-invalid"|add_class:"form-select" }}
+                    <div class="form-text">Assign all accessories to a department (optional)</div>
+                    {% if form.errors.department %}<div class="invalid-feedback d-block">{{ form.errors.department.0 }}</div>{% endif %}
+                  </div>
+
+                  <!-- Actions -->
+                  <div class="d-flex flex-wrap gap-2 justify-content-end pt-3 border-top">
+                    <a href="{% url 'hardware:accessory_list' %}" class="btn btn-outline-secondary">
+                      Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                      <i class="fa-solid fa-upload me-1"></i> Create Accessories
+                    </button>
+                  </div>
+
+                </form>
+
+              </div>
+            </div>
+
+            <!-- Quick Template Panel -->
+            <div class="card shadow-sm mt-3">
+              <div class="card-header bg-light fw-semibold">
+                <i class="fa-solid fa-clone me-2 text-secondary"></i> Quick Template
+              </div>
+              <div class="card-body">
+                <p class="small mb-2">Copy and paste this template, then fill in your data:</p>
+                <div class="bg-light border rounded p-2" style="font-family: monospace; font-size: 11px; overflow-x: auto;">
+                  <div>Name	Asset Tag	Type	Manufacturer	Model	Serial	Status	Location</div>
+                  <div>Monitor 1	MON-001	Monitor	Dell	27"	ABC123		In Service	Desk A</div>
+                  <div>Keyboard 1	KEY-001	Keyboard	Logitech	K840	XYZ789		In Service	Desk A</div>
+                  <div>Mouse 1	MOU-001	Mouse	Logitech	M705	DEF456		In Service	Desk A</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

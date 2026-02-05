@@ -15,6 +15,7 @@ urlpatterns = [
     # Accessory URLs
     path("accessories/", views.accessory_list, name="accessory_list"),
     path("accessories/create/", views.accessory_create, name="accessory_create"),
+    path("accessories/bulk-create/", views.bulk_accessory_create, name="bulk_accessory_create"),
     path("accessories/<int:pk>/", views.accessory_detail, name="accessory_detail"),
     path("accessories/<int:pk>/edit/", views.accessory_update, name="accessory_update"),
     path("accessories/<int:pk>/delete/", views.accessory_delete, name="accessory_delete"),

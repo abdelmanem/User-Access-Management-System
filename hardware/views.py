@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .forms import HardwareAssetForm, AccessoryForm, RelatedAssetForm
+from .forms import HardwareAssetForm, AccessoryForm, RelatedAssetForm, BulkAccessoryForm
 from .models import HardwareAsset, Accessory, RelatedAsset
 
 
@@ -349,3 +349,42 @@ def related_asset_delete(request, pk):
         messages.success(request, "Assignment deleted successfully.")
         return redirect("hardware:hardware_list")
     return render(request, "hardware/related_asset_confirm_delete.html", {"related_asset": related_asset})
+
+@login_required
+def bulk_accessory_create(request):
+    """Bulk create accessories from CSV/tab-separated data."""
+    if request.method == "POST":
+        form = BulkAccessoryForm(request.POST)
+        if form.is_valid():
+            try:
+                accessories_data = form.parse_accessories()
+                created_accessories = []
+                
+                for acc_data in accessories_data:
+                    accessory = Accessory.objects.create(
+                        name=acc_data['name'],
+                        asset_tag=acc_data['asset_tag'],
+                        accessory_type=acc_data['accessory_type'],
+                        manufacturer=acc_data['manufacturer'],
+                        model_number=acc_data['model_number'],
+                        serial_number=acc_data['serial_number'],
+                        status=acc_data['status'],
+                        location=acc_data['location'],
+                        department=acc_data['department'],
+                        created_by=request.user,
+                    )
+                    created_accessories.append(accessory)
+                
+                count = len(created_accessories)
+                messages.success(
+                    request,
+                    f"✅ Successfully created {count} accessory/accessories!"
+                )
+                return redirect("hardware:accessory_list")
+                
+            except Exception as e:
+                messages.error(request, f"Error creating accessories: {str(e)}")
+    else:
+        form = BulkAccessoryForm()
+    
+    return render(request, "hardware/bulk_accessory_create.html", {"form": form})
