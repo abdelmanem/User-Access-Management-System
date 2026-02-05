@@ -3,8 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .forms import HardwareAssetForm
-from .models import HardwareAsset
+from .forms import HardwareAssetForm, AccessoryForm, RelatedAssetForm
+from .models import HardwareAsset, Accessory, RelatedAsset
 
 
 @login_required
@@ -154,3 +154,198 @@ def hardware_delete(request, pk):
         messages.success(request, "Hardware asset deleted successfully.")
         return redirect("hardware:hardware_list")
     return render(request, "hardware/hardware_confirm_delete.html", {"asset": asset})
+
+
+# ============================
+# ACCESSORY VIEWS
+# ============================
+
+
+@login_required
+def accessory_list(request):
+    """List all accessories with filtering and search."""
+    accessories = (
+        Accessory.objects.all()
+        .select_related("department", "primary_user")
+        .prefetch_related("hardware_assignments")
+    )
+
+    # Filters
+    search_query = request.GET.get("q", "").strip()
+    filter_accessory_type = request.GET.get("accessory_type", "").strip()
+    filter_status = request.GET.get("status", "").strip()
+
+    if search_query:
+        accessories = accessories.filter(
+            Q(name__icontains=search_query)
+            | Q(asset_tag__icontains=search_query)
+            | Q(serial_number__icontains=search_query)
+            | Q(manufacturer__icontains=search_query)
+            | Q(model_number__icontains=search_query)
+        )
+
+    if filter_accessory_type:
+        accessories = accessories.filter(accessory_type=filter_accessory_type)
+
+    if filter_status:
+        accessories = accessories.filter(status=filter_status)
+
+    # Default ordering
+    accessories = accessories.order_by("name", "asset_tag")
+
+    context = {
+        "accessories": accessories,
+        "total_accessories": accessories.count(),
+        "active_accessories": accessories.filter(status="In Service").count(),
+        "in_storage_accessories": accessories.filter(status="In Storage").count(),
+        "retired_accessories": accessories.filter(status__in=["Retired", "Disposed"]).count(),
+        "search_query": search_query,
+        "filter_accessory_type": filter_accessory_type,
+        "filter_status": filter_status,
+        "accessory_type_choices": Accessory.ACCESSORY_TYPE_CHOICES,
+        "status_choices": Accessory.STATUS_CHOICES,
+    }
+    return render(request, "hardware/accessory_list.html", context)
+
+
+@login_required
+def accessory_detail(request, pk):
+    """View a single accessory's details and assignments."""
+    accessory = get_object_or_404(
+        Accessory.objects.select_related("department", "primary_user", "created_by", "updated_by")
+        .prefetch_related("hardware_assignments"),
+        pk=pk,
+    )
+    context = {
+        "accessory": accessory,
+    }
+    return render(request, "hardware/accessory_detail.html", context)
+
+
+@login_required
+def accessory_create(request):
+    """Create a new accessory."""
+    if request.method == "POST":
+        form = AccessoryForm(request.POST)
+        if form.is_valid():
+            accessory = form.save(commit=False)
+            accessory.created_by = request.user
+            accessory.updated_by = request.user
+            accessory.save()
+            messages.success(request, "Accessory created successfully.")
+            return redirect("hardware:accessory_detail", pk=accessory.pk)
+        messages.error(request, "Please correct the errors below.")
+    else:
+        form = AccessoryForm()
+    return render(request, "hardware/accessory_form.html", {"form": form})
+
+
+@login_required
+def accessory_update(request, pk):
+    """Edit an existing accessory."""
+    accessory = get_object_or_404(Accessory, pk=pk)
+    if request.method == "POST":
+        form = AccessoryForm(request.POST, instance=accessory)
+        if form.is_valid():
+            accessory = form.save(commit=False)
+            accessory.updated_by = request.user
+            accessory.save()
+            messages.success(request, "Accessory updated successfully.")
+            return redirect("hardware:accessory_detail", pk=accessory.pk)
+        messages.error(request, "Please correct the errors below.")
+    else:
+        form = AccessoryForm(instance=accessory)
+    return render(request, "hardware/accessory_form.html", {"form": form, "accessory": accessory})
+
+
+@login_required
+def accessory_delete(request, pk):
+    """Delete an accessory."""
+    accessory = get_object_or_404(Accessory, pk=pk)
+    if request.method == "POST":
+        accessory.delete()
+        messages.success(request, "Accessory deleted successfully.")
+        return redirect("hardware:accessory_list")
+    return render(request, "hardware/accessory_confirm_delete.html", {"accessory": accessory})
+
+
+# ============================
+# RELATED ASSET (ASSIGNMENT) VIEWS
+# ============================
+
+
+@login_required
+def related_asset_detail(request, pk):
+    """View details of a hardware-to-accessory assignment."""
+    related_asset = get_object_or_404(
+        RelatedAsset.objects.select_related(
+            "hardware_asset", "hardware_asset__department", "hardware_asset__primary_user",
+            "accessory", "accessory__department", "accessory__primary_user",
+            "created_by"
+        ),
+        pk=pk,
+    )
+    context = {
+        "related_asset": related_asset,
+    }
+    return render(request, "hardware/related_asset_detail.html", context)
+
+
+@login_required
+def related_asset_create(request):
+    """Create a new accessory assignment to hardware."""
+    # Check if there's a pre-selected hardware or accessory from query parameters
+    hardware_id = request.GET.get("hardware")
+    accessory_id = request.GET.get("accessory")
+
+    if request.method == "POST":
+        form = RelatedAssetForm(request.POST)
+        if form.is_valid():
+            related_asset = form.save(commit=False)
+            related_asset.created_by = request.user
+            related_asset.save()
+            messages.success(request, "Accessory assigned successfully.")
+            return redirect("hardware:related_asset_detail", pk=related_asset.pk)
+        messages.error(request, "Please correct the errors below.")
+    else:
+        initial_data = {}
+        if hardware_id:
+            try:
+                initial_data["hardware_asset"] = int(hardware_id)
+            except (ValueError, TypeError):
+                pass
+        if accessory_id:
+            try:
+                initial_data["accessory"] = int(accessory_id)
+            except (ValueError, TypeError):
+                pass
+        form = RelatedAssetForm(initial=initial_data)
+
+    return render(request, "hardware/related_asset_form.html", {"form": form})
+
+
+@login_required
+def related_asset_update(request, pk):
+    """Edit an existing accessory assignment."""
+    related_asset = get_object_or_404(RelatedAsset, pk=pk)
+    if request.method == "POST":
+        form = RelatedAssetForm(request.POST, instance=related_asset)
+        if form.is_valid():
+            related_asset = form.save()
+            messages.success(request, "Assignment updated successfully.")
+            return redirect("hardware:related_asset_detail", pk=related_asset.pk)
+        messages.error(request, "Please correct the errors below.")
+    else:
+        form = RelatedAssetForm(instance=related_asset)
+    return render(request, "hardware/related_asset_form.html", {"form": form, "related_asset": related_asset})
+
+
+@login_required
+def related_asset_delete(request, pk):
+    """Delete an accessory assignment."""
+    related_asset = get_object_or_404(RelatedAsset, pk=pk)
+    if request.method == "POST":
+        related_asset.delete()
+        messages.success(request, "Assignment deleted successfully.")
+        return redirect("hardware:hardware_list")
+    return render(request, "hardware/related_asset_confirm_delete.html", {"related_asset": related_asset})

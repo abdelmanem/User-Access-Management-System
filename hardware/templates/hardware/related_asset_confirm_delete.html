@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}Delete Assignment{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <div class="container-fluid">
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-6">
+
+        <!-- Alert -->
+        <div class="alert alert-danger d-flex align-items-start gap-3" role="alert">
+          <i class="fa-solid fa-triangle-exclamation fa-xl mt-1"></i>
+          <div>
+            <h4 class="alert-heading mb-1">Delete This Assignment?</h4>
+            <p class="mb-0">
+              This action cannot be undone. The assignment of <strong>{{ related_asset.accessory.name }}</strong> 
+              to <strong>{{ related_asset.hardware_asset.name }}</strong> will be permanently removed.
+            </p>
+          </div>
+        </div>
+
+        <!-- Assignment Details -->
+        <div class="card shadow-sm mb-3">
+          <div class="card-body">
+            <h5 class="card-title">
+              {{ related_asset.hardware_asset.name }}
+              <i class="fa-solid fa-arrow-left small text-muted"></i>
+              {{ related_asset.accessory.name }}
+            </h5>
+            <dl class="row small mb-0">
+              <dt class="col-6 text-muted">Assignment Type</dt>
+              <dd class="col-6">
+                <span class="badge {% if related_asset.assignment_type == 'Primary' %}bg-success{% elif related_asset.assignment_type == 'Shared' %}bg-info{% elif related_asset.assignment_type == 'Backup' %}bg-warning{% else %}bg-secondary{% endif %}">
+                  {{ related_asset.assignment_type }}
+                </span>
+              </dd>
+
+              <dt class="col-6 text-muted">Status</dt>
+              <dd class="col-6">
+                {% if related_asset.is_currently_assigned %}
+                  <span class="badge bg-success-subtle text-success border border-success-subtle">Active</span>
+                {% else %}
+                  <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Removed</span>
+                {% endif %}
+              </dd>
+
+              <dt class="col-6 text-muted">Assigned Date</dt>
+              <dd class="col-6">{{ related_asset.assignment_date|date:"M d, Y" }}</dd>
+
+              {% if related_asset.removal_date %}
+                <dt class="col-6 text-muted">Removal Date</dt>
+                <dd class="col-6">{{ related_asset.removal_date|date:"M d, Y" }}</dd>
+              {% endif %}
+            </dl>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="d-flex gap-2 justify-content-end">
+          <a href="{% url 'hardware:related_asset_detail' related_asset.pk %}" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-xmark me-1"></i> Cancel
+          </a>
+          <form method="post" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">
+              <i class="fa-solid fa-trash me-1"></i> Delete Assignment
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

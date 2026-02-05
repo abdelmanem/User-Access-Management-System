@@ -1,0 +1,268 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Assignment: {{ related_asset.hardware_asset.name }} ← {{ related_asset.accessory.name }}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <div class="container-fluid">
+
+    <!-- HERO -->
+    <div class="card shadow-sm mb-3">
+      <div class="card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+
+          <div>
+            <h2 class="mb-1">
+              <i class="fa-solid fa-arrow-left me-2"></i>{{ related_asset.hardware_asset.name }}
+            </h2>
+            <div class="text-muted mb-2">
+              <span class="fw-semibold">Assigned:</span> {{ related_asset.accessory.name }}
+            </div>
+
+            <div class="d-flex flex-wrap gap-2 mt-2">
+              <span class="badge bg-primary">{{ related_asset.hardware_asset.get_hardware_type_display }}</span>
+              <span class="badge bg-secondary">{{ related_asset.accessory.get_accessory_type_display }}</span>
+              <span class="badge {% if related_asset.assignment_type == 'Primary' %}bg-success{% elif related_asset.assignment_type == 'Shared' %}bg-info{% elif related_asset.assignment_type == 'Backup' %}bg-warning{% else %}bg-secondary{% endif %}">
+                {{ related_asset.assignment_type }}
+              </span>
+              {% if related_asset.is_currently_assigned %}
+                <span class="badge bg-success-subtle text-success border border-success-subtle">Active Assignment</span>
+              {% else %}
+                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Removed</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="d-flex flex-wrap gap-2">
+            <a href="{% url 'hardware:hardware_detail' related_asset.hardware_asset.pk %}" class="btn btn-outline-primary">
+              <i class="fa-solid fa-desktop me-1"></i> View Hardware
+            </a>
+            <a href="{% url 'hardware:accessory_detail' related_asset.accessory.pk %}" class="btn btn-outline-primary">
+              <i class="fa-solid fa-plug me-1"></i> View Accessory
+            </a>
+            <a href="{% url 'hardware:related_asset_update' related_asset.pk %}" class="btn btn-outline-secondary">
+              <i class="fa-solid fa-pen me-1"></i> Edit
+            </a>
+            <a href="{% url 'hardware:related_asset_delete' related_asset.pk %}" class="btn btn-outline-danger">
+              <i class="fa-solid fa-trash me-1"></i> Delete
+            </a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3">
+
+      <!-- LEFT -->
+      <div class="col-12 col-lg-8">
+
+        <!-- Assignment Details -->
+        <div class="card shadow-sm">
+          <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <div class="fw-semibold">
+              <i class="fa-solid fa-circle-info me-2 text-muted"></i> Assignment Details
+            </div>
+            <span class="badge {% if related_asset.is_currently_assigned %}bg-success{% else %}bg-secondary{% endif %}">
+              {% if related_asset.is_currently_assigned %}Active{% else %}Removed{% endif %}
+            </span>
+          </div>
+
+          <div class="card-body">
+            <dl class="row mb-0">
+
+              <dt class="col-sm-4 text-muted">Hardware Asset</dt>
+              <dd class="col-sm-8">
+                <a href="{% url 'hardware:hardware_detail' related_asset.hardware_asset.pk %}" class="text-decoration-none">
+                  {{ related_asset.hardware_asset.name }}
+                </a>
+                <div class="small text-muted">{{ related_asset.hardware_asset.get_hardware_type_display }}</div>
+              </dd>
+
+              <dt class="col-sm-4 text-muted">Accessory</dt>
+              <dd class="col-sm-8">
+                <a href="{% url 'hardware:accessory_detail' related_asset.accessory.pk %}" class="text-decoration-none">
+                  {{ related_asset.accessory.name }}
+                </a>
+                <div class="small text-muted">{{ related_asset.accessory.get_accessory_type_display }}</div>
+              </dd>
+
+              <dt class="col-sm-4 text-muted">Assignment Type</dt>
+              <dd class="col-sm-8">
+                <span class="badge {% if related_asset.assignment_type == 'Primary' %}bg-success{% elif related_asset.assignment_type == 'Shared' %}bg-info{% elif related_asset.assignment_type == 'Backup' %}bg-warning{% else %}bg-secondary{% endif %} me-1">
+                  {{ related_asset.assignment_type }}
+                </span>
+                <div class="small text-muted mt-1">
+                  {% if related_asset.assignment_type == 'Primary' %}
+                    Permanently assigned to this hardware.
+                  {% elif related_asset.assignment_type == 'Shared' %}
+                    Shared or temporarily assigned.
+                  {% elif related_asset.assignment_type == 'Backup' %}
+                    Serves as a backup accessory.
+                  {% else %}
+                    Extra or optional accessory.
+                  {% endif %}
+                </div>
+              </dd>
+
+              <dt class="col-sm-4 text-muted">Status</dt>
+              <dd class="col-sm-8">
+                {% if related_asset.is_currently_assigned %}
+                  <span class="badge bg-success-subtle text-success border border-success-subtle">Active Assignment</span>
+                  <div class="small text-muted mt-1">This accessory is currently assigned to this hardware.</div>
+                {% else %}
+                  <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Removed</span>
+                  <div class="small text-muted mt-1">This accessory was removed from this hardware.</div>
+                {% endif %}
+              </dd>
+
+              <dt class="col-sm-4 text-muted">Notes</dt>
+              <dd class="col-sm-8">
+                {% if related_asset.notes %}
+                  <pre class="mb-0 small bg-light border rounded p-2">{{ related_asset.notes }}</pre>
+                {% else %}
+                  <span class="text-muted">No notes recorded.</span>
+                {% endif %}
+              </dd>
+
+            </dl>
+          </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="card shadow-sm mt-3">
+          <div class="card-header bg-white fw-semibold">
+            <i class="fa-solid fa-timeline me-2 text-muted"></i> Timeline
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+
+              <div class="col-md-6">
+                <div class="border rounded p-3 bg-light h-100">
+                  <div class="text-uppercase small text-muted fw-semibold">
+                    <i class="fa-solid fa-calendar-plus me-1 text-success"></i> Assigned Date
+                  </div>
+                  <div class="fw-bold">{{ related_asset.assignment_date|date:"M d, Y" }}</div>
+                  <div class="small text-muted mt-1">When the accessory was assigned</div>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="border rounded p-3 bg-light h-100">
+                  <div class="text-uppercase small text-muted fw-semibold">
+                    {% if related_asset.removal_date %}
+                      <i class="fa-solid fa-calendar-minus me-1 text-danger"></i> Removal Date
+                    {% else %}
+                      <i class="fa-solid fa-circle-question me-1 text-muted"></i> Removal Date
+                    {% endif %}
+                  </div>
+                  <div class="fw-bold">
+                    {% if related_asset.removal_date %}
+                      {{ related_asset.removal_date|date:"M d, Y" }}
+                    {% else %}
+                      <span class="text-muted">—</span>
+                    {% endif %}
+                  </div>
+                  <div class="small text-muted mt-1">
+                    {% if related_asset.removal_date %}
+                      When the accessory was removed
+                    {% else %}
+                      No removal date (currently assigned)
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT -->
+      <div class="col-12 col-lg-4">
+
+        <!-- Hardware Info -->
+        <div class="card shadow-sm">
+          <div class="card-header bg-white fw-semibold">
+            <i class="fa-solid fa-desktop me-2 text-muted"></i> Hardware
+          </div>
+          <div class="card-body">
+            <dl class="row mb-0 small">
+              <dt class="col-6 text-muted">Asset Tag</dt>
+              <dd class="col-6 fw-semibold">{{ related_asset.hardware_asset.asset_tag }}</dd>
+
+              <dt class="col-6 text-muted">Type</dt>
+              <dd class="col-6">{{ related_asset.hardware_asset.get_hardware_type_display }}</dd>
+
+              <dt class="col-6 text-muted">Status</dt>
+              <dd class="col-6">
+                <span class="badge bg-{{ related_asset.hardware_asset.lifecycle_state_color }}">
+                  {{ related_asset.hardware_asset.status }}
+                </span>
+              </dd>
+
+              <dt class="col-6 text-muted">Department</dt>
+              <dd class="col-6">{{ related_asset.hardware_asset.department.name|default:"-" }}</dd>
+
+              <dt class="col-6 text-muted">Primary User</dt>
+              <dd class="col-6">{{ related_asset.hardware_asset.primary_user.full_name|default:"-" }}</dd>
+            </dl>
+            <a href="{% url 'hardware:hardware_detail' related_asset.hardware_asset.pk %}" class="btn btn-sm btn-primary w-100 mt-3">
+              <i class="fa-solid fa-eye me-1"></i> View Hardware
+            </a>
+          </div>
+        </div>
+
+        <!-- Accessory Info -->
+        <div class="card shadow-sm mt-3">
+          <div class="card-header bg-white fw-semibold">
+            <i class="fa-solid fa-plug me-2 text-muted"></i> Accessory
+          </div>
+          <div class="card-body">
+            <dl class="row mb-0 small">
+              <dt class="col-6 text-muted">Asset Tag</dt>
+              <dd class="col-6 fw-semibold">{{ related_asset.accessory.asset_tag }}</dd>
+
+              <dt class="col-6 text-muted">Type</dt>
+              <dd class="col-6">{{ related_asset.accessory.get_accessory_type_display }}</dd>
+
+              <dt class="col-6 text-muted">Status</dt>
+              <dd class="col-6">
+                <span class="badge bg-{{ related_asset.accessory.lifecycle_state_color }}">
+                  {{ related_asset.accessory.status }}
+                </span>
+              </dd>
+
+              <dt class="col-6 text-muted">Department</dt>
+              <dd class="col-6">{{ related_asset.accessory.department.name|default:"-" }}</dd>
+
+              <dt class="col-6 text-muted">Primary User</dt>
+              <dd class="col-6">{{ related_asset.accessory.primary_user.full_name|default:"-" }}</dd>
+            </dl>
+            <a href="{% url 'hardware:accessory_detail' related_asset.accessory.pk %}" class="btn btn-sm btn-primary w-100 mt-3">
+              <i class="fa-solid fa-eye me-1"></i> View Accessory
+            </a>
+          </div>
+        </div>
+
+        <!-- Audit -->
+        <div class="card shadow-sm mt-3">
+          <div class="card-header bg-white fw-semibold">
+            <i class="fa-solid fa-shield-halved me-2 text-muted"></i> Audit
+          </div>
+          <div class="card-body small text-muted">
+            <div>Created: {{ related_asset.created_at|date:"M d, Y H:i" }}</div>
+            <div>Created By: {{ related_asset.created_by.full_name|default:"-" }}</div>
+
+            <div class="mt-2">Last Updated: {{ related_asset.updated_at|date:"M d, Y H:i" }}</div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>
+{% endblock %}

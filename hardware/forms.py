@@ -1,5 +1,5 @@
 from django import forms
-from .models import HardwareAsset
+from .models import HardwareAsset, Accessory, RelatedAsset
 
 
 class HardwareAssetForm(forms.ModelForm):
@@ -62,4 +62,45 @@ class HardwareAssetForm(forms.ModelForm):
             )
 
         return cleaned_data
+
+
+class AccessoryForm(forms.ModelForm):
+    class Meta:
+        model = Accessory
+        fields = [
+            "name",
+            "accessory_type",
+            "asset_tag",
+            "serial_number",
+            "status",
+            "manufacturer",
+            "model_number",
+            "purchase_date",
+            "warranty_expiration",
+            "location",
+            "notes",
+            "department",
+            "primary_user",
+        ]
+        widgets = {
+            "purchase_date": forms.DateInput(attrs={"type": "date"}),
+            "warranty_expiration": forms.DateInput(attrs={"type": "date"}),
+            "notes": forms.Textarea(attrs={"rows": 4}),
+        }
+
+
+class RelatedAssetForm(forms.ModelForm):
+    class Meta:
+        model = RelatedAsset
+        fields = [
+            "hardware_asset",
+            "accessory",
+            "assignment_type",
+            "removal_date",
+            "notes",
+        ]
+        widgets = {
+            "removal_date": forms.DateInput(attrs={"type": "date"}),
+            "notes": forms.Textarea(attrs={"rows": 3}),
+        }
 

@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ accessory.name }}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <div class="container-fluid">
+
+    <!-- HERO -->
+    <div class="card shadow-sm mb-3">
+      <div class="card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+
+          <div>
+            <h2 class="mb-1">{{ accessory.name }}</h2>
+            <div class="text-muted">
+              Asset Tag: <span class="fw-semibold">{{ accessory.asset_tag }}</span>
+              {% if accessory.serial_number %}
+                <span class="text-muted"> · </span>
+                Serial: <span class="fw-semibold">{{ accessory.serial_number }}</span>
+              {% endif %}
+            </div>
+
+            <div class="d-flex flex-wrap gap-2 mt-2">
+              <span class="badge bg-{{ accessory.lifecycle_state_color }}">{{ accessory.status }}</span>
+              <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">
+                {{ accessory.get_accessory_type_display }}
+              </span>
+            </div>
+          </div>
+
+          <div class="d-flex flex-wrap gap-2">
+            <a href="{% url 'hardware:accessory_list' %}" class="btn btn-outline-primary">
+              <i class="fa-solid fa-arrow-left me-1"></i> Back
+            </a>
+            <a href="{% url 'hardware:accessory_update' accessory.pk %}" class="btn btn-outline-secondary">
+              <i class="fa-solid fa-pen me-1"></i> Edit
+            </a>
+            <a href="{% url 'hardware:accessory_delete' accessory.pk %}" class="btn btn-outline-danger">
+              <i class="fa-solid fa-trash me-1"></i> Delete
+            </a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3">
+
+      <!-- LEFT -->
+      <div class="col-12 col-lg-8">
+
+        <!-- Overview -->
+        <div class="card shadow-sm">
+          <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <div class="fw-semibold">
+              <i class="fa-solid fa-circle-info me-2 text-muted"></i> Accessory Details
+            </div>
+            <span class="badge bg-{{ accessory.lifecycle_state_color }}">{{ accessory.status }}</span>
+          </div>
+
+          <div class="card-body">
+            <dl class="row mb-0">
+
+              <dt class="col-sm-4 text-muted">Type</dt>
+              <dd class="col-sm-8">{{ accessory.get_accessory_type_display }}</dd>
+
+              <dt class="col-sm-4 text-muted">Department</dt>
+              <dd class="col-sm-8">
+                {% if accessory.department %}{{ accessory.department.name }}{% else %}<span class="text-muted">Unassigned</span>{% endif %}
+              </dd>
+
+              <dt class="col-sm-4 text-muted">Primary User</dt>
+              <dd class="col-sm-8">
+                {% if accessory.primary_user %}
+                  {{ accessory.primary_user.full_name }}
+                  {% if accessory.primary_user.position %}
+                    <span class="text-muted small">({{ accessory.primary_user.position }})</span>
+                  {% endif %}
+                {% else %}
+                  <span class="text-muted">Unassigned</span>
+                {% endif %}
+              </dd>
+
+              <dt class="col-sm-4 text-muted">Location</dt>
+              <dd class="col-sm-8">{{ accessory.location|default:"-" }}</dd>
+
+              <dt class="col-sm-4 text-muted">Manufacturer / Model</dt>
+              <dd class="col-sm-8">
+                {% if accessory.manufacturer or accessory.model_number %}
+                  {{ accessory.manufacturer|default:"?" }} {{ accessory.model_number|default:"" }}
+                {% else %}
+                  <span class="text-muted">Not specified</span>
+                {% endif %}
+              </dd>
+
+              <dt class="col-sm-4 text-muted">Notes</dt>
+              <dd class="col-sm-8">
+                {% if accessory.notes %}
+                  <pre class="mb-0 small bg-light border rounded p-2">{{ accessory.notes }}</pre>
+                {% else %}
+                  <span class="text-muted">No notes recorded.</span>
+                {% endif %}
+              </dd>
+
+            </dl>
+          </div>
+        </div>
+
+        <!-- Lifecycle -->
+        <div class="card shadow-sm mt-3">
+          <div class="card-header bg-white fw-semibold">
+            <i class="fa-solid fa-arrows-rotate me-2 text-muted"></i> Lifecycle
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+
+              <div class="col-md-6">
+                <div class="border rounded p-3 bg-light h-100">
+                  <div class="text-uppercase small text-muted fw-semibold">Purchase Date</div>
+                  <div class="fw-bold">{{ accessory.purchase_date|date:"M d, Y"|default:"-" }}</div>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="border rounded p-3 bg-light h-100">
+                  <div class="text-uppercase small text-muted fw-semibold">Warranty Expires</div>
+                  <div class="fw-bold">{{ accessory.warranty_expiration|date:"M d, Y"|default:"-" }}</div>
+
+                  {% if accessory.days_until_warranty_expires is not None %}
+                    {% if accessory.days_until_warranty_expires < 0 %}
+                      <div class="small text-danger mt-1">Expired {{ accessory.warranty_overdue_days }} days ago</div>
+                    {% elif accessory.days_until_warranty_expires == 0 %}
+                      <div class="small text-warning mt-1">Expires today</div>
+                    {% else %}
+                      <div class="small text-muted mt-1">{{ accessory.days_until_warranty_expires }} days remaining</div>
+                    {% endif %}
+                  {% endif %}
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT -->
+      <div class="col-12 col-lg-4">
+
+        <!-- Hardware Assignments -->
+        <div class="card shadow-sm">
+          <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <div class="fw-semibold">
+              <i class="fa-solid fa-desktop me-2 text-muted"></i> Hardware Assignments
+            </div>
+            <span class="badge bg-primary">{{ accessory.hardware_assignments.count }}</span>
+          </div>
+          <div class="card-body">
+            {% if accessory.hardware_assignments.exists %}
+              <div class="list-group list-group-flush">
+                {% for rel in accessory.hardware_assignments.all %}
+                  <a href="{% url 'hardware:related_asset_detail' rel.pk %}" class="list-group-item list-group-item-action px-0 py-2">
+                    <div class="fw-semibold text-decoration-none">
+                      {{ rel.hardware_asset.name }}
+                    </div>
+                    <div class="small text-muted">
+                      <span class="badge bg-secondary-subtle text-secondary">{{ rel.assignment_type }}</span>
+                      {% if rel.removal_date %}
+                        <span class="text-danger">• Removed {{ rel.removal_date|date:"M d, Y" }}</span>
+                      {% else %}
+                        <span class="text-success">• Active</span>
+                      {% endif %}
+                    </div>
+                  </a>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="text-muted">
+                <i class="fa-solid fa-info-circle me-2"></i>
+                Not assigned to any hardware. <a href="{% url 'hardware:related_asset_create' %}?accessory={{ accessory.pk }}">Assign it</a>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Audit -->
+        <div class="card shadow-sm mt-3">
+          <div class="card-header bg-white fw-semibold">
+            <i class="fa-solid fa-shield-halved me-2 text-muted"></i> Audit
+          </div>
+          <div class="card-body small text-muted">
+            <div>Created: {{ accessory.created_at|date:"M d, Y H:i" }}</div>
+            <div>Created By: {{ accessory.created_by.full_name|default:"-" }}</div>
+
+            <div class="mt-2">Last Updated: {{ accessory.updated_at|date:"M d, Y H:i" }}</div>
+            <div>Updated By: {{ accessory.updated_by.full_name|default:"-" }}</div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>
+{% endblock %}

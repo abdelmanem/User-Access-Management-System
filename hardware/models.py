@@ -298,3 +298,240 @@ class HardwareAsset(models.Model):
                 self.related_systems.values_list("code", flat=True),
             )
         )
+
+
+class Accessory(models.Model):
+    """
+    Represents hardware accessories and peripherals like monitors, keyboards, mice, docking stations, etc.
+    These can be associated with one or more HardwareAssets.
+    """
+
+    ACCESSORY_TYPE_CHOICES = [
+        ("Monitor", "Monitor / Display"),
+        ("Keyboard", "Keyboard"),
+        ("Mouse", "Mouse / Pointing Device"),
+        ("Dock", "Docking Station"),
+        ("Headset", "Headset / Speakers"),
+        ("Printer", "Printer"),
+        ("Scanner", "Scanner"),
+        ("External Storage", "External Storage / Drive"),
+        ("USB Hub", "USB Hub"),
+        ("Cable", "Cable / Connector"),
+        ("Power Supply", "Power Supply / Adapter"),
+        ("Camera", "Webcam / Camera"),
+        ("Other", "Other Accessory"),
+    ]
+
+    STATUS_CHOICES = [
+        ("In Service", "In Service"),
+        ("In Repair", "In Repair"),
+        ("In Storage", "In Storage"),
+        ("Retired", "Retired"),
+        ("Disposed", "Disposed"),
+    ]
+
+    name = models.CharField(
+        max_length=255,
+        help_text="Accessory name (e.g., Dell 27-inch Monitor, Logitech MX Master).",
+    )
+    accessory_type = models.CharField(
+        max_length=50,
+        choices=ACCESSORY_TYPE_CHOICES,
+        default="Monitor",
+        help_text="Type of accessory.",
+    )
+    asset_tag = models.CharField(
+        max_length=50,
+        unique=True,
+        help_text="Unique asset tag or inventory ID for this accessory.",
+    )
+    serial_number = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        unique=True,
+        help_text="Manufacturer serial number (if available).",
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="In Service",
+        help_text="Lifecycle status for this accessory.",
+    )
+    manufacturer = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text="Manufacturer/vendor (e.g., Dell, Logitech, HP).",
+    )
+    model_number = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text="Model or SKU identifier.",
+    )
+    purchase_date = models.DateField(
+        blank=True,
+        null=True,
+        help_text="Date the accessory was purchased or leased.",
+    )
+    warranty_expiration = models.DateField(
+        blank=True,
+        null=True,
+        help_text="Warranty end date.",
+    )
+    location = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Physical location (e.g., HQ - 3rd Floor - Desk 12).",
+    )
+    notes = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Additional comments or specifications.",
+    )
+
+    department = models.ForeignKey(
+        "departments.Department",
+        on_delete=models.SET_NULL,
+        related_name="accessories",
+        blank=True,
+        null=True,
+        help_text="Department responsible for this accessory.",
+    )
+    primary_user = models.ForeignKey(
+        "accounts.CustomUser",
+        on_delete=models.SET_NULL,
+        related_name="primary_accessories",
+        blank=True,
+        null=True,
+        help_text="Primary user assigned to this accessory.",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        "accounts.CustomUser",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="accessories_created",
+    )
+    updated_by = models.ForeignKey(
+        "accounts.CustomUser",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="accessories_updated",
+    )
+
+    class Meta:
+        verbose_name = "Accessory"
+        verbose_name_plural = "Accessories"
+        ordering = ["name", "asset_tag"]
+
+    def __str__(self):
+        return f"{self.name} [{self.asset_tag}]"
+
+    @property
+    def is_active_accessory(self):
+        """Return True if the accessory is in an active lifecycle state."""
+        return self.status == "In Service"
+
+    @property
+    def days_until_warranty_expires(self):
+        """Return remaining days until warranty expiration."""
+        if not self.warranty_expiration:
+            return None
+        return (self.warranty_expiration - timezone.now().date()).days
+
+    @property
+    def warranty_overdue_days(self):
+        """Return positive integer of overdue days if warranty expired."""
+        days = self.days_until_warranty_expires
+        if days is None or days >= 0:
+            return None
+        return abs(days)
+
+    @property
+    def lifecycle_state_color(self):
+        """Provide a UI-friendly color tag for common statuses."""
+        return {
+            "In Service": "success",
+            "In Repair": "warning",
+            "In Storage": "secondary",
+            "Retired": "dark",
+            "Disposed": "danger",
+        }.get(self.status, "secondary")
+
+
+class RelatedAsset(models.Model):
+    """
+    Links accessories (like monitors) to hardware assets (like desktop computers).
+    Allows tracking which accessories are assigned to which hardware.
+    """
+
+    ASSIGNMENT_TYPE_CHOICES = [
+        ("Primary", "Primary Assignment"),
+        ("Shared", "Shared / Temporary"),
+        ("Backup", "Backup"),
+        ("Optional", "Optional / Extra"),
+    ]
+
+    hardware_asset = models.ForeignKey(
+        HardwareAsset,
+        on_delete=models.CASCADE,
+        related_name="related_accessories",
+        help_text="The hardware asset (e.g., desktop, laptop) this accessory is assigned to.",
+    )
+    accessory = models.ForeignKey(
+        Accessory,
+        on_delete=models.CASCADE,
+        related_name="hardware_assignments",
+        help_text="The accessory (e.g., monitor, keyboard) being assigned.",
+    )
+    assignment_type = models.CharField(
+        max_length=20,
+        choices=ASSIGNMENT_TYPE_CHOICES,
+        default="Primary",
+        help_text="Type of assignment relationship.",
+    )
+    assignment_date = models.DateField(
+        auto_now_add=True,
+        help_text="Date the accessory was assigned to this hardware.",
+    )
+    removal_date = models.DateField(
+        blank=True,
+        null=True,
+        help_text="Date the accessory was removed from this hardware (if applicable).",
+    )
+    notes = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Additional assignment notes or history.",
+    )
+
+    created_by = models.ForeignKey(
+        "accounts.CustomUser",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="related_assets_created",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Related Asset"
+        verbose_name_plural = "Related Assets"
+        unique_together = [("hardware_asset", "accessory")]
+        ordering = ["-assignment_date"]
+
+    def __str__(self):
+        return f"{self.hardware_asset.name} ← {self.accessory.name} ({self.assignment_type})"
+
+    @property
+    def is_currently_assigned(self):
+        """Return True if the accessory is currently assigned (no removal date)."""
+        return self.removal_date is None

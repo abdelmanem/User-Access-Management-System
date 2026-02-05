@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% load static form_extras %}
+{% block title %}{% if form.instance.pk %}Edit Accessory{% else %}Create Accessory{% endif %}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <div class="container-fluid">
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-10">
+
+        <!-- Header -->
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+          <div>
+            <h2 class="mb-0">
+              {% if form.instance.pk %}Edit Accessory{% else %}Add New Accessory{% endif %}
+            </h2>
+            <div class="text-muted small">Fill details below. Required fields are marked with *</div>
+          </div>
+          <div>
+            <a href="{% url 'hardware:accessory_list' %}" class="btn btn-sm btn-outline-secondary">
+              <i class="fa-solid fa-arrow-left me-1"></i> Back to list
+            </a>
+          </div>
+        </div>
+
+        <div class="card shadow-sm">
+          <div class="card-body">
+
+            <form method="post" novalidate>
+              {% csrf_token %}
+
+              {% if form.errors %}
+                <div class="alert alert-danger">
+                  <div class="fw-semibold">Please fix the errors below.</div>
+                  {% if form.non_field_errors %}
+                    <div class="mt-2">{{ form.non_field_errors }}</div>
+                  {% endif %}
+                </div>
+              {% endif %}
+
+              <!-- Tabs -->
+              <ul class="nav nav-tabs mb-3" id="accessoryTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link active" id="tab-id" data-bs-toggle="tab" data-bs-target="#pane-id" type="button" role="tab">
+                    <i class="fa-solid fa-id-badge me-1"></i> Identification
+                  </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="tab-own" data-bs-toggle="tab" data-bs-target="#pane-own" type="button" role="tab">
+                    <i class="fa-solid fa-users me-1"></i> Ownership
+                  </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="tab-spec" data-bs-toggle="tab" data-bs-target="#pane-spec" type="button" role="tab">
+                    <i class="fa-solid fa-microchip me-1"></i> Specifications
+                  </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="tab-life" data-bs-toggle="tab" data-bs-target="#pane-life" type="button" role="tab">
+                    <i class="fa-solid fa-calendar-days me-1"></i> Lifecycle
+                  </button>
+                </li>
+              </ul>
+
+              <div class="tab-content">
+
+                <!-- IDENTIFICATION -->
+                <div class="tab-pane fade show active" id="pane-id" role="tabpanel" aria-labelledby="tab-id">
+                  <div class="row g-3">
+
+                    <div class="col-md-6">
+                      <label class="form-label" for="{{ form.name.id_for_label }}">Name <span class="text-danger">*</span></label>
+                      {{ form.name|add_error_class:"is-invalid"|add_class:"form-control" }}
+                      {% if form.errors.name %}<div class="invalid-feedback d-block">{{ form.errors.name.0 }}</div>{% endif %}
+                      <div class="form-text">E.g., "Dell 27-inch UltraSharp" or "Logitech MX Master"</div>
+                    </div>
+
+                    <div class="col-md-2">
+                      <label class="form-label" for="{{ form.asset_tag.id_for_label }}">Asset Tag <span class="text-danger">*</span></label>
+                      {{ form.asset_tag|add_error_class:"is-invalid"|add_class:"form-control" }}
+                      {% if form.errors.asset_tag %}<div class="invalid-feedback d-block">{{ form.errors.asset_tag.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="col-md-2">
+                      <label class="form-label" for="{{ form.serial_number.id_for_label }}">Serial Number</label>
+                      {{ form.serial_number|add_error_class:"is-invalid"|add_class:"form-control" }}
+                      {% if form.errors.serial_number %}<div class="invalid-feedback d-block">{{ form.errors.serial_number.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="col-md-4">
+                      <label class="form-label" for="{{ form.accessory_type.id_for_label }}">Type <span class="text-danger">*</span></label>
+                      {{ form.accessory_type|add_error_class:"is-invalid"|add_class:"form-select" }}
+                      {% if form.errors.accessory_type %}<div class="invalid-feedback d-block">{{ form.errors.accessory_type.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="col-md-4">
+                      <label class="form-label" for="{{ form.status.id_for_label }}">Status</label>
+                      {{ form.status|add_error_class:"is-invalid"|add_class:"form-select" }}
+                      {% if form.errors.status %}<div class="invalid-feedback d-block">{{ form.errors.status.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="col-md-4">
+                      <label class="form-label" for="{{ form.location.id_for_label }}">Location</label>
+                      {{ form.location|add_error_class:"is-invalid"|add_class:"form-control" }}
+                      {% if form.errors.location %}<div class="invalid-feedback d-block">{{ form.errors.location.0 }}</div>{% endif %}
+                      <div class="form-text">Physical location (e.g., HQ - 3rd Floor - Desk 12)</div>
+                    </div>
+
+                  </div>
+                </div>
+
+                <!-- OWNERSHIP -->
+                <div class="tab-pane fade" id="pane-own" role="tabpanel" aria-labelledby="tab-own">
+                  <div class="row g-3">
+
+                    <div class="col-md-6">
+                      <label class="form-label" for="{{ form.department.id_for_label }}">Department</label>
+                      {{ form.department|add_error_class:"is-invalid"|add_class:"form-select" }}
+                      {% if form.errors.department %}<div class="invalid-feedback d-block">{{ form.errors.department.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="col-md-6">
+                      <label class="form-label" for="{{ form.primary_user.id_for_label }}">Primary User</label>
+                      {{ form.primary_user|add_error_class:"is-invalid"|add_class:"form-select" }}
+                      {% if form.errors.primary_user %}<div class="invalid-feedback d-block">{{ form.errors.primary_user.0 }}</div>{% endif %}
+                    </div>
+
+                  </div>
+                </div>
+
+                <!-- SPECIFICATIONS -->
+                <div class="tab-pane fade" id="pane-spec" role="tabpanel" aria-labelledby="tab-spec">
+                  <div class="row g-3">
+
+                    <div class="col-md-4">
+                      <label class="form-label" for="{{ form.manufacturer.id_for_label }}">Manufacturer</label>
+                      {{ form.manufacturer|add_error_class:"is-invalid"|add_class:"form-control" }}
+                      {% if form.errors.manufacturer %}<div class="invalid-feedback d-block">{{ form.errors.manufacturer.0 }}</div>{% endif %}
+                      <div class="form-text">E.g., Dell, Logitech, HP</div>
+                    </div>
+
+                    <div class="col-md-4">
+                      <label class="form-label" for="{{ form.model_number.id_for_label }}">Model Number</label>
+                      {{ form.model_number|add_error_class:"is-invalid"|add_class:"form-control" }}
+                      {% if form.errors.model_number %}<div class="invalid-feedback d-block">{{ form.errors.model_number.0 }}</div>{% endif %}
+                    </div>
+
+                  </div>
+                </div>
+
+                <!-- LIFECYCLE -->
+                <div class="tab-pane fade" id="pane-life" role="tabpanel" aria-labelledby="tab-life">
+                  <div class="row g-3">
+
+                    <div class="col-md-6">
+                      <label class="form-label" for="{{ form.purchase_date.id_for_label }}">Purchase Date</label>
+                      {{ form.purchase_date|add_error_class:"is-invalid"|add_class:"form-control" }}
+                      {% if form.errors.purchase_date %}<div class="invalid-feedback d-block">{{ form.errors.purchase_date.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="col-md-6">
+                      <label class="form-label" for="{{ form.warranty_expiration.id_for_label }}">Warranty Expiration</label>
+                      {{ form.warranty_expiration|add_error_class:"is-invalid"|add_class:"form-control" }}
+                      {% if form.errors.warranty_expiration %}<div class="invalid-feedback d-block">{{ form.errors.warranty_expiration.0 }}</div>{% endif %}
+                    </div>
+
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Notes -->
+              <div class="row g-3 mt-3">
+                <div class="col-12">
+                  <label class="form-label" for="{{ form.notes.id_for_label }}">Notes</label>
+                  {{ form.notes|add_error_class:"is-invalid"|add_class:"form-control" }}
+                  {% if form.errors.notes %}<div class="invalid-feedback d-block">{{ form.errors.notes.0 }}</div>{% endif %}
+                </div>
+              </div>
+
+              <!-- Actions -->
+              <div class="d-flex flex-wrap gap-2 justify-content-end mt-4 pt-3 border-top">
+                {% if form.instance.pk %}
+                  <a href="{% url 'hardware:accessory_detail' form.instance.pk %}" class="btn btn-outline-secondary">
+                    Cancel
+                  </a>
+                {% else %}
+                  <a href="{% url 'hardware:accessory_list' %}" class="btn btn-outline-secondary">
+                    Cancel
+                  </a>
+                {% endif %}
+                <button type="submit" class="btn btn-primary">
+                  <i class="fa-solid fa-save me-1"></i> Save Accessory
+                </button>
+              </div>
+
+            </form>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

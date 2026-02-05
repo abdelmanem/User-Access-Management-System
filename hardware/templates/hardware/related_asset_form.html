@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% load static form_extras %}
+{% block title %}{% if form.instance.pk %}Edit Assignment{% else %}Assign Accessory{% endif %}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <div class="container-fluid">
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-8">
+
+        <!-- Header -->
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+          <div>
+            <h2 class="mb-0">
+              {% if form.instance.pk %}Edit Assignment{% else %}Assign Accessory to Hardware{% endif %}
+            </h2>
+            <div class="text-muted small">Link an accessory to a hardware asset. Required fields are marked with *</div>
+          </div>
+          <div>
+            {% if form.instance.hardware_asset %}
+              <a href="{% url 'hardware:hardware_detail' form.instance.hardware_asset.pk %}" class="btn btn-sm btn-outline-secondary">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back to Hardware
+              </a>
+            {% else %}
+              <a href="{% url 'hardware:hardware_list' %}" class="btn btn-sm btn-outline-secondary">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back
+              </a>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="card shadow-sm">
+          <div class="card-body">
+
+            <form method="post" novalidate>
+              {% csrf_token %}
+
+              {% if form.errors %}
+                <div class="alert alert-danger">
+                  <div class="fw-semibold">Please fix the errors below.</div>
+                  {% if form.non_field_errors %}
+                    <div class="mt-2">{{ form.non_field_errors }}</div>
+                  {% endif %}
+                </div>
+              {% endif %}
+
+              <div class="row g-3">
+
+                <!-- Hardware Asset Selection -->
+                <div class="col-12">
+                  <div class="card bg-light border">
+                    <div class="card-body">
+                      <label class="form-label" for="{{ form.hardware_asset.id_for_label }}">
+                        Hardware Asset <span class="text-danger">*</span>
+                      </label>
+                      {{ form.hardware_asset|add_error_class:"is-invalid"|add_class:"form-select form-select-lg" }}
+                      {% if form.errors.hardware_asset %}
+                        <div class="invalid-feedback d-block">{{ form.errors.hardware_asset.0 }}</div>
+                      {% endif %}
+                      <div class="form-text mt-2">
+                        <i class="fa-solid fa-circle-info me-1"></i>
+                        Select the hardware asset (e.g., desktop, laptop) you want to assign the accessory to.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Accessory Selection -->
+                <div class="col-12">
+                  <div class="card bg-light border">
+                    <div class="card-body">
+                      <label class="form-label" for="{{ form.accessory.id_for_label }}">
+                        Accessory <span class="text-danger">*</span>
+                      </label>
+                      {{ form.accessory|add_error_class:"is-invalid"|add_class:"form-select form-select-lg" }}
+                      {% if form.errors.accessory %}
+                        <div class="invalid-feedback d-block">{{ form.errors.accessory.0 }}</div>
+                      {% endif %}
+                      <div class="form-text mt-2">
+                        <i class="fa-solid fa-circle-info me-1"></i>
+                        Select the accessory (e.g., monitor, keyboard, mouse) to assign.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Assignment Type -->
+                <div class="col-md-6">
+                  <label class="form-label" for="{{ form.assignment_type.id_for_label }}">Assignment Type</label>
+                  {{ form.assignment_type|add_error_class:"is-invalid"|add_class:"form-select" }}
+                  {% if form.errors.assignment_type %}<div class="invalid-feedback d-block">{{ form.errors.assignment_type.0 }}</div>{% endif %}
+                  <div class="form-text mt-2">
+                    <strong>Primary:</strong> Permanently assigned<br>
+                    <strong>Shared:</strong> Shared or temporary<br>
+                    <strong>Backup:</strong> Backup accessory<br>
+                    <strong>Optional:</strong> Extra or optional
+                  </div>
+                </div>
+
+                <!-- Removal Date -->
+                <div class="col-md-6">
+                  <label class="form-label" for="{{ form.removal_date.id_for_label }}">Removal Date</label>
+                  {{ form.removal_date|add_error_class:"is-invalid"|add_class:"form-control" }}
+                  {% if form.errors.removal_date %}<div class="invalid-feedback d-block">{{ form.errors.removal_date.0 }}</div>{% endif %}
+                  <div class="form-text">Leave empty if currently assigned. Set a date if the accessory has been removed.</div>
+                </div>
+
+                <!-- Notes -->
+                <div class="col-12">
+                  <label class="form-label" for="{{ form.notes.id_for_label }}">Notes</label>
+                  {{ form.notes|add_error_class:"is-invalid"|add_class:"form-control" }}
+                  {% if form.errors.notes %}<div class="invalid-feedback d-block">{{ form.errors.notes.0 }}</div>{% endif %}
+                  <div class="form-text">Any additional assignment notes or history.</div>
+                </div>
+
+              </div>
+
+              <!-- Actions -->
+              <div class="d-flex flex-wrap gap-2 justify-content-end mt-4 pt-3 border-top">
+                {% if form.instance.pk %}
+                  <a href="{% url 'hardware:related_asset_detail' form.instance.pk %}" class="btn btn-outline-secondary">
+                    Cancel
+                  </a>
+                {% else %}
+                  <a href="{% url 'hardware:hardware_list' %}" class="btn btn-outline-secondary">
+                    Cancel
+                  </a>
+                {% endif %}
+                <button type="submit" class="btn btn-primary">
+                  <i class="fa-solid fa-link me-1"></i> Save Assignment
+                </button>
+              </div>
+
+            </form>
+
+          </div>
+        </div>
+
+        <!-- Help Section -->
+        <div class="card mt-4 bg-light border-0">
+          <div class="card-body">
+            <h6 class="card-title">
+              <i class="fa-solid fa-lightbulb me-2 text-warning"></i> Assignment Types
+            </h6>
+            <div class="row g-3 small">
+              <div class="col-md-6">
+                <div class="p-2 bg-white rounded border">
+                  <div class="fw-semibold mb-1">
+                    <span class="badge bg-success">Primary</span>
+                  </div>
+                  <div>Permanently assigned to the hardware. The accessory stays with this hardware.</div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="p-2 bg-white rounded border">
+                  <div class="fw-semibold mb-1">
+                    <span class="badge bg-info">Shared</span>
+                  </div>
+                  <div>Temporarily assigned or shared with other hardware or departments.</div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="p-2 bg-white rounded border">
+                  <div class="fw-semibold mb-1">
+                    <span class="badge bg-warning">Backup</span>
+                  </div>
+                  <div>Serves as a backup accessory when the primary one fails.</div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="p-2 bg-white rounded border">
+                  <div class="fw-semibold mb-1">
+                    <span class="badge bg-secondary">Optional</span>
+                  </div>
+                  <div>Extra or optional accessory that may or may not be used.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

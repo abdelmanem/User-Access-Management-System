@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}Delete Accessory{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <div class="container-fluid">
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-6">
+
+        <!-- Alert -->
+        <div class="alert alert-danger d-flex align-items-start gap-3" role="alert">
+          <i class="fa-solid fa-triangle-exclamation fa-xl mt-1"></i>
+          <div>
+            <h4 class="alert-heading mb-1">Delete This Accessory?</h4>
+            <p class="mb-0">
+              This action cannot be undone. The accessory <strong>{{ accessory.name }}</strong> ({{ accessory.asset_tag }}) 
+              will be permanently removed from the system.
+            </p>
+          </div>
+        </div>
+
+        <!-- Accessory Details -->
+        <div class="card shadow-sm mb-3">
+          <div class="card-body">
+            <h5 class="card-title">{{ accessory.name }}</h5>
+            <dl class="row small mb-0">
+              <dt class="col-6 text-muted">Asset Tag</dt>
+              <dd class="col-6">{{ accessory.asset_tag }}</dd>
+
+              <dt class="col-6 text-muted">Type</dt>
+              <dd class="col-6">{{ accessory.get_accessory_type_display }}</dd>
+
+              <dt class="col-6 text-muted">Status</dt>
+              <dd class="col-6">
+                <span class="badge bg-{{ accessory.lifecycle_state_color }}">{{ accessory.status }}</span>
+              </dd>
+
+              {% if accessory.hardware_assignments.count %}
+                <dt class="col-6 text-muted">Assigned To</dt>
+                <dd class="col-6">
+                  <span class="badge bg-primary">{{ accessory.hardware_assignments.count }} hardware</span>
+                </dd>
+              {% endif %}
+            </dl>
+          </div>
+        </div>
+
+        <!-- Assignments Warning -->
+        {% if accessory.hardware_assignments.exists %}
+          <div class="alert alert-warning" role="alert">
+            <i class="fa-solid fa-info-circle me-2"></i>
+            <strong>Warning:</strong> This accessory is currently assigned to <strong>{{ accessory.hardware_assignments.count }}</strong> 
+            hardware asset{% if accessory.hardware_assignments.count != 1 %}s{% endif %}. Deleting it will remove all those assignments.
+          </div>
+        {% endif %}
+
+        <!-- Actions -->
+        <div class="d-flex gap-2 justify-content-end">
+          <a href="{% url 'hardware:accessory_detail' accessory.pk %}" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-xmark me-1"></i> Cancel
+          </a>
+          <form method="post" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">
+              <i class="fa-solid fa-trash me-1"></i> Delete Accessory
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

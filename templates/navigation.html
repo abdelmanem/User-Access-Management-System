@@ -96,7 +96,7 @@
                 </a>
             </div>
 
-            {% nav_active_class 'hardware:hardware_*' 'hardware:hardware_list' 'hardware:hardware_detail' 'hardware:hardware_update' 'hardware:hardware_delete' 'hardware:hardware_create' as hardware_active %}
+            {% nav_active_class 'hardware:hardware_*' 'hardware:hardware_list' 'hardware:hardware_detail' 'hardware:hardware_update' 'hardware:hardware_delete' 'hardware:hardware_create' 'hardware:accessory_*' 'hardware:accessory_list' 'hardware:related_asset_*' as hardware_active %}
             <button class="sidebar-link{{ hardware_active }}" type="button"
                     data-bs-toggle="collapse" data-bs-target="#sidebarHardware"
                     data-main-href="{% url 'hardware:hardware_list' %}"
@@ -112,6 +112,10 @@
                 {% nav_active_class 'hardware:hardware_create' as hardware_create_active %}
                 <a class="sidebar-sublink{{ hardware_create_active }}" href="{% url 'hardware:hardware_create' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-plus"></i> Add New Hardware
+                </a>
+                {% nav_active_class 'hardware:accessory_list' 'hardware:accessory_detail' 'hardware:accessory_create' 'hardware:accessory_update' 'hardware:accessory_delete' as accessory_list_active %}
+                <a class="sidebar-sublink{{ accessory_list_active }}" href="{% url 'hardware:accessory_list' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-keyboard"></i> Accessories
                 </a>
             </div>
 
