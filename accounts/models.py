@@ -6,6 +6,7 @@ from departments.models import Department
 import uuid
 from django.core.exceptions import ValidationError
 from PIL import Image, UnidentifiedImageError
+import io
 from .encryption import encrypt_password, decrypt_password, is_encrypted
 
 
@@ -224,19 +225,24 @@ class CustomUser(AbstractUser):
         max_mb = 2
         if getattr(file_field, 'size', 0) > max_mb * 1024 * 1024:
             raise ValidationError(f"Profile photo must be <= {max_mb}MB.")
-        # Validate image integrity and format using Pillow
+        # Validate image integrity and format using Pillow without
+        # letting Pillow close or consume the original uploaded file.
         try:
-            # Ensure stream at start
-            if hasattr(file_field, 'seek'):
-                file_field.seek(0)
-            img = Image.open(file_field)
-            img.verify()  # verify file is not corrupted
+            data = file_field.read()
+            buf = io.BytesIO(data)
+            img = Image.open(buf)
+            img.verify()
             fmt = getattr(img, 'format', None)
             if fmt not in ['JPEG', 'PNG']:
                 raise ValidationError("Profile photo must be a JPG or PNG image.")
         except (UnidentifiedImageError, OSError):
             raise ValidationError("Invalid image file. Please upload a valid JPG or PNG image.")
         finally:
+            try:
+                buf.close()
+            except Exception:
+                pass
+            # Reset the original uploaded file's pointer so Django can save it
             try:
                 if hasattr(file_field, 'seek'):
                     file_field.seek(0)

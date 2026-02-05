@@ -24,11 +24,14 @@ from urllib.parse import urlencode
 from django.http import HttpResponse
 from django.urls import reverse
 from openpyxl import Workbook
+from django.core.files.base import ContentFile
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 from reportlab.platypus import Table, TableStyle
 from access_management.models import UserSystemAccess
+from PIL import Image, UnidentifiedImageError
+import io
 
 @login_required
 @user_passes_test(lambda u: u.is_staff)
@@ -477,24 +480,49 @@ def user_photo_update(request, pk):
         messages.error(request, 'Please choose an image to upload.')
         return redirect('accounts:user_detail', pk=pk)
 
-    form = UserPhotoForm(request.POST, request.FILES, instance=user)
-    if form.is_valid():
-        new_photo = form.cleaned_data.get('profile_photo')
-        if new_photo:
-            if user.profile_photo:
-                user.profile_photo.delete(save=False)
-            user.profile_photo = new_photo
-            user.updated_by = request.user
-            user.save(update_fields=['profile_photo', 'updated_by'])
-            messages.success(request, 'Profile photo updated successfully.')
-        else:
-            messages.error(request, 'No photo was provided.')
-    else:
-        photo_errors = form.errors.get('profile_photo')
-        if photo_errors:
-            messages.error(request, photo_errors[0])
-        else:
-            messages.error(request, 'Unable to update profile photo.')
+    # Validate and save uploaded file directly from request.FILES to avoid
+    # validators or other code that may close the uploaded file object.
+    uploaded = request.FILES.get('profile_photo')
+    if not uploaded:
+        messages.error(request, 'Please choose an image to upload.')
+        return redirect('accounts:user_detail', pk=pk)
+
+    # Size check
+    max_mb = 2
+    if getattr(uploaded, 'size', 0) > max_mb * 1024 * 1024:
+        messages.error(request, f'Profile photo must be <= {max_mb}MB.')
+        return redirect('accounts:user_detail', pk=pk)
+
+    # Validate image via PIL from an in-memory copy
+    try:
+        data = uploaded.read()
+        buf = io.BytesIO(data)
+        img = Image.open(buf)
+        img.verify()
+        fmt = getattr(img, 'format', None)
+        if fmt not in ['JPEG', 'PNG']:
+            messages.error(request, 'Profile photo must be a JPG or PNG image.')
+            return redirect('accounts:user_detail', pk=pk)
+    except (UnidentifiedImageError, OSError):
+        messages.error(request, 'Invalid image file. Please upload a valid JPG or PNG image.')
+        return redirect('accounts:user_detail', pk=pk)
+    finally:
+        try:
+            buf.close()
+        except Exception:
+            pass
+
+    # Save via ContentFile (avoid using the UploadedFile object directly)
+    if user.profile_photo:
+        user.profile_photo.delete(save=False)
+    try:
+        file_name = uploaded.name
+        user.profile_photo.save(file_name, ContentFile(data), save=False)
+        user.updated_by = request.user
+        user.save(update_fields=['profile_photo', 'updated_by'])
+        messages.success(request, 'Profile photo updated successfully.')
+    except Exception:
+        messages.error(request, 'Unable to save profile photo.')
     return redirect('accounts:user_detail', pk=pk)
 
 
