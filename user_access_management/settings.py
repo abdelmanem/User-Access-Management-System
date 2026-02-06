@@ -67,6 +67,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_extensions',
+    'rest_framework',
+    'django_filters',
     'accounts',
     'departments',
     'systems',
@@ -307,3 +309,21 @@ if SENTRY_DSN and sentry_sdk:
         send_default_pii=config('SENTRY_SEND_DEFAULT_PII', default=False, cast=bool),
         environment=config('SENTRY_ENVIRONMENT', default='production' if not DEBUG else 'development'),
     )
+
+# Django REST Framework Configuration
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 50,
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}

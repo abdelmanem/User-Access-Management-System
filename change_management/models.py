@@ -134,9 +134,102 @@ class AccountChangeRequest(models.Model):
         ordering = ["-created_at"]
         verbose_name = "Account Change Request"
         verbose_name_plural = "Account Change Requests"
+        indexes = [
+            models.Index(fields=['status', '-created_at']),
+            models.Index(fields=['system', '-created_at']),
+            models.Index(fields=['user', '-created_at']),
+        ]
 
     def __str__(self) -> str:
         user_label = self.user.full_name if self.user else "Unassigned user"
         return f"{self.change_type} – {user_label} @ {self.system.name}"
+
+
+class ChangeAuditLog(models.Model):
+    """
+    Audit log for tracking all changes to AccountChangeRequest records.
+    
+    Provides full traceability of who made what changes and when.
+    """
+    
+    ACTION_CHOICES = [
+        ('created', 'Created'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('completed', 'Completed'),
+        ('modified', 'Modified'),
+        ('viewed', 'Viewed'),
+        ('exported', 'Exported'),
+    ]
+    
+    change_request = models.ForeignKey(
+        AccountChangeRequest,
+        on_delete=models.CASCADE,
+        related_name='audit_logs',
+        help_text="Reference to the change request"
+    )
+    
+    action = models.CharField(
+        max_length=20,
+        choices=ACTION_CHOICES,
+        help_text="Action performed"
+    )
+    
+    performed_by = models.ForeignKey(
+        'accounts.CustomUser',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='change_audit_logs',
+        help_text="User who performed the action"
+    )
+    
+    timestamp = models.DateTimeField(
+        auto_now_add=True,
+        help_text="When the action occurred"
+    )
+    
+    old_values = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Old field values (for modifications)"
+    )
+    
+    new_values = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="New field values (for modifications)"
+    )
+    
+    notes = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Additional context or notes"
+    )
+    
+    ip_address = models.GenericIPAddressField(
+        null=True,
+        blank=True,
+        help_text="IP address of the client"
+    )
+    
+    user_agent = models.CharField(
+        max_length=500,
+        blank=True,
+        help_text="User-Agent header (for web requests)"
+    )
+    
+    class Meta:
+        ordering = ['-timestamp']
+        verbose_name = 'Change Audit Log'
+        verbose_name_plural = 'Change Audit Logs'
+        indexes = [
+            models.Index(fields=['change_request', '-timestamp']),
+            models.Index(fields=['performed_by', '-timestamp']),
+            models.Index(fields=['action', '-timestamp']),
+        ]
+    
+    def __str__(self):
+        return f"{self.change_request_id} - {self.action} by {self.performed_by}"
 
 

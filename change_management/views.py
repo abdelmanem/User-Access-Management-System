@@ -1,13 +1,31 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+
+from rest_framework import viewsets, status, permissions
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.filters import SearchFilter, OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
 
 from accounts.models import CustomUser
 from systems.models import System
 from .models import AccountChangeRequest
+from .serializers import (
+    AccountChangeRequestListSerializer,
+    AccountChangeRequestDetailSerializer,
+    ChangeApprovalSerializer,
+    ChangeWorkflowStatusSerializer,
+    ChangeRequestStatisticsSerializer,
+    BulkChangeRequestSerializer,
+)
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -297,5 +315,340 @@ def change_request_update(request, pk):
         "completed_date_value": _format_dt(change_request.completed_date),
     }
     return render(request, "change_management/change_request_form.html", context)
+
+
+# =============================================================================
+# REST API VIEWSET
+# =============================================================================
+
+class AccountChangeRequestViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing account change requests via REST API.
+    
+    Endpoints:
+    - GET /api/change-requests/ - List all change requests
+    - GET /api/change-requests/{id}/ - Get change request details
+    - POST /api/change-requests/ - Create new change request
+    - PATCH /api/change-requests/{id}/ - Update change request
+    - DELETE /api/change-requests/{id}/ - Delete change request
+    - POST /api/change-requests/{id}/approve/ - Approve a change
+    - POST /api/change-requests/{id}/reject/ - Reject a change
+    - POST /api/change-requests/{id}/mark-completed/ - Mark as completed
+    - GET /api/change-requests/statistics/summary/ - Get statistics
+    - POST /api/change-requests/bulk-action/ - Perform bulk action
+    """
+    
+    queryset = AccountChangeRequest.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['status', 'change_type', 'system', 'user']
+    search_fields = [
+        'user__username', 'user__first_name', 'user__last_name',
+        'system__name', 'business_justification'
+    ]
+    ordering_fields = ['created_at', 'status', 'change_type']
+    ordering = ['-created_at']
+    
+    def get_serializer_class(self):
+        """Return appropriate serializer based on action."""
+        if self.action == 'retrieve':
+            return AccountChangeRequestDetailSerializer
+        elif self.action in ['approve', 'reject', 'mark_completed']:
+            return ChangeApprovalSerializer
+        elif self.action == 'set_status':
+            return ChangeWorkflowStatusSerializer
+        elif self.action == 'statistics':
+            return ChangeRequestStatisticsSerializer
+        elif self.action == 'bulk_action':
+            return BulkChangeRequestSerializer
+        return AccountChangeRequestListSerializer
+    
+    @action(detail=True, methods=['post'])
+    def approve(self, request, pk=None):
+        """
+        Approve a change request.
+        
+        Body:
+        {
+            "approval_notes": "Approved - all requirements met"
+        }
+        """
+        change_request = self.get_object()
+        serializer = ChangeApprovalSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            try:
+                # Update change request
+                change_request.status = AccountChangeRequest.STATUS_APPROVED
+                change_request.system_owner = request.user
+                change_request.system_owner_approved = True
+                change_request.system_owner_approval_date = timezone.now()
+                change_request.system_owner_approval_notes = serializer.validated_data.get('approval_notes', '')
+                change_request.save()
+                
+                logger.info(
+                    f"Change request {change_request.id} approved by {request.user.username}"
+                )
+                
+                return Response(
+                    {
+                        'status': 'success',
+                        'message': 'Change request approved',
+                        'data': AccountChangeRequestDetailSerializer(change_request).data
+                    },
+                    status=status.HTTP_200_OK
+                )
+            except Exception as e:
+                logger.error(f"Error approving change request: {str(e)}")
+                return Response(
+                    {'error': str(e)},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=True, methods=['post'])
+    def reject(self, request, pk=None):
+        """
+        Reject a change request.
+        
+        Body:
+        {
+            "approval_notes": "Rejected - security concerns"
+        }
+        """
+        change_request = self.get_object()
+        serializer = ChangeApprovalSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            try:
+                change_request.status = AccountChangeRequest.STATUS_REJECTED
+                change_request.system_owner = request.user
+                change_request.system_owner_approval_notes = serializer.validated_data.get('approval_notes', '')
+                change_request.save()
+                
+                logger.info(
+                    f"Change request {change_request.id} rejected by {request.user.username}"
+                )
+                
+                return Response(
+                    {
+                        'status': 'success',
+                        'message': 'Change request rejected',
+                        'data': AccountChangeRequestDetailSerializer(change_request).data
+                    },
+                    status=status.HTTP_200_OK
+                )
+            except Exception as e:
+                logger.error(f"Error rejecting change request: {str(e)}")
+                return Response(
+                    {'error': str(e)},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=True, methods=['post'])
+    def mark_completed(self, request, pk=None):
+        """
+        Mark change request as completed in external system.
+        
+        Body:
+        {
+            "approval_notes": "Change implemented in AD"
+        }
+        """
+        change_request = self.get_object()
+        serializer = ChangeApprovalSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            try:
+                change_request.status = AccountChangeRequest.STATUS_COMPLETED
+                change_request.completed_in_external_system = True
+                change_request.completed_date = timezone.now()
+                if serializer.validated_data.get('approval_notes'):
+                    change_request.system_owner_approval_notes = serializer.validated_data.get('approval_notes')
+                change_request.save()
+                
+                logger.info(
+                    f"Change request {change_request.id} marked completed"
+                )
+                
+                return Response(
+                    {
+                        'status': 'success',
+                        'message': 'Change marked as completed',
+                        'data': AccountChangeRequestDetailSerializer(change_request).data
+                    },
+                    status=status.HTTP_200_OK
+                )
+            except Exception as e:
+                logger.error(f"Error marking change as completed: {str(e)}")
+                return Response(
+                    {'error': str(e)},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=False, methods=['get'])
+    def statistics(self, request):
+        """Get change request statistics and metrics."""
+        try:
+            queryset = self.get_queryset()
+            
+            # Calculate basic statistics
+            total = queryset.count()
+            pending = queryset.filter(status=AccountChangeRequest.STATUS_PENDING).count()
+            approved = queryset.filter(status=AccountChangeRequest.STATUS_APPROVED).count()
+            completed = queryset.filter(status=AccountChangeRequest.STATUS_COMPLETED).count()
+            rejected = queryset.filter(status=AccountChangeRequest.STATUS_REJECTED).count()
+            
+            # Calculate average approval time
+            approved_requests = queryset.filter(
+                status=AccountChangeRequest.STATUS_APPROVED,
+                system_owner_approval_date__isnull=False
+            )
+            
+            avg_approval_hours = 0
+            if approved_requests.exists():
+                total_hours = 0
+                for req in approved_requests:
+                    if req.system_owner_approval_date and req.created_at:
+                        diff = req.system_owner_approval_date - req.created_at
+                        total_hours += diff.total_seconds() / 3600
+                avg_approval_hours = total_hours / approved_requests.count()
+            
+            # Group by system
+            by_system = dict(
+                queryset.values('system__name').annotate(count=Count('id')).values_list('system__name', 'count')
+            )
+            
+            # Group by change type
+            by_change_type = dict(
+                queryset.values('change_type').annotate(count=Count('id')).values_list('change_type', 'count')
+            )
+            
+            # Group by status
+            by_status = dict(
+                queryset.values('status').annotate(count=Count('id')).values_list('status', 'count')
+            )
+            
+            statistics = {
+                'total_requests': total,
+                'pending_requests': pending,
+                'approved_requests': approved,
+                'completed_requests': completed,
+                'rejected_requests': rejected,
+                'average_approval_time_hours': round(avg_approval_hours, 2),
+                'by_system': by_system,
+                'by_change_type': by_change_type,
+                'by_status': by_status,
+            }
+            
+            serializer = ChangeRequestStatisticsSerializer(statistics)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            logger.error(f"Error generating statistics: {str(e)}")
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    
+    @action(detail=False, methods=['post'])
+    def bulk_action(self, request):
+        """
+        Perform bulk action on multiple change requests.
+        
+        Body:
+        {
+            "ids": [1, 2, 3],
+            "action": "approve",
+            "notes": "Approved in batch"
+        }
+        """
+        serializer = BulkChangeRequestSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            try:
+                ids = serializer.validated_data['ids']
+                action_type = serializer.validated_data['action']
+                notes = serializer.validated_data.get('notes', '')
+                
+                changes = AccountChangeRequest.objects.filter(id__in=ids)
+                updated_count = 0
+                
+                for change in changes:
+                    if action_type == 'approve':
+                        change.status = AccountChangeRequest.STATUS_APPROVED
+                        change.system_owner = request.user
+                        change.system_owner_approved = True
+                        change.system_owner_approval_date = timezone.now()
+                        if notes:
+                            change.system_owner_approval_notes = notes
+                    
+                    elif action_type == 'reject':
+                        change.status = AccountChangeRequest.STATUS_REJECTED
+                        if notes:
+                            change.system_owner_approval_notes = notes
+                    
+                    elif action_type == 'complete':
+                        change.status = AccountChangeRequest.STATUS_COMPLETED
+                        change.completed_in_external_system = True
+                        change.completed_date = timezone.now()
+                    
+                    elif action_type == 'cancel':
+                        change.status = AccountChangeRequest.STATUS_REJECTED
+                    
+                    change.save()
+                    updated_count += 1
+                
+                logger.info(
+                    f"Bulk action '{action_type}' performed on {updated_count} change requests"
+                )
+                
+                return Response(
+                    {
+                        'status': 'success',
+                        'message': f'Bulk action completed',
+                        'updated_count': updated_count
+                    },
+                    status=status.HTTP_200_OK
+                )
+            
+            except Exception as e:
+                logger.error(f"Error performing bulk action: {str(e)}")
+                return Response(
+                    {'error': str(e)},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=False, methods=['get'])
+    def pending_approvals(self, request):
+        """Get pending change requests requiring approval."""
+        try:
+            # Get pending changes that need system owner approval
+            pending_changes = AccountChangeRequest.objects.filter(
+                status=AccountChangeRequest.STATUS_PENDING,
+                system_owner_approved=False
+            ).select_related('user', 'system', 'requested_by')
+            
+            page = self.paginate_queryset(pending_changes)
+            if page is not None:
+                serializer = AccountChangeRequestListSerializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+            
+            serializer = AccountChangeRequestListSerializer(pending_changes, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            logger.error(f"Error retrieving pending approvals: {str(e)}")
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 
