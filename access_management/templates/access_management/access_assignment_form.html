@@ -623,15 +623,7 @@
                             </div>
                         </div>
 
-                        {% include 'includes/system_owner_authorization.html' with
-                            system_owner_field_name='system_owner_approver'
-                            system_owner_selected=system_owner_approver_value
-                            system_owner_approved=system_owner_approved_value
-                            system_owner_approval_date=system_owner_approval_date_value
-                            system_owner_notes=''
-                            business_justification_value=business_justification_value
-                            legitimate_business_need_value=legitimate_business_need_value
-                        %}
+                        {% include 'includes/system_owner_authorization.html' with system_owner_field_name='system_owner_approver' system_owner_selected=system_owner_approver_value system_owner_approved=system_owner_approved_value system_owner_approval_date=system_owner_approval_date_value system_owner_notes='' business_justification_value=business_justification_value legitimate_business_need_value=legitimate_business_need_value users=users %}
 
                         <!-- Additional Information -->
                         <div class="card mb-4">

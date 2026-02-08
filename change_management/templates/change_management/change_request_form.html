@@ -127,15 +127,7 @@
                             </div>
                         </div>
 
-                        {% include 'includes/system_owner_authorization.html' with 
-                            system_owner_field_name='system_owner'
-                            system_owner_selected=selected_system_owner_id
-                            system_owner_approved=system_owner_approved_value
-                            system_owner_approval_date=system_owner_approval_date_value
-                            system_owner_notes=system_owner_approval_notes_value
-                            business_justification_value=business_justification_value
-                            legitimate_business_need_value=''
-                        %}
+                        {% include 'includes/system_owner_authorization.html' with system_owner_field_name='system_owner' system_owner_selected=selected_system_owner_id system_owner_approved=system_owner_approved_value system_owner_approval_date=system_owner_approval_date_value system_owner_notes=system_owner_approval_notes_value business_justification_value=business_justification_value legitimate_business_need_value='' users=users %}
 
                         <!-- IT Approval (optional) -->
                         <div class="card mb-4">
