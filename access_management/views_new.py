@@ -25,11 +25,44 @@ from .forms_new import (
 @login_required
 @permission_required('access_management.can_approve_access', raise_exception=True)
 def approval_dashboard(request):
-    """Dashboard showing pending approvals for the current user."""
+    """Dashboard showing pending approvals for the current user (both Change Management and Access Management)."""
+    
+    from change_management.models import AccountChangeRequest
+    from django.db.models import Q
     
     my_approvals = []
     
-    # 1. Workflow-based approvals
+    # 1. CHANGE MANAGEMENT APPROVALS
+    # Get pending change requests where user is a system owner or IT approver
+    pending_change_requests = AccountChangeRequest.objects.filter(
+        status='Pending'
+    ).select_related('user', 'system', 'system_owner', 'it_approval', 'requested_by')
+    
+    # Filter based on user role
+    if request.user.is_superuser or request.user.is_staff:
+        # Superusers/staff can see all pending change requests
+        pass
+    else:
+        # Regular users can see if:
+        # - They are the system owner
+        # - They are the IT approver
+        pending_change_requests = pending_change_requests.filter(
+            Q(system_owner=request.user) |
+            Q(it_approval=request.user)
+        )
+    
+    # Add change requests to approvals list
+    for change_req in pending_change_requests:
+        my_approvals.append({
+            'type': 'change_request',
+            'item': change_req,
+            'workflow': None,
+            'step': None,
+            'access': None,
+            'created_at': change_req.created_at,
+        })
+    
+    # 2. Workflow-based approvals (Access Management)
     pending_workflows = ApprovalWorkflow.objects.filter(
         status__in=['Pending', 'In Progress']
     ).select_related('user_system_access__user', 'user_system_access__system')
@@ -38,12 +71,15 @@ def approval_dashboard(request):
         for step in workflow.steps.all():
             if step.approver == request.user:
                 my_approvals.append({
+                    'type': 'workflow_access',
+                    'item': workflow.user_system_access,
                     'workflow': workflow,
                     'step': step,
-                    'access': workflow.user_system_access
+                    'access': workflow.user_system_access,
+                    'created_at': workflow.created_at,
                 })
     
-    # 2. Simple pending access assignments (non-workflow)
+    # 3. Simple pending access assignments (non-workflow)
     from systems.models import System
     
     # Get pending assignments where user can approve
@@ -71,10 +107,16 @@ def approval_dashboard(request):
         # Skip if already in workflow approvals
         if not any(a.get('access') and a['access'].id == assignment.id for a in my_approvals):
             my_approvals.append({
+                'type': 'direct_access',
+                'item': assignment,
                 'workflow': None,
                 'step': None,
-                'access': assignment
+                'access': assignment,
+                'created_at': assignment.request_date,
             })
+    
+    # Sort by created_at descending (most recent first)
+    my_approvals.sort(key=lambda x: x['created_at'], reverse=True)
     
     return render(request, 'access_management/approval_dashboard.html', {
         'approvals': my_approvals,
