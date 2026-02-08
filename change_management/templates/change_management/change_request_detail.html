@@ -39,11 +39,11 @@
                                             <th>User:</th>
                                             <td>
                                                 {% if change_request.user %}
-                                                    <strong>{{ change_request.user.full_name }}</strong><br>
-                                                    <small class="text-muted">{{ change_request.user.username }}</small>
-                                                {% else %}
-                                                    <span class="text-muted">Not specified</span>
-                                                {% endif %}
+                                                            <strong>{{ change_request.user.get_full_name }}</strong><br>
+                                                            <small class="text-muted">{{ change_request.user.username }}</small>
+                                                        {% else %}
+                                                            <span class="text-muted">Not specified</span>
+                                                        {% endif %}
                                             </td>
                                         </tr>
                                         <tr>
@@ -71,7 +71,7 @@
                                             <th>Requested By:</th>
                                             <td>
                                                 {% if change_request.requested_by %}
-                                                    <strong>{{ change_request.requested_by.full_name }}</strong><br>
+                                                    <strong>{{ change_request.requested_by.get_full_name }}</strong><br>
                                                     <small class="text-muted">{{ change_request.requested_by.username }}</small>
                                                 {% else %}
                                                     <span class="text-muted">Unknown</span>
@@ -114,7 +114,7 @@
                                             <th width="35%">System Owner:</th>
                                             <td>
                                                 {% if change_request.system_owner %}
-                                                    <strong>{{ change_request.system_owner.full_name }}</strong><br>
+                                                    <strong>{{ change_request.system_owner.get_full_name }}</strong><br>
                                                     <small class="text-muted">{{ change_request.system_owner.username }}</small>
                                                 {% else %}
                                                     <span class="text-muted">Not specified</span>
@@ -150,7 +150,7 @@
                                             <th>IT Approver:</th>
                                             <td>
                                                 {% if change_request.it_approval %}
-                                                    <strong>{{ change_request.it_approval.full_name }}</strong><br>
+                                                    <strong>{{ change_request.it_approval.get_full_name }}</strong><br>
                                                     <small class="text-muted">{{ change_request.it_approval.username }}</small>
                                                 {% else %}
                                                     <span class="text-muted">Not specified</span>
