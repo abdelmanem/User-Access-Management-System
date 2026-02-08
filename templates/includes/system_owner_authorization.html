@@ -1,0 +1,62 @@
+<div class="card mb-4">
+    <div class="card-header bg-secondary text-white">
+        <h5 class="mb-0"><i class="fas fa-user-tie"></i> System Owner Authorization & Business Justification (4.4)</h5>
+    </div>
+    <div class="card-body">
+        <p class="text-muted">
+            Capture the System Owner approval and the legitimate business need for this change/access.
+            This section provides audit evidence for RHG 4.4 change management requirements.
+        </p>
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox"
+                           id="{{ system_owner_field_name }}_approved"
+                           name="{{ system_owner_field_name }}_approved"
+                           {% if system_owner_approved %}checked{% endif %}>
+                    <label class="form-check-label" for="{{ system_owner_field_name }}_approved">
+                        System Owner has authorized this change/access
+                    </label>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <label for="{{ system_owner_field_name }}_approval_date" class="form-label">
+                    System Owner Approval Date
+                </label>
+                <input type="datetime-local" class="form-control"
+                       id="{{ system_owner_field_name }}_approval_date"
+                       name="{{ system_owner_field_name }}_approval_date"
+                       value="{{ system_owner_approval_date }}">
+            </div>
+            <div class="col-md-4">
+                <label for="{{ system_owner_field_name }}_select" class="form-label">
+                    System Owner
+                </label>
+                <select class="form-select" id="{{ system_owner_field_name }}_select" name="{{ system_owner_field_name }}">
+                    <option value="">Select System Owner</option>
+                    {% for choice in users %}
+                    <option value="{{ choice.pk }}" {% if system_owner_selected == choice.pk|stringformat:"s" %}selected{% endif %}>
+                        {{ choice.get_full_name }} ({{ choice.username }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label for="{{ system_owner_field_name }}_notes" class="form-label">System Owner Notes</label>
+            <textarea class="form-control" id="{{ system_owner_field_name }}_notes" name="{{ system_owner_field_name }}_notes" rows="3">{{ system_owner_notes }}</textarea>
+        </div>
+
+        <div class="mb-3">
+            <label for="business_justification" class="form-label">Business Justification <span class="text-danger">*</span></label>
+            <textarea class="form-control" id="business_justification" name="business_justification" rows="4" required>{{ business_justification_value }}</textarea>
+        </div>
+
+        <div class="mb-3">
+            <label for="legitimate_business_need" class="form-label">Legitimate Business Need (for audit evidence)</label>
+            <textarea class="form-control" id="legitimate_business_need" name="legitimate_business_need" rows="3">{{ legitimate_business_need_value }}</textarea>
+            <small class="form-text text-muted">Optional: expand the business justification from the System Owner’s perspective.</small>
+        </div>
+    </div>
+</div>

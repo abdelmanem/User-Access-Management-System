@@ -127,67 +127,15 @@
                             </div>
                         </div>
 
-                        <!-- System Owner Authorization (4.4) -->
-                        <div class="card mb-4">
-                            <div class="card-header bg-secondary text-white">
-                                <h5 class="mb-0"><i class="fas fa-user-tie"></i> System Owner Authorization (4.4)</h5>
-                            </div>
-                            <div class="card-body">
-                                <p class="text-muted">
-                                    Document the System Owner who authorizes this change and capture their approval status,
-                                    as required by RHG 4.4.
-                                </p>
-                                <div class="row">
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label for="system_owner" class="form-label">
-                                                System Owner
-                                            </label>
-                                            <select class="form-select" id="system_owner" name="system_owner">
-                                                <option value="">Select System Owner</option>
-                                                {% for u in users %}
-                                                <option value="{{ u.pk }}" {% if selected_system_owner_id == u.pk|stringformat:"s" %}selected{% endif %}>
-                                                    {{ u.get_full_name }} ({{ u.username }})
-                                                </option>
-                                                {% endfor %}
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="form-check mb-3 mt-4">
-                                            <input class="form-check-input" type="checkbox"
-                                                   id="system_owner_approved"
-                                                   name="system_owner_approved"
-                                                   {% if system_owner_approved_value %}checked{% endif %}>
-                                            <label class="form-check-label" for="system_owner_approved">
-                                                System Owner Approved
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label for="system_owner_approval_date" class="form-label">
-                                                Approval Date
-                                            </label>
-                                            <input type="datetime-local" class="form-control"
-                                                   id="system_owner_approval_date"
-                                                   name="system_owner_approval_date"
-                                                   value="{{ system_owner_approval_date_value }}">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="system_owner_approval_notes" class="form-label">
-                                        System Owner Notes
-                                    </label>
-                                    <textarea class="form-control"
-                                              id="system_owner_approval_notes"
-                                              name="system_owner_approval_notes"
-                                              rows="3"
-                                    >{{ system_owner_approval_notes_value }}</textarea>
-                                </div>
-                            </div>
-                        </div>
+                        {% include 'includes/system_owner_authorization.html' with 
+                            system_owner_field_name='system_owner'
+                            system_owner_selected=selected_system_owner_id
+                            system_owner_approved=system_owner_approved_value
+                            system_owner_approval_date=system_owner_approval_date_value
+                            system_owner_notes=system_owner_approval_notes_value
+                            business_justification_value=business_justification_value
+                            legitimate_business_need_value=''
+                        %}
 
                         <!-- IT Approval (optional) -->
                         <div class="card mb-4">

@@ -3,6 +3,11 @@
 
 {% block title %}{% if access_assignment %}Edit{% else %}Create{% endif %} Access Assignment{% endblock %}
 
+{% block extrahead %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2-bootstrap-5-theme/1.3.0/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
     <div class="row">
@@ -618,79 +623,15 @@
                             </div>
                         </div>
 
-                        <!-- System Owner Authorization & Business Justification (RHG 4.4) -->
-                        <div class="card mb-4">
-                            <div class="card-header bg-secondary text-white">
-                                <h5 class="mb-0">
-                                    <i class="fas fa-user-tie"></i> System Owner Authorization & Business Justification (4.4)
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <p class="text-muted">
-                                    Capture the **System Owner approval** and the **legitimate business need** for this access.
-                                    This section provides audit evidence for RHG 4.4 change management requirements.
-                                </p>
-                                <div class="row mb-3">
-                                    <div class="col-md-4">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox"
-                                                   id="system_owner_approved"
-                                                   name="system_owner_approved"
-                                                   {% if system_owner_approved_value %}checked{% endif %}>
-                                            <label class="form-check-label" for="system_owner_approved">
-                                                System Owner has authorized this access
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label for="system_owner_approval_date" class="form-label">
-                                            System Owner Approval Date
-                                        </label>
-                                        <input type="datetime-local" class="form-control"
-                                               id="system_owner_approval_date"
-                                               name="system_owner_approval_date"
-                                               value="{{ system_owner_approval_date_value }}">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label for="system_owner_approver" class="form-label">
-                                            System Owner
-                                        </label>
-                                        <select class="form-select" id="system_owner_approver" name="system_owner_approver">
-                                            <option value="">Select System Owner</option>
-                                            {% for choice in users %}
-                                            <option value="{{ choice.pk }}"
-                                                {% if system_owner_approver_value == choice.pk|stringformat:"s" %}selected{% endif %}>
-                                                {{ choice.get_full_name }} ({{ choice.username }})
-                                            </option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="business_justification" class="form-label">
-                                        Business Justification <span class="text-danger">*</span>
-                                    </label>
-                                    <textarea class="form-control" 
-                                              id="business_justification" 
-                                              name="business_justification" 
-                                              rows="4" required>{{ business_justification_value }}</textarea>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="legitimate_business_need" class="form-label">
-                                        Legitimate Business Need (for audit evidence)
-                                    </label>
-                                    <textarea class="form-control"
-                                              id="legitimate_business_need"
-                                              name="legitimate_business_need"
-                                              rows="3"
-                                              placeholder="Summarize the legitimate business need agreed with the System Owner...">{{ legitimate_business_need_value }}</textarea>
-                                    <small class="form-text text-muted">
-                                        This field is optional but recommended. It can mirror or expand on the business justification
-                                        specifically from the System Owner’s perspective.
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
+                        {% include 'includes/system_owner_authorization.html' with
+                            system_owner_field_name='system_owner_approver'
+                            system_owner_selected=system_owner_approver_value
+                            system_owner_approved=system_owner_approved_value
+                            system_owner_approval_date=system_owner_approval_date_value
+                            system_owner_notes=''
+                            business_justification_value=business_justification_value
+                            legitimate_business_need_value=legitimate_business_need_value
+                        %}
 
                         <!-- Additional Information -->
                         <div class="card mb-4">
@@ -920,6 +861,35 @@ document.addEventListener('DOMContentLoaded', function() {
         filterSubscriptionTiers();
         applyTierLicense();
     }
+});
+</script>
+
+<!-- Select2 for searchable user and system dropdowns -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+<script>
+$(document).ready(function() {
+    // Initialize Select2 for User field with search
+    $('#user').select2({
+        placeholder: 'Search and select user...',
+        allowClear: false,
+        width: '100%',
+        theme: 'bootstrap-5'
+    });
+
+    // Initialize Select2 for System field with search
+    $('#system').select2({
+        placeholder: 'Search and select system...',
+        allowClear: false,
+        width: '100%',
+        theme: 'bootstrap-5'
+    });
+
+    // Also initialize on other dropdown selects for consistency
+    $('#access_type, #request_type, #priority').select2({
+        minimumResultsForSearch: Infinity, // Hide search for these
+        width: '100%',
+        theme: 'bootstrap-5'
+    });
 });
 </script>
 {% endblock %}

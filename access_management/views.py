@@ -46,6 +46,12 @@ from accounts.models import CustomUser
 from systems.models import System, SystemContract, SystemSubscriptionTier
 from departments.models import Department
 
+# Import change management for change request creation
+try:
+    from change_management.models import AccountChangeRequest
+except ImportError:
+    AccountChangeRequest = None
+
 
 def _format_datetime(value):
     if not value:
@@ -73,6 +79,35 @@ def _parse_datetime_input(value):
     except (ValueError, TypeError):
         return None
     return parsed
+
+
+def _create_change_request_for_assignment(access_assignment, request_user):
+    """
+    Create a corresponding change request in change_management for audit and workflow compliance.
+    This enforces RHG 4.4 change management requirements.
+    """
+    if not AccountChangeRequest:
+        return None
+    
+    try:
+        # Determine change type based on assignment type
+        change_type = AccountChangeRequest.CHANGE_TYPE_CREATE
+        
+        # Create the change request
+        change_request = AccountChangeRequest.objects.create(
+            change_type=change_type,
+            user=access_assignment.user,
+            system=access_assignment.system,
+            business_justification=access_assignment.business_justification or 'Access assignment created',
+            requested_by=request_user,
+            status=AccountChangeRequest.STATUS_PENDING,
+            system_owner=access_assignment.system.system_owner if access_assignment.system else None,
+        )
+        return change_request
+    except Exception as e:
+        # Log the error but don't fail assignment creation
+        logger.warning(f'Failed to create change request for assignment {access_assignment.pk}: {str(e)}')
+        return None
 
 
 def _get_subscription_tier_options():
@@ -1801,7 +1836,7 @@ def access_assignment_create(request):
         access_type = request.POST.get('access_type')
         request_type = request.POST.get('request_type')
         priority = request.POST.get('priority')
-        business_justification = request.POST.get('business_justification')
+        business_justification = request.POST.get('business_justification', '').strip()
         legitimate_business_need = request.POST.get('legitimate_business_need', '').strip()
         requested_access_duration = request.POST.get('requested_access_duration')
         technical_requirements = request.POST.get('technical_requirements')
@@ -1953,8 +1988,20 @@ def access_assignment_create(request):
                 created_by=request.user
             )
             
-            messages.success(request, f'Access assignment created successfully for {user.full_name} to {system.name}.')
-            return redirect('access_management:access_assignment_detail', pk=access_assignment.pk)
+            # Create associated change request for RHG 4.4 compliance
+            change_request = _create_change_request_for_assignment(access_assignment, request.user)
+            
+            messages.success(
+                request, 
+                f'Access assignment created successfully for {user.full_name} to {system.name}. '
+                f'A change request has been created for approval in the change management workflow.'
+            )
+            
+            # Redirect to change request for approval workflow
+            if change_request:
+                return redirect('change_management:change_request_detail', pk=change_request.pk)
+            else:
+                return redirect('access_management:access_assignment_detail', pk=access_assignment.pk)
             
         except (CustomUser.DoesNotExist, System.DoesNotExist):
             messages.error(request, 'Invalid user or system selected.')
@@ -1968,7 +2015,8 @@ def access_assignment_create(request):
     default_verifier_id = ''
     if request.user and getattr(request.user, 'pk', None):
         default_verifier_id = str(request.user.pk)
-    selected_user_id = (request.POST.get('user') if request.method == 'POST' else None) or ''
+    # Pre-populate user from GET or POST parameter
+    selected_user_id = (request.POST.get('user') if request.method == 'POST' else None) or request.GET.get('user', '')
     selected_system_id = (request.POST.get('system') if request.method == 'POST' else None) or (request.GET.get('system') or '')
     selected_access_type = (request.POST.get('access_type') if request.method == 'POST' else '') or ''
     selected_request_type = (request.POST.get('request_type') if request.method == 'POST' else '') or ''
@@ -2042,7 +2090,7 @@ def access_assignment_update(request, pk):
         access_type = request.POST.get('access_type')
         request_type = request.POST.get('request_type')
         priority = request.POST.get('priority')
-        business_justification = request.POST.get('business_justification')
+        business_justification = request.POST.get('business_justification', access_assignment.business_justification or '').strip()
         legitimate_business_need = request.POST.get('legitimate_business_need', '').strip()
         technical_requirements = request.POST.get('technical_requirements')
         requested_access_duration = request.POST.get('requested_access_duration')
@@ -2245,11 +2293,11 @@ def access_assignment_update(request, pk):
         'requested_access_duration_value': request.POST.get('requested_access_duration', access_assignment.requested_access_duration or ''),
         'access_start_date_value': request.POST.get(
             'access_start_date',
-            timezone.localtime(access_assignment.access_start_date).strftime('%Y-%m-%dT%H:%M') if access_assignment.access_start_date else ''
+            _format_datetime_for_input(access_assignment.access_start_date),
         ),
         'access_end_date_value': request.POST.get(
             'access_end_date',
-            timezone.localtime(access_assignment.access_end_date).strftime('%Y-%m-%dT%H:%M') if access_assignment.access_end_date else ''
+            _format_datetime_for_input(access_assignment.access_end_date),
         ),
         # Pre-populate system_username from effective_username if system_username is empty (for legacy data migration)
         'system_username_value': request.POST.get('system_username', access_assignment.effective_username or ''),
