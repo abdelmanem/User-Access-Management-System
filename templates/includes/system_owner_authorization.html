@@ -21,12 +21,13 @@
             </div>
             <div class="col-md-4">
                 <label for="{{ system_owner_field_name }}_approval_date" class="form-label">
-                    System Owner Approval Date
+                    System Owner Approval Date <span class="text-danger">*</span>
                 </label>
                 <input type="datetime-local" class="form-control"
                        id="{{ system_owner_field_name }}_approval_date"
                        name="{{ system_owner_field_name }}_approval_date"
-                       value="{{ system_owner_approval_date }}">
+                       value="{{ system_owner_approval_date }}"
+                       required>
             </div>
             <div class="col-md-4">
                 <label for="{{ system_owner_field_name }}_select" class="form-label">
@@ -60,3 +61,21 @@
         </div>
     </div>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set default date to today for system_owner_approval_date fields if empty
+    const dateInputs = document.querySelectorAll('input[id$="_approval_date"]');
+    dateInputs.forEach(function(input) {
+        // Only set default if the field is empty
+        if (!input.value) {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            const hours = String(today.getHours()).padStart(2, '0');
+            const minutes = String(today.getMinutes()).padStart(2, '0');
+            input.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+    });
+});
+</script>

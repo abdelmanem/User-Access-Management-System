@@ -247,11 +247,16 @@ def change_request_update(request, pk):
                 approval_date = None
 
         completed_date = None
-        if completed_in_external_system and completed_date_raw:
-            try:
-                completed_date = timezone.datetime.fromisoformat(completed_date_raw)
-            except (ValueError, TypeError):
-                completed_date = None
+        if completed_in_external_system:
+            if completed_date_raw:
+                try:
+                    completed_date = timezone.datetime.fromisoformat(completed_date_raw)
+                except (ValueError, TypeError):
+                    # If date is invalid, use today
+                    completed_date = timezone.now()
+            else:
+                # If checkbox is checked but no date provided, use today
+                completed_date = timezone.now()
 
         change_request.change_type = change_type
         change_request.user = user

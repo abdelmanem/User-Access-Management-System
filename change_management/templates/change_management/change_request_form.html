@@ -3,6 +3,65 @@
 
 {% block title %}{% if change_request %}Edit{% else %}Create{% endif %} Account Change Request{% endblock %}
 
+{% block extracss %}
+<style>
+    /* Ensure card text colors match theme */
+    html[data-theme="dark"] .card,
+    html.dark-mode .card,
+    body.dark-mode .card {
+        color: #e9ecef !important;
+    }
+
+    html[data-theme="dark"] .card *,
+    html.dark-mode .card *,
+    body.dark-mode .card * {
+        color: #e9ecef !important;
+    }
+
+    html[data-theme="light"] .card,
+    html.light-mode .card {
+        color: #000000 !important;
+    }
+
+    html[data-theme="light"] .card *,
+    html.light-mode .card * {
+        color: #000000 !important;
+    }
+
+    /* Ensure label colors */
+    html[data-theme="dark"] .form-label,
+    html.dark-mode .form-label {
+        color: #e9ecef !important;
+    }
+
+    html[data-theme="light"] .form-label,
+    html.light-mode .form-label {
+        color: #000000 !important;
+    }
+
+    /* Preserve utility text colors */
+    html[data-theme="dark"] .text-muted,
+    html.dark-mode .text-muted {
+        color: #adb5bd !important;
+    }
+
+    html[data-theme="light"] .text-muted,
+    html.light-mode .text-muted {
+        color: #6c757d !important;
+    }
+
+    html[data-theme="dark"] .text-danger,
+    html.dark-mode .text-danger {
+        color: #dc3545 !important;
+    }
+
+    html[data-theme="light"] .text-danger,
+    html.light-mode .text-danger {
+        color: #dc3545 !important;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
     <div class="row">
@@ -114,7 +173,7 @@
                                     <div class="col-md-4">
                                         <div class="mb-3">
                                             <label for="completed_date" class="form-label">
-                                                Completion Date (external system)
+                                                Completion Date (external system) <span class="text-danger" id="completion-date-required"></span>
                                             </label>
                                             <input type="datetime-local" class="form-control"
                                                    id="completed_date"
@@ -213,6 +272,48 @@
                 form.classList.add('was-validated');
             }, false);
         });
+        
+        // Handle completion date auto-population
+        const completedCheckbox = document.getElementById('completed_in_external_system');
+        const completedDateInput = document.getElementById('completed_date');
+        const completionDateRequired = document.getElementById('completion-date-required');
+        
+        function updateCompletionDateUI() {
+            if (completedCheckbox && completedDateInput) {
+                if (completedCheckbox.checked) {
+                    // Show required indicator and make field required
+                    if (completionDateRequired) {
+                        completionDateRequired.textContent = '*';
+                    }
+                    completedDateInput.required = true;
+                    
+                    // If date is empty, auto-populate with today
+                    if (!completedDateInput.value) {
+                        const today = new Date();
+                        const year = today.getFullYear();
+                        const month = String(today.getMonth() + 1).padStart(2, '0');
+                        const day = String(today.getDate()).padStart(2, '0');
+                        const hours = String(today.getHours()).padStart(2, '0');
+                        const minutes = String(today.getMinutes()).padStart(2, '0');
+                        completedDateInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+                    }
+                } else {
+                    // Hide required indicator and make field not required
+                    if (completionDateRequired) {
+                        completionDateRequired.textContent = '';
+                    }
+                    completedDateInput.required = false;
+                }
+            }
+        }
+        
+        // Run on load to handle existing state
+        updateCompletionDateUI();
+        
+        // Run when checkbox changes
+        if (completedCheckbox) {
+            completedCheckbox.addEventListener('change', updateCompletionDateUI);
+        }
     }, false);
 })();
 </script>
