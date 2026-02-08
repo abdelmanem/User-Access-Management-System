@@ -5,10 +5,12 @@
 
 {% block extracss %}
 <style>
-    /* Ensure card text colors match theme */
+    /* Dark Mode Card Styling */
     html[data-theme="dark"] .card,
     html.dark-mode .card,
     body.dark-mode .card {
+        background-color: #3a3f48 !important;
+        border-color: #1a1d24 !important;
         color: #e9ecef !important;
     }
 
@@ -18,6 +20,22 @@
         color: #e9ecef !important;
     }
 
+    html[data-theme="dark"] .card-header,
+    html.dark-mode .card-header,
+    body.dark-mode .card-header {
+        background-color: #2d3138 !important;
+        border-bottom-color: #1a1d24 !important;
+        color: #e9ecef !important;
+    }
+
+    html[data-theme="dark"] .card-body,
+    html.dark-mode .card-body,
+    body.dark-mode .card-body {
+        background-color: #3a3f48 !important;
+        color: #e9ecef !important;
+    }
+
+    /* Light Mode Card Styling */
     html[data-theme="light"] .card,
     html.light-mode .card {
         color: #000000 !important;
@@ -25,6 +43,16 @@
 
     html[data-theme="light"] .card *,
     html.light-mode .card * {
+        color: #000000 !important;
+    }
+
+    html[data-theme="light"] .card-header,
+    html.light-mode .card-header {
+        color: #000000 !important;
+    }
+
+    html[data-theme="light"] .card-body,
+    html.light-mode .card-body {
         color: #000000 !important;
     }
 
