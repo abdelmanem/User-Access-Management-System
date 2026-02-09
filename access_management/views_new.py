@@ -53,6 +53,18 @@ def approval_dashboard(request):
     
     # Add change requests to approvals list
     for change_req in pending_change_requests:
+        can_edit_owner_section = (
+            request.user.is_superuser
+            or request.user.is_staff
+            or (change_req.system_owner and change_req.system_owner_id == request.user.id)
+        )
+        can_edit_it_section = (
+            request.user.is_superuser
+            or request.user.is_staff
+            or request.user.is_it_admin
+            or (change_req.it_approval and change_req.it_approval_id == request.user.id)
+        )
+
         my_approvals.append({
             'type': 'change_request',
             'item': change_req,
@@ -60,6 +72,8 @@ def approval_dashboard(request):
             'step': None,
             'access': None,
             'created_at': change_req.created_at,
+            'can_edit_owner_section': can_edit_owner_section,
+            'can_edit_it_section': can_edit_it_section,
         })
     
     # 2. Workflow-based approvals (Access Management)
@@ -106,6 +120,16 @@ def approval_dashboard(request):
     for assignment in pending_assignments:
         # Skip if already in workflow approvals
         if not any(a.get('access') and a['access'].id == assignment.id for a in my_approvals):
+            is_system_owner = (
+                request.user.is_superuser
+                or request.user.is_staff
+                or (assignment.system and getattr(assignment.system, 'system_owner_id', None) == request.user.id)
+            )
+            is_it_approver = (
+                request.user.is_superuser
+                or request.user.is_staff
+                or request.user.is_it_admin
+            )
             my_approvals.append({
                 'type': 'direct_access',
                 'item': assignment,
@@ -113,6 +137,8 @@ def approval_dashboard(request):
                 'step': None,
                 'access': assignment,
                 'created_at': assignment.request_date,
+                'can_edit_owner_section': is_system_owner,
+                'can_edit_it_section': is_it_approver,
             })
     
     # Sort by created_at descending (most recent first)

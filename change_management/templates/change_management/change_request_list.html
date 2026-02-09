@@ -158,6 +158,24 @@
                                            class="btn btn-sm btn-outline-secondary">
                                             <i class="fas fa-edit"></i>
                                         </a>
+                                        {% if not req.system_owner_approved and req.can_edit_owner_section %}
+                                        <form method="post" action="{% url 'change_management:change_request_quick_approve' req.pk %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="approval_type" value="owner">
+                                            <button type="submit" class="btn btn-sm btn-success" title="Approve as Owner">
+                                                <i class="fas fa-user-check"></i>
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                        {% if not req.it_approval_date and req.can_edit_it_section %}
+                                        <form method="post" action="{% url 'change_management:change_request_quick_approve' req.pk %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="approval_type" value="it">
+                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Approve as IT">
+                                                <i class="fas fa-laptop-code"></i>
+                                            </button>
+                                        </form>
+                                        {% endif %}
                                     </td>
                                 </tr>
                                 {% empty %}

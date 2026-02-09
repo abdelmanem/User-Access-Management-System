@@ -67,6 +67,26 @@ def change_request_list(request):
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
+    # Annotate each change request with approval role flags for the current user
+    for cr in page_obj.object_list:
+        try:
+            cr.can_edit_owner_section = (
+                request.user.is_superuser
+                or request.user.is_staff
+                or (cr.system_owner and cr.system_owner_id == request.user.id)
+            )
+        except Exception:
+            cr.can_edit_owner_section = False
+        try:
+            cr.can_edit_it_section = (
+                request.user.is_superuser
+                or request.user.is_staff
+                or request.user.is_it_admin
+                or (cr.it_approval and cr.it_approval_id == request.user.id)
+            )
+        except Exception:
+            cr.can_edit_it_section = False
+
     systems = System.objects.all().order_by("name")
     users = CustomUser.objects.all().order_by("first_name", "last_name")
 
@@ -100,8 +120,23 @@ def change_request_detail(request, pk):
         pk=pk,
     )
 
+    # Determine if current user can edit/approve owner and IT sections
+    can_edit_owner_section = (
+        request.user.is_superuser
+        or request.user.is_staff
+        or (change_request.system_owner and change_request.system_owner_id == request.user.id)
+    )
+    can_edit_it_section = (
+        request.user.is_superuser
+        or request.user.is_staff
+        or request.user.is_it_admin
+        or (change_request.it_approval and change_request.it_approval_id == request.user.id)
+    )
+
     context = {
         "change_request": change_request,
+        "can_edit_owner_section": can_edit_owner_section,
+        "can_edit_it_section": can_edit_it_section,
     }
     return render(request, "change_management/change_request_detail.html", context)
 
@@ -175,6 +210,11 @@ def change_request_create(request):
     systems = System.objects.all().order_by("name")
     users = CustomUser.objects.all().order_by("first_name", "last_name")
 
+    # On creation, only authorized users (staff/superuser/IT admin) can edit approval sections
+    # Regular users can only fill in basic info and business justification
+    can_edit_owner_section = request.user.is_superuser or request.user.is_staff
+    can_edit_it_section = request.user.is_superuser or request.user.is_staff or request.user.is_it_admin
+
     context = {
         "systems": systems,
         "users": users,
@@ -190,8 +230,89 @@ def change_request_create(request):
         "system_owner_approval_notes_value": "",
         "system_owner_approval_date_value": "",
         "system_owner_approved_value": "",
+        "can_edit_owner_section": can_edit_owner_section,
+        "can_edit_it_section": can_edit_it_section,
+        "show_approval_sections": can_edit_owner_section or can_edit_it_section,
     }
     return render(request, "change_management/change_request_form.html", context)
+
+
+@login_required
+def change_request_quick_approve(request, pk):
+    """Quick approve endpoint used by unified dashboard to record system owner approval.
+
+    Behavior:
+    - If the logged-in user is system owner or staff, mark `system_owner_approved`.
+    - If no IT approval is required (it_approval is null) mark overall status as `Approved`.
+    - Otherwise leave status as `Pending` but record owner approval.
+    """
+    change_request = get_object_or_404(AccountChangeRequest, pk=pk)
+
+    # Determine approval type (owner or it)
+    approval_type = request.POST.get("approval_type", "owner") if request.method == "POST" else "owner"
+
+    # Handle POST actions
+    if request.method == "POST":
+        # Owner approval flow
+        if approval_type == "owner":
+            # Only system owner, staff or superuser may approve as owner
+            if not (
+                request.user.is_superuser
+                or request.user.is_staff
+                or (change_request.system_owner and change_request.system_owner_id == request.user.id)
+            ):
+                messages.error(request, "You do not have permission to record System Owner approval.")
+                return redirect(request.META.get("HTTP_REFERER", "/"))
+
+            # Record owner approval
+            if change_request.system_owner_id != request.user.id:
+                change_request.system_owner = request.user
+            change_request.system_owner_approved = True
+            change_request.system_owner_approval_date = timezone.now()
+            notes = request.POST.get("approval_notes")
+            if notes:
+                change_request.system_owner_approval_notes = notes
+
+            # If no IT approver required, transition to Approved
+            if not change_request.it_approval:
+                change_request.status = AccountChangeRequest.STATUS_APPROVED
+
+            change_request.save()
+            messages.success(request, f"Change request #{change_request.pk} recorded System Owner approval.")
+
+        # IT approval flow
+        elif approval_type == "it":
+            # Only IT approver, staff or superuser may approve as IT
+            if not (
+                request.user.is_superuser
+                or request.user.is_staff
+                or (change_request.it_approval and change_request.it_approval_id == request.user.id)
+            ):
+                messages.error(request, "You do not have permission to record IT approval.")
+                return redirect(request.META.get("HTTP_REFERER", "/"))
+
+            # Record IT approval
+            # If IT approver field not set, set to current user
+            if not change_request.it_approval:
+                change_request.it_approval = request.user
+            change_request.it_approval_date = timezone.now()
+            notes = request.POST.get("approval_notes")
+            if notes:
+                # append to owner notes if present to keep context
+                existing = change_request.system_owner_approval_notes or ""
+                change_request.system_owner_approval_notes = existing + "\n[IT] " + notes if existing else notes
+
+            # If owner already approved, transition to Approved
+            if change_request.system_owner_approved:
+                change_request.status = AccountChangeRequest.STATUS_APPROVED
+
+            change_request.save()
+            messages.success(request, f"Change request #{change_request.pk} recorded IT approval.")
+
+        else:
+            messages.error(request, "Unknown approval type.")
+
+    return redirect(request.META.get("HTTP_REFERER", "/"))
 
 
 @login_required
@@ -318,6 +439,18 @@ def change_request_update(request, pk):
             "on" if change_request.completed_in_external_system else ""
         ),
         "completed_date_value": _format_dt(change_request.completed_date),
+        "can_edit_owner_section": (
+            request.user.is_superuser
+            or request.user.is_staff
+            or (change_request.system_owner and change_request.system_owner_id == request.user.id)
+        ),
+        "can_edit_it_section": (
+            request.user.is_superuser
+            or request.user.is_staff
+            or request.user.is_it_admin
+            or (change_request.it_approval and change_request.it_approval_id == request.user.id)
+        ),
+        "show_approval_sections": True,
     }
     return render(request, "change_management/change_request_form.html", context)
 

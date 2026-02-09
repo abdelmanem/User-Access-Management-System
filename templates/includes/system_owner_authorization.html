@@ -7,6 +7,8 @@
             Capture the System Owner approval and the legitimate business need for this change/access.
             This section provides audit evidence for RHG 4.4 change management requirements.
         </p>
+
+        {% if can_edit %}
         <div class="row mb-3">
             <div class="col-md-4">
                 <div class="form-check">
@@ -49,25 +51,62 @@
             <textarea class="form-control" id="{{ system_owner_field_name }}_notes" name="{{ system_owner_field_name }}_notes" rows="3">{{ system_owner_notes }}</textarea>
         </div>
 
+        {% else %}
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <p><strong>Authorized:</strong> {% if system_owner_approved %}Yes{% else %}No{% endif %}</p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>Approval Date:</strong> {% if system_owner_approval_date %}{{ system_owner_approval_date }}{% else %}-{% endif %}</p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>System Owner:</strong>
+                    {% if system_owner_selected %}
+                        {% for choice in users %}
+                            {% if choice.pk|stringformat:"s" == system_owner_selected %}
+                                {{ choice.get_full_name }} ({{ choice.username }})
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}-{% endif %}
+                </p>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">System Owner Notes</label>
+            <textarea class="form-control" rows="3" disabled>{% if system_owner_notes %}{{ system_owner_notes }}{% endif %}</textarea>
+        </div>
+
+        {% endif %}
+
         <div class="mb-3">
             <label for="business_justification" class="form-label">Business Justification <span class="text-danger">*</span></label>
+            {% if can_edit %}
             <textarea class="form-control" id="business_justification" name="business_justification" rows="4" required>{{ business_justification_value }}</textarea>
+            {% else %}
+            <textarea class="form-control" rows="4" disabled>{{ business_justification_value }}</textarea>
+            {% endif %}
         </div>
 
         <div class="mb-3">
             <label for="legitimate_business_need" class="form-label">Legitimate Business Need (for audit evidence)</label>
+            {% if can_edit %}
             <textarea class="form-control" id="legitimate_business_need" name="legitimate_business_need" rows="3">{{ legitimate_business_need_value }}</textarea>
+            {% else %}
+            <textarea class="form-control" rows="3" disabled>{{ legitimate_business_need_value }}</textarea>
+            {% endif %}
             <small class="form-text text-muted">Optional: expand the business justification from the System Owner’s perspective.</small>
         </div>
     </div>
 </div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Set default date to today for system_owner_approval_date fields if empty
     const dateInputs = document.querySelectorAll('input[id$="_approval_date"]');
     dateInputs.forEach(function(input) {
-        // Only set default if the field is empty
-        if (!input.value) {
+        // Only set default if the field is empty and editable
+        if (!input.value && !input.hasAttribute('disabled')) {
             const today = new Date();
             const year = today.getFullYear();
             const month = String(today.getMonth() + 1).padStart(2, '0');

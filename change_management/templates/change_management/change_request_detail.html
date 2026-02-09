@@ -100,6 +100,79 @@
                                     </table>
                                 </div>
                             </div>
+                            <div class="card-body border-top">
+                                <div class="d-flex gap-2">
+                                    {% comment %}Owner approval action: visible only when owner approval is pending and user can edit{% endcomment %}
+                                    {% if not change_request.system_owner_approved and can_edit_owner_section %}
+                                    <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#approveOwnerModal">
+                                        <i class="fas fa-check"></i> Approve as Owner
+                                    </button>
+                                    {% endif %}
+
+                                    {% comment %}IT approval action: visible when IT hasn't approved yet and user can edit{% endcomment %}
+                                    {% if not change_request.it_approval_date and can_edit_it_section %}
+                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#approveITModal">
+                                        <i class="fas fa-check"></i> Approve as IT
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Modal for Owner Approval -->
+                            <div class="modal fade" id="approveOwnerModal" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-success text-white">
+                                            <h5 class="modal-title">System Owner Approval</h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <form method="post" action="{% url 'change_management:change_request_quick_approve' change_request.pk %}">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="approval_type" value="owner">
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label for="ownerApprovalNotes" class="form-label">Approval Notes (optional)</label>
+                                                    <textarea class="form-control" id="ownerApprovalNotes" name="approval_notes" rows="4" placeholder="Add any notes or comments about this approval..."></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="submit" class="btn btn-success">
+                                                    <i class="fas fa-check"></i> Approve
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Modal for IT Approval -->
+                            <div class="modal fade" id="approveITModal" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-primary text-white">
+                                            <h5 class="modal-title">IT Approval</h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <form method="post" action="{% url 'change_management:change_request_quick_approve' change_request.pk %}">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="approval_type" value="it">
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label for="itApprovalNotes" class="form-label">Approval Notes (optional)</label>
+                                                    <textarea class="form-control" id="itApprovalNotes" name="approval_notes" rows="4" placeholder="Add any IT-specific comments..."></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="submit" class="btn btn-primary">
+                                                    <i class="fas fa-check"></i> Approve
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- System Owner & IT Approval -->

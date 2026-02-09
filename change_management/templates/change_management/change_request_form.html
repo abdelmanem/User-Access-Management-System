@@ -214,36 +214,60 @@
                             </div>
                         </div>
 
-                        {% include 'includes/system_owner_authorization.html' with system_owner_field_name='system_owner' system_owner_selected=selected_system_owner_id system_owner_approved=system_owner_approved_value system_owner_approval_date=system_owner_approval_date_value system_owner_notes=system_owner_approval_notes_value business_justification_value=business_justification_value legitimate_business_need_value='' users=users %}
+                        {% comment %}Show approval sections ONLY to authorized users (staff/superuser/owner/IT approver).{% endcomment %}
+                        {% if show_approval_sections %}
+                            {% if can_edit_owner_section %}
+                                {% include 'includes/system_owner_authorization.html' with system_owner_field_name='system_owner' system_owner_selected=selected_system_owner_id system_owner_approved=system_owner_approved_value system_owner_approval_date=system_owner_approval_date_value system_owner_notes=system_owner_approval_notes_value business_justification_value=business_justification_value legitimate_business_need_value='' users=users can_edit=True %}
+                            {% else %}
+                                {% include 'includes/system_owner_authorization.html' with system_owner_field_name='system_owner' system_owner_selected=selected_system_owner_id system_owner_approved=system_owner_approved_value system_owner_approval_date=system_owner_approval_date_value system_owner_notes=system_owner_approval_notes_value business_justification_value=business_justification_value legitimate_business_need_value='' users=users can_edit=False %}
+                            {% endif %}
 
-                        <!-- IT Approval (optional) -->
-                        <div class="card mb-4">
-                            <div class="card-header bg-info text-white">
-                                <h5 class="mb-0"><i class="fas fa-laptop-code"></i> IT Approval (optional)</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="it_approval" class="form-label">
-                                                IT Approver
-                                            </label>
-                                            <select class="form-select" id="it_approval" name="it_approval">
-                                                <option value="">Select IT approver</option>
-                                                {% for u in users %}
-                                                <option value="{{ u.pk }}" {% if selected_it_approval_id == u.pk|stringformat:"s" %}selected{% endif %}>
-                                                    {{ u.get_full_name }} ({{ u.username }})
-                                                </option>
-                                                {% endfor %}
-                                            </select>
+                            <!-- IT Approval (optional) -->
+                            <div class="card mb-4">
+                                <div class="card-header bg-info text-white">
+                                    <h5 class="mb-0"><i class="fas fa-laptop-code"></i> IT Approval (optional)</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="it_approval" class="form-label">
+                                                    IT Approver
+                                                </label>
+                                                {% if can_edit_it_section %}
+                                                <select class="form-select" id="it_approval" name="it_approval">
+                                                    <option value="">Select IT approver</option>
+                                                    {% for u in users %}
+                                                    <option value="{{ u.pk }}" {% if selected_it_approval_id == u.pk|stringformat:"s" %}selected{% endif %}>
+                                                        {{ u.get_full_name }} ({{ u.username }})
+                                                    </option>
+                                                    {% endfor %}
+                                                </select>
+                                                {% else %}
+                                                <p class="form-control-plaintext">
+                                                    {% if selected_it_approval_id %}
+                                                        {% for u in users %}
+                                                            {% if u.pk|stringformat:"s" == selected_it_approval_id %}
+                                                                {{ u.get_full_name }} ({{ u.username }})
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    {% else %}-{% endif %}
+                                                </p>
+                                                {% endif %}
+                                            </div>
                                         </div>
                                     </div>
+                                    <p class="text-muted mb-0">
+                                        Use this when your process requires an IT manager to co-approve changes in addition to the System Owner.
+                                    </p>
                                 </div>
-                                <p class="text-muted mb-0">
-                                    Use this when your process requires an IT manager to co-approve changes in addition to the System Owner.
-                                </p>
                             </div>
-                        </div>
+                        {% else %}
+                            <!-- Read-only notice for regular users -->
+                            <div class="alert alert-info" role="alert">
+                                <i class="fas fa-info-circle"></i> <strong>Note:</strong> This change request will be forwarded to the System Owner and IT approvers for review and approval. You will be able to track the approval progress on this request's detail page.
+                            </div>
+                        {% endif %}
 
                         <!-- Business Justification -->
                         <div class="card mb-4">
