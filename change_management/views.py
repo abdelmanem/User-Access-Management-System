@@ -160,6 +160,15 @@ def change_request_create(request):
         it_approval_id = request.POST.get("it_approval") or None
         status = request.POST.get("status") or AccountChangeRequest.STATUS_PENDING
 
+        # Validate required fields
+        if not user_id:
+            messages.error(request, "User is required. Please select a user for this change request.")
+            return redirect("change_management:change_request_create")
+        
+        if not system_id:
+            messages.error(request, "Please select a valid system.")
+            return redirect("change_management:change_request_create")
+
         try:
             system = System.objects.get(id=system_id)
         except System.DoesNotExist:
@@ -169,6 +178,9 @@ def change_request_create(request):
         user = None
         if user_id:
             user = CustomUser.objects.filter(id=user_id).first()
+            if not user:
+                messages.error(request, "Please select a valid user.")
+                return redirect("change_management:change_request_create")
 
         system_owner = None
         if system_owner_id:
@@ -208,12 +220,11 @@ def change_request_create(request):
         return redirect("change_management:change_request_detail", pk=change_request.pk)
 
     systems = System.objects.all().order_by("name")
-    users = CustomUser.objects.all().order_by("first_name", "last_name")
-
-    # On creation, only authorized users (staff/superuser/IT admin) can edit approval sections
+    users = CustomUser.objects.filter(employment_status='Active').order_by("first_name", "last_name")
     # Regular users can only fill in basic info and business justification
     can_edit_owner_section = request.user.is_superuser or request.user.is_staff
     can_edit_it_section = request.user.is_superuser or request.user.is_staff or request.user.is_it_admin
+    can_edit_status = request.user.is_superuser or request.user.is_staff
 
     context = {
         "systems": systems,
@@ -232,6 +243,7 @@ def change_request_create(request):
         "system_owner_approved_value": "",
         "can_edit_owner_section": can_edit_owner_section,
         "can_edit_it_section": can_edit_it_section,
+        "can_edit_status": can_edit_status,
         "show_approval_sections": can_edit_owner_section or can_edit_it_section,
     }
     return render(request, "change_management/change_request_form.html", context)
@@ -340,6 +352,15 @@ def change_request_update(request, pk):
         )
         completed_date_raw = request.POST.get("completed_date")
 
+        # Validate required fields
+        if not user_id:
+            messages.error(request, "User is required. Please select a user for this change request.")
+            return redirect("change_management:change_request_update", pk=pk)
+        
+        if not system_id:
+            messages.error(request, "Please select a valid system.")
+            return redirect("change_management:change_request_update", pk=pk)
+
         try:
             system = System.objects.get(id=system_id)
         except System.DoesNotExist:
@@ -349,6 +370,9 @@ def change_request_update(request, pk):
         user = None
         if user_id:
             user = CustomUser.objects.filter(id=user_id).first()
+            if not user:
+                messages.error(request, "Please select a valid user.")
+                return redirect("change_management:change_request_update", pk=pk)
 
         system_owner = None
         if system_owner_id:
@@ -399,7 +423,7 @@ def change_request_update(request, pk):
         return redirect("change_management:change_request_detail", pk=change_request.pk)
 
     systems = System.objects.all().order_by("name")
-    users = CustomUser.objects.all().order_by("first_name", "last_name")
+    users = CustomUser.objects.filter(employment_status='Active').order_by("first_name", "last_name")
 
     def _format_dt(dt):
         if not dt:
@@ -450,6 +474,7 @@ def change_request_update(request, pk):
             or request.user.is_it_admin
             or (change_request.it_approval and change_request.it_approval_id == request.user.id)
         ),
+        "can_edit_status": request.user.is_superuser or request.user.is_staff,
         "show_approval_sections": True,
     }
     return render(request, "change_management/change_request_form.html", context)

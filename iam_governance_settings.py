@@ -2,6 +2,8 @@
 IAM Governance Settings Configuration
 Add these to your Django settings.py for full gap remediation support
 """
+import os
+from celery.schedules import crontab
 
 # ============================================================================
 # 1. FSM (Finite State Machine) Configuration - Gap 1

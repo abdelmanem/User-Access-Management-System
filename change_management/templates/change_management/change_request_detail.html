@@ -3,6 +3,29 @@
 
 {% block title %}Change Request #{{ change_request.pk }}{% endblock %}
 
+{% block extracss %}
+<style>
+    /* Ensure modal stays fixed and centered */
+    .modal.fade.show {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        z-index: 1050;
+    }
+    
+    .modal-dialog {
+        position: static;
+        margin: 0;
+    }
+    
+    .modal-backdrop {
+        position: fixed;
+        z-index: 1040;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
     <div class="row">
@@ -104,73 +127,57 @@
                                 <div class="d-flex gap-2">
                                     {% comment %}Owner approval action: visible only when owner approval is pending and user can edit{% endcomment %}
                                     {% if not change_request.system_owner_approved and can_edit_owner_section %}
-                                    <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#approveOwnerModal">
+                                    <button class="btn btn-sm btn-success" id="toggleOwnerPanel">
                                         <i class="fas fa-check"></i> Approve as Owner
                                     </button>
                                     {% endif %}
 
                                     {% comment %}IT approval action: visible when IT hasn't approved yet and user can edit{% endcomment %}
                                     {% if not change_request.it_approval_date and can_edit_it_section %}
-                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#approveITModal">
+                                    <button class="btn btn-sm btn-primary" id="toggleITPanel">
                                         <i class="fas fa-check"></i> Approve as IT
                                     </button>
                                     {% endif %}
                                 </div>
                             </div>
 
-                            <!-- Modal for Owner Approval -->
-                            <div class="modal fade" id="approveOwnerModal" tabindex="-1">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header bg-success text-white">
-                                            <h5 class="modal-title">System Owner Approval</h5>
-                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            <!-- Inline Owner Approval Panel (hidden by default) -->
+                            <div id="ownerApprovalPanel" class="card mt-3 d-none">
+                                <div class="card-body border-top">
+                                    <form method="post" action="{% url 'change_management:change_request_quick_approve' change_request.pk %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="approval_type" value="owner">
+                                        <div class="mb-3">
+                                            <label for="ownerApprovalNotes" class="form-label">Approval Notes (optional)</label>
+                                            <textarea class="form-control" id="ownerApprovalNotes" name="approval_notes" rows="3" placeholder="Add any notes or comments about this approval..."></textarea>
                                         </div>
-                                        <form method="post" action="{% url 'change_management:change_request_quick_approve' change_request.pk %}">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="approval_type" value="owner">
-                                            <div class="modal-body">
-                                                <div class="mb-3">
-                                                    <label for="ownerApprovalNotes" class="form-label">Approval Notes (optional)</label>
-                                                    <textarea class="form-control" id="ownerApprovalNotes" name="approval_notes" rows="4" placeholder="Add any notes or comments about this approval..."></textarea>
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                <button type="submit" class="btn btn-success">
-                                                    <i class="fas fa-check"></i> Approve
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </div>
+                                        <div class="d-flex gap-2">
+                                            <button type="button" class="btn btn-outline-secondary" id="cancelOwnerPanel">Cancel</button>
+                                            <button type="submit" class="btn btn-success" id="submitOwnerApproval">
+                                                <i class="fas fa-check"></i> Approve as Owner
+                                            </button>
+                                        </div>
+                                    </form>
                                 </div>
                             </div>
 
-                            <!-- Modal for IT Approval -->
-                            <div class="modal fade" id="approveITModal" tabindex="-1">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header bg-primary text-white">
-                                            <h5 class="modal-title">IT Approval</h5>
-                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            <!-- Inline IT Approval Panel (hidden by default) -->
+                            <div id="itApprovalPanel" class="card mt-3 d-none">
+                                <div class="card-body border-top">
+                                    <form method="post" action="{% url 'change_management:change_request_quick_approve' change_request.pk %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="approval_type" value="it">
+                                        <div class="mb-3">
+                                            <label for="itApprovalNotes" class="form-label">Approval Notes (optional)</label>
+                                            <textarea class="form-control" id="itApprovalNotes" name="approval_notes" rows="3" placeholder="Add any IT-specific comments..."></textarea>
                                         </div>
-                                        <form method="post" action="{% url 'change_management:change_request_quick_approve' change_request.pk %}">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="approval_type" value="it">
-                                            <div class="modal-body">
-                                                <div class="mb-3">
-                                                    <label for="itApprovalNotes" class="form-label">Approval Notes (optional)</label>
-                                                    <textarea class="form-control" id="itApprovalNotes" name="approval_notes" rows="4" placeholder="Add any IT-specific comments..."></textarea>
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                <button type="submit" class="btn btn-primary">
-                                                    <i class="fas fa-check"></i> Approve
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </div>
+                                        <div class="d-flex gap-2">
+                                            <button type="button" class="btn btn-outline-secondary" id="cancelITPanel">Cancel</button>
+                                            <button type="submit" class="btn btn-primary" id="submitITApproval">
+                                                <i class="fas fa-check"></i> Approve as IT
+                                            </button>
+                                        </div>
+                                    </form>
                                 </div>
                             </div>
                         </div>
@@ -257,4 +264,87 @@
 </div>
 {% endblock %}
 
+{% block extrajs %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle inline panels
+    const ownerToggle = document.getElementById('toggleOwnerPanel');
+    const itToggle = document.getElementById('toggleITPanel');
+    const ownerPanel = document.getElementById('ownerApprovalPanel');
+    const itPanel = document.getElementById('itApprovalPanel');
 
+    function togglePanel(panel) {
+        if (!panel) return;
+        panel.classList.toggle('d-none');
+        // focus first textarea when showing
+        if (!panel.classList.contains('d-none')) {
+            const ta = panel.querySelector('textarea');
+            if (ta) ta.focus();
+        }
+    }
+
+    if (ownerToggle && ownerPanel) {
+        ownerToggle.addEventListener('click', function() {
+            togglePanel(ownerPanel);
+            // hide IT panel if open
+            if (itPanel && !itPanel.classList.contains('d-none')) itPanel.classList.add('d-none');
+        });
+    }
+
+    if (itToggle && itPanel) {
+        itToggle.addEventListener('click', function() {
+            togglePanel(itPanel);
+            // hide Owner panel if open
+            if (ownerPanel && !ownerPanel.classList.contains('d-none')) ownerPanel.classList.add('d-none');
+        });
+    }
+
+    // Cancel buttons
+    const cancelOwner = document.getElementById('cancelOwnerPanel');
+    const cancelIT = document.getElementById('cancelITPanel');
+    if (cancelOwner && ownerPanel) cancelOwner.addEventListener('click', () => ownerPanel.classList.add('d-none'));
+    if (cancelIT && itPanel) cancelIT.addEventListener('click', () => itPanel.classList.add('d-none'));
+
+    // Handle inline form submissions via AJAX
+    const inlineForms = [ownerPanel, itPanel];
+    inlineForms.forEach(panel => {
+        if (!panel) return;
+        const form = panel.querySelector('form');
+        if (!form) return;
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) submitBtn.disabled = true;
+
+            const formData = new FormData(form);
+            const url = form.getAttribute('action');
+
+            fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            }).then(resp => {
+                // hide panels and show success
+                if (ownerPanel) ownerPanel.classList.add('d-none');
+                if (itPanel) itPanel.classList.add('d-none');
+
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-success alert-dismissible fade show mt-3';
+                alertDiv.setAttribute('role', 'alert');
+                alertDiv.innerHTML = '<strong>✓ Success!</strong> Approval recorded. Refreshing page...<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                const container = document.querySelector('main') || document.querySelector('.container-fluid');
+                if (container) container.insertBefore(alertDiv, container.firstChild);
+
+                setTimeout(() => location.reload(), 1200);
+            }).catch(err => {
+                console.error(err);
+                if (submitBtn) submitBtn.disabled = false;
+                alert('An error occurred. Please try again.');
+            });
+        });
+    });
+});
+</script>
+{% endblock %}
