@@ -138,6 +138,13 @@
                                         <i class="fas fa-check"></i> Approve as IT
                                     </button>
                                     {% endif %}
+
+                                    {% comment %}Completed in external system action{% endcomment %}
+                                    {% if not change_request.completed_in_external_system and can_edit_owner_section or not change_request.completed_in_external_system and can_edit_it_section %}
+                                    <button class="btn btn-sm btn-outline-secondary" id="toggleCompletePanel">
+                                        <i class="fas fa-check-double"></i> Mark Completed
+                                    </button>
+                                    {% endif %}
                                 </div>
                             </div>
 
@@ -175,6 +182,26 @@
                                             <button type="button" class="btn btn-outline-secondary" id="cancelITPanel">Cancel</button>
                                             <button type="submit" class="btn btn-primary" id="submitITApproval">
                                                 <i class="fas fa-check"></i> Approve as IT
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            
+                            <!-- Inline Completed Panel (hidden by default) -->
+                            <div id="completePanel" class="card mt-3 d-none">
+                                <div class="card-body border-top">
+                                    <form method="post" action="{% url 'change_management:change_request_quick_approve' change_request.pk %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="approval_type" value="complete">
+                                        <div class="mb-3">
+                                            <label for="completeNotes" class="form-label">Notes (optional)</label>
+                                            <textarea class="form-control" id="completeNotes" name="approval_notes" rows="2" placeholder="Notes about completion (e.g., ticket ID)..."></textarea>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button type="button" class="btn btn-outline-secondary" id="cancelCompletePanel">Cancel</button>
+                                            <button type="submit" class="btn btn-outline-success" id="submitComplete">
+                                                <i class="fas fa-check-double"></i> Mark Completed
                                             </button>
                                         </div>
                                     </form>
@@ -270,8 +297,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Toggle inline panels
     const ownerToggle = document.getElementById('toggleOwnerPanel');
     const itToggle = document.getElementById('toggleITPanel');
+    const completeToggle = document.getElementById('toggleCompletePanel');
     const ownerPanel = document.getElementById('ownerApprovalPanel');
     const itPanel = document.getElementById('itApprovalPanel');
+    const completePanel = document.getElementById('completePanel');
 
     function togglePanel(panel) {
         if (!panel) return;
@@ -294,19 +323,30 @@ document.addEventListener('DOMContentLoaded', function() {
     if (itToggle && itPanel) {
         itToggle.addEventListener('click', function() {
             togglePanel(itPanel);
-            // hide Owner panel if open
+            // hide Owner and Complete panels if open
             if (ownerPanel && !ownerPanel.classList.contains('d-none')) ownerPanel.classList.add('d-none');
+            if (completePanel && !completePanel.classList.contains('d-none')) completePanel.classList.add('d-none');
+        });
+    }
+
+    if (completeToggle && completePanel) {
+        completeToggle.addEventListener('click', function() {
+            togglePanel(completePanel);
+            if (ownerPanel && !ownerPanel.classList.contains('d-none')) ownerPanel.classList.add('d-none');
+            if (itPanel && !itPanel.classList.contains('d-none')) itPanel.classList.add('d-none');
         });
     }
 
     // Cancel buttons
     const cancelOwner = document.getElementById('cancelOwnerPanel');
     const cancelIT = document.getElementById('cancelITPanel');
+    const cancelComplete = document.getElementById('cancelCompletePanel');
     if (cancelOwner && ownerPanel) cancelOwner.addEventListener('click', () => ownerPanel.classList.add('d-none'));
     if (cancelIT && itPanel) cancelIT.addEventListener('click', () => itPanel.classList.add('d-none'));
+    if (cancelComplete && completePanel) cancelComplete.addEventListener('click', () => completePanel.classList.add('d-none'));
 
     // Handle inline form submissions via AJAX
-    const inlineForms = [ownerPanel, itPanel];
+    const inlineForms = [ownerPanel, itPanel, completePanel];
     inlineForms.forEach(panel => {
         if (!panel) return;
         const form = panel.querySelector('form');

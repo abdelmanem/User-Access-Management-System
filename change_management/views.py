@@ -321,6 +321,29 @@ def change_request_quick_approve(request, pk):
             change_request.save()
             messages.success(request, f"Change request #{change_request.pk} recorded IT approval.")
 
+        # Mark completed in external system
+        elif approval_type == "complete":
+            # Only system owner, IT approver, staff or superuser may mark as completed
+            if not (
+                request.user.is_superuser
+                or request.user.is_staff
+                or (change_request.system_owner and change_request.system_owner_id == request.user.id)
+                or (change_request.it_approval and change_request.it_approval_id == request.user.id)
+            ):
+                messages.error(request, "You do not have permission to mark this request as completed.")
+                return redirect(request.META.get("HTTP_REFERER", "/"))
+
+            # Record completion
+            change_request.completed_in_external_system = True
+            change_request.completed_date = timezone.now()
+            change_request.status = AccountChangeRequest.STATUS_COMPLETED
+            notes = request.POST.get("approval_notes")
+            if notes:
+                existing = change_request.system_owner_approval_notes or ""
+                change_request.system_owner_approval_notes = existing + "\n[Complete] " + notes if existing else notes
+
+            change_request.save()
+            messages.success(request, f"Change request #{change_request.pk} marked as completed in external system.")
         else:
             messages.error(request, "Unknown approval type.")
 
