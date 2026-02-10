@@ -455,13 +455,15 @@
                                 <div class="form-group-custom">
                                     <label for="deletion_reason">
                                         Reason for Deletion 
-                                        <span class="text-muted">(recommended)</span>
+                                        <span class="text-danger">*</span>
+                                        <span class="text-muted">(required)</span>
                                     </label>
                                     <textarea 
                                         class="{% if form.deletion_reason.errors %}is-invalid{% endif %}"
                                         id="deletion_reason" 
                                         name="deletion_reason"
                                         placeholder="Provide a business reason for deleting this access (e.g., employee departure, role change, system decommission)..."
+                                        required
                                     ></textarea>
                                     
                                     {% if form.deletion_reason.errors %}
@@ -485,7 +487,6 @@
                                 <button 
                                     type="submit" 
                                     class="btn btn-delete btn-danger"
-                                    disabled
                                     id="submit-btn"
                                 >
                                     <i class="fas fa-trash-alt"></i> Confirm Delete
@@ -503,52 +504,73 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Checkbox handler for submit button
+    // Get form elements
     const confirmCheckbox = document.getElementById('confirm_deletion');
     const submitButton = document.getElementById('submit-btn');
     const deletionReasonField = document.getElementById('deletion_reason');
     
-    if (confirmCheckbox && submitButton) {
-        // Update button state based on checkbox
-        confirmCheckbox.addEventListener('change', function() {
-            submitButton.disabled = !this.checked;
-            if (this.checked) {
+    console.log('Elements found:', {
+        checkbox: confirmCheckbox,
+        button: submitButton,
+        reason: deletionReasonField
+    });
+    
+    // Function to check if form is valid
+    function checkFormValid() {
+        const isCheckboxChecked = confirmCheckbox && confirmCheckbox.checked;
+        const hasReason = deletionReasonField && deletionReasonField.value.trim().length > 0;
+        console.log('Form check - Checkbox checked:', isCheckboxChecked, 'Reason filled:', hasReason);
+        return isCheckboxChecked && hasReason;
+    }
+    
+    // Function to update button state
+    function updateButtonState() {
+        const isValid = checkFormValid();
+        if (submitButton) {
+            submitButton.disabled = !isValid;
+            if (isValid) {
                 submitButton.style.opacity = '1';
                 submitButton.style.cursor = 'pointer';
+                submitButton.classList.remove('opacity-50');
             } else {
                 submitButton.style.opacity = '0.5';
                 submitButton.style.cursor = 'not-allowed';
+                submitButton.classList.add('opacity-50');
             }
-        });
-        
-        // Initially disable submit button
-        submitButton.disabled = !confirmCheckbox.checked;
-        submitButton.style.opacity = '0.5';
+            console.log('Button state updated - disabled:', !isValid);
+        }
     }
+    
+    // Add event listeners
+    if (confirmCheckbox) {
+        confirmCheckbox.addEventListener('change', function() {
+            console.log('Checkbox changed:', this.checked);
+            updateButtonState();
+        });
+    }
+    
+    if (deletionReasonField) {
+        deletionReasonField.addEventListener('input', function() {
+            console.log('Textarea input:', this.value.length);
+            updateButtonState();
+        });
+    }
+    
+    // Initially set button state
+    updateButtonState();
     
     // Form validation
     const forms = document.querySelectorAll('.needs-validation');
     Array.from(forms).forEach(form => {
         form.addEventListener('submit', function(event) {
-            if (!form.checkValidity()) {
+            if (!checkFormValid()) {
                 event.preventDefault();
                 event.stopPropagation();
+                alert('Please check the confirmation and provide a reason for deletion.');
             }
             form.classList.add('was-validated');
         }, false);
     });
-    
-    // Optional: Add confirmation dialog on submit
-    const form = document.querySelector('form');
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            if (confirmCheckbox && !confirmCheckbox.checked) {
-                e.preventDefault();
-                alert('Please confirm before proceeding with the deletion.');
-                return false;
-            }
-        });
-    }
 });
 </script>
 {% endblock %}
