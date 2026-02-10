@@ -19,6 +19,14 @@ except Exception:
         return _decorator
 
 
+class ActiveAccessManager(models.Manager):
+    """Manager that excludes soft-deleted records by default."""
+    
+    def get_queryset(self):
+        """Return queryset excluding soft-deleted records."""
+        return super().get_queryset().filter(is_deleted=False)
+
+
 class UserSystemAccess(models.Model):
     """
     UserSystemAccess model for managing user access to systems
@@ -508,6 +516,10 @@ class UserSystemAccess(models.Model):
         blank=True,
         related_name='user_system_accesses_updated'
     )
+    
+    # Custom manager that excludes soft-deleted records by default
+    objects = ActiveAccessManager()
+    all_objects = models.Manager()  # For accessing deleted records if needed
     
     class Meta:
         verbose_name = 'User System Access'

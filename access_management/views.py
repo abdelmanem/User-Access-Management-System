@@ -81,7 +81,7 @@ def _parse_datetime_input(value):
     return parsed
 
 
-def _create_change_request_for_assignment(access_assignment, request_user):
+def _create_change_request_for_assignment(access_assignment, request_user, change_type=None):
     """
     Create a corresponding change request in change_management for audit and workflow compliance.
     This enforces RHG 4.4 change management requirements.
@@ -90,15 +90,18 @@ def _create_change_request_for_assignment(access_assignment, request_user):
         return None
     
     try:
-        # Determine change type based on assignment type
-        change_type = AccountChangeRequest.CHANGE_TYPE_CREATE
-        
+        # Determine change type: allow caller to override for deletes, otherwise default to Create
+        if not change_type:
+            change_type = AccountChangeRequest.CHANGE_TYPE_CREATE
+
         # Create the change request
         change_request = AccountChangeRequest.objects.create(
             change_type=change_type,
             user=access_assignment.user,
             system=access_assignment.system,
-            business_justification=access_assignment.business_justification or 'Access assignment created',
+            business_justification=access_assignment.business_justification or (
+                'Access assignment deletion requested' if change_type == AccountChangeRequest.CHANGE_TYPE_DELETE else 'Access assignment created'
+            ),
             requested_by=request_user,
             status=AccountChangeRequest.STATUS_PENDING,
             system_owner=access_assignment.system.system_owner if access_assignment.system else None,
@@ -2395,8 +2398,37 @@ def access_assignment_delete(request, pk):
                 action_description=f'Access revoked by {request.user.full_name}',
                 created_by=request.user
             )
-            
-            access_assignment.delete()
+            # Instead of hard-deleting, mark as soft-deleted and create a change request for deletion
+            deletion_reason = request.POST.get('deletion_reason', 'Deleted via UI')
+            access_assignment.is_deleted = True
+            access_assignment.deleted_date = timezone.now()
+            access_assignment.deleted_by = request.user
+            access_assignment.deletion_reason = deletion_reason
+            access_assignment.save(update_fields=['is_deleted', 'deleted_date', 'deleted_by', 'deletion_reason'])
+
+            # Log deletion request in history
+            AccessHistory.objects.create(
+                user=access_assignment.user,
+                system=access_assignment.system,
+                user_system_access=access_assignment,
+                action='Deletion Requested',
+                action_description=f'Deletion requested by {request.user.full_name}',
+                created_by=request.user
+            )
+
+            # Create a change request to drive approval/workflow for deletion
+            if AccountChangeRequest:
+                try:
+                    change_request = _create_change_request_for_assignment(
+                        access_assignment, request.user, change_type=AccountChangeRequest.CHANGE_TYPE_DELETE
+                    )
+                    if change_request:
+                        messages.success(request, 'Deletion requested and change request created for approval.')
+                        return redirect('change_management:change_request_detail', pk=change_request.pk)
+                except Exception:
+                    # fallback to success message below if CR creation fails
+                    pass
+
             messages.success(request, 'Access assignment deleted successfully.')
             return redirect('access_management:access_assignment_list')
             
@@ -2447,14 +2479,24 @@ def user_access_assignments(request, user_id):
                 AccessHistory.objects.create(
                     user=assignment.user,
                     system=assignment.system,
-                    action='Revoked',
-                    action_description=f'Access revoked in bulk by {request.user.full_name}',
+                    action='Deletion Requested',
+                    action_description=f'Deletion requested in bulk by {request.user.full_name}',
                     created_by=request.user
                 )
-                assignment.delete()
+                # Soft-delete and create change request per assignment
+                assignment.is_deleted = True
+                assignment.deleted_date = timezone.now()
+                assignment.deleted_by = request.user
+                assignment.deletion_reason = f'Bulk deletion requested by {request.user.full_name}'
+                assignment.save(update_fields=['is_deleted', 'deleted_date', 'deleted_by', 'deletion_reason'])
+                if AccountChangeRequest:
+                    try:
+                        _create_change_request_for_assignment(assignment, request.user, change_type=AccountChangeRequest.CHANGE_TYPE_DELETE)
+                    except Exception:
+                        pass
                 deleted += 1
 
-            messages.success(request, f'Successfully deleted {deleted} access assignment{"s" if deleted != 1 else ""}.')
+            messages.success(request, f'Successfully requested deletion for {deleted} access assignment{"s" if deleted != 1 else ""}. Change requests have been created for approval.')
             return redirect(request.path_info)
 
         if action == 'bulk_update':
@@ -2581,14 +2623,24 @@ def system_access_assignments(request, system_id):
                 AccessHistory.objects.create(
                     user=assignment.user,
                     system=assignment.system,
-                    action='Revoked',
-                    action_description=f'Access revoked in bulk by {request.user.full_name}',
+                    action='Deletion Requested',
+                    action_description=f'Deletion requested in bulk by {request.user.full_name}',
                     created_by=request.user
                 )
-                assignment.delete()
+                # Soft-delete and create change request per assignment
+                assignment.is_deleted = True
+                assignment.deleted_date = timezone.now()
+                assignment.deleted_by = request.user
+                assignment.deletion_reason = f'Bulk deletion requested by {request.user.full_name}'
+                assignment.save(update_fields=['is_deleted', 'deleted_date', 'deleted_by', 'deletion_reason'])
+                if AccountChangeRequest:
+                    try:
+                        _create_change_request_for_assignment(assignment, request.user, change_type=AccountChangeRequest.CHANGE_TYPE_DELETE)
+                    except Exception:
+                        pass
                 deleted += 1
 
-            messages.success(request, f'Successfully deleted {deleted} access assignment{"s" if deleted != 1 else ""}.')
+            messages.success(request, f'Successfully requested deletion for {deleted} access assignment{"s" if deleted != 1 else ""}. Change requests have been created for approval.')
             return redirect(request.path_info)
 
         if action == 'bulk_update':
