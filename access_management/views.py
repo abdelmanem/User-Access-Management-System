@@ -2385,7 +2385,7 @@ def access_assignment_update(request, pk):
 
 @login_required
 def access_assignment_delete(request, pk):
-    """Delete an access assignment"""
+    """Delete an access assignment with confirmation"""
     access_assignment = get_object_or_404(UserSystemAccess, pk=pk)
     
     if request.method == 'POST':
@@ -2398,7 +2398,8 @@ def access_assignment_delete(request, pk):
                 action_description=f'Access revoked by {request.user.full_name}',
                 created_by=request.user
             )
-            # Instead of hard-deleting, mark as soft-deleted and create a change request for deletion
+            
+            # Mark as soft-deleted
             deletion_reason = request.POST.get('deletion_reason', 'Deleted via UI')
             access_assignment.is_deleted = True
             access_assignment.deleted_date = timezone.now()
@@ -2423,18 +2424,22 @@ def access_assignment_delete(request, pk):
                         access_assignment, request.user, change_type=AccountChangeRequest.CHANGE_TYPE_DELETE
                     )
                     if change_request:
-                        messages.success(request, 'Deletion requested and change request created for approval.')
-                        return redirect('change_management:change_request_detail', pk=change_request.pk)
-                except Exception:
-                    # fallback to success message below if CR creation fails
-                    pass
-
-            messages.success(request, 'Access assignment deleted successfully.')
+                        messages.success(request, 'Access assignment deleted successfully.')
+                except Exception as e:
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.error(f'Failed to create change request for deletion: {str(e)}')
+                    messages.success(request, 'Access assignment deleted successfully.')
+            else:
+                messages.success(request, 'Access assignment deleted successfully.')
+            
             return redirect('access_management:access_assignment_list')
             
         except Exception as e:
             messages.error(request, f'Error deleting access assignment: {str(e)}')
+            return redirect('access_management:access_assignment_list')
     
+    # GET request - show confirmation page
     context = {
         'access_assignment': access_assignment,
     }

@@ -1,4 +1,4 @@
-{% extends "admin/base_site.html" %}
+{% extends "base.html" %}
 {% load static %}
 
 {% block title %}Confirm Delete Access Assignment - User Access Management{% endblock %}
@@ -259,12 +259,15 @@
         align-items: center;
         gap: 0.5rem;
         transition: all 0.3s ease;
+        color: white;
     }
     
     .btn-delete:hover:not(:disabled) {
         background-color: #c82333;
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        color: white;
+        text-decoration: none;
     }
     
     .btn-delete:disabled {
@@ -362,7 +365,7 @@
                                 <div class="detail-item">
                                     <div class="detail-label">Status</div>
                                     <div class="detail-value">
-                                        <span class="badge-status bg-{{ access_assignment.get_status_color }}">
+                                        <span class="badge-status {% if access_assignment.status == 'Active' %}bg-success{% elif access_assignment.status == 'Pending' %}bg-warning{% else %}bg-secondary{% endif %}">
                                             {{ access_assignment.status }}
                                         </span>
                                     </div>
@@ -370,7 +373,7 @@
                                 <div class="detail-item">
                                     <div class="detail-label">Priority</div>
                                     <div class="detail-value">
-                                        <span class="badge-status bg-{{ access_assignment.get_priority_color }}">
+                                        <span class="badge-status {% if access_assignment.priority == 'High' %}bg-danger{% elif access_assignment.priority == 'Medium' %}bg-warning{% else %}bg-info{% endif %}">
                                             {{ access_assignment.priority }}
                                         </span>
                                     </div>
@@ -436,7 +439,7 @@
                                         class="{% if form.errors %}is-invalid{% endif %}"
                                     >
                                     <label for="confirm_deletion">
-                                        <strong>I confirm that I want to request deletion of this access assignment.</strong>
+                                        <strong>I confirm that I want to delete this access assignment.</strong>
                                         <br>
                                         <small class="text-muted">A change request will be created and forwarded for approval.</small>
                                     </label>
@@ -485,7 +488,7 @@
                                     disabled
                                     id="submit-btn"
                                 >
-                                    <i class="fas fa-trash-alt"></i> Request Deletion
+                                    <i class="fas fa-trash-alt"></i> Confirm Delete
                                 </button>
                             </div>
                         </form>
