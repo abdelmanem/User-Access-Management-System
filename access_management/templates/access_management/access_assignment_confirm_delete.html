@@ -3,181 +3,493 @@
 
 {% block title %}Confirm Delete Access Assignment - User Access Management{% endblock %}
 
+{% block extra_css %}
+<style>
+    .delete-confirmation-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        padding: 2rem 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .delete-card {
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        border: none;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    
+    .delete-header {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        padding: 2rem;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .delete-header h1 {
+        margin: 0;
+        font-size: 1.75rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .alert-danger-custom {
+        background-color: #f8d7da;
+        border: 2px solid #f5c6cb;
+        border-radius: 8px;
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .alert-danger-custom h5 {
+        color: #721c24;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .alert-danger-custom p {
+        color: #721c24;
+        margin: 0;
+    }
+    
+    .detail-section {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+    }
+    
+    .detail-section-header {
+        background-color: #f8f9fa;
+        padding: 1rem;
+        font-weight: 600;
+        border-bottom: 1px solid #dee2e6;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #495057;
+    }
+    
+    .detail-section-header i {
+        font-size: 1.1rem;
+    }
+    
+    .detail-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+        padding: 0;
+    }
+    
+    .detail-item {
+        padding: 1rem;
+        border-bottom: 1px solid #dee2e6;
+        border-right: 1px solid #dee2e6;
+    }
+    
+    .detail-item:nth-child(2n) {
+        border-right: none;
+    }
+    
+    .detail-item:nth-last-child(-n+2) {
+        border-bottom: none;
+    }
+    
+    @media (max-width: 576px) {
+        .detail-row {
+            grid-template-columns: 1fr;
+        }
+        
+        .detail-item {
+            border-right: none !important;
+        }
+    }
+    
+    .detail-label {
+        font-weight: 600;
+        color: #495057;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.5rem;
+    }
+    
+    .detail-value {
+        color: #212529;
+        font-size: 1rem;
+    }
+    
+    .badge-status {
+        display: inline-block;
+        padding: 0.35rem 0.65rem;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    
+    .info-panel {
+        background-color: #e7f3ff;
+        border: 2px solid #b3d9ff;
+        border-radius: 8px;
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .info-panel h5 {
+        color: #0056b3;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .info-panel ul {
+        margin: 0;
+        padding-left: 1.5rem;
+    }
+    
+    .info-panel li {
+        color: #004085;
+        margin-bottom: 0.5rem;
+        line-height: 1.6;
+    }
+    
+    .info-panel i {
+        margin-right: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .confirmation-form-section {
+        background-color: #fff9e6;
+        border: 2px solid #ffe69c;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .confirmation-form-section h5 {
+        color: #856404;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .form-check-custom {
+        display: flex;
+        align-items: flex-start;
+        padding: 1rem;
+        background-color: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        margin-bottom: 1rem;
+    }
+    
+    .form-check-custom input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        margin-top: 2px;
+        margin-right: 1rem;
+        cursor: pointer;
+        accent-color: #dc3545;
+    }
+    
+    .form-check-custom label {
+        margin: 0;
+        cursor: pointer;
+        flex: 1;
+        color: #212529;
+    }
+    
+    .form-group-custom {
+        margin-bottom: 1rem;
+    }
+    
+    .form-group-custom label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #495057;
+    }
+    
+    .form-group-custom textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        font-family: inherit;
+        resize: vertical;
+        min-height: 100px;
+    }
+    
+    .form-group-custom textarea:focus {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+        outline: none;
+    }
+    
+    .form-text-custom {
+        display: block;
+        margin-top: 0.5rem;
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+    
+    .button-group {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        padding-top: 1rem;
+        border-top: 1px solid #dee2e6;
+    }
+    
+    .btn-delete {
+        background-color: #dc3545;
+        border: none;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-delete:hover:not(:disabled) {
+        background-color: #c82333;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+    }
+    
+    .btn-delete:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    
+    .btn-cancel {
+        background-color: #6c757d;
+        border: none;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        color: white;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-cancel:hover {
+        background-color: #5a6268;
+        text-decoration: none;
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    .warning-icon {
+        font-size: 2rem;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 2rem;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-danger text-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h3 class="card-title mb-0">
-                            <i class="fas fa-exclamation-triangle"></i> Confirm Delete Access Assignment
-                        </h3>
-                        <a href="{% url 'access_management:access_assignment_list' %}" class="btn btn-outline-light btn-sm">
-                            <i class="fas fa-arrow-left"></i> Back to List
+<div class="delete-confirmation-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-md-10">
+                <!-- Delete Confirmation Card -->
+                <div class="card delete-card">
+                    <!-- Header -->
+                    <div class="delete-header">
+                        <h1>
+                            <i class="fas fa-exclamation-triangle warning-icon"></i>
+                            Delete Confirmation
+                        </h1>
+                        <a href="{% url 'access_management:access_assignment_list' %}" class="btn btn-outline-light btn-sm" style="height: fit-content;">
+                            <i class="fas fa-arrow-left"></i> Back
                         </a>
                     </div>
-                </div>
-                <div class="card-body">
-                    <div class="alert alert-warning">
-                        <h5><i class="fas fa-exclamation-triangle"></i> Important Notice</h5>
-                        <p class="mb-0">
-                            You are about to request deletion of this access assignment. 
-                            <strong>A change request will be created and sent for approval</strong> 
-                            before the access is actually removed from the external system. 
-                            This ensures proper audit trail and compliance with change management requirements.
-                        </p>
-                    </div>
-
-                    <div class="card mb-4">
-                        <div class="card-header bg-light">
-                            <h5 class="mb-0">Access Assignment Details</h5>
+                    
+                    <!-- Card Body -->
+                    <div class="card-body p-4">
+                        
+                        <!-- Warning Alert -->
+                        <div class="alert-danger-custom">
+                            <h5><i class="fas fa-exclamation-circle"></i> Important Notice</h5>
+                            <p>
+                                You are about to request deletion of this access assignment. 
+                                <strong>A change request will be created and sent for approval</strong> 
+                                before the access is actually removed from the external system. 
+                                This ensures proper audit trail and compliance with change management requirements.
+                            </p>
                         </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <table class="table table-sm">
-                                        <tr>
-                                            <th width="40%">User:</th>
-                                            <td>
-                                                <strong>{{ access_assignment.user.full_name }}</strong>
-                                                <br><small class="text-muted">{{ access_assignment.user.username }}</small>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th>System:</th>
-                                            <td>
-                                                <strong>{{ access_assignment.system.name }}</strong>
-                                                <br><small class="text-muted">{{ access_assignment.system.code }}</small>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th>Access Type:</th>
-                                            <td>{{ access_assignment.access_type }}</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Status:</th>
-                                            <td>
-                                                <span class="badge bg-{{ access_assignment.get_status_color }}">
-                                                    {{ access_assignment.status }}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    </table>
+                        
+                        <!-- Access Details Section -->
+                        <div class="detail-section">
+                            <div class="detail-section-header">
+                                <i class="fas fa-user-shield"></i>
+                                Access Assignment Details
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-item">
+                                    <div class="detail-label">User</div>
+                                    <div class="detail-value">
+                                        <strong>{{ access_assignment.user.full_name }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ access_assignment.user.username }}</small>
+                                    </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <table class="table table-sm">
-                                        <tr>
-                                            <th width="40%">Priority:</th>
-                                            <td>
-                                                <span class="badge bg-{{ access_assignment.get_priority_color }}">
-                                                    {{ access_assignment.priority }}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th>Request Date:</th>
-                                            <td>{{ access_assignment.request_date|date:"Y-m-d H:i" }}</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Request Type:</th>
-                                            <td>{{ access_assignment.request_type }}</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Business Justification:</th>
-                                            <td>{{ access_assignment.business_justification|truncatewords:10 }}</td>
-                                        </tr>
-                                    </table>
+                                <div class="detail-item">
+                                    <div class="detail-label">System</div>
+                                    <div class="detail-value">
+                                        <strong>{{ access_assignment.system.name }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ access_assignment.system.code }}</small>
+                                    </div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">Access Type</div>
+                                    <div class="detail-value">{{ access_assignment.access_type }}</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">Status</div>
+                                    <div class="detail-value">
+                                        <span class="badge-status bg-{{ access_assignment.get_status_color }}">
+                                            {{ access_assignment.status }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">Priority</div>
+                                    <div class="detail-value">
+                                        <span class="badge-status bg-{{ access_assignment.get_priority_color }}">
+                                            {{ access_assignment.priority }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">Request Date</div>
+                                    <div class="detail-value">{{ access_assignment.request_date|date:"Y-m-d H:i" }}</div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Impact Analysis -->
-                    <div class="card mb-4">
-                        <div class="card-header bg-info text-white">
-                            <h5 class="mb-0"><i class="fas fa-info-circle"></i> What Happens Next?</h5>
-                        </div>
-                        <div class="card-body">
+                        
+                        <!-- Workflow Information -->
+                        <div class="info-panel">
+                            <h5>
+                                <i class="fas fa-info-circle"></i>
+                                What Happens Next?
+                            </h5>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <h6><i class="fas fa-tasks"></i> Approval Workflow</h6>
-                                    <ul class="list-unstyled">
+                                    <h6 style="color: #0056b3; font-weight: 600; margin-bottom: 0.75rem;">
+                                        <i class="fas fa-tasks" style="margin-right: 0.5rem;"></i>
+                                        Approval Workflow
+                                    </h6>
+                                    <ul style="margin-bottom: 1rem;">
                                         <li><i class="fas fa-check text-info"></i> A delete change request will be created</li>
                                         <li><i class="fas fa-check text-info"></i> System Owner will be notified for approval</li>
                                         <li><i class="fas fa-check text-info"></i> IT approver will review the request</li>
-                                        <li><i class="fas fa-check text-info"></i> Upon approval, access will be removed from the external system</li>
+                                        <li><i class="fas fa-check text-info"></i> Upon approval, access will be removed</li>
                                     </ul>
                                 </div>
                                 <div class="col-md-6">
-                                    <h6><i class="fas fa-shield-alt"></i> Audit & Compliance</h6>
-                                    <ul class="list-unstyled">
-                                        <li><i class="fas fa-check text-success"></i> Full audit trail will be maintained</li>
-                                        <li><i class="fas fa-check text-success"></i> Deletion reason will be recorded</li>
-                                        <li><i class="fas fa-check text-success"></i> Complies with RHG 4.4 Change Management</li>
-                                        <li><i class="fas fa-check text-success"></i> All historical records preserved</li>
+                                    <h6 style="color: #0056b3; font-weight: 600; margin-bottom: 0.75rem;">
+                                        <i class="fas fa-shield-alt" style="margin-right: 0.5rem;"></i>
+                                        Audit & Compliance
+                                    </h6>
+                                    <ul>
+                                        <li><i class="fas fa-check text-success"></i> Full audit trail maintained</li>
+                                        <li><i class="fas fa-check text-success"></i> Deletion reason recorded</li>
+                                        <li><i class="fas fa-check text-success"></i> RHG 4.4 compliant</li>
+                                        <li><i class="fas fa-check text-success"></i> Historical records preserved</li>
                                     </ul>
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Confirmation Form -->
-                    <form method="post" class="needs-validation" novalidate>
-                        {% csrf_token %}
-                        <div class="card mb-4">
-                            <div class="card-header bg-light">
-                                <h5 class="mb-0">Deletion Request Details</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="form-check mb-3">
-                                    <input class="form-check-input {% if form.errors %}is-invalid{% endif %}" 
-                                           type="checkbox" 
-                                           id="confirm_deletion" 
-                                           name="confirm_deletion" 
-                                           required>
-                                    <label class="form-check-label" for="confirm_deletion">
-                                        I confirm that I want to request deletion of this access assignment. 
-                                        A change request will be created and forwarded for approval.
+                        
+                        <!-- Confirmation Form -->
+                        <form method="post" class="needs-validation" novalidate>
+                            {% csrf_token %}
+                            
+                            <div class="confirmation-form-section">
+                                <h5>
+                                    <i class="fas fa-clipboard-list"></i>
+                                    Deletion Request Details
+                                </h5>
+                                
+                                <!-- Confirmation Checkbox -->
+                                <div class="form-check-custom">
+                                    <input 
+                                        type="checkbox" 
+                                        id="confirm_deletion" 
+                                        name="confirm_deletion"
+                                        required
+                                        class="{% if form.errors %}is-invalid{% endif %}"
+                                    >
+                                    <label for="confirm_deletion">
+                                        <strong>I confirm that I want to request deletion of this access assignment.</strong>
+                                        <br>
+                                        <small class="text-muted">A change request will be created and forwarded for approval.</small>
                                     </label>
-                                    {% if form.confirm_deletion.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {{ form.confirm_deletion.errors.0 }}
-                                        </div>
-                                    {% endif %}
                                 </div>
                                 
-                                <div class="mb-3">
-                                    <label for="deletion_reason" class="form-label">
-                                        Reason for Deletion <span class="text-muted">(recommended)</span>
+                                {% if form.confirm_deletion.errors %}
+                                    <div class="alert alert-danger" style="margin-top: 0.5rem;">
+                                        {{ form.confirm_deletion.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                
+                                <!-- Deletion Reason -->
+                                <div class="form-group-custom">
+                                    <label for="deletion_reason">
+                                        Reason for Deletion 
+                                        <span class="text-muted">(recommended)</span>
                                     </label>
-                                    <textarea class="form-control {% if form.deletion_reason.errors %}is-invalid{% endif %}" 
-                                              id="deletion_reason" 
-                                              name="deletion_reason" 
-                                              rows="3" 
-                                              placeholder="Provide a business reason for deleting this access (e.g., employee departure, role change, system decommission)..."></textarea>
+                                    <textarea 
+                                        class="{% if form.deletion_reason.errors %}is-invalid{% endif %}"
+                                        id="deletion_reason" 
+                                        name="deletion_reason"
+                                        placeholder="Provide a business reason for deleting this access (e.g., employee departure, role change, system decommission)..."
+                                    ></textarea>
+                                    
                                     {% if form.deletion_reason.errors %}
-                                        <div class="invalid-feedback">
+                                        <div class="invalid-feedback d-block">
                                             {{ form.deletion_reason.errors.0 }}
                                         </div>
                                     {% endif %}
-                                    <div class="form-text">
+                                    
+                                    <span class="form-text-custom">
+                                        <i class="fas fa-lightbulb" style="margin-right: 0.25rem;"></i>
                                         This reason will be included in the change request for the approver's reference.
-                                    </div>
+                                    </span>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- Action Buttons -->
-                        <div class="d-flex justify-content-end gap-2">
-                            <a href="{% url 'access_management:access_assignment_list' %}" class="btn btn-outline-secondary">
-                                <i class="fas fa-times"></i> Cancel
-                            </a>
-                            <button type="submit" class="btn btn-warning">
-                                <i class="fas fa-trash"></i> Request Deletion
-                            </button>
-                        </div>
-                    </form>
+                            
+                            <!-- Action Buttons -->
+                            <div class="button-group">
+                                <a href="{% url 'access_management:access_assignment_list' %}" class="btn btn-cancel">
+                                    <i class="fas fa-times"></i> Cancel
+                                </a>
+                                <button 
+                                    type="submit" 
+                                    class="btn btn-delete btn-danger"
+                                    disabled
+                                    id="submit-btn"
+                                >
+                                    <i class="fas fa-trash-alt"></i> Request Deletion
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -187,35 +499,52 @@
 
 {% block extra_js %}
 <script>
-// Form validation
-(function() {
-    'use strict';
-    window.addEventListener('load', function() {
-        var forms = document.getElementsByClassName('needs-validation');
-        var validation = Array.prototype.filter.call(forms, function(form) {
-            form.addEventListener('submit', function(event) {
-                if (form.checkValidity() === false) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                }
-                form.classList.add('was-validated');
-            }, false);
-        });
-    }, false);
-})();
-
-// Confirmation checkbox handler
 document.addEventListener('DOMContentLoaded', function() {
+    // Checkbox handler for submit button
     const confirmCheckbox = document.getElementById('confirm_deletion');
-    const submitButton = document.querySelector('button[type="submit"]');
+    const submitButton = document.getElementById('submit-btn');
+    const deletionReasonField = document.getElementById('deletion_reason');
     
     if (confirmCheckbox && submitButton) {
+        // Update button state based on checkbox
         confirmCheckbox.addEventListener('change', function() {
             submitButton.disabled = !this.checked;
+            if (this.checked) {
+                submitButton.style.opacity = '1';
+                submitButton.style.cursor = 'pointer';
+            } else {
+                submitButton.style.opacity = '0.5';
+                submitButton.style.cursor = 'not-allowed';
+            }
         });
         
         // Initially disable submit button
         submitButton.disabled = !confirmCheckbox.checked;
+        submitButton.style.opacity = '0.5';
+    }
+    
+    // Form validation
+    const forms = document.querySelectorAll('.needs-validation');
+    Array.from(forms).forEach(form => {
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+    
+    // Optional: Add confirmation dialog on submit
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            if (confirmCheckbox && !confirmCheckbox.checked) {
+                e.preventDefault();
+                alert('Please confirm before proceeding with the deletion.');
+                return false;
+            }
+        });
     }
 });
 </script>
