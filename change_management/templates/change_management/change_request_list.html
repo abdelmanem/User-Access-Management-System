@@ -108,8 +108,11 @@
                                     </td>
                                     <td>
                                         {% if req.user %}
-                                            <strong>{{ req.user.get_full_name }}</strong><br>
+                                            <strong>{{ req.user.first_name }} {{ req.user.last_name }}</strong><br>
                                             <small class="text-muted">{{ req.user.username }}</small>
+                                        {% elif req.user_full_name %}
+                                            <strong>{{ req.user_full_name }}</strong><br>
+                                            <small class="text-muted">{{ req.user_username }} <em>(user deleted)</em></small>
                                         {% else %}
                                             <span class="text-muted">N/A</span>
                                         {% endif %}

@@ -98,6 +98,8 @@ def _create_change_request_for_assignment(access_assignment, request_user, chang
         change_request = AccountChangeRequest.objects.create(
             change_type=change_type,
             user=access_assignment.user,
+            user_full_name=access_assignment.user.get_full_name() if access_assignment.user else "",
+            user_username=access_assignment.user.username if access_assignment.user else "",
             system=access_assignment.system,
             business_justification=access_assignment.business_justification or (
                 'Access assignment deletion requested' if change_type == AccountChangeRequest.CHANGE_TYPE_DELETE else 'Access assignment created'

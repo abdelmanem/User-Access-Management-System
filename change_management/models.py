@@ -50,6 +50,20 @@ class AccountChangeRequest(models.Model):
         help_text="Employee whose account is being created/changed/deleted (if known)",
     )
 
+    user_full_name = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        help_text="Snapshot of user's full name at time of request creation (for audit trail if user is deleted)",
+    )
+
+    user_username = models.CharField(
+        max_length=150,
+        blank=True,
+        default="",
+        help_text="Snapshot of user's username at time of request creation (for audit trail if user is deleted)",
+    )
+
     system = models.ForeignKey(
         "systems.System",
         on_delete=models.CASCADE,
@@ -141,7 +155,12 @@ class AccountChangeRequest(models.Model):
         ]
 
     def __str__(self) -> str:
-        user_label = self.user.full_name if self.user else "Unassigned user"
+        if self.user:
+            user_label = self.user.full_name
+        elif self.user_full_name:
+            user_label = self.user_full_name
+        else:
+            user_label = "Unassigned user"
         return f"{self.change_type} – {user_label} @ {self.system.name}"
 
 

@@ -62,11 +62,14 @@
                                             <th>User:</th>
                                             <td>
                                                 {% if change_request.user %}
-                                                            <strong>{{ change_request.user.get_full_name }}</strong><br>
-                                                            <small class="text-muted">{{ change_request.user.username }}</small>
-                                                        {% else %}
-                                                            <span class="text-muted">Not specified</span>
-                                                        {% endif %}
+                                                    <strong>{{ change_request.user.first_name }} {{ change_request.user.last_name }}</strong><br>
+                                                    <small class="text-muted">{{ change_request.user.username }}</small>
+                                                {% elif change_request.user_full_name %}
+                                                    <strong>{{ change_request.user_full_name }}</strong><br>
+                                                    <small class="text-muted">{{ change_request.user_username }} <em>(user deleted)</em></small>
+                                                {% else %}
+                                                    <span class="text-muted">Not specified</span>
+                                                {% endif %}
                                             </td>
                                         </tr>
                                         <tr>

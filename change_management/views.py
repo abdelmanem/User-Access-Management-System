@@ -56,6 +56,8 @@ def change_request_list(request):
             Q(user__first_name__icontains=search_query)
             | Q(user__last_name__icontains=search_query)
             | Q(user__username__icontains=search_query)
+            | Q(user_full_name__icontains=search_query)
+            | Q(user_username__icontains=search_query)
             | Q(system__name__icontains=search_query)
             | Q(system__code__icontains=search_query)
             | Q(business_justification__icontains=search_query)
@@ -202,6 +204,8 @@ def change_request_create(request):
         change_request = AccountChangeRequest.objects.create(
             change_type=change_type,
             user=user,
+            user_full_name=user.get_full_name() if user else "",
+            user_username=user.username if user else "",
             system=system,
             requested_by=request.user,
             business_justification=business_justification,
