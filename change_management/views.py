@@ -355,6 +355,73 @@ def change_request_quick_approve(request, pk):
 
 
 @login_required
+def change_request_quick_reject(request, pk):
+    """Quick reject endpoint to record System Owner or IT rejection of a change request.
+    
+    Behavior:
+    - If System Owner rejects, mark system_owner_approved=False and status=Rejected
+    - If IT rejects, status=Rejected
+    - Rejection reason is required and stored in system_owner_approval_notes
+    """
+    change_request = get_object_or_404(AccountChangeRequest, pk=pk)
+
+    if request.method == "POST":
+        rejection_type = request.POST.get("rejection_type", "owner")
+        rejection_reason = request.POST.get("rejection_reason", "").strip()
+
+        if not rejection_reason:
+            messages.error(request, "Rejection reason is required.")
+            return redirect(request.META.get("HTTP_REFERER", "/"))
+
+        # Owner rejection flow
+        if rejection_type == "owner":
+            # Only system owner, staff or superuser may reject as owner
+            if not (
+                request.user.is_superuser
+                or request.user.is_staff
+                or (change_request.system_owner and change_request.system_owner_id == request.user.id)
+            ):
+                messages.error(request, "You do not have permission to reject as System Owner.")
+                return redirect(request.META.get("HTTP_REFERER", "/"))
+
+            # Record owner rejection
+            change_request.system_owner_approved = False
+            change_request.system_owner_approval_date = timezone.now()
+            change_request.system_owner = request.user
+            change_request.status = AccountChangeRequest.STATUS_REJECTED
+            change_request.system_owner_approval_notes = f"[REJECTED by {request.user.get_full_name()}] {rejection_reason}"
+            change_request.save()
+            messages.success(request, f"Change request #{change_request.pk} rejected by System Owner.")
+
+        # IT rejection flow
+        elif rejection_type == "it":
+            # Only IT approver, staff or superuser may reject as IT
+            if not (
+                request.user.is_superuser
+                or request.user.is_staff
+                or (change_request.it_approval and change_request.it_approval_id == request.user.id)
+            ):
+                messages.error(request, "You do not have permission to reject as IT.")
+                return redirect(request.META.get("HTTP_REFERER", "/"))
+
+            # Record IT rejection
+            if not change_request.it_approval:
+                change_request.it_approval = request.user
+            change_request.it_approval_date = timezone.now()
+            change_request.status = AccountChangeRequest.STATUS_REJECTED
+            notes = f"[REJECTED by IT {request.user.get_full_name()}] {rejection_reason}"
+            existing = change_request.system_owner_approval_notes or ""
+            change_request.system_owner_approval_notes = (existing + "\n" + notes) if existing else notes
+            change_request.save()
+            messages.success(request, f"Change request #{change_request.pk} rejected by IT.")
+
+        else:
+            messages.error(request, "Unknown rejection type.")
+
+    return redirect(request.META.get("HTTP_REFERER", "/"))
+
+
+@login_required
 def change_request_update(request, pk):
     """
     Update an existing account change request.

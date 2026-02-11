@@ -32,6 +32,9 @@ from reportlab.platypus import Table, TableStyle
 from access_management.models import UserSystemAccess
 from PIL import Image, UnidentifiedImageError
 import io
+import logging
+
+logger = logging.getLogger(__name__)
 
 @login_required
 @user_passes_test(lambda u: u.is_staff)
@@ -670,7 +673,36 @@ def user_delete(request, pk):
         )
 
         user.delete()
-        messages.success(request, 'User deleted successfully. Archived snapshot is available for reference.')
+
+        # Create a change request for user deletion to track in approvals workflow
+        # Import locally to avoid circular imports
+        try:
+            from change_management.models import AccountChangeRequest
+            try:
+                change_request = AccountChangeRequest.objects.create(
+                    change_type=AccountChangeRequest.CHANGE_TYPE_DELETE,
+                    user=None,  # User is deleted; will be null
+                    user_full_name=user.get_full_name(),
+                    user_username=user.username,
+                    system=None,  # User deletion is not system-specific
+                    business_justification=request.POST.get('deletion_reason', 'User account deleted'),
+                    requested_by=request.user if request.user.is_authenticated else None,
+                    status=AccountChangeRequest.STATUS_PENDING,
+                    system_owner=None,  # Not applicable for user deletion
+                )
+                messages.success(
+                    request,
+                    'User deleted successfully. Archived snapshot is available for reference. '
+                    'A change request has been created to track the deletion in approvals.'
+                )
+            except Exception as e:
+                logger.error(f'Failed to create change request for user deletion {pk}: {str(e)}')
+                logger.error(f'Exception type: {type(e).__name__}')
+                messages.success(request, 'User deleted successfully. Archived snapshot is available for reference.')
+        except ImportError as ie:
+            logger.error(f'Failed to import AccountChangeRequest: {str(ie)}')
+            messages.success(request, 'User deleted successfully. Archived snapshot is available for reference.')
+
         return redirect('accounts:user_list')
 
     return render(

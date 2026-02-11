@@ -67,8 +67,10 @@ class AccountChangeRequest(models.Model):
     system = models.ForeignKey(
         "systems.System",
         on_delete=models.CASCADE,
+        null=True,
+        blank=True,
         related_name="account_change_requests",
-        help_text="External system where the account change will occur (AD, PMS, POS, etc.)",
+        help_text="External system where the account change will occur (AD, PMS, POS, etc.). Null for corporate-level changes like user deletion.",
     )
 
     requested_by = models.ForeignKey(

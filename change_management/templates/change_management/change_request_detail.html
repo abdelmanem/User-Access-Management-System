@@ -75,8 +75,13 @@
                                         <tr>
                                             <th>System:</th>
                                             <td>
-                                                <strong>{{ change_request.system.name }}</strong><br>
-                                                <small class="text-muted">{{ change_request.system.code }}</small>
+                                                {% if change_request.system %}
+                                                    <strong>{{ change_request.system.name }}</strong><br>
+                                                    <small class="text-muted">{{ change_request.system.code }}</small>
+                                                {% else %}
+                                                    <span class="badge bg-info">User Deletion</span><br>
+                                                    <small class="text-muted">Corporate-level change request</small>
+                                                {% endif %}
                                             </td>
                                         </tr>
                                         <tr>
@@ -133,12 +138,18 @@
                                     <button class="btn btn-sm btn-success" id="toggleOwnerPanel">
                                         <i class="fas fa-check"></i> Approve as Owner
                                     </button>
+                                    <button class="btn btn-sm btn-danger" id="toggleOwnerRejectPanel">
+                                        <i class="fas fa-times"></i> Reject as Owner
+                                    </button>
                                     {% endif %}
 
                                     {% comment %}IT approval action: visible when IT hasn't approved yet and user can edit{% endcomment %}
                                     {% if not change_request.it_approval_date and can_edit_it_section %}
                                     <button class="btn btn-sm btn-primary" id="toggleITPanel">
                                         <i class="fas fa-check"></i> Approve as IT
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" id="toggleITRejectPanel">
+                                        <i class="fas fa-times"></i> Reject as IT
                                     </button>
                                     {% endif %}
 
@@ -171,6 +182,29 @@
                                 </div>
                             </div>
 
+                            <!-- Inline Owner Rejection Panel (hidden by default) -->
+                            <div id="ownerRejectPanel" class="card mt-3 d-none border-danger">
+                                <div class="card-header bg-danger text-white">
+                                    <h5 class="mb-0"><i class="fas fa-times-circle"></i> Reject as Owner</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form method="post" action="{% url 'change_management:change_request_quick_reject' change_request.pk %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="rejection_type" value="owner">
+                                        <div class="mb-3">
+                                            <label for="ownerRejectionReason" class="form-label">Rejection Reason <span class="text-danger">*</span></label>
+                                            <textarea class="form-control" id="ownerRejectionReason" name="rejection_reason" rows="3" placeholder="Explain why this change is being rejected..." required></textarea>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button type="button" class="btn btn-outline-secondary" id="cancelOwnerRejectPanel">Cancel</button>
+                                            <button type="submit" class="btn btn-danger" id="submitOwnerRejection">
+                                                <i class="fas fa-times"></i> Reject as Owner
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
                             <!-- Inline IT Approval Panel (hidden by default) -->
                             <div id="itApprovalPanel" class="card mt-3 d-none">
                                 <div class="card-body border-top">
@@ -185,6 +219,29 @@
                                             <button type="button" class="btn btn-outline-secondary" id="cancelITPanel">Cancel</button>
                                             <button type="submit" class="btn btn-primary" id="submitITApproval">
                                                 <i class="fas fa-check"></i> Approve as IT
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Inline IT Rejection Panel (hidden by default) -->
+                            <div id="itRejectPanel" class="card mt-3 d-none border-danger">
+                                <div class="card-header bg-danger text-white">
+                                    <h5 class="mb-0"><i class="fas fa-times-circle"></i> Reject as IT</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form method="post" action="{% url 'change_management:change_request_quick_reject' change_request.pk %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="rejection_type" value="it">
+                                        <div class="mb-3">
+                                            <label for="itRejectionReason" class="form-label">Rejection Reason <span class="text-danger">*</span></label>
+                                            <textarea class="form-control" id="itRejectionReason" name="rejection_reason" rows="3" placeholder="Explain why this change is being rejected..." required></textarea>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button type="button" class="btn btn-outline-secondary" id="cancelITRejectPanel">Cancel</button>
+                                            <button type="submit" class="btn btn-danger" id="submitITRejection">
+                                                <i class="fas fa-times"></i> Reject as IT
                                             </button>
                                         </div>
                                     </form>
@@ -299,10 +356,14 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Toggle inline panels
     const ownerToggle = document.getElementById('toggleOwnerPanel');
+    const ownerRejectToggle = document.getElementById('toggleOwnerRejectPanel');
     const itToggle = document.getElementById('toggleITPanel');
+    const itRejectToggle = document.getElementById('toggleITRejectPanel');
     const completeToggle = document.getElementById('toggleCompletePanel');
     const ownerPanel = document.getElementById('ownerApprovalPanel');
+    const ownerRejectPanel = document.getElementById('ownerRejectPanel');
     const itPanel = document.getElementById('itApprovalPanel');
+    const itRejectPanel = document.getElementById('itRejectPanel');
     const completePanel = document.getElementById('completePanel');
 
     function togglePanel(panel) {
@@ -318,16 +379,41 @@ document.addEventListener('DOMContentLoaded', function() {
     if (ownerToggle && ownerPanel) {
         ownerToggle.addEventListener('click', function() {
             togglePanel(ownerPanel);
-            // hide IT panel if open
+            // hide other panels
+            if (ownerRejectPanel && !ownerRejectPanel.classList.contains('d-none')) ownerRejectPanel.classList.add('d-none');
             if (itPanel && !itPanel.classList.contains('d-none')) itPanel.classList.add('d-none');
+            if (itRejectPanel && !itRejectPanel.classList.contains('d-none')) itRejectPanel.classList.add('d-none');
+        });
+    }
+
+    if (ownerRejectToggle && ownerRejectPanel) {
+        ownerRejectToggle.addEventListener('click', function() {
+            togglePanel(ownerRejectPanel);
+            // hide other panels
+            if (ownerPanel && !ownerPanel.classList.contains('d-none')) ownerPanel.classList.add('d-none');
+            if (itPanel && !itPanel.classList.contains('d-none')) itPanel.classList.add('d-none');
+            if (itRejectPanel && !itRejectPanel.classList.contains('d-none')) itRejectPanel.classList.add('d-none');
         });
     }
 
     if (itToggle && itPanel) {
         itToggle.addEventListener('click', function() {
             togglePanel(itPanel);
-            // hide Owner and Complete panels if open
+            // hide other panels
             if (ownerPanel && !ownerPanel.classList.contains('d-none')) ownerPanel.classList.add('d-none');
+            if (ownerRejectPanel && !ownerRejectPanel.classList.contains('d-none')) ownerRejectPanel.classList.add('d-none');
+            if (itRejectPanel && !itRejectPanel.classList.contains('d-none')) itRejectPanel.classList.add('d-none');
+            if (completePanel && !completePanel.classList.contains('d-none')) completePanel.classList.add('d-none');
+        });
+    }
+
+    if (itRejectToggle && itRejectPanel) {
+        itRejectToggle.addEventListener('click', function() {
+            togglePanel(itRejectPanel);
+            // hide other panels
+            if (ownerPanel && !ownerPanel.classList.contains('d-none')) ownerPanel.classList.add('d-none');
+            if (ownerRejectPanel && !ownerRejectPanel.classList.contains('d-none')) ownerRejectPanel.classList.add('d-none');
+            if (itPanel && !itPanel.classList.contains('d-none')) itPanel.classList.add('d-none');
             if (completePanel && !completePanel.classList.contains('d-none')) completePanel.classList.add('d-none');
         });
     }
@@ -336,16 +422,23 @@ document.addEventListener('DOMContentLoaded', function() {
         completeToggle.addEventListener('click', function() {
             togglePanel(completePanel);
             if (ownerPanel && !ownerPanel.classList.contains('d-none')) ownerPanel.classList.add('d-none');
+            if (ownerRejectPanel && !ownerRejectPanel.classList.contains('d-none')) ownerRejectPanel.classList.add('d-none');
             if (itPanel && !itPanel.classList.contains('d-none')) itPanel.classList.add('d-none');
+            if (itRejectPanel && !itRejectPanel.classList.contains('d-none')) itRejectPanel.classList.add('d-none');
         });
     }
 
     // Cancel buttons
     const cancelOwner = document.getElementById('cancelOwnerPanel');
+    const cancelOwnerReject = document.getElementById('cancelOwnerRejectPanel');
     const cancelIT = document.getElementById('cancelITPanel');
+    const cancelITReject = document.getElementById('cancelITRejectPanel');
     const cancelComplete = document.getElementById('cancelCompletePanel');
+    
     if (cancelOwner && ownerPanel) cancelOwner.addEventListener('click', () => ownerPanel.classList.add('d-none'));
+    if (cancelOwnerReject && ownerRejectPanel) cancelOwnerReject.addEventListener('click', () => ownerRejectPanel.classList.add('d-none'));
     if (cancelIT && itPanel) cancelIT.addEventListener('click', () => itPanel.classList.add('d-none'));
+    if (cancelITReject && itRejectPanel) cancelITReject.addEventListener('click', () => itRejectPanel.classList.add('d-none'));
     if (cancelComplete && completePanel) cancelComplete.addEventListener('click', () => completePanel.classList.add('d-none'));
 
     // Handle inline form submissions via AJAX

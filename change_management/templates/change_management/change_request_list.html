@@ -118,8 +118,13 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <strong>{{ req.system.name }}</strong><br>
-                                        <small class="text-muted">{{ req.system.code }}</small>
+                                        {% if req.system %}
+                                            <strong>{{ req.system.name }}</strong><br>
+                                            <small class="text-muted">{{ req.system.code }}</small>
+                                        {% else %}
+                                            <span class="badge bg-info">User Deletion</span><br>
+                                            <small class="text-muted">Corporate-level change</small>
+                                        {% endif %}
                                     </td>
                                     <td>
                                         {% if req.status == 'Approved' %}
