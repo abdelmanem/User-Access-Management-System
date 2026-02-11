@@ -292,9 +292,10 @@ class LDAPAuthenticationBackend(ModelBackend):
             logger.error(f"Error retrieving LDAP attributes: {str(e)}")
             return None
     
-    def _get_or_create_user(self, username, ldap_user_data, ldap_config):
+    def _get_or_create_user(self, username, ldap_user_data, ldap_config, selected_fields=None):
         """
-        Get existing user or create new one from LDAP data
+        Get existing user or create new one from LDAP data.
+        Also handles reactivation of previously deleted users.
         """
         def get_field(data, field):
             """Get field value case-insensitively"""
@@ -316,9 +317,21 @@ class LDAPAuthenticationBackend(ModelBackend):
             email_field = ldap_config.ldap_email_field or 'mail'
             email = get_field(ldap_user_data, email_field)
             
+            # Determine skip-inactive option
+            skip_inactive = False
+            try:
+                if selected_fields:
+                    skip_inactive = bool(selected_fields.get('skip_inactive', False))
+            except Exception:
+                skip_inactive = False
+
             # Try username first
             try:
                 user = User.objects.get(username=ldap_username)
+                # If user is found but inactive and admin asked to skip inactive users, do not return it for sync
+                if not user.is_active and skip_inactive:
+                    logger.info(f"Skipping inactive user during sync: {ldap_username}")
+                    return None
                 return user
             except User.DoesNotExist:
                 pass
@@ -352,6 +365,14 @@ class LDAPAuthenticationBackend(ModelBackend):
                 except User.DoesNotExist:
                     pass
             
+            # Create new user (unless skip_inactive and user is archived)
+            if selected_fields and selected_fields.get('skip_inactive'):
+                from .models import UserArchive
+                archived_user = UserArchive.objects.filter(username=ldap_username).order_by('-archived_at').first()
+                if archived_user:
+                    logger.info(f"Skipping creation of archived user '{ldap_username}' due to sync option.")
+                    return None
+
             # Create new user
             firstname_field = ldap_config.ldap_firstname_field or 'givenName'
             lastname_field = ldap_config.ldap_lastname_field or 'sn'
@@ -366,9 +387,21 @@ class LDAPAuthenticationBackend(ModelBackend):
             # Mark as AD synced
             user.ad_synced = True
             user.ad_username = ldap_username
+            user.is_active = True
             user.save()
             
-            logger.info(f"Created new user from LDAP: {ldap_username}")
+            # Check if this user was previously deleted (in archive)
+            from .models import UserArchive
+            archived_user = UserArchive.objects.filter(username=ldap_username).order_by('-archived_at').first()
+            if archived_user:
+                logger.warning(
+                    f"Created new user '{ldap_username}' from LDAP. "
+                    f"Note: This user was previously deleted on {archived_user.archived_at}. "
+                    f"A new user record has been created with ID {user.id}."
+                )
+            else:
+                logger.info(f"Created new user from LDAP: {ldap_username}")
+            
             return user
             
         except Exception as e:
@@ -641,7 +674,7 @@ class LDAPSync:
 
                     # Skip computer accounts (end with $) and system accounts
                     if username and not username.endswith('$') and username.lower() not in ['krbtgt', 'guest']:
-                        user = backend._get_or_create_user(username, user_data, ldap_config)
+                        user = backend._get_or_create_user(username, user_data, ldap_config, selected_fields=selected_fields)
                         if user:
                             backend._update_user_from_ldap(user, user_data, ldap_config, selected_fields=selected_fields)
                             synced_count += 1

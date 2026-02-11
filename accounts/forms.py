@@ -356,6 +356,15 @@ class LDAPSyncFieldSelectionForm(forms.Form):
         for field in self.fields.values():
             field.widget.attrs.update({'class': 'form-check-input'})
 
+    # Option to skip re-creating/reactivating inactive or archived accounts during sync
+    skip_inactive = forms.BooleanField(
+        required=False,
+        initial=True,
+        label="Skip inactive/archived users",
+        help_text="Do not create or re-enable users that are inactive or present in the user archive",
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+
 
 class LDAPSyncComputerFieldSelectionForm(forms.Form):
     """

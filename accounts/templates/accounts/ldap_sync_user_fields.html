@@ -16,6 +16,28 @@
         </div>
     </div>
 
+                        <!-- Sync Options -->
+                        <div class="card mb-3">
+                            <div class="card-header bg-secondary text-white">
+                                <h6 class="mb-0"><i class="fas fa-cog"></i> Sync Options</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-12 mb-3">
+                                        <div class="form-check">
+                                            {{ field_form.skip_inactive }}
+                                            <label class="form-check-label" for="{{ field_form.skip_inactive.id_for_label }}">
+                                                {{ field_form.skip_inactive.label }}
+                                            </label>
+                                            {% if field_form.skip_inactive.help_text %}
+                                                <small class="form-text text-muted d-block">{{ field_form.skip_inactive.help_text }}</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
     <div class="row">
         <div class="col-lg-8">
             <div class="card">
