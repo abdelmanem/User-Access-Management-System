@@ -958,7 +958,6 @@ document.addEventListener('DOMContentLoaded', function() {
      =========================================================== */
 
   const selectAll = document.getElementById('select-all');
-  const checkboxes = document.querySelectorAll('.row-checkbox');
   const countEl = document.getElementById('selectionCount');
   const applyBtn = document.getElementById('applyBulk');
   const bulkAction = document.getElementById('bulk-action');
@@ -966,51 +965,93 @@ document.addEventListener('DOMContentLoaded', function() {
   const modalHint = document.getElementById('modalActionHint');
   const confirmBtn = document.getElementById('confirmBulkBtn');
 
+  // Debug logging
+  console.log('selectAll element:', selectAll);
+  console.log('countEl element:', countEl);
+  console.log('applyBtn element:', applyBtn);
+  console.log('bulkAction element:', bulkAction);
+
+  function getCheckboxes() {
+    return document.querySelectorAll('.row-checkbox');
+  }
+
   function selectedCount() {
     return document.querySelectorAll('.row-checkbox:checked').length;
   }
 
   function updateCount() {
     const count = selectedCount();
-    countEl.textContent = `${count} selected`;
-    countEl.classList.toggle('active', count > 0);
+    console.log('Updating count:', count);
+    if (countEl) {
+      countEl.textContent = `${count} selected`;
+      countEl.classList.toggle('active', count > 0);
+    }
     // Enable apply only if there are selections AND an action chosen
-    applyBtn.disabled = !(count > 0 && bulkAction.value);
+    if (applyBtn && bulkAction) {
+      applyBtn.disabled = !(count > 0 && bulkAction.value);
+      console.log('Apply button disabled:', applyBtn.disabled);
+    }
     // Update modal count if opened
     if (modalCount) modalCount.textContent = count;
   }
 
-  selectAll?.addEventListener('change', () => {
-    checkboxes.forEach(cb => cb.checked = selectAll.checked);
-    updateCount();
-  });
+  // Use event delegation for checkboxes
+  const tableBody = document.querySelector('table tbody');
+  if (tableBody) {
+    console.log('Found table body, attaching delegated listener');
+    tableBody.addEventListener('change', (e) => {
+      if (e.target.classList.contains('row-checkbox')) {
+        console.log('Row checkbox changed:', e.target.value, 'checked:', e.target.checked);
+        // If any unchecked -> uncheck selectAll
+        if (!e.target.checked && selectAll) {
+          selectAll.checked = false;
+        }
+        updateCount();
+      }
+    });
+  }
 
-  checkboxes.forEach(cb => cb.addEventListener('change', () => {
-    // If any unchecked -> uncheck selectAll
-    if (!cb.checked && selectAll) selectAll.checked = false;
-    updateCount();
-  }));
+  if (selectAll) {
+    console.log('Setting up select-all listener');
+    selectAll.addEventListener('change', (e) => {
+      console.log('Select-all clicked, checked:', e.target.checked);
+      const checkboxes = getCheckboxes();
+      console.log('Found checkboxes:', checkboxes.length);
+      checkboxes.forEach(cb => {
+        cb.checked = selectAll.checked;
+        console.log('Setting checkbox', cb.value, 'to', cb.checked);
+      });
+      updateCount();
+    });
+  }
 
-  bulkAction?.addEventListener('change', updateCount);
+  if (bulkAction) {
+    bulkAction.addEventListener('change', updateCount);
+  }
 
   // Confirm bulk action submits the form
-  confirmBtn?.addEventListener('click', () => {
-    document.getElementById('bulk-action-form').submit();
-  });
+  if (confirmBtn) {
+    confirmBtn.addEventListener('click', () => {
+      const form = document.getElementById('bulk-action-form');
+      if (form) form.submit();
+    });
+  }
 
   // When modal opens, inject action name and extra warning if delete
   const modalEl = document.getElementById('bulkConfirmModal');
-  modalEl?.addEventListener('show.bs.modal', () => {
-    const count = selectedCount();
-    modalCount.textContent = count;
-    const action = bulkAction.value || "(no action selected)";
-    const actionText = bulkAction.options[bulkAction.selectedIndex]?.text || action;
-    let hint = `Action: <strong>${actionText}</strong>`;
-    if (action === 'delete') {
-      hint += `<div class="mt-2 text-danger fw-bold"><i class="fas fa-trash me-1"></i>Delete is permanent.</div>`;
-    }
-    modalHint.innerHTML = hint;
-  });
+  if (modalEl) {
+    modalEl.addEventListener('show.bs.modal', () => {
+      const count = selectedCount();
+      if (modalCount) modalCount.textContent = count;
+      const action = bulkAction?.value || "(no action selected)";
+      const actionText = bulkAction?.options[bulkAction.selectedIndex]?.text || action;
+      let hint = `Action: <strong>${actionText}</strong>`;
+      if (action === 'delete') {
+        hint += `<div class="mt-2 text-danger fw-bold"><i class="fas fa-trash me-1"></i>Delete is permanent.</div>`;
+      }
+      if (modalHint) modalHint.innerHTML = hint;
+    });
+  }
 
   // KPI cards click to filter
   document.querySelectorAll('.clickable-kpi').forEach(card => {
@@ -1044,7 +1085,9 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // Initial update
-  updateCount();
+  if (countEl) {
+    updateCount();
+  }
 });
 
 function removeFilter(name) {
