@@ -674,6 +674,27 @@ class LDAPSync:
 
                     # Skip computer accounts (end with $) and system accounts
                     if username and not username.endswith('$') and username.lower() not in ['krbtgt', 'guest']:
+                        # Check if username is in UserArchive with exclude_from_ldap_sync=True
+                        from .models import UserArchive
+                        archived_user = UserArchive.objects.filter(
+                            username=username,
+                            exclude_from_ldap_sync=True
+                        ).first()
+                        
+                        if archived_user:
+                            logger.info(f"Skipping LDAP sync for archived user '{username}' (marked to exclude from LDAP sync)")
+                            continue
+                        
+                        # Check if user exists in CustomUser with exclude_from_ldap_sync=True
+                        from .models import CustomUser
+                        try:
+                            existing_user = CustomUser.objects.get(username=username)
+                            if existing_user.exclude_from_ldap_sync:
+                                logger.info(f"Skipping LDAP sync for user '{username}' (manually excluded from LDAP sync)")
+                                continue
+                        except CustomUser.DoesNotExist:
+                            pass
+                        
                         user = backend._get_or_create_user(username, user_data, ldap_config, selected_fields=selected_fields)
                         if user:
                             backend._update_user_from_ldap(user, user_data, ldap_config, selected_fields=selected_fields)

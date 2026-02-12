@@ -165,8 +165,8 @@ class UserDeactivationAuditAdmin(admin.ModelAdmin):
 
 
 class UserArchiveAdmin(admin.ModelAdmin):
-    list_display = ('username', 'employee_id', 'department_name', 'archived_at', 'archived_by')
-    list_filter = ('archived_at', 'department_name')
+    list_display = ('username', 'employee_id', 'department_name', 'archived_at', 'archived_by', 'exclude_from_ldap_sync')
+    list_filter = ('archived_at', 'department_name', 'exclude_from_ldap_sync')
     search_fields = ('username', 'employee_id', 'full_name', 'department_name')
     readonly_fields = (
         'source_user_id',
@@ -178,6 +178,19 @@ class UserArchiveAdmin(admin.ModelAdmin):
         'archived_by',
         'archived_at',
         'payload',
+    )
+    fieldsets = (
+        ('Archive Information', {
+            'fields': ('source_user_id', 'username', 'full_name', 'employee_id', 'email', 'department_name', 'archived_by', 'archived_at')
+        }),
+        ('LDAP Sync Control', {
+            'fields': ('exclude_from_ldap_sync',),
+            'description': 'Controls whether this archived user will be re-synced from LDAP. Set to True to prevent this user from being recreated during LDAP sync.'
+        }),
+        ('Archive Payload', {
+            'fields': ('payload',),
+            'classes': ('collapse',)
+        }),
     )
     ordering = ['-archived_at']
 

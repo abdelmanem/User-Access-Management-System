@@ -487,6 +487,10 @@ class UserArchive(models.Model):
     )
     archived_at = models.DateTimeField(auto_now_add=True)
     payload = models.JSONField(default=dict, blank=True)
+    exclude_from_ldap_sync = models.BooleanField(
+        default=True,
+        help_text="Prevent this archived user from being re-synced from LDAP"
+    )
 
     class Meta:
         ordering = ['-archived_at']

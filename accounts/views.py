@@ -670,6 +670,7 @@ def user_delete(request, pk):
             department_name=user.department.name if user.department else '',
             archived_by=request.user if request.user.is_authenticated else None,
             payload=archive_payload,
+            exclude_from_ldap_sync=True,  # Auto-exclude archived users from LDAP re-sync
         )
 
         user.delete()
