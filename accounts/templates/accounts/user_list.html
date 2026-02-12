@@ -964,66 +964,60 @@ document.addEventListener('DOMContentLoaded', function() {
   const modalCount = document.getElementById('modalSelectionCount');
   const modalHint = document.getElementById('modalActionHint');
   const confirmBtn = document.getElementById('confirmBulkBtn');
-  const table = document.querySelector('table');
-
-  function getCheckboxes() {
-    return document.querySelectorAll('input[type="checkbox"].row-checkbox');
-  }
-
-  function selectedCount() {
-    let count = 0;
-    getCheckboxes().forEach(cb => {
-      if (cb.checked) count++;
-    });
-    return count;
-  }
 
   function updateCount() {
-    const count = selectedCount();
-    console.log('Count updated to:', count);
+    const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+    let checkedCount = 0;
+    rowCheckboxes.forEach(cb => {
+      if (cb.checked) checkedCount++;
+    });
+    
+    console.log('Updating count to:', checkedCount);
     if (countEl) {
-      countEl.textContent = `${count} selected`;
-      countEl.classList.toggle('active', count > 0);
+      countEl.textContent = `${checkedCount} selected`;
+      countEl.classList.toggle('active', checkedCount > 0);
     }
     if (applyBtn && bulkAction) {
-      applyBtn.disabled = !(count > 0 && bulkAction.value);
+      applyBtn.disabled = !(checkedCount > 0 && bulkAction.value);
     }
-    if (modalCount) modalCount.textContent = count;
+    if (modalCount) modalCount.textContent = checkedCount;
   }
 
-  // Use table-level event delegation for ALL checkbox changes
-  if (table) {
-    console.log('Attaching click listener to table');
-    table.addEventListener('click', function(e) {
-      const checkbox = e.target;
-      
-      // Check if it's the select-all checkbox
-      if (checkbox.id === 'select-all') {
-        console.log('Select-all clicked, checked:', checkbox.checked);
-        const isChecked = checkbox.checked;
-        getCheckboxes().forEach(cb => {
-          cb.checked = isChecked;
-        });
-        updateCount();
-      }
-      // Check if it's a row checkbox
-      else if (checkbox.classList.contains('row-checkbox')) {
-        console.log('Row checkbox clicked, value:', checkbox.value, 'checked:', checkbox.checked);
-        const allCheckboxes = getCheckboxes();
-        const checkedCount = Array.from(allCheckboxes).filter(cb => cb.checked).length;
-        
-        // Update select-all based on individual checkbox states
-        if (selectAll) {
-          if (checkedCount === allCheckboxes.length) {
-            selectAll.checked = true;
-          } else {
-            selectAll.checked = false;
-          }
-        }
-        updateCount();
-      }
+  // Handle select-all checkbox
+  if (selectAll) {
+    selectAll.addEventListener('change', function(e) {
+      console.log('SELECT-ALL checkbox changed to:', this.checked);
+      const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+      rowCheckboxes.forEach(checkbox => {
+        checkbox.checked = this.checked;
+        console.log('Row checkbox set to:', checkbox.checked);
+      });
+      updateCount();
     });
   }
+
+  // Handle individual row checkboxes
+  document.querySelectorAll('.row-checkbox').forEach(checkbox => {
+    checkbox.addEventListener('change', function(e) {
+      console.log('ROW checkbox changed:', this.value, 'checked:', this.checked);
+      
+      // Update select-all checkbox state
+      if (selectAll) {
+        const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+        const allChecked = Array.from(rowCheckboxes).every(cb => cb.checked);
+        const noneChecked = Array.from(rowCheckboxes).every(cb => !cb.checked);
+        
+        if (allChecked) {
+          selectAll.checked = true;
+        } else if (noneChecked) {
+          selectAll.checked = false;
+        } else {
+          selectAll.checked = false; // Indeterminate state
+        }
+      }
+      updateCount();
+    });
+  });
 
   if (bulkAction) {
     bulkAction.addEventListener('change', function() {
@@ -1047,7 +1041,11 @@ document.addEventListener('DOMContentLoaded', function() {
   const modalEl = document.getElementById('bulkConfirmModal');
   if (modalEl) {
     modalEl.addEventListener('show.bs.modal', () => {
-      const count = selectedCount();
+      const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+      let count = 0;
+      rowCheckboxes.forEach(cb => {
+        if (cb.checked) count++;
+      });
       if (modalCount) modalCount.textContent = count;
       const action = bulkAction?.value || "(no action selected)";
       const actionText = bulkAction?.options[bulkAction.selectedIndex]?.text || action;
