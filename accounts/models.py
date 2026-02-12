@@ -302,6 +302,11 @@ class CustomUser(AbstractUser):
         help_text="Exclude this account from total user counts and dashboards"
     )
     
+    exclude_from_ldap_sync = models.BooleanField(
+        default=False,
+        help_text="Exclude this user from LDAP synchronization"
+    )
+    
     # AD Integration Fields (Future)
     ad_username = models.CharField(
         max_length=100,

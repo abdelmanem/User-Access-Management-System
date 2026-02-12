@@ -65,6 +65,28 @@
         <a href="{% url 'accounts:user_reset_password' user.id %}" class="btn btn-info btn-sm">
           <i class="fas fa-key me-1"></i>Reset Password
         </a>
+
+        {% if perms.accounts.change_customuser %}
+        {% if user.exclude_from_ldap_sync %}
+        <form method="post" action="{% url 'accounts:user_bulk_action' %}" style="display: inline;">
+          {% csrf_token %}
+          <input type="hidden" name="selected" value="{{ user.id }}">
+          <input type="hidden" name="action" value="include_ldap_sync">
+          <button type="submit" class="btn btn-info btn-sm" title="Include in LDAP Sync">
+            <i class="fas fa-sync me-1"></i>Include LDAP
+          </button>
+        </form>
+        {% else %}
+        <form method="post" action="{% url 'accounts:user_bulk_action' %}" style="display: inline;">
+          {% csrf_token %}
+          <input type="hidden" name="selected" value="{{ user.id }}">
+          <input type="hidden" name="action" value="exclude_ldap_sync">
+          <button type="submit" class="btn btn-danger btn-sm" title="Exclude from LDAP Sync">
+            <i class="fas fa-ban me-1"></i>Exclude LDAP
+          </button>
+        </form>
+        {% endif %}
+        {% endif %}
       </div>
     </div>
 

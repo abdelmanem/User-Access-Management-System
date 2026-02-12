@@ -1069,6 +1069,18 @@ def user_bulk_action(request):
             return redirect(redirect_url)
         updated = queryset.update(flag_for_follow_up=False, updated_by=request.user)
         messages.success(request, f'Cleared the follow-up flag for {updated} user(s).')
+    elif action == 'exclude_ldap_sync':
+        if not request.user.has_perm('accounts.change_customuser'):
+            messages.error(request, 'You do not have permission to exclude users from LDAP sync.')
+            return redirect(redirect_url)
+        updated = queryset.update(exclude_from_ldap_sync=True, updated_by=request.user)
+        messages.success(request, f'Excluded {updated} user(s) from LDAP synchronization.')
+    elif action == 'include_ldap_sync':
+        if not request.user.has_perm('accounts.change_customuser'):
+            messages.error(request, 'You do not have permission to include users in LDAP sync.')
+            return redirect(redirect_url)
+        updated = queryset.update(exclude_from_ldap_sync=False, updated_by=request.user)
+        messages.success(request, f'Included {updated} user(s) in LDAP synchronization.')
     else:
         messages.warning(request, 'Please choose a valid bulk action.')
 

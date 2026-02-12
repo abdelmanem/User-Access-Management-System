@@ -57,6 +57,7 @@ class UserBaseForm(forms.ModelForm):
             'it_admin_certified_by',
             'is_active',
             'exclude_from_metrics',
+            'exclude_from_ldap_sync',
         ]
 
 

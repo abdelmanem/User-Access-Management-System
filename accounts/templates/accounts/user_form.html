@@ -450,6 +450,19 @@
                           {% endif %}
                         </div>
 
+                        <div class="col-md-3">
+                          <div class="form-check mt-4">
+                            {{ form.exclude_from_ldap_sync|add_error_class:"is-invalid"|add_class:"form-check-input" }}
+                            <label class="form-check-label">
+                              Exclude from LDAP sync
+                              <small class="text-muted d-block">Prevents this user from being synced with LDAP.</small>
+                            </label>
+                          </div>
+                          {% if form.exclude_from_ldap_sync.errors %}
+                            <div class="invalid-feedback d-block">{{ form.exclude_from_ldap_sync.errors|striptags }}</div>
+                          {% endif %}
+                        </div>
+
                       </div>
                     </div>
                   </div>

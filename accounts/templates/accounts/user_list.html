@@ -681,6 +681,8 @@ tr:hover .row-actions{ opacity: 1; }
                 <option value="clear_email">Clear Email</option>
                 <option value="flag_follow_up">Flag Follow-up</option>
                 <option value="clear_follow_up">Clear Follow-up</option>
+                <option value="exclude_ldap_sync">Exclude from LDAP Sync</option>
+                <option value="include_ldap_sync">Include in LDAP Sync</option>
               </select>
 
               <!-- Button triggers modal -->
@@ -737,6 +739,7 @@ tr:hover .row-actions{ opacity: 1; }
               <th>Position</th>
               <th>Follow-up</th>
               <th>Metrics</th>
+              <th>LDAP Sync</th>
               <th>Status</th>
               <th class="text-end">Actions</th>
             </tr>
@@ -779,6 +782,14 @@ tr:hover .row-actions{ opacity: 1; }
                 <span class="badge bg-secondary">Excluded</span>
                 {% else %}
                 <span class="badge bg-success"><i class="fas fa-check me-1"></i>Reportable</span>
+                {% endif %}
+              </td>
+
+              <td>
+                {% if user.exclude_from_ldap_sync %}
+                <span class="badge bg-danger"><i class="fas fa-ban me-1"></i>Excluded</span>
+                {% else %}
+                <span class="badge bg-info"><i class="fas fa-sync me-1"></i>Synced</span>
                 {% endif %}
               </td>
 
