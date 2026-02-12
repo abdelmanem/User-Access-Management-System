@@ -126,6 +126,59 @@ class AccountChangeRequest(models.Model):
         help_text="When IT approved this change request",
     )
 
+    # Rejection tracking (NEW)
+    system_owner_rejected = models.BooleanField(
+        default=False,
+        help_text="System Owner has rejected this change request",
+    )
+
+    system_owner_rejection_date = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When the System Owner rejected this change request",
+    )
+
+    system_owner_rejection_reason = models.TextField(
+        blank=True,
+        default="",
+        help_text="Reason for System Owner rejection",
+    )
+
+    system_owner_rejected_by = models.ForeignKey(
+        "accounts.CustomUser",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="system_owner_rejections",
+        help_text="User who rejected as System Owner",
+    )
+
+    it_rejected = models.BooleanField(
+        default=False,
+        help_text="IT has rejected this change request",
+    )
+
+    it_rejection_date = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When IT rejected this change request",
+    )
+
+    it_rejection_reason = models.TextField(
+        blank=True,
+        default="",
+        help_text="Reason for IT rejection",
+    )
+
+    it_rejected_by = models.ForeignKey(
+        "accounts.CustomUser",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="it_rejections",
+        help_text="User who rejected as IT approver",
+    )
+
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
@@ -146,6 +199,8 @@ class AccountChangeRequest(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
+    updated_at = models.DateTimeField(auto_now=True, help_text="Last updated timestamp")
+
     class Meta:
         ordering = ["-created_at"]
         verbose_name = "Account Change Request"
@@ -163,7 +218,16 @@ class AccountChangeRequest(models.Model):
             user_label = self.user_full_name
         else:
             user_label = "Unassigned user"
-        return f"{self.change_type} – {user_label} @ {self.system.name}"
+        system_name = self.system.name if self.system else "Corporate"
+        return f"{self.change_type} – {user_label} @ {system_name} [{self.status}]"
+
+    def is_rejected(self) -> bool:
+        """Check if request has been rejected by anyone."""
+        return self.system_owner_rejected or self.it_rejected
+
+    def is_approved(self) -> bool:
+        """Check if request has been fully approved by all required approvers."""
+        return self.system_owner_approved and (not self.it_approval or self.status == self.STATUS_APPROVED)
 
 
 class ChangeAuditLog(models.Model):

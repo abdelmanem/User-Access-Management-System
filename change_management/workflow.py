@@ -120,13 +120,13 @@ class ChangeRequestWorkflow:
             raise
 
     @staticmethod
-    def reject_change(change_request, rejected_by, rejection_reason=None):
+    def reject_change_by_owner(change_request, rejected_by, rejection_reason=None):
         """
-        Reject a change request.
+        Reject a change request by System Owner.
         
         Args:
             change_request: AccountChangeRequest instance
-            rejected_by: User rejecting the change
+            rejected_by: System Owner user rejecting the change
             rejection_reason: Reason for rejection
         
         Returns:
@@ -138,8 +138,12 @@ class ChangeRequestWorkflow:
                 
                 change_request.status = AccountChangeRequest.STATUS_REJECTED
                 change_request.system_owner = rejected_by
+                change_request.system_owner_rejected = True
+                change_request.system_owner_rejection_date = timezone.now()
+                change_request.system_owner_rejected_by = rejected_by
                 if rejection_reason:
-                    change_request.system_owner_approval_notes = rejection_reason
+                    change_request.system_owner_rejection_reason = rejection_reason
+                    change_request.system_owner_approval_notes = f"[REJECTED by {rejected_by.get_full_name()}] {rejection_reason}"
                 change_request.save()
                 
                 # Log the rejection
@@ -147,20 +151,97 @@ class ChangeRequestWorkflow:
                     change_request,
                     'rejected',
                     rejected_by,
-                    old_values={'status': old_status},
-                    new_values={'status': AccountChangeRequest.STATUS_REJECTED},
-                    notes=rejection_reason,
+                    old_values={'status': old_status, 'system_owner_rejected': False},
+                    new_values={'status': AccountChangeRequest.STATUS_REJECTED, 'system_owner_rejected': True},
+                    notes=f"System Owner Rejection: {rejection_reason}",
                 )
                 
                 logger.info(
-                    f"Change request {change_request.id} rejected by {rejected_by.username}"
+                    f"Change request {change_request.id} rejected by System Owner {rejected_by.username} "
+                    f"on {change_request.system_owner_rejection_date}: {rejection_reason}"
                 )
                 
                 return change_request
         
         except Exception as e:
-            logger.error(f"Error rejecting change request: {str(e)}")
+            logger.error(f"Error rejecting change request by owner: {str(e)}")
             raise
+
+    @staticmethod
+    def reject_change_by_it(change_request, rejected_by, rejection_reason=None):
+        """
+        Reject a change request by IT approver.
+        
+        Args:
+            change_request: AccountChangeRequest instance
+            rejected_by: IT approver user rejecting the change
+            rejection_reason: Reason for rejection
+        
+        Returns:
+            Updated AccountChangeRequest
+        """
+        try:
+            with transaction.atomic():
+                old_status = change_request.status
+                
+                change_request.status = AccountChangeRequest.STATUS_REJECTED
+                change_request.it_rejected = True
+                change_request.it_rejection_date = timezone.now()
+                change_request.it_rejected_by = rejected_by
+                if rejection_reason:
+                    change_request.it_rejection_reason = rejection_reason
+                    existing_notes = change_request.system_owner_approval_notes or ""
+                    if existing_notes:
+                        change_request.system_owner_approval_notes = (
+                            f"{existing_notes}\n[IT REJECTION by {rejected_by.get_full_name()}] {rejection_reason}"
+                        )
+                    else:
+                        change_request.system_owner_approval_notes = (
+                            f"[IT REJECTION by {rejected_by.get_full_name()}] {rejection_reason}"
+                        )
+                change_request.save()
+                
+                # Log the rejection
+                log_change_action(
+                    change_request,
+                    'rejected',
+                    rejected_by,
+                    old_values={'status': old_status, 'it_rejected': False},
+                    new_values={'status': AccountChangeRequest.STATUS_REJECTED, 'it_rejected': True},
+                    notes=f"IT Rejection: {rejection_reason}",
+                )
+                
+                logger.info(
+                    f"Change request {change_request.id} rejected by IT {rejected_by.username} "
+                    f"on {change_request.it_rejection_date}: {rejection_reason}"
+                )
+                
+                return change_request
+        
+        except Exception as e:
+            logger.error(f"Error rejecting change request by IT: {str(e)}")
+            raise
+
+    @staticmethod
+    def reject_change(change_request, rejected_by, rejection_reason=None):
+        """
+        Reject a change request (deprecated - use reject_change_by_owner or reject_change_by_it).
+        
+        DEPRECATED: Use reject_change_by_owner() or reject_change_by_it() instead.
+        
+        Args:
+            change_request: AccountChangeRequest instance
+            rejected_by: User rejecting the change
+            rejection_reason: Reason for rejection
+        
+        Returns:
+            Updated AccountChangeRequest
+        """
+        # For backwards compatibility, assume it's a system owner rejection
+        return ChangeRequestWorkflow.reject_change_by_owner(
+            change_request, rejected_by, rejection_reason
+        )
+        
 
     @staticmethod
     def complete_change(change_request, completed_by=None, completion_notes=None):

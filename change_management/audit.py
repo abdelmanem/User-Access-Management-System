@@ -7,99 +7,13 @@ Tracks all change request actions for compliance and audit purposes.
 import json
 from django.utils import timezone
 from django.db import models
-from .models import AccountChangeRequest
 
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-class ChangeAuditLog(models.Model):
-    """
-    Audit log for tracking all changes to AccountChangeRequest records.
-    
-    Provides full traceability of who made what changes and when.
-    """
-    
-    ACTION_CHOICES = [
-        ('created', 'Created'),
-        ('approved', 'Approved'),
-        ('rejected', 'Rejected'),
-        ('completed', 'Completed'),
-        ('modified', 'Modified'),
-        ('viewed', 'Viewed'),
-        ('exported', 'Exported'),
-    ]
-    
-    change_request = models.ForeignKey(
-        AccountChangeRequest,
-        on_delete=models.CASCADE,
-        related_name='audit_logs',
-        help_text="Reference to the change request"
-    )
-    
-    action = models.CharField(
-        max_length=20,
-        choices=ACTION_CHOICES,
-        help_text="Action performed"
-    )
-    
-    performed_by = models.ForeignKey(
-        'accounts.CustomUser',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='change_audit_logs',
-        help_text="User who performed the action"
-    )
-    
-    timestamp = models.DateTimeField(
-        auto_now_add=True,
-        help_text="When the action occurred"
-    )
-    
-    old_values = models.JSONField(
-        default=dict,
-        blank=True,
-        help_text="Old field values (for modifications)"
-    )
-    
-    new_values = models.JSONField(
-        default=dict,
-        blank=True,
-        help_text="New field values (for modifications)"
-    )
-    
-    notes = models.TextField(
-        blank=True,
-        null=True,
-        help_text="Additional context or notes"
-    )
-    
-    ip_address = models.GenericIPAddressField(
-        null=True,
-        blank=True,
-        help_text="IP address of the client"
-    )
-    
-    user_agent = models.CharField(
-        max_length=500,
-        blank=True,
-        help_text="User-Agent header (for web requests)"
-    )
-    
-    class Meta:
-        ordering = ['-timestamp']
-        verbose_name = 'Change Audit Log'
-        verbose_name_plural = 'Change Audit Logs'
-        indexes = [
-            models.Index(fields=['change_request', '-timestamp']),
-            models.Index(fields=['performed_by', '-timestamp']),
-            models.Index(fields=['action', '-timestamp']),
-        ]
-    
-    def __str__(self):
-        return f"{self.change_request_id} - {self.action} by {self.performed_by}"
+# Note: ChangeAuditLog model is defined in models.py to avoid circular imports
 
 
 def log_change_action(
@@ -126,6 +40,8 @@ def log_change_action(
         user_agent: Optional user-agent string
     """
     try:
+        from .models import ChangeAuditLog
+        
         ChangeAuditLog.objects.create(
             change_request=change_request,
             action=action,
@@ -154,6 +70,8 @@ def get_change_audit_trail(change_request_id, limit=None):
     Returns:
         QuerySet of ChangeAuditLog entries
     """
+    from .models import ChangeAuditLog
+    
     queryset = ChangeAuditLog.objects.filter(
         change_request_id=change_request_id
     ).select_related('performed_by')
@@ -175,6 +93,8 @@ def get_user_change_history(user_id, limit=50):
     Returns:
         QuerySet of ChangeAuditLog entries
     """
+    from .models import ChangeAuditLog
+    
     return ChangeAuditLog.objects.filter(
         performed_by_id=user_id
     ).select_related('change_request').order_by('-timestamp')[:limit]
@@ -192,6 +112,8 @@ def export_audit_logs(start_date=None, end_date=None, action_filter=None):
     Returns:
         QuerySet of audit logs matching criteria
     """
+    from .models import ChangeAuditLog
+    
     queryset = ChangeAuditLog.objects.all()
     
     if start_date:

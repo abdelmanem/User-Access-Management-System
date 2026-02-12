@@ -359,9 +359,9 @@ def change_request_quick_reject(request, pk):
     """Quick reject endpoint to record System Owner or IT rejection of a change request.
     
     Behavior:
-    - If System Owner rejects, mark system_owner_approved=False and status=Rejected
-    - If IT rejects, status=Rejected
-    - Rejection reason is required and stored in system_owner_approval_notes
+    - If System Owner rejects, mark system_owner_rejected=True and status=Rejected
+    - If IT rejects, mark it_rejected=True and status=Rejected
+    - Rejection reason is required and stored with timestamp
     """
     change_request = get_object_or_404(AccountChangeRequest, pk=pk)
 
@@ -384,14 +384,19 @@ def change_request_quick_reject(request, pk):
                 messages.error(request, "You do not have permission to reject as System Owner.")
                 return redirect(request.META.get("HTTP_REFERER", "/"))
 
-            # Record owner rejection
-            change_request.system_owner_approved = False
-            change_request.system_owner_approval_date = timezone.now()
-            change_request.system_owner = request.user
-            change_request.status = AccountChangeRequest.STATUS_REJECTED
-            change_request.system_owner_approval_notes = f"[REJECTED by {request.user.get_full_name()}] {rejection_reason}"
-            change_request.save()
-            messages.success(request, f"Change request #{change_request.pk} rejected by System Owner.")
+            try:
+                from .workflow import ChangeRequestWorkflow
+                ChangeRequestWorkflow.reject_change_by_owner(
+                    change_request, 
+                    request.user, 
+                    rejection_reason
+                )
+                messages.success(
+                    request, 
+                    f"Change request #{change_request.pk} rejected by System Owner on {change_request.system_owner_rejection_date.strftime('%Y-%m-%d %H:%M:%S')}."
+                )
+            except Exception as e:
+                messages.error(request, f"Error rejecting change request: {str(e)}")
 
         # IT rejection flow
         elif rejection_type == "it":
@@ -404,16 +409,19 @@ def change_request_quick_reject(request, pk):
                 messages.error(request, "You do not have permission to reject as IT.")
                 return redirect(request.META.get("HTTP_REFERER", "/"))
 
-            # Record IT rejection
-            if not change_request.it_approval:
-                change_request.it_approval = request.user
-            change_request.it_approval_date = timezone.now()
-            change_request.status = AccountChangeRequest.STATUS_REJECTED
-            notes = f"[REJECTED by IT {request.user.get_full_name()}] {rejection_reason}"
-            existing = change_request.system_owner_approval_notes or ""
-            change_request.system_owner_approval_notes = (existing + "\n" + notes) if existing else notes
-            change_request.save()
-            messages.success(request, f"Change request #{change_request.pk} rejected by IT.")
+            try:
+                from .workflow import ChangeRequestWorkflow
+                ChangeRequestWorkflow.reject_change_by_it(
+                    change_request,
+                    request.user,
+                    rejection_reason
+                )
+                messages.success(
+                    request,
+                    f"Change request #{change_request.pk} rejected by IT on {change_request.it_rejection_date.strftime('%Y-%m-%d %H:%M:%S')}."
+                )
+            except Exception as e:
+                messages.error(request, f"Error rejecting change request: {str(e)}")
 
         else:
             messages.error(request, "Unknown rejection type.")
