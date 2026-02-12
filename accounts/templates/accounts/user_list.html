@@ -964,24 +964,18 @@ document.addEventListener('DOMContentLoaded', function() {
   const modalCount = document.getElementById('modalSelectionCount');
   const modalHint = document.getElementById('modalActionHint');
   const confirmBtn = document.getElementById('confirmBulkBtn');
-
-  // Debug logging
-  console.log('selectAll element:', selectAll);
-  console.log('countEl element:', countEl);
-  console.log('applyBtn element:', applyBtn);
-  console.log('bulkAction element:', bulkAction);
+  const bulkActionForm = document.getElementById('bulk-action-form');
 
   function getCheckboxes() {
-    return document.querySelectorAll('.row-checkbox');
+    return Array.from(document.querySelectorAll('.row-checkbox'));
   }
 
   function selectedCount() {
-    return document.querySelectorAll('.row-checkbox:checked').length;
+    return getCheckboxes().filter(cb => cb.checked).length;
   }
 
   function updateCount() {
     const count = selectedCount();
-    console.log('Updating count:', count);
     if (countEl) {
       countEl.textContent = `${count} selected`;
       countEl.classList.toggle('active', count > 0);
@@ -989,41 +983,44 @@ document.addEventListener('DOMContentLoaded', function() {
     // Enable apply only if there are selections AND an action chosen
     if (applyBtn && bulkAction) {
       applyBtn.disabled = !(count > 0 && bulkAction.value);
-      console.log('Apply button disabled:', applyBtn.disabled);
     }
     // Update modal count if opened
     if (modalCount) modalCount.textContent = count;
   }
 
-  // Use event delegation for checkboxes
-  const tableBody = document.querySelector('table tbody');
-  if (tableBody) {
-    console.log('Found table body, attaching delegated listener');
-    tableBody.addEventListener('change', (e) => {
-      if (e.target.classList.contains('row-checkbox')) {
-        console.log('Row checkbox changed:', e.target.value, 'checked:', e.target.checked);
-        // If any unchecked -> uncheck selectAll
-        if (!e.target.checked && selectAll) {
-          selectAll.checked = false;
-        }
-        updateCount();
-      }
+  function handleSelectAllChange(e) {
+    const isChecked = e.target.checked;
+    getCheckboxes().forEach(checkbox => {
+      checkbox.checked = isChecked;
     });
+    updateCount();
   }
 
-  if (selectAll) {
-    console.log('Setting up select-all listener');
-    selectAll.addEventListener('change', (e) => {
-      console.log('Select-all clicked, checked:', e.target.checked);
-      const checkboxes = getCheckboxes();
-      console.log('Found checkboxes:', checkboxes.length);
-      checkboxes.forEach(cb => {
-        cb.checked = selectAll.checked;
-        console.log('Setting checkbox', cb.value, 'to', cb.checked);
-      });
-      updateCount();
-    });
+  function handleRowCheckboxChange(e) {
+    const checkboxes = getCheckboxes();
+    const checkedCount = checkboxes.filter(cb => cb.checked).length;
+    
+    // If all are checked, check select-all
+    if (selectAll && checkedCount === checkboxes.length) {
+      selectAll.checked = true;
+    } else if (selectAll && checkedCount === 0) {
+      selectAll.checked = false;
+    } else if (selectAll) {
+      selectAll.checked = false;
+    }
+    
+    updateCount();
   }
+
+  // Attach select-all listener (it's in thead, so attach directly)
+  if (selectAll) {
+    selectAll.addEventListener('change', handleSelectAllChange);
+  }
+
+  // Attach listeners to all current checkboxes
+  getCheckboxes().forEach(checkbox => {
+    checkbox.addEventListener('change', handleRowCheckboxChange);
+  });
 
   if (bulkAction) {
     bulkAction.addEventListener('change', updateCount);
