@@ -273,10 +273,14 @@ def service_account_password_history_add(request, pk):
         else:
             messages.error(request, 'Please correct the errors below.')
     else:
-        form = ServiceAccountPasswordHistoryForm(initial={
+        initial_data = {
             'service_account': service_account,
             'password_changed_date': timezone.now(),
-        })
+        }
+        # Pre-fill expires_on with the service account's current password expiration
+        if service_account.password_expires_on:
+            initial_data['expires_on'] = service_account.password_expires_on
+        form = ServiceAccountPasswordHistoryForm(initial=initial_data)
         form.fields['service_account'].widget = forms.HiddenInput()
     
     context = {

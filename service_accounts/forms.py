@@ -144,7 +144,9 @@ class ServiceAccountPasswordHistoryForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # Filter to active service accounts only
         self.fields['service_account'].queryset = ServiceAccount.objects.filter(is_active=True).order_by('account_name')
+        # Mark expires_on as optional but add helpful label
         self.fields['expires_on'].required = False
+        self.fields['expires_on'].help_text = 'When will this password expire? Leave empty if password does not expire.'
         self.fields['notes'].required = False
     
     def save(self, commit=True, changed_by=None):
