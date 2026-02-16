@@ -1130,6 +1130,8 @@ def access_assignment_list(request):
         'revoked': metrics_queryset.filter(status='Revoked').count(),
         'suspended': metrics_queryset.filter(status='Suspended').count(),
         'unique_users': metrics_queryset.values('user_id').distinct().count(),
+        'unique_users_active': metrics_queryset.filter(user__is_active=True).values('user_id').distinct().count(),
+        'unique_users_inactive': metrics_queryset.filter(user__is_active=False).values('user_id').distinct().count(),
         'unique_systems': metrics_queryset.values('system_id').distinct().count(),
     }
     # Also compute overall metrics (unfiltered) for comparison
@@ -1142,6 +1144,8 @@ def access_assignment_list(request):
         'revoked': all_qs.filter(status='Revoked').count(),
         'suspended': all_qs.filter(status='Suspended').count(),
         'unique_users': all_qs.values('user_id').distinct().count(),
+        'unique_users_active': all_qs.filter(user__is_active=True).values('user_id').distinct().count(),
+        'unique_users_inactive': all_qs.filter(user__is_active=False).values('user_id').distinct().count(),
         'unique_systems': all_qs.values('system_id').distinct().count(),
     }
     

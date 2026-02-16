@@ -160,10 +160,12 @@
             {% if summary_metrics %}
             <div class="mb-3">
                 <div class="alert alert-info mb-3 p-2">
-                    <small><strong>Note:</strong> Numbers show <strong>Filtered Results</strong> on the left and <strong>All Total</strong> on the right. Adjust filters above to focus your view.</small>
+                    <small><strong>Note:</strong> Each card shows <strong>Filtered Results (left)</strong> vs <strong>All Total (right)</strong>. 
+                    Total Assignments may be higher than Total Users because each user can have multiple system assignments. 
+                    Active Users are those with <code>is_active=True</code>; Archived Users are inactive or terminated accounts.</small>
                 </div>
             </div>
-            <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3 mb-4">
+            <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-3 mb-4">
                 <div class="col">
                     <div class="card border-primary h-100 shadow-sm">
                         <div class="card-body text-primary">
@@ -278,11 +280,49 @@
                         <div class="card-body text-info">
                             <div class="d-flex justify-content-between align-items-start">
                                 <div>
-                                    <h6 class="card-subtitle text-uppercase fw-semibold mb-1 small">Users</h6>
+                                    <h6 class="card-subtitle text-uppercase fw-semibold mb-1 small">Total Users</h6>
                                     <h3 class="card-title mb-0">{{ summary_metrics.unique_users }}</h3>
                                     <div class="small text-muted">All: {{ overall_metrics.unique_users }}</div>
                                 </div>
                                 <i class="fas fa-users fa-2x opacity-50"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card border-success h-100 shadow-sm">
+                        <div class="card-body text-success">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="card-subtitle text-uppercase fw-semibold mb-1 small">Active Users</h6>
+                                    <h3 class="card-title mb-0">{{ summary_metrics.unique_users_active }}</h3>
+                                    <div class="small text-muted">All: {{ overall_metrics.unique_users_active }}</div>
+                                </div>
+                                <i class="fas fa-user-check fa-2x opacity-50"></i>
+                            </div>
+                            <div class="mt-2">
+                                <a href="?user_active=active" class="small text-decoration-none">
+                                    View <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card border-warning h-100 shadow-sm">
+                        <div class="card-body text-warning">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="card-subtitle text-uppercase fw-semibold mb-1 small">Archived Users</h6>
+                                    <h3 class="card-title mb-0">{{ summary_metrics.unique_users_inactive }}</h3>
+                                    <div class="small text-muted">All: {{ overall_metrics.unique_users_inactive }}</div>
+                                </div>
+                                <i class="fas fa-user-slash fa-2x opacity-50"></i>
+                            </div>
+                            <div class="mt-2">
+                                <a href="?user_active=inactive" class="small text-decoration-none">
+                                    View <i class="fas fa-arrow-right"></i>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -317,6 +357,18 @@
                         {% endif %}
                     </a>
                     {% endif %}
+                    <a href="?status=Active" 
+                       class="badge bg-success-subtle text-success p-2 text-decoration-none filter-chip">
+                        <i class="fas fa-check"></i> Active Access
+                    </a>
+                    <a href="?user_active=active" 
+                       class="badge bg-success-subtle text-success p-2 text-decoration-none filter-chip">
+                        <i class="fas fa-user-check"></i> Active Users
+                    </a>
+                    <a href="?user_active=inactive" 
+                       class="badge bg-warning-subtle text-warning p-2 text-decoration-none filter-chip">
+                        <i class="fas fa-user-slash"></i> Archived Users
+                    </a>
                     <a href="?days_to_expiry=30" 
                        class="badge bg-warning-subtle text-warning p-2 text-decoration-none filter-chip">
                         <i class="fas fa-exclamation-triangle"></i> Expiring Soon 
@@ -331,11 +383,7 @@
                             <span class="badge bg-danger ms-1">{{ quick_filter_counts.high_priority }}</span>
                         {% endif %}
                     </a>
-                    <a href="?status=Active" 
-                       class="badge bg-success-subtle text-success p-2 text-decoration-none filter-chip">
-                        <i class="fas fa-check"></i> Active Only
-                    </a>
-                    {% if filters.status or filters.system or filters.user or filters.priority %}
+                    {% if filters.status or filters.system or filters.user or filters.priority or filters.user_active %}
                     <a href="?" class="badge bg-secondary-subtle text-secondary p-2 text-decoration-none filter-chip">
                         <i class="fas fa-times"></i> Clear Filters
                     </a>
