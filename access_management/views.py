@@ -1039,6 +1039,14 @@ def access_assignment_list(request):
     Supports both system-grouped and user-grouped views
     """
     
+    # Base queryset with optimized select_related
+    queryset = UserSystemAccess.objects.select_related(
+        'user',
+        'user__department', 
+        'system', 
+        'approved_by',
+    ).exclude(system__isnull=True).exclude(system__id__lte=0).all()
+    
     # Get filter parameters
     status_filter = request.GET.get('status', '')
     priority_filter = request.GET.get('priority', '')
@@ -1048,6 +1056,7 @@ def access_assignment_list(request):
     employment_status_filter = request.GET.get('employment_status', '')
     user_active_filter = request.GET.get('user_active', '')
     search_query = request.GET.get('search', '')
+    orphaned_filter = request.GET.get('user__isnull', '')
     
     # NEW: View mode parameter
     view_mode = request.GET.get('view_mode', 'user')  # 'system' or 'user'
@@ -1057,13 +1066,9 @@ def access_assignment_list(request):
     days_pending = request.GET.get('days_pending', '')
     page_size = request.GET.get('page_size', '25')
     
-    # Base queryset with optimized select_related
-    queryset = UserSystemAccess.objects.select_related(
-        'user',
-        'user__department', 
-        'system', 
-        'approved_by',
-    ).exclude(system__isnull=True).exclude(user__isnull=True).exclude(system__id__lte=0).all()
+    # Exclude orphaned records by default (unless specifically viewing them)
+    if orphaned_filter != 'True':
+        queryset = queryset.exclude(user__isnull=True)
     
     # Apply existing filters
     if status_filter:
@@ -1121,24 +1126,38 @@ def access_assignment_list(request):
     # Store queryset for metrics before pagination
     metrics_queryset = queryset
     
-    # Calculate summary metrics
+    # Also calculate orphaned count from FULL dataset (before exclusion) for overall metrics
+    full_queryset = UserSystemAccess.objects.select_related(
+        'user',
+        'user__department', 
+        'system', 
+        'approved_by',
+    ).exclude(system__isnull=True).exclude(system__id__lte=0).all()
+    
+    # For KPI status cards: count from COMPLETELY UNFILTERED dataset to show true system-wide status distribution
+    # This ensures Active/Pending/Revoked/etc always show the same count regardless of other filters
+    unfiltered_all = UserSystemAccess.objects.exclude(system__isnull=True).exclude(system__id__lte=0).all()
+    
+    # Calculate summary metrics - status counts from unfiltered data, user/system counts from filtered data
     summary_metrics = {
         'total': metrics_queryset.count(),
-        'active': metrics_queryset.filter(status__in=['Active', 'Approved']).count(),
-        'pending': metrics_queryset.filter(status='Pending').count(),
-        'expired': metrics_queryset.filter(status='Expired').count(),
-        'revoked': metrics_queryset.filter(status='Revoked').count(),
-        'suspended': metrics_queryset.filter(status='Suspended').count(),
+        'active': unfiltered_all.filter(status='Active').count(),  # Currently active assignments
+        'approved': unfiltered_all.filter(status='Approved').count(),  # Approved, ready to activate
+        'pending': unfiltered_all.filter(status='Pending').count(),  # All Pending assignments
+        'expired': unfiltered_all.filter(status='Expired').count(),  # All Expired assignments
+        'revoked': unfiltered_all.filter(status='Revoked').count(),  # All Revoked assignments
+        'suspended': unfiltered_all.filter(status='Suspended').count(),  # All Suspended assignments
         'unique_users': metrics_queryset.values('user_id').distinct().count(),
         'unique_users_active': metrics_queryset.filter(user__is_active=True).values('user_id').distinct().count(),
         'unique_users_inactive': metrics_queryset.filter(user__is_active=False).values('user_id').distinct().count(),
         'unique_systems': metrics_queryset.values('system_id').distinct().count(),
     }
     # Also compute overall metrics (unfiltered) for comparison
-    all_qs = UserSystemAccess.objects.all()
+    all_qs = full_queryset
     overall_metrics = {
         'total': all_qs.count(),
-        'active': all_qs.filter(status__in=['Active', 'Approved']).count(),
+        'active': all_qs.filter(status='Active').count(),
+        'approved': all_qs.filter(status='Approved').count(),
         'pending': all_qs.filter(status='Pending').count(),
         'expired': all_qs.filter(status='Expired').count(),
         'revoked': all_qs.filter(status='Revoked').count(),

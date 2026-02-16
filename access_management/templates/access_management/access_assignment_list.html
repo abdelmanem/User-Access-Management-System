@@ -158,20 +158,20 @@
         <div class="card-body">
             <!-- Summary Metrics - Enhanced with clearer labels and all statuses -->
             {% if summary_metrics %}
-            <div class="mb-3">
-                <div class="alert alert-info mb-3 p-2">
-                    <small><strong>Note:</strong> Each card shows <strong>Filtered Results (left)</strong> vs <strong>All Total (right)</strong>. 
-                    Total Assignments may be higher than Total Users because each user can have multiple system assignments. 
-                    Active Users are those with <code>is_active=True</code>; Archived Users are inactive or terminated accounts.</small>
-                </div>
-            </div>
-            <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-3 mb-4">
+            <div class="row row-cols-2 row-cols-md-3 row-cols-lg-6 g-3 mb-4">
                 <div class="col">
                     <div class="card border-primary h-100 shadow-sm">
                         <div class="card-body text-primary">
                             <div class="d-flex justify-content-between align-items-start">
                                 <div>
-                                    <h6 class="card-subtitle text-uppercase fw-semibold mb-1 small">Total</h6>
+                                    <h6 class="card-subtitle text-uppercase fw-semibold mb-1 small">
+                                        Total
+                                        <i class="fas fa-info-circle ms-1" 
+                                           data-bs-toggle="tooltip" 
+                                           data-bs-placement="top"
+                                           title="Counts all assignments. When accounts have multiple accesses across different systems, the total may exceed the number of unique users.">
+                                        </i>
+                                    </h6>
                                     <h3 class="card-title mb-0">{{ summary_metrics.total }}</h3>
                                     <div class="small text-muted">All: {{ overall_metrics.total }}</div>
                                 </div>
@@ -193,6 +193,25 @@
                             </div>
                             <div class="mt-2">
                                 <a href="?status=Active" class="small text-decoration-none">
+                                    View <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card border-info h-100 shadow-sm">
+                        <div class="card-body text-info">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="card-subtitle text-uppercase fw-semibold mb-1 small">Approved</h6>
+                                    <h3 class="card-title mb-0">{{ summary_metrics.approved }}</h3>
+                                    <div class="small text-muted">All: {{ overall_metrics.approved }}</div>
+                                </div>
+                                <i class="fas fa-thumbs-up fa-2x opacity-50"></i>
+                            </div>
+                            <div class="mt-2">
+                                <a href="?status=Approved" class="small text-decoration-none">
                                     View <i class="fas fa-arrow-right"></i>
                                 </a>
                             </div>
@@ -327,6 +346,7 @@
                         </div>
                     </div>
                 </div>
+
                 <div class="col">
                     <div class="card border-secondary h-100 shadow-sm">
                         <div class="card-body text-secondary">
@@ -361,6 +381,10 @@
                        class="badge bg-success-subtle text-success p-2 text-decoration-none filter-chip">
                         <i class="fas fa-check"></i> Active Access
                     </a>
+                    <a href="?status=Approved" 
+                       class="badge bg-info-subtle text-info p-2 text-decoration-none filter-chip">
+                        <i class="fas fa-thumbs-up"></i> Ready to Activate
+                    </a>
                     <a href="?user_active=active" 
                        class="badge bg-success-subtle text-success p-2 text-decoration-none filter-chip">
                         <i class="fas fa-user-check"></i> Active Users
@@ -369,6 +393,7 @@
                        class="badge bg-warning-subtle text-warning p-2 text-decoration-none filter-chip">
                         <i class="fas fa-user-slash"></i> Archived Users
                     </a>
+
                     <a href="?days_to_expiry=30" 
                        class="badge bg-warning-subtle text-warning p-2 text-decoration-none filter-chip">
                         <i class="fas fa-exclamation-triangle"></i> Expiring Soon 

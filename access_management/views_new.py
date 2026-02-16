@@ -414,12 +414,12 @@ def activate_access_confirm(request, access_id):
 @login_required
 @require_http_methods(['POST'])
 def activate_access_view(request, access_id):
-    """Activate a revoked access assignment with audit trail."""
+    """Activate a revoked access assignment by resetting to Pending for re-approval."""
 
     access = get_object_or_404(UserSystemAccess, pk=access_id)
 
     if access.status != 'Revoked':
-        messages.error(request, f'Cannot activate access with status: {access.status}')
+        messages.error(request, f'Cannot reactivate access with status: {access.status}')
         return redirect('access_management:access_assignment_detail', pk=access_id)
 
     if not (
@@ -427,31 +427,29 @@ def activate_access_view(request, access_id):
         or request.user.is_superuser
         or request.user.has_perm('access_management.activate_access')
     ):
-        return HttpResponseForbidden('You do not have permission to activate this access.')
+        return HttpResponseForbidden('You do not have permission to reactivate this access.')
 
     try:
-        # The model's `activate_access` expects status 'Approved'. For re-activating a
-        # previously revoked assignment we apply the state change manually here.
+        # Reset to Pending status to require approval again
         now = timezone.now()
         original_status = access.status
-        access.status = 'Active'
+        access.status = 'Pending'
         access.status_changed_by = request.user
         access.status_changed_at = now
-        access.access_start_date = access.access_start_date or now
         access.lifecycle_timeline = (access.lifecycle_timeline or []) + [{
             'from': original_status,
-            'to': 'Active',
+            'to': 'Pending',
             'by': request.user.pk if request.user else None,
             'at': now.isoformat(),
-            'reason': 'Re-activated via UI'
+            'reason': 'Reactivation requested - requires approval'
         }]
         access.save()
 
         # Log to audit
         try:
             AuditEventLog.objects.create(
-                event_type='AccessActivated',
-                event_data={'access_id': access.pk, 'activated_by': request.user.pk},
+                event_type='AccessReactivationRequested',
+                event_data={'access_id': access.pk, 'requested_by': request.user.pk},
                 created_by=request.user
             )
         except Exception:
@@ -462,16 +460,16 @@ def activate_access_view(request, access_id):
             user=access.user,
             system=access.system,
             user_system_access=access,
-            action='Activated',
-            action_description=f"Access re-activated by {request.user.get_full_name()}",
+            action='ReactivationRequested',
+            action_description=f"Reactivation requested by {request.user.get_full_name()} - awaiting approval",
             success=True,
             created_by=request.user
         )
 
-        messages.success(request, f'Access activated for {access.user.full_name}')
+        messages.success(request, f'Reactivation requested for {access.user.full_name}. This request is now pending approval.')
         return redirect('access_management:access_assignment_detail', pk=access_id)
     except Exception as e:
-        messages.error(request, f'Failed to activate access: {str(e)}')
+        messages.error(request, f'Failed to request reactivation: {str(e)}')
         return redirect('access_management:access_assignment_detail', pk=access_id)
 
 
