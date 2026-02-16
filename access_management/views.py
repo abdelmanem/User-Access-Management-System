@@ -1127,6 +1127,8 @@ def access_assignment_list(request):
         'active': metrics_queryset.filter(status__in=['Active', 'Approved']).count(),
         'pending': metrics_queryset.filter(status='Pending').count(),
         'expired': metrics_queryset.filter(status='Expired').count(),
+        'revoked': metrics_queryset.filter(status='Revoked').count(),
+        'suspended': metrics_queryset.filter(status='Suspended').count(),
         'unique_users': metrics_queryset.values('user_id').distinct().count(),
         'unique_systems': metrics_queryset.values('system_id').distinct().count(),
     }
@@ -1137,6 +1139,8 @@ def access_assignment_list(request):
         'active': all_qs.filter(status__in=['Active', 'Approved']).count(),
         'pending': all_qs.filter(status='Pending').count(),
         'expired': all_qs.filter(status='Expired').count(),
+        'revoked': all_qs.filter(status='Revoked').count(),
+        'suspended': all_qs.filter(status='Suspended').count(),
         'unique_users': all_qs.values('user_id').distinct().count(),
         'unique_systems': all_qs.values('system_id').distinct().count(),
     }

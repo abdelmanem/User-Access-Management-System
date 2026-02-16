@@ -156,9 +156,14 @@
     <!-- Main Card -->
     <div class="card shadow-sm">
         <div class="card-body">
-            <!-- Summary Metrics -->
+            <!-- Summary Metrics - Enhanced with clearer labels and all statuses -->
             {% if summary_metrics %}
-            <div class="row row-cols-2 row-cols-md-3 row-cols-xl-6 g-3 mb-4">
+            <div class="mb-3">
+                <div class="alert alert-info mb-3 p-2">
+                    <small><strong>Note:</strong> Numbers show <strong>Filtered Results</strong> on the left and <strong>All Total</strong> on the right. Adjust filters above to focus your view.</small>
+                </div>
+            </div>
+            <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3 mb-4">
                 <div class="col">
                     <div class="card border-primary h-100 shadow-sm">
                         <div class="card-body text-primary">
@@ -224,6 +229,44 @@
                             </div>
                             <div class="mt-2">
                                 <a href="?status=Expired" class="small text-decoration-none">
+                                    View <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card border-dark h-100 shadow-sm">
+                        <div class="card-body text-dark">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="card-subtitle text-uppercase fw-semibold mb-1 small">Revoked</h6>
+                                    <h3 class="card-title mb-0">{{ summary_metrics.revoked }}</h3>
+                                    <div class="small text-muted">All: {{ overall_metrics.revoked }}</div>
+                                </div>
+                                <i class="fas fa-ban fa-2x opacity-50"></i>
+                            </div>
+                            <div class="mt-2">
+                                <a href="?status=Revoked" class="small text-decoration-none">
+                                    View <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card border-secondary h-100 shadow-sm">
+                        <div class="card-body text-secondary">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="card-subtitle text-uppercase fw-semibold mb-1 small">Suspended</h6>
+                                    <h3 class="card-title mb-0">{{ summary_metrics.suspended }}</h3>
+                                    <div class="small text-muted">All: {{ overall_metrics.suspended }}</div>
+                                </div>
+                                <i class="fas fa-pause-circle fa-2x opacity-50"></i>
+                            </div>
+                            <div class="mt-2">
+                                <a href="?status=Suspended" class="small text-decoration-none">
                                     View <i class="fas fa-arrow-right"></i>
                                 </a>
                             </div>
