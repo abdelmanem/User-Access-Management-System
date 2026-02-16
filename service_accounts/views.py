@@ -171,8 +171,14 @@ def service_account_detail(request, pk):
         pk=pk
     )
     
-    # Get password history
-    password_history = service_account.password_history.select_related('changed_by').order_by('-password_changed_date')[:10]
+    # Get password history (sortable via ?history_ordering=...)
+    history_ordering = request.GET.get('history_ordering', '-password_changed_date')
+    # whitelist allowed ordering fields
+    allowed_fields = ['password_changed_date', 'expires_on', 'complies_with_policy', 'changed_by__username', 'documented_at', 'notes']
+    if history_ordering.lstrip('-') not in allowed_fields:
+        history_ordering = '-password_changed_date'
+    password_history_qs = service_account.password_history.select_related('changed_by').order_by(history_ordering)
+    password_history = password_history_qs[:10]
     
     attestations = service_account.attestations.select_related('attested_by').order_by('-attested_at')[:10]
 
@@ -181,6 +187,7 @@ def service_account_detail(request, pk):
         'password_history': password_history,
         'attestations': attestations,
         'attestation_form': ServiceAccountAttestationForm(),
+        'history_ordering': history_ordering,
     }
     return render(request, 'service_accounts/service_account_detail.html', context)
 
