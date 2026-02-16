@@ -2558,6 +2558,7 @@ def user_access_assignments(request, user_id):
     active_assignments = queryset.filter(status__in=['Active', 'Approved']).count()
     pending_assignments = queryset.filter(status='Pending').count()
     expired_assignments = queryset.filter(status='Expired').count()
+    revoked_assignments = queryset.filter(status='Revoked').count()
     unique_systems = queryset.values('system_id').distinct().count()
     
     # Get user's systems for filter
@@ -2587,6 +2588,7 @@ def user_access_assignments(request, user_id):
         'total_assignments': total_assignments,
         'active_assignments': active_assignments,
         'pending_assignments': pending_assignments,
+        'revoked_assignments': revoked_assignments,
         'expired_assignments': expired_assignments,
         'unique_systems': unique_systems,
         'is_paginated': access_assignments.has_other_pages(),

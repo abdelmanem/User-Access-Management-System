@@ -69,4 +69,6 @@ urlpatterns = [
     # Access Revocation Routes - Gap 5
     path('assignments/<int:access_id>/revoke/', views_new.revoke_access_view, name='revoke_access'),
     path('assignments/<int:access_id>/revoke/confirm/', views_new.revoke_access_confirm, name='revoke_access_confirm'),
+    path('assignments/<int:access_id>/activate/', views_new.activate_access_view, name='activate_access'),
+    path('assignments/<int:access_id>/activate/confirm/', views_new.activate_access_confirm, name='activate_access_confirm'),
 ]

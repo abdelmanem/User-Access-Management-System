@@ -388,6 +388,94 @@ def revoke_access_confirm(request, access_id):
 
 
 @login_required
+def activate_access_confirm(request, access_id):
+    """Show a confirmation page before activating a revoked access assignment."""
+
+    access = get_object_or_404(UserSystemAccess, pk=access_id)
+
+    # Only allow activation when status is Revoked
+    if access.status != 'Revoked':
+        messages.error(request, f'Cannot activate access with status: {access.status}')
+        return redirect('access_management:access_assignment_detail', pk=access_id)
+
+    # Permission: staff/superuser or explicit activate permission
+    if not (
+        request.user.is_staff
+        or request.user.is_superuser
+        or request.user.has_perm('access_management.activate_access')
+    ):
+        return HttpResponseForbidden('You do not have permission to activate this access.')
+
+    return render(request, 'access_management/activate_confirm.html', {
+        'access': access
+    })
+
+
+@login_required
+@require_http_methods(['POST'])
+def activate_access_view(request, access_id):
+    """Activate a revoked access assignment with audit trail."""
+
+    access = get_object_or_404(UserSystemAccess, pk=access_id)
+
+    if access.status != 'Revoked':
+        messages.error(request, f'Cannot activate access with status: {access.status}')
+        return redirect('access_management:access_assignment_detail', pk=access_id)
+
+    if not (
+        request.user.is_staff
+        or request.user.is_superuser
+        or request.user.has_perm('access_management.activate_access')
+    ):
+        return HttpResponseForbidden('You do not have permission to activate this access.')
+
+    try:
+        # The model's `activate_access` expects status 'Approved'. For re-activating a
+        # previously revoked assignment we apply the state change manually here.
+        now = timezone.now()
+        original_status = access.status
+        access.status = 'Active'
+        access.status_changed_by = request.user
+        access.status_changed_at = now
+        access.access_start_date = access.access_start_date or now
+        access.lifecycle_timeline = (access.lifecycle_timeline or []) + [{
+            'from': original_status,
+            'to': 'Active',
+            'by': request.user.pk if request.user else None,
+            'at': now.isoformat(),
+            'reason': 'Re-activated via UI'
+        }]
+        access.save()
+
+        # Log to audit
+        try:
+            AuditEventLog.objects.create(
+                event_type='AccessActivated',
+                event_data={'access_id': access.pk, 'activated_by': request.user.pk},
+                created_by=request.user
+            )
+        except Exception:
+            pass
+
+        # Create access history entry
+        AccessHistory.objects.create(
+            user=access.user,
+            system=access.system,
+            user_system_access=access,
+            action='Activated',
+            action_description=f"Access re-activated by {request.user.get_full_name()}",
+            success=True,
+            created_by=request.user
+        )
+
+        messages.success(request, f'Access activated for {access.user.full_name}')
+        return redirect('access_management:access_assignment_detail', pk=access_id)
+    except Exception as e:
+        messages.error(request, f'Failed to activate access: {str(e)}')
+        return redirect('access_management:access_assignment_detail', pk=access_id)
+
+
+@login_required
 def evidence_gallery(request, access_id):
     """Display all evidence artifacts for an access assignment."""
     

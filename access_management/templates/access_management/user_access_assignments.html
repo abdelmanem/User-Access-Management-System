@@ -107,7 +107,7 @@
     </div>
 
     <!-- Summary Metrics Cards -->
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-5 g-3 mb-4">
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-6 g-3 mb-4">
         <div class="col">
             <div class="card border-primary h-100">
                 <div class="card-body text-primary text-center">
@@ -145,6 +145,14 @@
                 <div class="card-body text-danger text-center">
                     <h3 class="display-6 mb-1">{{ expired_assignments }}</h3>
                     <h6 class="card-subtitle text-uppercase fw-semibold small">Expired</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card border-dark h-100">
+                <div class="card-body text-dark text-center">
+                    <h3 class="display-6 mb-1">{{ revoked_assignments }}</h3>
+                    <h6 class="card-subtitle text-uppercase fw-semibold small">Revoked</h6>
                 </div>
             </div>
         </div>

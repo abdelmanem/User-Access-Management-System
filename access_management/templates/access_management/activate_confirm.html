@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Confirm Activate{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card mt-4">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0"><i class="fas fa-redo"></i> Confirm Activate Access</h5>
+        </div>
+        <div class="card-body">
+          <p>You're about to activate access for <strong>{{ access.user.get_full_name|default:access.user.username }}</strong> on <strong>{{ access.system.name }}</strong>.</p>
+          <p class="text-muted">Activation will update the assignment status and record an audit event.</p>
+
+          <form method="post" action="{% url 'access_management:activate_access' access.pk %}">
+            {% csrf_token %}
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-success">Activate Access</button>
+              <a href="{% url 'access_management:access_assignment_detail' access.pk %}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
