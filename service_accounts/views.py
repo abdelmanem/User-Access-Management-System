@@ -115,11 +115,14 @@ def service_account_list(request):
     total_qs = ServiceAccount.objects.all()
     total_count = total_qs.count()
     active_count = total_qs.filter(is_active=True).count()
+    inactive_count = total_qs.filter(is_active=False).count()
+    # Only count compliant/expired for active accounts
     compliant_count = total_qs.filter(
         password_complies_with_policy=True,
-        password_policy_verified_date__isnull=False
+        password_policy_verified_date__isnull=False,
+        is_active=True,
     ).count()
-    expired_count = total_qs.filter(password_expires_on__lt=timezone.now()).count()
+    expired_count = total_qs.filter(password_expires_on__lt=timezone.now(), is_active=True).count()
     privileged_count = total_qs.filter(is_privileged=True, is_active=True).count()
     attestation_overdue_count = total_qs.filter(
         Q(last_attested_at__isnull=True) |
@@ -135,6 +138,7 @@ def service_account_list(request):
         'service_accounts': page_obj,
         'total_count': total_count,
         'active_count': active_count,
+        'inactive_count': inactive_count,
         'compliant_count': compliant_count,
         'expired_count': expired_count,
         'systems': systems,
@@ -235,13 +239,18 @@ def service_account_update(request, pk):
 def service_account_delete(request, pk):
     """Delete a service account"""
     service_account = get_object_or_404(ServiceAccount, pk=pk)
-    
+
+    # We do not hard-delete service accounts. Instead mark them inactive (archive)
     if request.method == 'POST':
-        account_name = service_account.account_name
-        service_account.delete()
-        messages.success(request, f'Service account "{account_name}" deleted successfully.')
+        if service_account.is_active:
+            service_account.is_active = False
+            service_account.updated_by = request.user
+            service_account.save()
+            messages.success(request, f'Service account "{service_account.account_name}" archived (marked inactive) to preserve history.')
+        else:
+            messages.info(request, f'Service account "{service_account.account_name}" is already inactive.')
         return redirect('service_accounts:service_account_list')
-    
+
     context = {
         'service_account': service_account,
     }

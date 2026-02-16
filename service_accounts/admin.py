@@ -50,6 +50,17 @@ class ServiceAccountAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+    
+    def has_delete_permission(self, request, obj=None):
+        """Disable hard delete from admin UI to preserve history."""
+        return False
+
+    def delete_model(self, request, obj):
+        """When delete is attempted via code, archive instead of hard-delete."""
+        obj.is_active = False
+        if hasattr(request, 'user'):
+            obj.updated_by = request.user
+        obj.save()
 
 
 @admin.register(ServiceAccountPasswordHistory)
