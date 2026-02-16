@@ -215,10 +215,69 @@ def service_account_update(request, pk):
     service_account = get_object_or_404(ServiceAccount, pk=pk)
     
     if request.method == 'POST':
+        # capture original values for audit/history
+        orig_password_last_changed = service_account.password_last_changed
+        orig_password_expires_on = service_account.password_expires_on
+        orig_password_complies = service_account.password_complies_with_policy
+        orig_policy_verified_date = service_account.password_policy_verified_date
+        orig_policy_verified_by = service_account.password_policy_verified_by
+
         form = ServiceAccountForm(request.POST, request.FILES, instance=service_account)
         if form.is_valid():
             service_account = form.save(commit=False)
             service_account.updated_by = request.user
+
+            # If password-related fields were changed via the edit form, record a PasswordHistory entry
+            pw_changed = False
+            try:
+                new_pw_changed_date = form.cleaned_data.get('password_last_changed')
+                new_expires_on = form.cleaned_data.get('password_expires_on')
+                new_complies = form.cleaned_data.get('password_complies_with_policy')
+            except Exception:
+                new_pw_changed_date = None
+                new_expires_on = None
+                new_complies = None
+
+            if (orig_password_last_changed != new_pw_changed_date) or (orig_password_expires_on != new_expires_on) or (orig_password_complies != new_complies):
+                from .models import ServiceAccountPasswordHistory, ServiceAccountAttestation
+
+                history = ServiceAccountPasswordHistory(
+                    service_account=service_account,
+                    password_changed_date=new_pw_changed_date or orig_password_last_changed or timezone.now(),
+                    expires_on=new_expires_on,
+                    complies_with_policy=bool(new_complies),
+                    changed_by=request.user,
+                    notes=(f"Updated via account edit by {request.user.get_full_name()}. "
+                           f"Previous values - password_last_changed: {orig_password_last_changed}, "
+                           f"password_expires_on: {orig_password_expires_on}, complies_with_policy: {orig_password_complies}.")
+                )
+                history.save()
+                # also update the service_account fields to the new values
+                service_account.password_last_changed = history.password_changed_date
+                service_account.password_expires_on = history.expires_on
+                service_account.password_complies_with_policy = history.complies_with_policy
+
+            # If policy verification fields changed, record an attestation-style note
+            try:
+                new_policy_verified_date = form.cleaned_data.get('password_policy_verified_date')
+                new_policy_verified_by = form.cleaned_data.get('password_policy_verified_by')
+            except Exception:
+                new_policy_verified_date = None
+                new_policy_verified_by = None
+
+            if (orig_policy_verified_date != new_policy_verified_date) or (orig_policy_verified_by != new_policy_verified_by):
+                from .models import ServiceAccountAttestation
+                att = ServiceAccountAttestation(
+                    service_account=service_account,
+                    attested_by=request.user,
+                    status='Confirmed',
+                    storage_location='(verification logged via account edit)',
+                    notes=(f"Policy verification updated via account edit by {request.user.get_full_name()}. "
+                           f"Previous verification: date={orig_policy_verified_date}, by={orig_policy_verified_by}; "
+                           f"New verification: date={new_policy_verified_date}, by={new_policy_verified_by}.")
+                )
+                att.save()
+
             service_account.save()
             messages.success(request, f'Service account "{service_account.account_name}" updated successfully.')
             return redirect('service_accounts:service_account_detail', pk=service_account.pk)
