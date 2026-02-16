@@ -630,12 +630,13 @@
                                     <div class="table-responsive">
                                         <table class="table table-sm">
                                             <thead>
-                                                <tr>
-                                                    <th>Date & Time</th>
-                                                    <th>Action</th>
-                                                    <th>Description</th>
-                                                    <th>Success</th>
-                                                </tr>
+                                                    <tr>
+                                                        <th>Date & Time</th>
+                                                        <th>Action</th>
+                                                        <th>Description</th>
+                                                        <th>Performed By</th>
+                                                        <th>Success</th>
+                                                    </tr>
                                             </thead>
                                             <tbody>
                                                 {% for history in access_history %}
@@ -647,6 +648,14 @@
                                                         </span>
                                                     </td>
                                                     <td>{{ history.action_description|default:"No description" }}</td>
+                                                    <td>
+                                                        {% if history.created_by %}
+                                                            <small>{{ history.created_by.get_full_name }}</small>
+                                                            <br><small class="text-muted">{{ history.created_by.username }}</small>
+                                                        {% else %}
+                                                            <span class="text-muted">System</span>
+                                                        {% endif %}
+                                                    </td>
                                                     <td>
                                                         {% if history.success %}
                                                             <span class="badge bg-success">Yes</span>

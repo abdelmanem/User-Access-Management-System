@@ -1816,6 +1816,10 @@ def access_assignment_detail(request, pk):
     access_history = AccessHistory.objects.filter(
         user_system_access=access_assignment
     ).select_related('user', 'system').order_by('-accessed_at')[:10]
+    # include created_by to show who performed the action
+    access_history = AccessHistory.objects.filter(
+        user_system_access=access_assignment
+    ).select_related('user', 'system', 'created_by').order_by('-accessed_at')[:10]
     
     context = {
         'access_assignment': access_assignment,
