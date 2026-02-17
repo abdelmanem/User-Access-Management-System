@@ -1,22 +1,22 @@
 {% load static navigation_extras %}
-<aside class="sidebar text-white" id="appSidebar">
+<aside class="sidebar" id="appSidebar">
     <div class="d-flex align-items-center justify-content-between">
         <a class="sidebar-brand d-flex align-items-center gap-2" href="{% url 'dashboard_home' %}">
             <i class="fa-solid fa-shield-halved"></i>
             <span>UAMS</span>
         </a>
-        <button class="btn btn-outline-light btn-sm d-lg-none" type="button" id="sidebarCloseBtn" aria-label="Close menu">
+        <button class="btn btn-sm sidebar-close-btn d-lg-none" type="button" id="sidebarCloseBtn" aria-label="Close menu">
             <i class="fa-solid fa-xmark"></i>
         </button>
     </div>
 
     <div class="sidebar-user d-flex align-items-center gap-3">
-        <div class="rounded-circle bg-white bg-opacity-25 d-flex align-items-center justify-content-center" style="width:48px;height:48px;">
+        <div class="rounded-circle sidebar-avatar d-flex align-items-center justify-content-center">
             <i class="fa-solid fa-circle-user fa-lg"></i>
         </div>
         <div>
             <div class="fw-semibold">{{ user.get_full_name|default:user.username }}</div>
-            <small class="text-white-50">{{ user.department.name|default:"Administrator" }}</small>
+            <small class="sidebar-user-dept text-muted">{{ user.department.name|default:"Administrator" }}</small>
         </div>
     </div>
 
@@ -287,17 +287,17 @@
     </div>
 
     <div class="sidebar-footer mt-3">
-        <button type="button" id="sidebarCollapseToggle" class="btn btn-outline-light btn-sm sidebar-collapse-toggle" aria-expanded="true">
+        <button type="button" id="sidebarCollapseToggle" class="btn btn-sm btn-outline-sidebar sidebar-collapse-toggle" aria-expanded="true">
             <i class="fa-solid fa-angles-left me-2"></i>
             <span>Collapse</span>
         </button>
-        <button type="button" id="theme-toggle-btn" class="btn btn-sm theme-toggle-btn" title="Switch Theme" onclick="if(typeof window.toggleTheme === 'function') { window.toggleTheme(); } else { console.error('toggleTheme not available'); } return false;">
+        <button type="button" id="theme-toggle-btn" class="btn btn-sm theme-toggle-btn" title="Switch Theme">
             <i class="fa-solid fa-moon me-2"></i>
             <span class="theme-text">Dark Mode</span>
         </button>
         <form method="post" action="{% url 'accounts:logout' %}">
             {% csrf_token %}
-            <button type="submit" class="btn btn-outline-light btn-sm">
+            <button type="submit" class="btn btn-sm btn-outline-sidebar">
                 <i class="fa-solid fa-right-from-bracket me-2"></i> Logout
             </button>
         </form>
