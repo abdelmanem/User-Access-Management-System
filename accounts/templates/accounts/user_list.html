@@ -19,56 +19,36 @@
    PAGE HERO (full-bleed — content-wrapper has padding:0)
    ================================================================ */
 .page-hero {
-  background: var(--primary-gradient);
-  color: #fff;
-  padding: 1.4rem 0;
-  margin-bottom: 0;          /* gap comes from .page-body margin-top */
-  position: relative;
-  overflow: hidden;
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border-color);
+  padding: 1.25rem 0;
+  margin-bottom: 0;
+  transition: background-color .25s ease, border-color .25s ease;
 }
-.page-hero::after {
-  content: "";
-  position: absolute;
-  inset: -60px -60px auto auto;
-  width: 200px; height: 200px;
-  background: rgba(255,255,255,.1);
-  border-radius: 50%;
-  pointer-events: none;
+.page-hero-icon {
+  width: 42px; height: 42px;
+  border-radius: .75rem;
+  background: rgba(102,126,234,.12);
+  color: #667eea;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  transition: background-color .25s ease;
+}
+[data-theme="dark"] .page-hero-icon {
+  background: rgba(102,126,234,.18);
+  color: #818cf8;
 }
 .page-hero h1 {
-  font-size: clamp(1.1rem, 2vw, 1.5rem);
+  font-size: clamp(1.1rem, 2vw, 1.45rem);
   font-weight: 800;
   margin: 0;
-  color: #fff;
+  color: var(--text-primary);
 }
 .page-hero p {
-  margin: .3rem 0 0;
-  opacity: .82;
-  font-size: .9rem;
-  color: rgba(255,255,255,.9);
-}
-
-/* Glass buttons on coloured header */
-.btn-glass {
-  background: rgba(255,255,255,.15);
-  border: 1px solid rgba(255,255,255,.28);
-  color: #fff !important;
-  backdrop-filter: blur(8px);
-  border-radius: .65rem;
-  padding: .48rem .85rem;
-  font-size: .84rem;
-  font-weight: 700;
-  display: inline-flex;
-  align-items: center;
-  gap: .45rem;
-  text-decoration: none;
-  transition: var(--t);
-  white-space: nowrap;
-}
-.btn-glass:hover {
-  background: rgba(255,255,255,.26);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0,0,0,.2);
+  margin: .25rem 0 0;
+  font-size: .875rem;
+  color: var(--text-muted);
 }
 
 /* ================================================================
@@ -575,12 +555,10 @@ tr:hover .row-actions { opacity: 1; }
 <div class="page-hero">
   <div class="container-fluid">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+
       <div class="d-flex align-items-center gap-3">
-        <div style="width:44px;height:44px;border-radius:.75rem;
-                    background:rgba(255,255,255,.15);
-                    display:flex;align-items:center;justify-content:center;
-                    flex-shrink:0;">
-          <i class="fa-solid fa-users fa-lg text-white"></i>
+        <div class="page-hero-icon">
+          <i class="fa-solid fa-users"></i>
         </div>
         <div>
           <h1>User Management</h1>
@@ -589,17 +567,18 @@ tr:hover .row-actions { opacity: 1; }
       </div>
 
       <div class="d-flex gap-2 flex-wrap">
-        <a class="btn-glass"
+        <a class="btn btn-sm btn-outline-secondary"
            href="{% url 'accounts:user_export_excel' %}?{% if base_query %}{{ base_query }}&{% endif %}sort={{ current_sort }}&dir={{ current_dir }}"
-           aria-label="Export users to Excel">
-          <i class="fa-solid fa-file-excel"></i> Excel
+           aria-label="Export to Excel">
+          <i class="fa-solid fa-file-excel me-1"></i> Excel
         </a>
-        <a class="btn-glass"
+        <a class="btn btn-sm btn-outline-secondary"
            href="{% url 'accounts:user_export_pdf' %}?{% if base_query %}{{ base_query }}&{% endif %}sort={{ current_sort }}&dir={{ current_dir }}"
-           aria-label="Export users to PDF">
-          <i class="fa-solid fa-file-pdf"></i> PDF
+           aria-label="Export to PDF">
+          <i class="fa-solid fa-file-pdf me-1"></i> PDF
         </a>
       </div>
+
     </div>
   </div>
 </div>
