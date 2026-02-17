@@ -1,481 +1,623 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}User Management{% endblock %}
+
 {% block extra_css %}
 <style>
-/* ------------------------------
-   Modern Theme Variables
------------------------------- */
-:root{
-  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-  --danger-gradient: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
-  --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-  --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  --card-shadow: 0 2px 10px rgba(0,0,0,0.08);
-  --card-shadow-hover: 0 12px 28px rgba(0,0,0,0.14);
-  --transition: all .25s cubic-bezier(.4,0,.2,1);
-  --border-soft: 1px solid rgba(0,0,0,.06);
-  --text-soft: #64748b;
+/* ================================================================
+   USER LIST — PAGE STYLES
+   All colours inherit from base.html design tokens.
+   Zero hardcoded hex values — flips automatically with theme.
+   ================================================================ */
+
+/* ── Transition shorthand ─────────────────────────────────────── */
+:root {
+  --t: all .25s cubic-bezier(.4,0,.2,1);
 }
 
-/* ------------------------------
-   Page Header
------------------------------- */
-.page-hero{
+/* ================================================================
+   PAGE HERO (full-bleed — content-wrapper has padding:0)
+   ================================================================ */
+.page-hero {
   background: var(--primary-gradient);
   color: #fff;
-  border-radius: 14px;
-  padding: 1.75rem;
-  box-shadow: var(--card-shadow);
+  padding: 1.4rem 0;
+  margin-bottom: 0;          /* gap comes from .page-body margin-top */
   position: relative;
   overflow: hidden;
 }
-.page-hero::after{
-  content:"";
-  position:absolute;
-  inset:-60px -60px auto auto;
-  width: 220px;
-  height: 220px;
-  background: rgba(255,255,255,.12);
-  filter: blur(0);
+.page-hero::after {
+  content: "";
+  position: absolute;
+  inset: -60px -60px auto auto;
+  width: 200px; height: 200px;
+  background: rgba(255,255,255,.1);
   border-radius: 50%;
+  pointer-events: none;
 }
-.page-hero h1{
-  font-size: 1.5rem;
-  font-weight: 700;
+.page-hero h1 {
+  font-size: clamp(1.1rem, 2vw, 1.5rem);
+  font-weight: 800;
   margin: 0;
+  color: #fff;
 }
-.page-hero p{
-  margin: .35rem 0 0 0;
-  opacity: .85;
+.page-hero p {
+  margin: .3rem 0 0;
+  opacity: .82;
+  font-size: .9rem;
+  color: rgba(255,255,255,.9);
 }
 
-/* Export buttons */
-.btn-glass{
-  background: rgba(255,255,255,.18);
+/* Glass buttons on coloured header */
+.btn-glass {
+  background: rgba(255,255,255,.15);
   border: 1px solid rgba(255,255,255,.28);
   color: #fff !important;
-  backdrop-filter: blur(10px);
-  border-radius: 10px;
-  padding: .55rem .9rem;
-  transition: var(--transition);
+  backdrop-filter: blur(8px);
+  border-radius: .65rem;
+  padding: .48rem .85rem;
+  font-size: .84rem;
+  font-weight: 700;
   display: inline-flex;
   align-items: center;
-  gap: .55rem;
+  gap: .45rem;
   text-decoration: none;
+  transition: var(--t);
   white-space: nowrap;
 }
-.btn-glass:hover{
-  background: rgba(255,255,255,.28);
+.btn-glass:hover {
+  background: rgba(255,255,255,.26);
   transform: translateY(-2px);
-  box-shadow: 0 8px 18px rgba(0,0,0,.18);
+  box-shadow: 0 6px 16px rgba(0,0,0,.2);
 }
 
-/* ------------------------------
-   KPI Cards
------------------------------- */
-.kpi-grid{
-  display:grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1rem;
-  margin: 1.5rem 0 1.25rem;
+/* ================================================================
+   INNER PAGE BODY (provides gutters below the hero)
+   ================================================================ */
+.page-body {
+  padding: 1.25rem 1.5rem 1.5rem;
 }
-.kpi-card{
-  background: #fff;
-  border-radius: 14px;
-  padding: 1.25rem 1.25rem 1.15rem;
+@media (max-width: 768px) { .page-body { padding: 1rem; } }
+
+/* ================================================================
+   KPI CARDS
+   ================================================================ */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: .85rem;
+  margin-bottom: 1.25rem;
+}
+.kpi-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: .9rem;
+  padding: 1rem 1.1rem;
   box-shadow: var(--card-shadow);
-  border: 2px solid transparent;
-  transition: var(--transition);
-  position:relative;
-  overflow:hidden;
+  position: relative;
+  overflow: hidden;
+  transition: var(--t);
   cursor: default;
 }
-.kpi-card.clickable-kpi{ cursor: pointer; }
-.kpi-card::before{
-  content:"";
-  position:absolute;
-  left:0; right:0; top:0;
-  height:4px;
+.kpi-card.clickable-kpi { cursor: pointer; }
+
+/* Coloured top accent bar */
+.kpi-card::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 3px;
   background: var(--primary-gradient);
   transform: scaleX(0);
   transform-origin: left;
-  transition: var(--transition);
+  transition: var(--t);
 }
-.kpi-card:hover{
-  transform: translateY(-4px);
+.kpi-card:hover,
+.kpi-card.active {
+  transform: translateY(-3px);
   box-shadow: var(--card-shadow-hover);
-  border-color: rgba(102,126,234,.18);
+  border-color: var(--border-color-strong);
 }
 .kpi-card:hover::before,
-.kpi-card.active::before{
-  transform: scaleX(1);
+.kpi-card.active::before { transform: scaleX(1); }
+
+.kpi-card.active {
+  border-color: rgba(102,126,234,.5);
+  background: var(--bg-surface-alt);
 }
-.kpi-card.active{
-  border-color: rgba(102,126,234,.65);
-  background: linear-gradient(to bottom, rgba(102,126,234,.06), #fff);
-}
-.kpi-label{
-  font-size: .78rem;
-  letter-spacing: .08em;
+
+.kpi-label {
+  font-size: .72rem;
+  letter-spacing: .07em;
   text-transform: uppercase;
-  color: var(--text-soft);
+  color: var(--text-muted);
   font-weight: 700;
-  margin-bottom: .4rem;
+  margin-bottom: .3rem;
 }
-.kpi-value{
-  font-size: 2rem;
-  font-weight: 800;
-  color: #0f172a;
+.kpi-value {
+  font-size: 1.7rem;
+  font-weight: 900;
+  color: var(--text-primary);
   line-height: 1.05;
-  margin-bottom: .25rem;
+  margin-bottom: .2rem;
 }
-.kpi-description{
-  font-size: .85rem;
-  color: #7c889c;
+.kpi-description {
+  font-size: .82rem;
+  color: var(--text-secondary);
 }
-.kpi-card.clickable-kpi:hover .kpi-description::after{
-  content:" • Click to filter";
+.kpi-card.clickable-kpi:hover .kpi-description::after {
+  content: " · Click to filter";
   color: #667eea;
   font-weight: 600;
 }
 
-/* ------------------------------
-   Filter Card (Sticky)
------------------------------- */
-.filter-card{
-  background:#fff;
-  border-radius: 14px;
+/* ================================================================
+   FILTER CARD
+   ================================================================ */
+.filter-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: .9rem;
   box-shadow: var(--card-shadow);
-  border: var(--border-soft);
+  margin-bottom: 1rem;
+  transition: background-color .25s ease, border-color .25s ease;
 }
-.filter-card.sticky-top{
-  top: .75rem;
-  z-index: 10;
-}
-.filter-head{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
+.filter-card .card-body { padding: 1rem 1.1rem; }
+
+.filter-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: .75rem;
-  padding-bottom: .75rem;
-  border-bottom: 1px solid rgba(0,0,0,.06);
-  margin-bottom: .85rem;
+  padding-bottom: .65rem;
+  margin-bottom: .75rem;
+  border-bottom: 1px solid var(--border-color);
 }
-.filter-head h2{
-  margin:0;
-  font-size: 1rem;
+.filter-head h2 {
+  margin: 0;
+  font-size: .95rem;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: .45rem;
 }
-.form-label{
+
+/* Form elements inherit base.html tokens */
+.filter-card .form-label {
   font-weight: 700;
-  font-size: .83rem;
-  color: #334155;
-  margin-bottom: .35rem;
+  font-size: .8rem;
+  color: var(--text-secondary);
+  margin-bottom: .3rem;
 }
-.form-control, .form-select{
-  border: 2px solid #e2e8f0;
-  border-radius: 10px;
-  padding: .65rem .85rem;
-  transition: var(--transition);
+.filter-card .form-control,
+.filter-card .form-select {
+  background-color: var(--input-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: .65rem;
+  padding: .58rem .8rem;
+  font-size: .875rem;
+  transition: var(--t);
 }
-.form-control:focus, .form-select:focus{
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102,126,234,.12);
+.filter-card .form-control:focus,
+.filter-card .form-select:focus {
+  background-color: var(--input-bg-focus);
+  color: var(--text-primary);
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(102,126,234,.18);
 }
+.filter-card .form-control::placeholder { color: var(--text-muted); }
 
 /* Active filter chips */
-.active-filters{
-  display:flex;
+.active-filters {
+  display: flex;
   flex-wrap: wrap;
-  gap: .5rem;
-  margin-top: 1rem;
-  padding-top: .9rem;
-  border-top: 1px solid rgba(0,0,0,.06);
+  gap: .45rem;
+  margin-top: .85rem;
+  padding-top: .75rem;
+  border-top: 1px solid var(--border-color);
 }
-.filter-chip{
-  background: rgba(102,126,234,.10);
-  color: #4f46e5;
+.filter-chip {
+  background: rgba(102,126,234,.1);
+  color: #667eea;
   border: 1px solid rgba(102,126,234,.22);
-  padding: .35rem .7rem;
+  padding: .3rem .65rem;
   border-radius: 999px;
-  font-size: .82rem;
-  display:inline-flex;
-  align-items:center;
-  gap: .5rem;
+  font-size: .8rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
 }
-.filter-chip button{
-  border:0;
+[data-theme="dark"] .filter-chip {
+  background: rgba(102,126,234,.15);
+  color: #7c8cf8;
+  border-color: rgba(124,140,248,.3);
+}
+.filter-chip button {
+  border: 0;
   background: transparent;
   color: inherit;
-  opacity: .75;
+  opacity: .7;
   font-weight: 900;
-  cursor:pointer;
-  padding: 0 .15rem;
+  cursor: pointer;
+  padding: 0 .1rem;
+  line-height: 1;
 }
-.filter-chip button:hover{ opacity: 1; }
+.filter-chip button:hover { opacity: 1; }
 
-/* ------------------------------
-   Bulk Actions
------------------------------- */
-.bulk-wrap{
-  background: linear-gradient(135deg, #f8fafc 0%, #eef2f7 100%);
-  border-radius: 14px;
-  border: 2px dashed rgba(0,0,0,.10);
-  padding: 1.25rem;
+/* ================================================================
+   BULK ACTIONS
+   ================================================================ */
+.bulk-wrap {
+  background: var(--bg-surface-alt);
+  border: 1px dashed var(--border-color-strong);
+  border-radius: .9rem;
+  padding: 1rem 1.1rem;
+  margin-bottom: 1rem;
+  transition: background-color .25s ease, border-color .25s ease;
 }
-.selection-pill{
-  display:none;
-  margin-left: .6rem;
-  background: #4f46e5;
+.bulk-wrap .form-label {
+  font-weight: 700;
+  font-size: .8rem;
+  color: var(--text-secondary);
+  margin-bottom: .3rem;
+}
+.bulk-wrap .form-select {
+  background-color: var(--input-bg);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+  border-radius: .65rem;
+  font-size: .875rem;
+}
+.bulk-wrap .form-select:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(102,126,234,.18);
+}
+
+.selection-pill {
+  display: none;
+  margin-left: .5rem;
+  background: linear-gradient(135deg,#667eea,#764ba2);
   color: #fff;
   border-radius: 999px;
-  padding: .25rem .65rem;
-  font-size: .8rem;
+  padding: .2rem .6rem;
+  font-size: .75rem;
   font-weight: 800;
 }
-.selection-pill.active{ display:inline-block; }
+.selection-pill.active { display: inline-block; }
 
-/* Make delete option visually dangerous */
-#bulk-action option[value="delete"]{
-  color: #dc3545;
+/* Make delete option red */
+#bulk-action option[value="delete"] {
+  color: #dc2626;
   font-weight: 800;
 }
 
-/* ------------------------------
-   Table
------------------------------- */
-.table-shell{
-  background:#fff;
-  border-radius: 14px;
+/* ================================================================
+   TABLE SHELL
+   ================================================================ */
+.table-shell {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: .9rem;
   box-shadow: var(--card-shadow);
-  border: var(--border-soft);
-  overflow:hidden;
+  overflow: hidden;
+  transition: background-color .25s ease, border-color .25s ease;
 }
-.table thead{
-  background: linear-gradient(135deg, #f8fafc 0%, #eef2f7 100%);
+.table-shell .table {
+  --bs-table-bg:           var(--card-bg);
+  --bs-table-hover-bg:     var(--table-hover);
+  --bs-table-border-color: var(--border-color);
+  --bs-table-color:        var(--text-primary);
+  color: var(--text-primary);
+  margin-bottom: 0;
 }
-.table thead th{
-  font-size: .78rem;
+.table-shell .table thead {
+  background: var(--bg-surface-alt);
+}
+.table-shell .table thead th {
+  background: var(--bg-surface-alt);
+  font-size: .72rem;
   text-transform: uppercase;
-  letter-spacing: .06em;
-  color: #0f172a;
-  font-weight: 900;
-  padding: 1rem .75rem;
-  border-bottom: 2px solid rgba(0,0,0,.08);
+  letter-spacing: .065em;
+  color: var(--text-secondary);
+  font-weight: 800;
+  padding: .85rem .75rem;
+  border-bottom: 2px solid var(--border-color);
   position: sticky;
   top: 0;
   z-index: 5;
   white-space: nowrap;
+  transition: background-color .25s ease;
 }
-.table thead th a{
-  color: inherit;
-  text-decoration:none;
-  transition: var(--transition);
+.table-shell .table thead th a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: var(--t);
 }
-.table thead th a:hover{ color: #4f46e5; text-decoration: underline; }
-.table tbody td{
-  padding: .95rem .75rem;
+.table-shell .table thead th a:hover { color: #667eea; }
+
+.table-shell .table tbody td {
+  padding: .85rem .75rem;
   vertical-align: middle;
+  border-color: var(--border-color);
+  color: var(--text-primary);
+  background: var(--card-bg);
+  transition: background-color .15s ease;
 }
-.table tbody tr{ transition: var(--transition); }
-.table tbody tr:hover{ background: rgba(79,70,229,.03); }
+.table-shell .table tbody tr:hover td { background: var(--table-hover); }
+.table-shell .table tbody tr:last-child td { border-bottom: none; }
 
-/* Badges */
-.badge{
-  padding: .38rem .72rem;
+/* User name + sub-text */
+.user-primary   { font-weight: 700; color: var(--text-primary); }
+.user-secondary { font-size: .75rem; color: var(--text-muted); margin-top: 1px; }
+.id-cell        { font-weight: 700; color: var(--text-muted); font-size: .82rem; }
+
+/* Row actions — hidden until hover */
+.row-actions { opacity: .12; transition: opacity .15s ease; }
+tr:hover .row-actions { opacity: 1; }
+
+/* ================================================================
+   BADGES (token-aware)
+   ================================================================ */
+.badge {
+  padding: .32rem .65rem;
   border-radius: 999px;
-  font-weight: 900;
-  font-size: .74rem;
+  font-weight: 800;
+  font-size: .71rem;
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
 }
-.badge.bg-success{ background: var(--success-gradient) !important; }
-.badge.bg-danger{ background: var(--danger-gradient) !important; }
-.badge.bg-warning{ background: var(--warning-gradient) !important; }
+/* Use semi-transparent backgrounds so they work in both themes */
+.badge-active   { background: rgba(16,185,129,.13); color: #059669; }
+.badge-inactive { background: rgba(239,68,68,.13);  color: #dc2626; }
+.badge-warn     { background: rgba(245,158,11,.13); color: #d97706; }
+.badge-info     { background: rgba(6,182,212,.13);  color: #0891b2; }
+.badge-muted    { background: var(--badge-muted-bg); color: var(--badge-muted-text); }
+.badge-synced   { background: rgba(102,126,234,.13);color: #667eea; }
+.badge-excluded { background: rgba(239,68,68,.13);  color: #dc2626; }
 
-/* Checkboxes */
-.form-check-input{
-  width: 1.18rem;
-  height: 1.18rem;
-  border: 2px solid #cbd5e1;
-  border-radius: 6px;
+/* Dark: boost contrast */
+[data-theme="dark"] .badge-active   { background: rgba(16,185,129,.2); color: #34d399; }
+[data-theme="dark"] .badge-inactive { background: rgba(239,68,68,.2);  color: #f87171; }
+[data-theme="dark"] .badge-warn     { background: rgba(245,158,11,.2); color: #fbbf24; }
+[data-theme="dark"] .badge-info     { background: rgba(6,182,212,.2);  color: #22d3ee; }
+[data-theme="dark"] .badge-synced   { background: rgba(102,126,234,.2);color: #818cf8; }
+[data-theme="dark"] .badge-excluded { background: rgba(239,68,68,.2);  color: #f87171; }
+
+/* ================================================================
+   CHECKBOXES
+   ================================================================ */
+.form-check-input {
+  width: 1.1rem;
+  height: 1.1rem;
+  border: 2px solid var(--border-color-strong);
+  border-radius: .35rem;
   cursor: pointer;
+  background-color: var(--input-bg);
+  flex-shrink: 0;
+  margin-top: 0;
 }
-.form-check-input:checked{
-  background-color:#4f46e5;
-  border-color:#4f46e5;
+.form-check-input:checked {
+  background-color: #667eea;
+  border-color: #667eea;
 }
 
-/* Actions: hide until hover (cleaner) */
-.row-actions{
-  opacity: .15;
-  transition: opacity .15s ease-in-out;
-}
-tr:hover .row-actions{ opacity: 1; }
-
-/* Buttons */
-.btn{
-  border-radius: 10px;
+/* ================================================================
+   BUTTONS
+   ================================================================ */
+.btn {
+  border-radius: .6rem;
   font-weight: 700;
-  padding: .62rem 1.1rem;
-  transition: var(--transition);
+  transition: var(--t);
 }
-.btn-primary{
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+
+.btn-primary {
   background: var(--primary-gradient);
   border: none;
+  color: #fff;
 }
-.btn-primary:hover{
-  transform: translateY(-2px);
-  box-shadow: 0 10px 22px rgba(102,126,234,.30);
+.btn-primary:hover { box-shadow: 0 8px 20px rgba(102,126,234,.3); }
+
+.btn-outline-secondary {
+  border: 1px solid var(--border-color-strong);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
 }
-.btn-outline-secondary{
-  border: 2px solid #e2e8f0;
-  background: #fff;
-  color: #334155;
-}
-.btn-outline-secondary:hover{
-  background: #f8fafc;
-  border-color: #cbd5e1;
+.btn-outline-secondary:hover {
+  background: var(--bg-surface-alt);
+  border-color: var(--border-color-strong);
+  color: var(--text-primary);
 }
 
-/* Stats bar */
-.stats-bar{
-  background:#fff;
-  border-radius: 12px;
-  padding: 1rem 1.25rem;
+/* Dark: ensure outline-secondary is visible */
+[data-theme="dark"] .btn-outline-secondary {
+  background: var(--bg-surface-alt);
+  color: var(--text-secondary);
+  border-color: var(--border-color-strong);
+}
+[data-theme="dark"] .btn-outline-secondary:hover {
+  background: var(--bg-surface-raised);
+  color: var(--text-primary);
+}
+
+/* ================================================================
+   STATS BAR + PAGINATION
+   ================================================================ */
+.stats-bar {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: .9rem;
+  padding: .85rem 1.1rem;
   box-shadow: var(--card-shadow);
-  border: var(--border-soft);
-  display:flex;
+  display: flex;
   justify-content: space-between;
-  align-items:center;
+  align-items: center;
   gap: 1rem;
   margin-top: 1rem;
   flex-wrap: wrap;
+  transition: background-color .25s ease, border-color .25s ease;
 }
-.pagination .page-link{
-  border: 2px solid #e2e8f0;
-  border-radius: 10px;
-  color: #334155;
-  padding: .5rem .9rem;
-  margin: 0 .2rem;
-  transition: var(--transition);
+.stats-bar .text-muted  { color: var(--text-muted) !important; }
+.stats-bar strong       { color: var(--text-primary); }
+
+/* Pagination inherits Bootstrap 5 but we override colour via tokens */
+.pagination .page-link {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  border-radius: .55rem !important;
+  padding: .42rem .72rem;
+  margin: 0 .15rem;
+  font-size: .82rem;
+  font-weight: 600;
+  transition: var(--t);
 }
-.pagination .page-link:hover{
-  background: #4f46e5;
-  border-color: #4f46e5;
+.pagination .page-link:hover {
+  background: rgba(102,126,234,.1);
+  border-color: rgba(102,126,234,.35);
+  color: #667eea;
+}
+.pagination .page-item.disabled .page-link {
+  background: var(--bg-surface-alt);
+  color: var(--text-muted);
+  border-color: var(--border-color);
+  opacity: .5;
+}
+.pagination .page-item.active .page-link {
+  background: linear-gradient(135deg,#667eea,#764ba2);
+  border-color: transparent;
   color: #fff;
 }
 
-/* Mobile */
-@media (max-width: 768px){
-  .page-hero{ padding: 1.25rem; }
-  .page-hero h1{ font-size: 1.25rem; }
-  .kpi-grid{ grid-template-columns: 1fr; }
+/* ================================================================
+   MODAL
+   ================================================================ */
+.modal-content {
+  background: var(--modal-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-lg);
+}
+.modal-header {
+  background: var(--card-header-bg);
+  border-bottom: 1px solid var(--border-color);
+}
+.modal-footer {
+  background: var(--bg-surface-alt);
+  border-top: 1px solid var(--border-color);
+}
+.modal-title { color: var(--text-primary); }
+.modal-body  { color: var(--text-secondary); }
+.modal-body strong { color: var(--text-primary); }
+[data-theme="dark"] .alert-warning {
+  background: rgba(245,158,11,.12);
+  border-color: rgba(245,158,11,.25);
+  color: #fbbf24;
 }
 
-/* ===========================================================
-   ✅ COMPACT OVERRIDES (make UI like hardware_list.html)
-   =========================================================== */
+/* ================================================================
+   EMPTY STATE
+   ================================================================ */
+.empty-state {
+  text-align: center;
+  padding: 3.5rem 1rem;
+  color: var(--text-muted);
+}
+.empty-state i    { display: block; margin-bottom: .75rem; opacity: .4; }
+.empty-state h5   { color: var(--text-secondary); font-weight: 800; }
+.empty-state p    { color: var(--text-muted); font-size: .875rem; }
+.empty-state a    { color: #667eea; }
 
-/* HERO: smaller icon + tighter padding */
-.card.bg-primary.text-white.mb-4 .card-body{
-  padding: 1rem 1.25rem;
-}
-.card.bg-primary.text-white.mb-4 i.fas.fa-users{
-  font-size: 1.5rem !important;
-}
-
-/* KPI smaller */
-.kpi-grid{
-  gap: .75rem;
-  margin: 1rem 0 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-}
-.kpi-card{
-  padding: .95rem 1rem .9rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,.06);
-}
-.kpi-card:hover{
-  transform: translateY(-2px);
-  box-shadow: 0 10px 22px rgba(0,0,0,.12);
-}
-.kpi-label{
-  font-size: .72rem;
-  margin-bottom: .25rem;
-}
-.kpi-value{
-  font-size: 1.55rem;
-}
-.kpi-description{
-  font-size: .82rem;
-}
-
-/* Filter compact */
-.filter-card .card-body{
-  padding: 1rem;
-}
-.filter-head{
-  padding-bottom: .6rem;
-  margin-bottom: .7rem;
-}
-
-/* Toggle button alignment */
-#filtersToggleBtn{
-  display: inline-flex;
+/* ================================================================
+   ADVANCED FILTER DIVIDER
+   ================================================================ */
+.adv-filter-header {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: .35rem;
+  margin-top: .85rem;
+  padding-top: .75rem;
+  border-top: 1px solid var(--border-color);
+}
+.adv-filter-label {
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: .4rem;
 }
 
-/* Slightly smaller buttons overall */
-.btn{
-  padding: .5rem .9rem;
+/* ================================================================
+   RESPONSIVE
+   ================================================================ */
+@media (max-width: 768px) {
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .stats-bar { flex-direction: column; align-items: flex-start; }
 }
-.btn-group.btn-group-sm .btn{
-  padding: .35rem .55rem;
+@media (max-width: 480px) {
+  .kpi-grid { grid-template-columns: 1fr; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div id="content-main">
+
+<!-- ================================================================
+     PAGE HERO — full-bleed (content-wrapper has padding:0)
+     ================================================================ -->
+<div class="page-hero">
   <div class="container-fluid">
-
-    <!-- HERO HEADER -->
-    <div class="card border-0 shadow-sm bg-primary text-white mb-4">
-      <div class="card-body d-flex align-items-center justify-content-between flex-wrap gap-3">
-        <div class="d-flex align-items-center gap-3">
-          <i class="fas fa-users fa-2x text-white-50"></i>
-          <div>
-            <h1 class="h4 fw-bold mb-1 text-white">User Management</h1>
-            <p class="text-white-50 mb-0">Manage system users, permissions, and access.</p>
-          </div>
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+      <div class="d-flex align-items-center gap-3">
+        <div style="width:44px;height:44px;border-radius:.75rem;
+                    background:rgba(255,255,255,.15);
+                    display:flex;align-items:center;justify-content:center;
+                    flex-shrink:0;">
+          <i class="fa-solid fa-users fa-lg text-white"></i>
         </div>
-
-        <div class="d-flex gap-2 flex-wrap">
-          <a class="btn btn-sm btn-light text-primary border-0"
-             href="{% url 'accounts:user_export_excel' %}?{% if base_query %}{{ base_query }}&{% endif %}sort={{ current_sort }}&dir={{ current_dir }}"
-             aria-label="Export users to Excel">
-            <i class="fas fa-file-excel"></i> Export Excel
-          </a>
-          <a class="btn btn-sm btn-light text-danger border-0"
-             href="{% url 'accounts:user_export_pdf' %}?{% if base_query %}{{ base_query }}&{% endif %}sort={{ current_sort }}&dir={{ current_dir }}"
-             aria-label="Export users to PDF">
-            <i class="fas fa-file-pdf"></i> Export PDF
-          </a>
+        <div>
+          <h1>User Management</h1>
+          <p>Manage system users, permissions, and access.</p>
         </div>
       </div>
-    </div>
 
-    <!-- KPI GRID -->
+      <div class="d-flex gap-2 flex-wrap">
+        <a class="btn-glass"
+           href="{% url 'accounts:user_export_excel' %}?{% if base_query %}{{ base_query }}&{% endif %}sort={{ current_sort }}&dir={{ current_dir }}"
+           aria-label="Export users to Excel">
+          <i class="fa-solid fa-file-excel"></i> Excel
+        </a>
+        <a class="btn-glass"
+           href="{% url 'accounts:user_export_pdf' %}?{% if base_query %}{{ base_query }}&{% endif %}sort={{ current_sort }}&dir={{ current_dir }}"
+           aria-label="Export users to PDF">
+          <i class="fa-solid fa-file-pdf"></i> PDF
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     PAGE BODY — gutters below hero
+     ================================================================ -->
+<div class="page-body">
+  <div class="container-fluid px-0">
+
+    <!-- KPI GRID ================================================== -->
     <div class="kpi-grid">
       {% for kpi in user_kpis %}
       <div class="kpi-card {% if kpi.filter_params %}clickable-kpi{% endif %} {% if kpi.is_active %}active{% endif %}"
            {% if kpi.filter_params %}data-filter-params="{{ kpi.filter_params }}"{% endif %}
-           role="button"
-           tabindex="0"
-           aria-label="{{ kpi.label }} KPI card">
+           role="{% if kpi.filter_params %}button{% else %}presentation{% endif %}"
+           tabindex="{% if kpi.filter_params %}0{% else %}-1{% endif %}"
+           aria-label="{{ kpi.label }}: {{ kpi.value }}">
         <div class="kpi-label">{{ kpi.label }}</div>
         <div class="kpi-value">{{ kpi.value }}</div>
         <div class="kpi-description">{{ kpi.description }}</div>
@@ -483,14 +625,16 @@ tr:hover .row-actions{ opacity: 1; }
       {% endfor %}
     </div>
 
-    <!-- FILTERS (Sticky + collapsible on ALL sizes) -->
-    <div class="card filter-card shadow-sm mb-3 sticky-top">
+    <!-- FILTER CARD =============================================== -->
+    <div class="filter-card sticky-top" style="top:.75rem; z-index:10;">
       <div class="card-body">
-        <div class="filter-head">
-          <h2><i class="fas fa-filter me-2 text-muted"></i>Filter Users</h2>
 
+        <div class="filter-head">
+          <h2>
+            <i class="fa-solid fa-sliders" style="color:#667eea;"></i>
+            Filter Users
+          </h2>
           <div class="d-flex gap-2">
-            <!-- ✅ Toggle now works on desktop + mobile -->
             <button id="filtersToggleBtn"
                     class="btn btn-outline-secondary btn-sm"
                     type="button"
@@ -498,84 +642,99 @@ tr:hover .row-actions{ opacity: 1; }
                     data-bs-target="#filtersCollapse"
                     aria-expanded="true"
                     aria-controls="filtersCollapse">
-              <i id="filtersToggleIcon" class="fas fa-chevron-up"></i>
+              <i id="filtersToggleIcon" class="fa-solid fa-chevron-up"></i>
               <span id="filtersToggleText">Collapse</span>
             </button>
-
             <a class="btn btn-outline-secondary btn-sm"
                href="{% url 'accounts:user_list' %}{% if current_sort or current_dir %}?sort={{ current_sort }}&dir={{ current_dir }}{% endif %}">
-              <i class="fas fa-rotate-left me-1"></i> Reset
+              <i class="fa-solid fa-arrow-rotate-left me-1"></i> Reset
             </a>
           </div>
         </div>
 
-        <!-- ✅ Start shown, collapsible everywhere -->
         <div class="collapse show" id="filtersCollapse">
           <form method="get" id="filterForm">
             <input type="hidden" name="sort" value="{{ current_sort }}">
-            <input type="hidden" name="dir" value="{{ current_dir|default:'asc' }}">
+            <input type="hidden" name="dir"  value="{{ current_dir|default:'asc' }}">
 
             <div class="row g-3">
               <div class="col-md-6 col-lg-4">
-                <label for="q" class="form-label"><i class="fas fa-search text-muted me-1"></i> Search</label>
-                <input type="text" id="q" name="q" value="{{ q }}" class="form-control"
-                       placeholder="Username, name, email, employee ID" autocomplete="off">
+                <label for="q" class="form-label">
+                  <i class="fa-solid fa-magnifying-glass text-muted me-1"></i> Search
+                </label>
+                <input type="text" id="q" name="q" value="{{ q }}"
+                       class="form-control"
+                       placeholder="Username, name, email, employee ID"
+                       autocomplete="off">
               </div>
 
               <div class="col-md-6 col-lg-3">
-                <label for="status" class="form-label"><i class="fas fa-toggle-on text-muted me-1"></i> Status</label>
+                <label for="status" class="form-label">
+                  <i class="fa-solid fa-toggle-on text-muted me-1"></i> Status
+                </label>
                 <select id="status" name="status" class="form-select">
                   <option value="">All Status</option>
-                  <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
+                  <option value="active"   {% if status == 'active'   %}selected{% endif %}>Active</option>
                   <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Inactive</option>
                 </select>
               </div>
 
               <div class="col-md-6 col-lg-3">
-                <label for="follow_up" class="form-label"><i class="fas fa-flag text-muted me-1"></i> Follow-up</label>
+                <label for="follow_up" class="form-label">
+                  <i class="fa-solid fa-flag text-muted me-1"></i> Follow-up
+                </label>
                 <select id="follow_up" name="follow_up" class="form-select">
                   <option value="">All</option>
-                  <option value="flagged" {% if follow_up == 'flagged' %}selected{% endif %}>Flagged</option>
+                  <option value="flagged"   {% if follow_up == 'flagged'   %}selected{% endif %}>Flagged</option>
                   <option value="unflagged" {% if follow_up == 'unflagged' %}selected{% endif %}>Not Flagged</option>
                 </select>
               </div>
 
               <div class="col-md-6 col-lg-2">
-                <label for="page_size" class="form-label"><i class="fas fa-list-ol text-muted me-1"></i> Per Page</label>
+                <label for="page_size" class="form-label">
+                  <i class="fa-solid fa-list-ol text-muted me-1"></i> Per Page
+                </label>
                 <select id="page_size" name="page_size" class="form-select">
-                  <option value="25" {% if page_size == 25 %}selected{% endif %}>25</option>
-                  <option value="50" {% if page_size == 50 %}selected{% endif %}>50</option>
-                  <option value="100" {% if page_size == 100 %}selected{% endif %}>100</option>
+                  <option value="25"  {% if page_size == 25    %}selected{% endif %}>25</option>
+                  <option value="50"  {% if page_size == 50    %}selected{% endif %}>50</option>
+                  <option value="100" {% if page_size == 100   %}selected{% endif %}>100</option>
                   <option value="all" {% if page_size == 'all' %}selected{% endif %}>All</option>
                 </select>
               </div>
             </div>
 
             <!-- Advanced filters -->
-            <div class="d-flex justify-content-between align-items-center mt-3">
-              <span class="fw-bold text-muted small">
-                <i class="fas fa-sliders-h me-1"></i> Advanced Filters
+            <div class="adv-filter-header">
+              <span class="adv-filter-label">
+                <i class="fa-solid fa-sliders"></i> Advanced Filters
               </span>
-              <button type="button" class="btn btn-sm btn-outline-secondary"
-                      data-bs-toggle="collapse" data-bs-target="#advancedFilters"
-                      aria-expanded="true" aria-controls="advancedFilters">
+              <button type="button"
+                      class="btn btn-sm btn-outline-secondary"
+                      data-bs-toggle="collapse"
+                      data-bs-target="#advancedFilters"
+                      aria-expanded="true"
+                      aria-controls="advancedFilters">
                 Toggle
               </button>
             </div>
 
             <div class="collapse show" id="advancedFilters">
-              <div class="row g-3 mt-1">
+              <div class="row g-3 mt-0">
                 <div class="col-md-6 col-lg-4">
-                  <label for="metrics" class="form-label"><i class="fas fa-chart-line text-muted me-1"></i> Metrics</label>
+                  <label for="metrics" class="form-label">
+                    <i class="fa-solid fa-chart-line-up text-muted me-1"></i> Metrics
+                  </label>
                   <select id="metrics" name="metrics" class="form-select">
-                    <option value="" {% if not metrics %}selected{% endif %}>All Users</option>
-                    <option value="included" {% if metrics == 'included' %}selected{% endif %}>Reportable</option>
-                    <option value="excluded" {% if metrics == 'excluded' %}selected{% endif %}>Excluded</option>
+                    <option value=""         {% if not metrics             %}selected{% endif %}>All Users</option>
+                    <option value="included" {% if metrics == 'included'   %}selected{% endif %}>Reportable</option>
+                    <option value="excluded" {% if metrics == 'excluded'   %}selected{% endif %}>Excluded</option>
                   </select>
                 </div>
 
                 <div class="col-md-6 col-lg-4">
-                  <label for="department" class="form-label"><i class="fas fa-building text-muted me-1"></i> Department</label>
+                  <label for="department" class="form-label">
+                    <i class="fa-solid fa-building text-muted me-1"></i> Department
+                  </label>
                   <select id="department" name="department" class="form-select">
                     <option value="">All Departments</option>
                     {% for dept in departments %}
@@ -589,89 +748,88 @@ tr:hover .row-actions{ opacity: 1; }
 
                 <div class="col-md-12 col-lg-4 d-flex align-items-end gap-2">
                   <button type="submit" class="btn btn-primary flex-fill">
-                    <i class="fas fa-search me-2"></i> Apply
+                    <i class="fa-solid fa-magnifying-glass me-1"></i> Apply
                   </button>
                   <a href="{% url 'accounts:user_list' %}{% if current_sort or current_dir %}?sort={{ current_sort }}&dir={{ current_dir }}{% endif %}"
                      class="btn btn-outline-secondary flex-fill">
-                    <i class="fas fa-times me-2"></i> Clear
+                    <i class="fa-solid fa-xmark me-1"></i> Clear
                   </a>
                 </div>
               </div>
             </div>
 
-            <!-- Active Filters Chips -->
+            <!-- Active filter chips -->
             {% if q or status or department_selected or follow_up or metrics %}
             <div class="active-filters">
               {% if q %}
               <span class="filter-chip">
-                <i class="fas fa-search"></i> "{{ q }}"
+                <i class="fa-solid fa-magnifying-glass"></i> "{{ q }}"
                 <button type="button" onclick="removeFilter('q')" aria-label="Remove search filter">×</button>
               </span>
               {% endif %}
-
               {% if status %}
               <span class="filter-chip">
-                <i class="fas fa-toggle-on"></i> Status: {{ status|title }}
+                <i class="fa-solid fa-toggle-on"></i> Status: {{ status|title }}
                 <button type="button" onclick="removeFilter('status')" aria-label="Remove status filter">×</button>
               </span>
               {% endif %}
-
               {% if department_selected %}
               <span class="filter-chip">
-                <i class="fas fa-building"></i> Department
+                <i class="fa-solid fa-building"></i> Department
                 <button type="button" onclick="removeFilter('department')" aria-label="Remove department filter">×</button>
               </span>
               {% endif %}
-
               {% if follow_up %}
               <span class="filter-chip">
-                <i class="fas fa-flag"></i> Follow-up: {{ follow_up|title }}
+                <i class="fa-solid fa-flag"></i> Follow-up: {{ follow_up|title }}
                 <button type="button" onclick="removeFilter('follow_up')" aria-label="Remove follow-up filter">×</button>
               </span>
               {% endif %}
-
               {% if metrics %}
               <span class="filter-chip">
-                <i class="fas fa-chart-line"></i> Metrics: {{ metrics|title }}
+                <i class="fa-solid fa-chart-line-up"></i> Metrics: {{ metrics|title }}
                 <button type="button" onclick="removeFilter('metrics')" aria-label="Remove metrics filter">×</button>
               </span>
               {% endif %}
             </div>
             {% endif %}
+
           </form>
         </div>
       </div>
     </div>
+    <!-- /filter-card -->
 
-    <!-- BULK ACTIONS (with confirmation modal) -->
-    <div class="bulk-wrap mb-3">
+    <!-- BULK ACTIONS ============================================== -->
+    <div class="bulk-wrap">
       <form id="bulk-action-form" method="post" action="{% url 'accounts:user_bulk_action' %}">
         {% csrf_token %}
-        <input type="hidden" name="q" value="{{ q }}">
-        <input type="hidden" name="status" value="{{ status }}">
+        <input type="hidden" name="q"          value="{{ q }}">
+        <input type="hidden" name="status"     value="{{ status }}">
         <input type="hidden" name="department" value="{{ department_selected }}">
-        <input type="hidden" name="follow_up" value="{{ follow_up }}">
-        <input type="hidden" name="metrics" value="{{ metrics }}">
-        <input type="hidden" name="page_size" value="{{ page_size }}">
-        <input type="hidden" name="sort" value="{{ current_sort }}">
-        <input type="hidden" name="dir" value="{{ current_dir }}">
+        <input type="hidden" name="follow_up"  value="{{ follow_up }}">
+        <input type="hidden" name="metrics"    value="{{ metrics }}">
+        <input type="hidden" name="page_size"  value="{{ page_size }}">
+        <input type="hidden" name="sort"       value="{{ current_sort }}">
+        <input type="hidden" name="dir"        value="{{ current_dir }}">
 
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-          <div class="fw-bold">
-            <i class="fas fa-tasks me-2"></i>Bulk Actions
+          <div style="font-weight:800; color:var(--text-primary); font-size:.9rem;">
+            <i class="fa-solid fa-list-check me-1" style="color:#667eea;"></i>
+            Bulk Actions
             <span class="selection-pill" id="selectionCount">0 selected</span>
           </div>
-          <div class="small text-muted">
-            Tip: Select users from the table then choose an action.
+          <div style="font-size:.8rem; color:var(--text-muted);">
+            Select users below, then choose an action.
           </div>
         </div>
 
         <div class="row g-3">
-          <div class="col-md-6 col-lg-6">
+          <div class="col-md-6">
             <label class="form-label" for="bulk-action">Select Action</label>
             <div class="input-group">
-              <select id="bulk-action" name="action" class="form-select" aria-label="Select bulk action">
-                <option value="">Choose...</option>
+              <select id="bulk-action" name="action" class="form-select" aria-label="Bulk action">
+                <option value="">Choose…</option>
                 <option value="activate">Activate</option>
                 <option value="deactivate">Deactivate</option>
                 {% if perms.accounts.delete_customuser %}
@@ -684,21 +842,20 @@ tr:hover .row-actions{ opacity: 1; }
                 <option value="exclude_ldap_sync">Exclude from LDAP Sync</option>
                 <option value="include_ldap_sync">Include in LDAP Sync</option>
               </select>
-
-              <!-- Button triggers modal -->
               <button type="button" class="btn btn-primary" id="applyBulk" disabled
                       data-bs-toggle="modal" data-bs-target="#bulkConfirmModal">
                 Apply
               </button>
             </div>
-
-            <div class="small text-muted mt-2" id="bulkHint">
+            <div style="font-size:.78rem; color:var(--text-muted); margin-top:.4rem;" id="bulkHint">
               Choose an action, then confirm.
             </div>
           </div>
 
-          <div class="col-md-6 col-lg-6">
-            <label class="form-label" for="bulk-department">Department (for Assign Department)</label>
+          <div class="col-md-6">
+            <label class="form-label" for="bulk-department">
+              Department <span style="color:var(--text-muted); font-weight:400;">(for Assign Department)</span>
+            </label>
             <select id="bulk-department" name="bulk_department_id" class="form-select">
               <option value="">No department</option>
               {% for dept in departments %}
@@ -709,29 +866,30 @@ tr:hover .row-actions{ opacity: 1; }
         </div>
       </form>
     </div>
+    <!-- /bulk-wrap -->
 
-    <!-- TABLE -->
+    <!-- TABLE ===================================================== -->
     <div class="table-shell">
       <div class="table-responsive">
         <table class="table align-middle mb-0">
           <thead>
             <tr>
-              <th style="width:52px;">
+              <th style="width:48px;">
                 <input type="checkbox" id="select-all" class="form-check-input" aria-label="Select all users">
               </th>
               <th>
                 <a href="?{% if base_query %}{{ base_query }}&{% endif %}sort=id&dir={% if current_sort == 'id' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
-                  ID {% if current_sort == 'id' %}<i class="fas fa-sort-{% if current_dir == 'asc' %}up{% else %}down{% endif %}"></i>{% endif %}
+                  ID{% if current_sort == 'id' %} <i class="fa-solid fa-sort-{% if current_dir == 'asc' %}up{% else %}down{% endif %}"></i>{% endif %}
                 </a>
               </th>
               <th>
                 <a href="?{% if base_query %}{{ base_query }}&{% endif %}sort=username&dir={% if current_sort == 'username' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
-                  Username {% if current_sort == 'username' %}<i class="fas fa-sort-{% if current_dir == 'asc' %}up{% else %}down{% endif %}"></i>{% endif %}
+                  Username{% if current_sort == 'username' %} <i class="fa-solid fa-sort-{% if current_dir == 'asc' %}up{% else %}down{% endif %}"></i>{% endif %}
                 </a>
               </th>
               <th>
                 <a href="?{% if base_query %}{{ base_query }}&{% endif %}sort=full_name&dir={% if current_sort == 'full_name' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
-                  Full Name {% if current_sort == 'full_name' %}<i class="fas fa-sort-{% if current_dir == 'asc' %}up{% else %}down{% endif %}"></i>{% endif %}
+                  Full Name{% if current_sort == 'full_name' %} <i class="fa-solid fa-sort-{% if current_dir == 'asc' %}up{% else %}down{% endif %}"></i>{% endif %}
                 </a>
               </th>
               <th>Email</th>
@@ -754,68 +912,92 @@ tr:hover .row-actions{ opacity: 1; }
                        name="selected"
                        value="{{ user.id }}"
                        class="form-check-input row-checkbox"
-                       aria-label="Select user {{ user.username }}">
+                       aria-label="Select {{ user.username }}">
               </td>
 
-              <td class="text-muted fw-bold">#{{ user.id }}</td>
+              <td><span class="id-cell">#{{ user.id }}</span></td>
 
               <td>
-                <div class="fw-bold">{{ user.username }}</div>
-                <div class="small text-muted">{{ user.get_full_name|default:"—" }}</div>
+                <div class="user-primary">{{ user.username }}</div>
+                <div class="user-secondary">{{ user.get_full_name|default:"—" }}</div>
               </td>
 
-              <td class="text-muted">{{ user.get_full_name|default:"—" }}</td>
-              <td class="text-muted">{{ user.email|default:"—" }}</td>
-              <td>{{ user.department.name|default:"N/A" }}</td>
-              <td class="text-muted">{{ user.position|default:"—" }}</td>
+              <td style="color:var(--text-secondary);">{{ user.get_full_name|default:"—" }}</td>
+              <td style="color:var(--text-secondary);">{{ user.email|default:"—" }}</td>
+              <td style="color:var(--text-primary);">{{ user.department.name|default:"N/A" }}</td>
+              <td style="color:var(--text-secondary);">{{ user.position|default:"—" }}</td>
 
               <td>
                 {% if user.flag_for_follow_up %}
-                <span class="badge bg-warning text-dark"><i class="fas fa-flag me-1"></i>Yes</span>
+                  <span class="badge badge-warn">
+                    <i class="fa-solid fa-flag"></i> Yes
+                  </span>
                 {% else %}
-                <span class="text-muted">—</span>
+                  <span style="color:var(--text-muted);">—</span>
                 {% endif %}
               </td>
 
               <td>
                 {% if user.exclude_from_metrics %}
-                <span class="badge bg-secondary">Excluded</span>
+                  <span class="badge badge-muted">Excluded</span>
                 {% else %}
-                <span class="badge bg-success"><i class="fas fa-check me-1"></i>Reportable</span>
+                  <span class="badge badge-active">
+                    <i class="fa-solid fa-check"></i> Reportable
+                  </span>
                 {% endif %}
               </td>
 
               <td>
                 {% if user.exclude_from_ldap_sync %}
-                <span class="badge bg-danger"><i class="fas fa-ban me-1"></i>Excluded</span>
+                  <span class="badge badge-excluded">
+                    <i class="fa-solid fa-ban"></i> Excluded
+                  </span>
                 {% else %}
-                <span class="badge bg-info"><i class="fas fa-sync me-1"></i>Synced</span>
+                  <span class="badge badge-synced">
+                    <i class="fa-solid fa-rotate"></i> Synced
+                  </span>
                 {% endif %}
               </td>
 
               <td>
                 {% if user.is_active %}
-                <span class="badge bg-success"><i class="fas fa-check me-1"></i>Active</span>
+                  <span class="badge badge-active">
+                    <i class="fa-solid fa-circle-check"></i> Active
+                  </span>
                 {% else %}
-                <span class="badge bg-danger"><i class="fas fa-times me-1"></i>Inactive</span>
+                  <span class="badge badge-inactive">
+                    <i class="fa-solid fa-circle-xmark"></i> Inactive
+                  </span>
                 {% endif %}
               </td>
 
               <td class="text-end">
-                <div class="btn-group btn-group-sm row-actions" role="group" aria-label="User row actions">
-                  <a href="{% url 'accounts:user_detail' user.id %}" class="btn btn-info btn-sm" title="View" aria-label="View user">
-                    <i class="fas fa-eye"></i>
+                <div class="btn-group btn-group-sm row-actions" role="group" aria-label="Actions for {{ user.username }}">
+                  <a href="{% url 'accounts:user_detail' user.id %}"
+                     class="btn btn-sm"
+                     style="background:rgba(6,182,212,.12);color:#0891b2;border:1px solid rgba(6,182,212,.2);"
+                     title="View" aria-label="View {{ user.username }}">
+                    <i class="fa-solid fa-eye"></i>
                   </a>
-                  <a href="{% url 'accounts:user_update' user.id %}" class="btn btn-warning btn-sm" title="Edit" aria-label="Edit user">
-                    <i class="fas fa-edit"></i>
+                  <a href="{% url 'accounts:user_update' user.id %}"
+                     class="btn btn-sm"
+                     style="background:rgba(245,158,11,.12);color:#d97706;border:1px solid rgba(245,158,11,.2);"
+                     title="Edit" aria-label="Edit {{ user.username }}">
+                    <i class="fa-solid fa-pen-to-square"></i>
                   </a>
                   {% if perms.accounts.change_customuser %}
-                  <a href="{% url 'accounts:user_reset_password' user.id %}" class="btn btn-secondary btn-sm" title="Reset Password" aria-label="Reset password">
-                    <i class="fas fa-key"></i>
+                  <a href="{% url 'accounts:user_reset_password' user.id %}"
+                     class="btn btn-sm"
+                     style="background:rgba(100,116,139,.1);color:var(--text-secondary);border:1px solid var(--border-color);"
+                     title="Reset Password" aria-label="Reset password for {{ user.username }}">
+                    <i class="fa-solid fa-key"></i>
                   </a>
                   {% endif %}
-                  <a href="{% url 'accounts:user_delete' user.id %}" class="btn btn-danger btn-sm" title="Delete" aria-label="Delete user">
-                    <i class="fas fa-trash"></i>
+                  <a href="{% url 'accounts:user_delete' user.id %}"
+                     class="btn btn-sm"
+                     style="background:rgba(239,68,68,.12);color:#dc2626;border:1px solid rgba(239,68,68,.2);"
+                     title="Delete" aria-label="Delete {{ user.username }}">
+                    <i class="fa-solid fa-trash"></i>
                   </a>
                 </div>
               </td>
@@ -823,12 +1005,15 @@ tr:hover .row-actions{ opacity: 1; }
 
             {% empty %}
             <tr>
-              <td colspan="11" class="text-center py-5">
-                <i class="fas fa-users-slash fa-3x text-muted mb-3"></i>
-                <h5 class="text-muted mb-1">No Users Found</h5>
-                <p class="text-muted mb-0">
-                  Try adjusting your filters or <a href="{% url 'accounts:user_list' %}">reset the view</a>.
-                </p>
+              <td colspan="12">
+                <div class="empty-state">
+                  <i class="fa-solid fa-user-slash fa-2x"></i>
+                  <h5>No Users Found</h5>
+                  <p>
+                    Try adjusting your filters or
+                    <a href="{% url 'accounts:user_list' %}">reset the view</a>.
+                  </p>
+                </div>
               </td>
             </tr>
             {% endfor %}
@@ -836,42 +1021,53 @@ tr:hover .row-actions{ opacity: 1; }
         </table>
       </div>
     </div>
+    <!-- /table-shell -->
 
-    <!-- STATS + PAGINATION -->
+    <!-- STATS BAR + PAGINATION ==================================== -->
     <div class="stats-bar">
-      <div class="text-muted">
-        <i class="fas fa-users me-2"></i>
-        Showing <strong class="text-dark">{{ users|length }}</strong> of <strong class="text-dark">{{ total_count }}</strong> users
+      <div>
+        <i class="fa-solid fa-users me-1" style="color:var(--text-muted);"></i>
+        Showing
+        <strong>{{ users|length }}</strong> of
+        <strong>{{ total_count }}</strong> users
       </div>
 
       {% if page_obj %}
-      <nav aria-label="User pagination">
+      <nav aria-label="User list pagination">
         <ul class="pagination mb-0">
+
           {% if page_obj.has_previous %}
           <li class="page-item">
             <a class="page-link"
                href="?page={{ page_obj.previous_page_number }}&q={{ q }}&status={{ status }}&department={{ department_selected }}&follow_up={{ follow_up }}&metrics={{ metrics }}&page_size={{ page_size }}">
-              <i class="fas fa-chevron-left"></i>
+              <i class="fa-solid fa-chevron-left"></i>
             </a>
           </li>
           {% else %}
-          <li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-left"></i></span></li>
+          <li class="page-item disabled">
+            <span class="page-link"><i class="fa-solid fa-chevron-left"></i></span>
+          </li>
           {% endif %}
 
           <li class="page-item disabled">
-            <span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+            <span class="page-link">
+              {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+            </span>
           </li>
 
           {% if page_obj.has_next %}
           <li class="page-item">
             <a class="page-link"
                href="?page={{ page_obj.next_page_number }}&q={{ q }}&status={{ status }}&department={{ department_selected }}&follow_up={{ follow_up }}&metrics={{ metrics }}&page_size={{ page_size }}">
-              <i class="fas fa-chevron-right"></i>
+              <i class="fa-solid fa-chevron-right"></i>
             </a>
           </li>
           {% else %}
-          <li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-right"></i></span></li>
+          <li class="page-item disabled">
+            <span class="page-link"><i class="fa-solid fa-chevron-right"></i></span>
+          </li>
           {% endif %}
+
         </ul>
       </nav>
       {% endif %}
@@ -879,31 +1075,35 @@ tr:hover .row-actions{ opacity: 1; }
 
   </div>
 </div>
+<!-- /page-body -->
 
-<!-- BULK CONFIRM MODAL -->
-<div class="modal fade" id="bulkConfirmModal" tabindex="-1" aria-labelledby="bulkConfirmModalLabel" aria-hidden="true">
+<!-- ================================================================
+     BULK CONFIRM MODAL
+     ================================================================ -->
+<div class="modal fade" id="bulkConfirmModal" tabindex="-1"
+     aria-labelledby="bulkConfirmModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content" style="border-radius:14px;">
+    <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="bulkConfirmModalLabel">
-          <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+          <i class="fa-solid fa-triangle-exclamation text-warning me-2"></i>
           Confirm Bulk Action
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-
       <div class="modal-body">
         You are about to apply a bulk action to
         <strong><span id="modalSelectionCount">0</span></strong> users.
-        <div class="mt-2 small text-muted" id="modalActionHint"></div>
+        <div class="mt-2" style="font-size:.85rem; color:var(--text-muted);" id="modalActionHint"></div>
         <div class="alert alert-warning mt-3 mb-0" role="alert">
           <strong>Warning:</strong> Some actions cannot be undone.
         </div>
       </div>
-
       <div class="modal-footer">
         <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button class="btn btn-danger" id="confirmBulkBtn">Confirm & Apply</button>
+        <button class="btn btn-danger" id="confirmBulkBtn">
+          <i class="fa-solid fa-check me-1"></i> Confirm &amp; Apply
+        </button>
       </div>
     </div>
   </div>
@@ -912,152 +1112,92 @@ tr:hover .row-actions{ opacity: 1; }
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
 
-  /* ===========================================================
-     ✅ Filters Collapse/Expand (ALL sizes) + Remember state
-     =========================================================== */
+  /* ================================================================
+     Filter collapse — remember state in localStorage
+     ================================================================ */
   const filtersCollapseEl = document.getElementById('filtersCollapse');
-  const toggleIcon = document.getElementById('filtersToggleIcon');
-  const toggleText = document.getElementById('filtersToggleText');
+  const toggleIcon  = document.getElementById('filtersToggleIcon');
+  const toggleText  = document.getElementById('filtersToggleText');
 
-  function setToggleUI(isShown){
+  function setToggleUI(isShown) {
     if (!toggleIcon || !toggleText) return;
-    toggleIcon.classList.toggle('fa-chevron-up', isShown);
-    toggleIcon.classList.toggle('fa-chevron-down', !isShown);
+    toggleIcon.className = isShown ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down';
     toggleText.textContent = isShown ? 'Collapse' : 'Expand';
   }
 
-  if (filtersCollapseEl && window.bootstrap && bootstrap.Collapse) {
-    const saved = localStorage.getItem('userListFiltersCollapsed'); // "1" = collapsed
-    const shouldCollapse = (saved === "1");
-
+  if (filtersCollapseEl && window.bootstrap?.Collapse) {
+    const collapsed = localStorage.getItem('userListFiltersCollapsed') === '1';
     const bsCollapse = bootstrap.Collapse.getOrCreateInstance(filtersCollapseEl, { toggle: false });
+    if (collapsed) { bsCollapse.hide(); setToggleUI(false); }
+    else           { bsCollapse.show(); setToggleUI(true);  }
 
-    if (shouldCollapse) {
-      bsCollapse.hide();
-      setToggleUI(false);
-    } else {
-      bsCollapse.show();
-      setToggleUI(true);
-    }
-
-    filtersCollapseEl.addEventListener('shown.bs.collapse', function () {
-      localStorage.setItem('userListFiltersCollapsed', "0");
-      setToggleUI(true);
-    });
-
-    filtersCollapseEl.addEventListener('hidden.bs.collapse', function () {
-      localStorage.setItem('userListFiltersCollapsed', "1");
-      setToggleUI(false);
-    });
+    filtersCollapseEl.addEventListener('shown.bs.collapse',  () => { localStorage.setItem('userListFiltersCollapsed','0'); setToggleUI(true);  });
+    filtersCollapseEl.addEventListener('hidden.bs.collapse', () => { localStorage.setItem('userListFiltersCollapsed','1'); setToggleUI(false); });
   }
 
-  /* ===========================================================
-     Existing bulk actions + KPI filters logic (your original)
-     =========================================================== */
-
-  const selectAll = document.getElementById('select-all');
-  const countEl = document.getElementById('selectionCount');
-  const applyBtn = document.getElementById('applyBulk');
+  /* ================================================================
+     Bulk action — checkboxes + count
+     ================================================================ */
+  const selectAll  = document.getElementById('select-all');
+  const countEl    = document.getElementById('selectionCount');
+  const applyBtn   = document.getElementById('applyBulk');
   const bulkAction = document.getElementById('bulk-action');
   const modalCount = document.getElementById('modalSelectionCount');
-  const modalHint = document.getElementById('modalActionHint');
+  const modalHint  = document.getElementById('modalActionHint');
   const confirmBtn = document.getElementById('confirmBulkBtn');
 
-  function updateCount() {
-    const rowCheckboxes = document.querySelectorAll('.row-checkbox');
-    let checkedCount = 0;
-    rowCheckboxes.forEach(cb => {
-      if (cb.checked) checkedCount++;
-    });
-    
-    console.log('Updating count to:', checkedCount);
-    if (countEl) {
-      countEl.textContent = `${checkedCount} selected`;
-      countEl.classList.toggle('active', checkedCount > 0);
-    }
-    if (applyBtn && bulkAction) {
-      applyBtn.disabled = !(checkedCount > 0 && bulkAction.value);
-    }
-    if (modalCount) modalCount.textContent = checkedCount;
+  function getChecked() {
+    return [...document.querySelectorAll('.row-checkbox')].filter(cb => cb.checked).length;
   }
 
-  // Handle select-all checkbox
+  function updateCount() {
+    const n = getChecked();
+    if (countEl) { countEl.textContent = `${n} selected`; countEl.classList.toggle('active', n > 0); }
+    if (applyBtn && bulkAction) applyBtn.disabled = !(n > 0 && bulkAction.value);
+    if (modalCount) modalCount.textContent = n;
+  }
+
   if (selectAll) {
-    selectAll.addEventListener('change', function(e) {
-      console.log('SELECT-ALL checkbox changed to:', this.checked);
-      const rowCheckboxes = document.querySelectorAll('.row-checkbox');
-      rowCheckboxes.forEach(checkbox => {
-        checkbox.checked = this.checked;
-        console.log('Row checkbox set to:', checkbox.checked);
-      });
+    selectAll.addEventListener('change', function () {
+      document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = this.checked);
       updateCount();
     });
   }
 
-  // Handle individual row checkboxes
-  document.querySelectorAll('.row-checkbox').forEach(checkbox => {
-    checkbox.addEventListener('change', function(e) {
-      console.log('ROW checkbox changed:', this.value, 'checked:', this.checked);
-      
-      // Update select-all checkbox state
-      if (selectAll) {
-        const rowCheckboxes = document.querySelectorAll('.row-checkbox');
-        const allChecked = Array.from(rowCheckboxes).every(cb => cb.checked);
-        const noneChecked = Array.from(rowCheckboxes).every(cb => !cb.checked);
-        
-        if (allChecked) {
-          selectAll.checked = true;
-        } else if (noneChecked) {
-          selectAll.checked = false;
-        } else {
-          selectAll.checked = false; // Indeterminate state
-        }
-      }
+  document.querySelectorAll('.row-checkbox').forEach(cb => {
+    cb.addEventListener('change', function () {
+      const all  = document.querySelectorAll('.row-checkbox');
+      const chk  = [...all].filter(c => c.checked).length;
+      if (selectAll) selectAll.checked = (chk === all.length);
       updateCount();
     });
   });
 
-  if (bulkAction) {
-    bulkAction.addEventListener('change', function() {
-      console.log('Action changed to:', this.value);
-      updateCount();
-    });
-  }
+  if (bulkAction) bulkAction.addEventListener('change', updateCount);
 
-  // Confirm bulk action submits the form
   if (confirmBtn) {
     confirmBtn.addEventListener('click', () => {
-      const form = document.getElementById('bulk-action-form');
-      if (form) {
-        console.log('Submitting form');
-        form.submit();
-      }
+      document.getElementById('bulk-action-form')?.submit();
     });
   }
 
-  // When modal opens, inject action name and extra warning if delete
   const modalEl = document.getElementById('bulkConfirmModal');
   if (modalEl) {
     modalEl.addEventListener('show.bs.modal', () => {
-      const rowCheckboxes = document.querySelectorAll('.row-checkbox');
-      let count = 0;
-      rowCheckboxes.forEach(cb => {
-        if (cb.checked) count++;
-      });
-      if (modalCount) modalCount.textContent = count;
-      const action = bulkAction?.value || "(no action selected)";
-      const actionText = bulkAction?.options[bulkAction.selectedIndex]?.text || action;
-      let hint = `Action: <strong>${actionText}</strong>`;
-      if (action === 'delete') {
-        hint += `<div class="mt-2 text-danger fw-bold"><i class="fas fa-trash me-1"></i>Delete is permanent.</div>`;
-      }
+      if (modalCount) modalCount.textContent = getChecked();
+      const action = bulkAction?.value || '';
+      const label  = bulkAction?.options[bulkAction.selectedIndex]?.text || action;
+      let hint = `Action: <strong>${label}</strong>`;
+      if (action === 'delete') hint += `<div class="mt-2 fw-bold" style="color:#dc2626;"><i class="fa-solid fa-trash me-1"></i>Delete is permanent and cannot be undone.</div>`;
       if (modalHint) modalHint.innerHTML = hint;
     });
   }
 
-  // KPI cards click to filter
+  /* ================================================================
+     KPI cards — click to filter
+     ================================================================ */
   document.querySelectorAll('.clickable-kpi').forEach(card => {
     const go = () => {
       const params = card.getAttribute('data-filter-params');
@@ -1065,33 +1205,20 @@ document.addEventListener('DOMContentLoaded', function() {
       try {
         const filters = JSON.parse(params);
         const url = new URLSearchParams(window.location.search);
-        // Clear filters
-        ['status', 'metrics', 'department', 'follow_up', 'q', 'page'].forEach(k => url.delete(k));
-        // Apply filters
-        Object.entries(filters).forEach(([k,v]) => url.set(k, v));
-        // Keep sort/dir if present
+        ['status','metrics','department','follow_up','q','page'].forEach(k => url.delete(k));
+        Object.entries(filters).forEach(([k,v]) => url.set(k,v));
         const sort = new URLSearchParams(window.location.search).get('sort');
-        const dir = new URLSearchParams(window.location.search).get('dir');
+        const dir  = new URLSearchParams(window.location.search).get('dir');
         if (sort) url.set('sort', sort);
-        if (dir) url.set('dir', dir);
+        if (dir)  url.set('dir',  dir);
         window.location.href = '?' + url.toString();
-      } catch(e) {
-        console.error(e);
-      }
+      } catch(e) { console.error(e); }
     };
     card.addEventListener('click', go);
-    card.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        go();
-      }
-    });
+    card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
   });
 
-  // Initial update
-  if (countEl) {
-    updateCount();
-  }
+  updateCount();
 });
 
 function removeFilter(name) {
