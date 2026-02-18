@@ -291,10 +291,6 @@
             <i class="fa-solid fa-angles-left me-2"></i>
             <span>Collapse</span>
         </button>
-        <button type="button" id="theme-toggle-btn" class="btn btn-sm theme-toggle-btn" title="Switch Theme">
-            <i class="fa-solid fa-moon me-2"></i>
-            <span class="theme-text">Dark Mode</span>
-        </button>
         <form method="post" action="{% url 'accounts:logout' %}">
             {% csrf_token %}
             <button type="submit" class="btn btn-sm btn-outline-sidebar">

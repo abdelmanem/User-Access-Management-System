@@ -68,6 +68,7 @@
 
     /**
      * Update theme toggle button icon and text
+     * Lamp icon: solid when light mode (on), regular when dark mode (off)
      */
     function updateThemeButton(theme) {
         const button = document.getElementById('theme-toggle-btn');
@@ -80,22 +81,17 @@
         }
 
         const icon = button.querySelector('i');
-        const text = button.querySelector('.theme-text');
 
         if (theme === THEME_DARK) {
+            // Dark mode: lamp is OFF (regular/outline)
             if (icon) {
-                icon.className = 'fa-solid fa-sun';
-            }
-            if (text) {
-                text.textContent = 'Light Mode';
+                icon.className = 'fa-regular fa-lightbulb fa-lg text-muted';
             }
             button.setAttribute('title', 'Switch to Light Mode');
         } else {
+            // Light mode: lamp is ON (solid/filled)
             if (icon) {
-                icon.className = 'fa-solid fa-moon';
-            }
-            if (text) {
-                text.textContent = 'Dark Mode';
+                icon.className = 'fa-solid fa-lightbulb fa-lg text-yellow-500';
             }
             button.setAttribute('title', 'Switch to Dark Mode');
         }
