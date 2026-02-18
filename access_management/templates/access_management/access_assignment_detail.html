@@ -3,63 +3,334 @@
 
 {% block title %}Access Assignment Details{% endblock %}
 
+{% block extra_css %}
+<style>
+
+    /* ═══════════════════════════════════════════════════════
+       INNER CARD — full theme support
+       ═══════════════════════════════════════════════════════ */
+    .inner-card {
+        background-color: var(--card-bg) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 0.85rem !important;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-sm) !important;
+        transition: var(--transition-base);
+        /* stop the base .card rule from lifting it inside another card */
+        transform: none !important;
+    }
+    .inner-card:hover {
+        box-shadow: var(--shadow-md) !important;
+        border-color: var(--border-color-strong) !important;
+        transform: translateY(-2px) !important;
+    }
+
+    /* ── card-body inside inner cards ── */
+    .inner-card > .card-body {
+        background-color: var(--card-bg) !important;
+        color: var(--text-primary) !important;
+        padding: 0 !important;          /* tables flush to edges */
+    }
+    /* for text-only bodies (justification, requirements) */
+    .inner-card > .card-body.padded {
+        padding: 1.25rem !important;
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       INNER CARD HEADERS — explicit colours, NOT Bootstrap helpers
+       All use the same selector weight + !important so they
+       always beat .card .card-header from base.html
+       ═══════════════════════════════════════════════════════ */
+    .inner-card > .card-header {
+        /* reset every Bootstrap override */
+        border-radius: 0 !important;
+        border-bottom: 1px solid rgba(0,0,0,0.12) !important;
+        padding: 0.8rem 1.1rem !important;
+        font-size: 0.9rem;
+        font-weight: 600;
+        letter-spacing: 0.025em;
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        /* font — inherit system stack from body */
+        font-family: inherit;
+        line-height: 1.4;
+    }
+
+    /* Primary — blue/purple gradient */
+    .inner-card > .card-header.ch-primary {
+        background: var(--primary-gradient) !important;
+        color: #ffffff !important;
+    }
+
+    /* Success — green gradient */
+    .inner-card > .card-header.ch-success {
+        background: var(--success-gradient) !important;
+        color: #ffffff !important;
+    }
+
+    /* Info — cyan gradient */
+    .inner-card > .card-header.ch-info {
+        background: var(--info-gradient) !important;
+        color: #ffffff !important;
+    }
+
+    /* Warning — orange/yellow gradient */
+    .inner-card > .card-header.ch-warning {
+        background: var(--warning-gradient) !important;
+        color: #ffffff !important;
+    }
+
+    /* Secondary — neutral surface, adapts per theme */
+    .inner-card > .card-header.ch-secondary {
+        background: var(--bg-surface-alt) !important;
+        color: var(--text-secondary) !important;
+        border-bottom: 1px solid var(--border-color) !important;
+    }
+
+    /* Dark — deep navy in light, deeper in dark */
+    .inner-card > .card-header.ch-dark {
+        background: linear-gradient(135deg, #1e2638 0%, #2d3a50 100%) !important;
+        color: #e2e8f0 !important;
+        border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+    }
+    [data-theme="dark"] .inner-card > .card-header.ch-dark {
+        background: linear-gradient(135deg, #0b1220 0%, #131c2e 100%) !important;
+        color: #cbd5e1 !important;
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       MAIN OUTER CARD HEADER
+       ═══════════════════════════════════════════════════════ */
+    .main-card > .card-header {
+        background: var(--card-header-bg) !important;
+        color: var(--text-primary) !important;
+        border-bottom: 1px solid var(--border-color) !important;
+        padding: 1.25rem 1.5rem !important;
+    }
+    .main-card > .card-body {
+        background-color: var(--card-bg) !important;
+        color: var(--text-primary) !important;
+        padding: 1.5rem !important;
+    }
+
+    /* page title */
+    .page-title {
+        color: var(--text-primary) !important;
+        font-weight: 700;
+        font-size: 1.3rem;
+        font-family: inherit;
+    }
+    .page-title i { color: var(--sidebar-accent); }
+
+    /* ═══════════════════════════════════════════════════════
+       GOVERNANCE BAR
+       ═══════════════════════════════════════════════════════ */
+    .governance-bar {
+        margin-top: 1rem;
+        background-color: var(--bg-surface-alt) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 0.65rem;
+        padding: 0.9rem 1.1rem;
+    }
+    .governance-bar .gov-label {
+        color: var(--text-muted);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        margin-bottom: 0.6rem;
+        display: block;
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       DETAIL TABLES
+       ═══════════════════════════════════════════════════════ */
+    .detail-table {
+        margin-bottom: 0 !important;
+    }
+    .detail-table th,
+    .detail-table td {
+        padding: 0.6rem 1rem !important;
+        border-color: var(--border-color) !important;
+        vertical-align: middle;
+        font-family: inherit;
+    }
+    .detail-table th {
+        width: 35%;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-muted) !important;
+        background-color: transparent !important;
+        white-space: nowrap;
+    }
+    .detail-table td {
+        color: var(--text-primary) !important;
+    }
+    .detail-table tr:last-child th,
+    .detail-table tr:last-child td {
+        border-bottom: 0 !important;
+    }
+    .detail-table strong {
+        color: var(--text-primary) !important;
+    }
+    .detail-table small,
+    .detail-table .text-muted {
+        color: var(--text-muted) !important;
+    }
+    .detail-table code {
+        background-color: var(--code-bg) !important;
+        color: var(--text-primary) !important;
+        border: 1px solid var(--border-color);
+        border-radius: 0.3rem;
+        padding: 0.15em 0.45em;
+        font-size: 0.875em;
+    }
+    .detail-table a {
+        color: var(--sidebar-accent);
+        text-decoration: none;
+    }
+    .detail-table a:hover { text-decoration: underline; }
+    .detail-table .rejection-text { color: #e74a3b !important; }
+
+    /* ═══════════════════════════════════════════════════════
+       HISTORY TABLE
+       ═══════════════════════════════════════════════════════ */
+    .history-table {
+        margin-bottom: 0 !important;
+        color: var(--text-primary) !important;
+    }
+    .history-table thead th {
+        background-color: var(--bg-surface-alt) !important;
+        color: var(--text-secondary) !important;
+        font-size: 0.76rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        border-bottom: 2px solid var(--border-color) !important;
+        border-color: var(--border-color) !important;
+        padding: 0.65rem 0.9rem !important;
+    }
+    .history-table tbody td {
+        border-color: var(--border-color) !important;
+        color: var(--text-primary) !important;
+        padding: 0.6rem 0.9rem !important;
+        vertical-align: middle;
+    }
+    .history-table small { color: var(--text-muted) !important; }
+
+    /* ═══════════════════════════════════════════════════════
+       JUSTIFICATION / TEXT BLOCKS
+       ═══════════════════════════════════════════════════════ */
+    .text-block h6 {
+        color: var(--text-secondary) !important;
+        font-size: 0.76rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 0.5rem;
+        font-family: inherit;
+    }
+    .text-block p {
+        color: var(--text-primary) !important;
+        line-height: 1.75;
+        margin-bottom: 0;
+        font-family: inherit;
+    }
+    .text-block hr {
+        border-color: var(--border-color) !important;
+        opacity: 1;
+        margin: 1rem 0;
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       EMPTY STATE
+       ═══════════════════════════════════════════════════════ */
+    .empty-state { color: var(--text-muted) !important; }
+
+    /* ═══════════════════════════════════════════════════════
+       RESPONSIVE
+       ═══════════════════════════════════════════════════════ */
+    @media (max-width: 768px) {
+        .header-actions { flex-direction: column; align-items: flex-start !important; }
+        .header-actions .btn-group { flex-wrap: wrap; gap: 0.25rem; }
+        .detail-table th { width: auto; white-space: normal; }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
-            <div class="card">
+            <div class="card main-card">
+
+                <!-- ════════════ MAIN HEADER ════════════ -->
                 <div class="card-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h3 class="card-title mb-0">
-                            <i class="fas fa-key"></i> Access Assignment Details
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 header-actions">
+                        <h3 class="page-title mb-0">
+                            <i class="fas fa-key me-2"></i>Access Assignment Details
                         </h3>
-                        <div class="btn-group">
+                        <div class="btn-group flex-wrap" role="group">
                             {% if access_assignment.user %}
-                            <a href="{% url 'access_management:user_access_assignments' access_assignment.user.pk %}" class="btn btn-outline-secondary">
+                            <a href="{% url 'access_management:user_access_assignments' access_assignment.user.pk %}"
+                               class="btn btn-outline-secondary btn-sm">
                                 <i class="fas fa-user"></i> Back to User Assignments
                             </a>
                             {% endif %}
-                            <a href="{% url 'access_management:access_assignment_list' %}" class="btn btn-outline-secondary">
+                            <a href="{% url 'access_management:access_assignment_list' %}"
+                               class="btn btn-outline-secondary btn-sm">
                                 <i class="fas fa-arrow-left"></i> Back to List
                             </a>
-                            <a href="{% url 'access_management:access_assignment_update' access_assignment.pk %}" class="btn btn-outline-primary">
+                            <a href="{% url 'access_management:access_assignment_update' access_assignment.pk %}"
+                               class="btn btn-outline-primary btn-sm">
                                 <i class="fas fa-edit"></i> Edit
                             </a>
                             {% if access_assignment.status == 'Pending' %}
-                                <button type="button" class="btn btn-outline-success" onclick="approveAccess()">
+                                <button type="button" class="btn btn-outline-success btn-sm" onclick="approveAccess()">
                                     <i class="fas fa-check"></i> Approve
                                 </button>
-                                <button type="button" class="btn btn-outline-danger" onclick="rejectAccess()">
+                                <button type="button" class="btn btn-outline-danger btn-sm" onclick="rejectAccess()">
                                     <i class="fas fa-times"></i> Reject
                                 </button>
                             {% endif %}
-                            <a href="{% url 'access_management:access_assignment_delete' access_assignment.pk %}" class="btn btn-outline-danger">
+                            <a href="{% url 'access_management:access_assignment_delete' access_assignment.pk %}"
+                               class="btn btn-outline-danger btn-sm">
                                 <i class="fas fa-trash"></i> Delete
                             </a>
                         </div>
                     </div>
-                    <!-- New Workflow Actions -->
-                    <div class="mt-3 pt-3 border-top">
-                        <h6 class="mb-3"><i class="fas fa-tasks"></i> Governance Actions</h6>
-                        <div class="btn-group" role="group">
-                            <a href="{% url 'access_management:upload_evidence' access_assignment.pk %}" class="btn btn-sm btn-info" title="Upload evidence artifacts">
+
+                    <!-- Governance Bar -->
+                    <div class="governance-bar">
+                        <span class="gov-label"><i class="fas fa-tasks me-1"></i>Governance Actions</span>
+                        <div class="btn-group flex-wrap" role="group">
+                            <a href="{% url 'access_management:upload_evidence' access_assignment.pk %}"
+                               class="btn btn-sm btn-info">
                                 <i class="fas fa-file-upload"></i> Upload Evidence
                             </a>
-                            <a href="{% url 'access_management:evidence_gallery' access_assignment.pk %}" class="btn btn-sm btn-info" title="View uploaded evidence">
+                            <a href="{% url 'access_management:evidence_gallery' access_assignment.pk %}"
+                               class="btn btn-sm btn-info">
                                 <i class="fas fa-images"></i> Evidence Gallery
                             </a>
                             {% if access_assignment.user == user or user.is_staff or user.is_superuser or perms.access_management.can_attest_any %}
-                            <a href="{% url 'access_management:attest_access' access_assignment.pk %}" class="btn btn-sm btn-warning" title="Attest to this access">
+                            <a href="{% url 'access_management:attest_access' access_assignment.pk %}"
+                               class="btn btn-sm btn-warning">
                                 <i class="fas fa-certificate"></i> Attest Access
                             </a>
                             {% endif %}
                             {% if access_assignment.status == 'Active' or access_assignment.status == 'Suspended' or access_assignment.status == 'Approved' %}
-                            <a href="{% url 'access_management:revoke_access_confirm' access_assignment.pk %}" class="btn btn-sm btn-danger">
+                            <a href="{% url 'access_management:revoke_access_confirm' access_assignment.pk %}"
+                               class="btn btn-sm btn-danger">
                                 <i class="fas fa-ban"></i> Revoke Access
                             </a>
                             {% elif access_assignment.status == 'Revoked' %}
                                 {% if user.is_staff or user.is_superuser or perms.access_management.activate_access %}
-                                <a href="{% url 'access_management:activate_access_confirm' access_assignment.pk %}" class="btn btn-sm btn-success">
+                                <a href="{% url 'access_management:activate_access_confirm' access_assignment.pk %}"
+                                   class="btn btn-sm btn-success">
                                     <i class="fas fa-redo"></i> Activate Access
                                 </a>
                                 {% else %}
@@ -69,47 +340,51 @@
                         </div>
                     </div>
                 </div>
+                <!-- ════════════ END MAIN HEADER ════════════ -->
+
+                <!-- ════════════ MAIN BODY ════════════ -->
                 <div class="card-body">
                     <div class="row">
-                        <!-- Basic Information -->
+
+                        <!-- ── Basic Information ── -->
                         <div class="col-md-6">
-                            <div class="card mb-4">
-                                <div class="card-header bg-primary text-white">
-                                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Basic Information</h5>
+                            <div class="card inner-card">
+                                <div class="card-header ch-primary">
+                                    <i class="fas fa-info-circle"></i> Basic Information
                                 </div>
                                 <div class="card-body">
-                                    <table class="table table-sm">
+                                    <table class="table table-sm detail-table">
                                         <tr>
-                                            <th width="30%">User:</th>
+                                            <th>User</th>
                                             <td>
                                                 <strong>{{ access_assignment.user.full_name }}</strong>
-                                                <br><small class="text-muted">{{ access_assignment.user.username }}</small>
+                                                <br><small>{{ access_assignment.user.username }}</small>
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th>System:</th>
+                                            <th>System</th>
                                             <td>
                                                 <strong>{{ access_assignment.system.name }}</strong>
-                                                <br><small class="text-muted">{{ access_assignment.system.code }}</small>
+                                                <br><small>{{ access_assignment.system.code }}</small>
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th>Access Type:</th>
+                                            <th>Access Type</th>
                                             <td>{{ access_assignment.access_type }}</td>
                                         </tr>
                                         <tr>
-                                            <th>Status:</th>
+                                            <th>Status</th>
                                             <td>
                                                 <span class="badge bg-{{ access_assignment.get_status_color }}">
                                                     {{ access_assignment.status }}
                                                 </span>
                                                 {% if access_assignment.is_expired %}
-                                                    <span class="badge bg-dark">Expired</span>
+                                                    <span class="badge bg-dark ms-1">Expired</span>
                                                 {% endif %}
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th>Priority:</th>
+                                            <th>Priority</th>
                                             <td>
                                                 <span class="badge bg-{{ access_assignment.get_priority_color }}">
                                                     {{ access_assignment.priority }}
@@ -117,11 +392,11 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th>Request Type:</th>
+                                            <th>Request Type</th>
                                             <td>{{ access_assignment.request_type }}</td>
                                         </tr>
                                         <tr>
-                                            <th>Request Date:</th>
+                                            <th>Request Date</th>
                                             <td>{{ access_assignment.request_date|date:"Y-m-d H:i" }}</td>
                                         </tr>
                                     </table>
@@ -129,27 +404,27 @@
                             </div>
                         </div>
 
-                        <!-- Approval Information -->
+                        <!-- ── Approval Information ── -->
                         <div class="col-md-6">
-                            <div class="card mb-4">
-                                <div class="card-header bg-success text-white">
-                                    <h5 class="mb-0"><i class="fas fa-check-circle"></i> Approval Information</h5>
+                            <div class="card inner-card">
+                                <div class="card-header ch-success">
+                                    <i class="fas fa-check-circle"></i> Approval Information
                                 </div>
                                 <div class="card-body">
-                                    <table class="table table-sm">
+                                    <table class="table table-sm detail-table">
                                         <tr>
-                                            <th width="30%">Approved By:</th>
+                                            <th>Approved By</th>
                                             <td>
                                                 {% if access_assignment.approved_by %}
                                                     <strong>{{ access_assignment.approved_by.full_name }}</strong>
-                                                    <br><small class="text-muted">{{ access_assignment.approved_by.username }}</small>
+                                                    <br><small>{{ access_assignment.approved_by.username }}</small>
                                                 {% else %}
                                                     <span class="text-muted">Not approved yet</span>
                                                 {% endif %}
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th>Approval Date:</th>
+                                            <th>Approval Date</th>
                                             <td>
                                                 {% if access_assignment.approval_date %}
                                                     {{ access_assignment.approval_date|date:"Y-m-d H:i" }}
@@ -159,7 +434,7 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th>Approval Comments:</th>
+                                            <th>Approval Comments</th>
                                             <td>
                                                 {% if access_assignment.approval_comments %}
                                                     {{ access_assignment.approval_comments }}
@@ -169,11 +444,11 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th>Requested By:</th>
+                                            <th>Requested By</th>
                                             <td>
                                                 {% if access_assignment.requested_by %}
                                                     <strong>{{ access_assignment.requested_by.full_name }}</strong>
-                                                    <br><small class="text-muted">{{ access_assignment.requested_by.username }}</small>
+                                                    <br><small>{{ access_assignment.requested_by.username }}</small>
                                                 {% else %}
                                                     <span class="text-muted">Self-requested</span>
                                                 {% endif %}
@@ -181,8 +456,8 @@
                                         </tr>
                                         {% if access_assignment.rejection_reason %}
                                         <tr>
-                                            <th>Rejection Reason:</th>
-                                            <td class="text-danger">{{ access_assignment.rejection_reason }}</td>
+                                            <th>Rejection Reason</th>
+                                            <td class="rejection-text">{{ access_assignment.rejection_reason }}</td>
                                         </tr>
                                         {% endif %}
                                     </table>
@@ -192,16 +467,17 @@
                     </div>
 
                     <div class="row">
-                        <!-- Access Details -->
+
+                        <!-- ── Access Details ── -->
                         <div class="col-md-6">
-                            <div class="card mb-4">
-                                <div class="card-header bg-info text-white">
-                                    <h5 class="mb-0"><i class="fas fa-cog"></i> Access Details</h5>
+                            <div class="card inner-card">
+                                <div class="card-header ch-info">
+                                    <i class="fas fa-cog"></i> Access Details
                                 </div>
                                 <div class="card-body">
-                                    <table class="table table-sm">
+                                    <table class="table table-sm detail-table">
                                         <tr>
-                                            <th width="30%">Access Duration:</th>
+                                            <th>Access Duration</th>
                                             <td>
                                                 {% if access_assignment.requested_access_duration %}
                                                     {{ access_assignment.requested_access_duration }} days
@@ -211,7 +487,7 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th>Access Start Date:</th>
+                                            <th>Access Start Date</th>
                                             <td>
                                                 {% if access_assignment.access_start_date %}
                                                     {{ access_assignment.access_start_date|date:"Y-m-d H:i" }}
@@ -221,7 +497,7 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th>Access End Date:</th>
+                                            <th>Access End Date</th>
                                             <td>
                                                 {% if access_assignment.access_end_date %}
                                                     {{ access_assignment.access_end_date|date:"Y-m-d H:i" }}
@@ -234,7 +510,7 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th>Granted Access Level:</th>
+                                            <th>Granted Access Level</th>
                                             <td>
                                                 {% if access_assignment.granted_access_level %}
                                                     {{ access_assignment.granted_access_level }}
@@ -244,7 +520,7 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th>System Username:</th>
+                                            <th>System Username</th>
                                             <td>
                                                 {% if access_assignment.effective_username %}
                                                     <code>{{ access_assignment.effective_username }}</code>
@@ -254,7 +530,7 @@
                                                     </span>
                                                     {% endif %}
                                                     {% if access_assignment.access_username and not access_assignment.system_username %}
-                                                    <br><small class="text-muted">(from legacy field)</small>
+                                                    <br><small>(from legacy field)</small>
                                                     {% endif %}
                                                 {% else %}
                                                     <span class="text-muted">Not specified</span>
@@ -263,26 +539,27 @@
                                         </tr>
                                         {% if access_assignment.is_generic_account %}
                                         <tr>
-                                            <th>Generic Account Status:</th>
+                                            <th>Generic Account Status</th>
                                             <td>
                                                 {% if access_assignment.generic_account_remediated %}
                                                 <span class="badge bg-success">
                                                     <i class="fas fa-check-circle"></i> Remediated
                                                 </span>
                                                 {% if access_assignment.remediation_date %}
-                                                <br><small class="text-muted">
+                                                <br><small>
                                                     Remediated on {{ access_assignment.remediation_date|date:"Y-m-d H:i" }}
                                                     {% if access_assignment.remediated_by %}
-                                                    by {{ access_assignment.remediated_by.full_name }}
+                                                        by {{ access_assignment.remediated_by.full_name }}
                                                     {% endif %}
                                                 </small>
                                                 {% endif %}
                                                 {% else %}
-                                                <span class="badge bg-warning">
+                                                <span class="badge bg-warning text-dark">
                                                     <i class="fas fa-exclamation-triangle"></i> Needs Remediation
                                                 </span>
-                                                <br><a href="{% url 'access_management:mark_generic_account_remediated' access_assignment.pk %}" 
-                                                       class="btn btn-sm btn-success mt-1">
+                                                <br>
+                                                <a href="{% url 'access_management:mark_generic_account_remediated' access_assignment.pk %}"
+                                                   class="btn btn-sm btn-success mt-1">
                                                     <i class="fas fa-check"></i> Mark as Remediated
                                                 </a>
                                                 {% endif %}
@@ -290,43 +567,39 @@
                                         </tr>
                                         {% if access_assignment.remediation_notes %}
                                         <tr>
-                                            <th>Remediation Notes:</th>
+                                            <th>Remediation Notes</th>
                                             <td>{{ access_assignment.remediation_notes|linebreaks }}</td>
                                         </tr>
                                         {% endif %}
                                         {% endif %}
                                         <tr>
-                                            <th>Access URL:</th>
+                                            <th>Access URL</th>
                                             <td>
                                                 {% if access_assignment.access_url %}
-                                                    <a href="{{ access_assignment.access_url }}" target="_blank">{{ access_assignment.access_url }}</a>
+                                                    <a href="{{ access_assignment.access_url }}" target="_blank">
+                                                        {{ access_assignment.access_url }}
+                                                    </a>
                                                 {% else %}
                                                     <span class="text-muted">Not specified</span>
                                                 {% endif %}
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th>System Owner Approved:</th>
+                                            <th>System Owner Approved</th>
                                             <td>
                                                 {% if access_assignment.system_owner_approved %}
                                                     <span class="badge bg-success">
                                                         <i class="fas fa-user-tie"></i> Owner Approved
                                                     </span>
                                                     {% if access_assignment.system_owner_approval_date %}
-                                                    <br>
-                                                    <small class="text-muted">
-                                                        On {{ access_assignment.system_owner_approval_date|date:"Y-m-d H:i" }}
-                                                    </small>
+                                                    <br><small>On {{ access_assignment.system_owner_approval_date|date:"Y-m-d H:i" }}</small>
                                                     {% endif %}
                                                     {% if access_assignment.system_owner_approver %}
-                                                    <br>
-                                                    <small class="text-muted">
-                                                        By {{ access_assignment.system_owner_approver.full_name }}
-                                                    </small>
+                                                    <br><small>By {{ access_assignment.system_owner_approver.full_name }}</small>
                                                     {% endif %}
                                                 {% else %}
                                                     <span class="badge bg-warning text-dark">
-                                                        <i class="fas fa-exclamation-triangle"></i> Missing System Owner approval
+                                                        <i class="fas fa-exclamation-triangle"></i> Missing System Owner Approval
                                                     </span>
                                                 {% endif %}
                                             </td>
@@ -336,16 +609,16 @@
                             </div>
                         </div>
 
-                        <!-- Security & Compliance -->
+                        <!-- ── Security & Compliance ── -->
                         <div class="col-md-6">
-                            <div class="card mb-4">
-                                <div class="card-header bg-warning text-dark">
-                                    <h5 class="mb-0"><i class="fas fa-shield-alt"></i> Security & Compliance</h5>
+                            <div class="card inner-card">
+                                <div class="card-header ch-warning">
+                                    <i class="fas fa-shield-alt"></i> Security &amp; Compliance
                                 </div>
                                 <div class="card-body">
-                                    <table class="table table-sm">
+                                    <table class="table table-sm detail-table">
                                         <tr>
-                                            <th width="30%">Security Clearance:</th>
+                                            <th>Security Clearance</th>
                                             <td>
                                                 {% if access_assignment.security_clearance_required %}
                                                     {{ access_assignment.security_clearance_required }}
@@ -355,7 +628,7 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th>Data Access Level:</th>
+                                            <th>Data Access Level</th>
                                             <td>
                                                 {% if access_assignment.data_access_level %}
                                                     {{ access_assignment.data_access_level }}
@@ -365,7 +638,7 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th>Risk Assessment Score:</th>
+                                            <th>Risk Assessment Score</th>
                                             <td>
                                                 {% if access_assignment.risk_assessment_score %}
                                                     <span class="badge bg-{% if access_assignment.risk_assessment_score >= 8 %}danger{% elif access_assignment.risk_assessment_score >= 6 %}warning{% else %}success{% endif %}">
@@ -377,7 +650,7 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th>Last Review Date:</th>
+                                            <th>Last Review Date</th>
                                             <td>
                                                 {% if access_assignment.last_review_date %}
                                                     {{ access_assignment.last_review_date|date:"Y-m-d" }}
@@ -387,12 +660,12 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th>Next Review Date:</th>
+                                            <th>Next Review Date</th>
                                             <td>
                                                 {% if access_assignment.next_review_date %}
                                                     {{ access_assignment.next_review_date|date:"Y-m-d" }}
                                                     {% if access_assignment.is_due_for_review %}
-                                                        <span class="badge bg-danger">Due for review</span>
+                                                        <span class="badge bg-danger ms-1">Due for review</span>
                                                     {% endif %}
                                                 {% else %}
                                                     <span class="text-muted">Not scheduled</span>
@@ -400,7 +673,7 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th>Review Frequency:</th>
+                                            <th>Review Frequency</th>
                                             <td>
                                                 {% if access_assignment.review_frequency_days %}
                                                     Every {{ access_assignment.review_frequency_days }} days
@@ -410,7 +683,7 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th>Admin Access:</th>
+                                            <th>Admin Access</th>
                                             <td>
                                                 {% if access_assignment.is_admin_access or access_assignment.access_type == 'Admin' or access_assignment.access_type == 'Super Admin' %}
                                                     <span class="badge bg-danger">
@@ -422,7 +695,7 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th>Separate Admin Account:</th>
+                                            <th>Separate Admin Account</th>
                                             <td>
                                                 {% if access_assignment.has_separate_admin_account %}
                                                     <span class="badge bg-success">Yes</span>
@@ -430,9 +703,7 @@
                                                         <br><code>{{ access_assignment.admin_account_username }}</code>
                                                     {% endif %}
                                                     {% if access_assignment.regular_account_username %}
-                                                        <br><small class="text-muted">
-                                                            Regular: {{ access_assignment.regular_account_username }}
-                                                        </small>
+                                                        <br><small>Regular: {{ access_assignment.regular_account_username }}</small>
                                                     {% endif %}
                                                 {% else %}
                                                     <span class="badge bg-warning text-dark">No separate admin ID</span>
@@ -440,7 +711,7 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th>Workstation / Domain Admin:</th>
+                                            <th>Workstation / Domain Admin</th>
                                             <td>
                                                 {% if access_assignment.is_workstation_login %}
                                                     <span class="badge bg-info text-dark">Workstation Login</span>
@@ -449,7 +720,7 @@
                                                             Domain Admin on Workstation (Non-Compliant)
                                                         </span>
                                                     {% else %}
-                                                        <br><small class="text-muted">No domain admin rights (expected)</small>
+                                                        <br><small>No domain admin rights (expected)</small>
                                                     {% endif %}
                                                 {% else %}
                                                     <span class="text-muted">Not marked as workstation login</span>
@@ -457,12 +728,12 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th>Admin Password Storage:</th>
+                                            <th>Admin Password Storage</th>
                                             <td>
                                                 {% if access_assignment.admin_password_storage_location %}
                                                     {{ access_assignment.admin_password_storage_location }}
                                                     {% if access_assignment.admin_password_stored_date %}
-                                                        <br><small class="text-muted">
+                                                        <br><small>
                                                             Verified on {{ access_assignment.admin_password_stored_date|date:"Y-m-d H:i" }}
                                                             {% if access_assignment.admin_password_stored_by %}
                                                                 by {{ access_assignment.admin_password_stored_by.full_name }}
@@ -480,17 +751,17 @@
                         </div>
                     </div>
 
-                    <!-- Username Verification -->
+                    <!-- ── Username Verification ── -->
                     <div class="row">
                         <div class="col-12">
-                            <div class="card mb-4">
-                                <div class="card-header bg-success text-white">
-                                    <h5 class="mb-0"><i class="fas fa-user-check"></i> Username Uniqueness Verification</h5>
+                            <div class="card inner-card">
+                                <div class="card-header ch-success">
+                                    <i class="fas fa-user-check"></i> Username Uniqueness Verification
                                 </div>
                                 <div class="card-body">
-                                    <table class="table table-sm">
+                                    <table class="table table-sm detail-table">
                                         <tr>
-                                            <th width="25%">Verification Status:</th>
+                                            <th>Verification Status</th>
                                             <td>
                                                 {% if access_assignment.has_username_verification %}
                                                 <span class="badge bg-success">
@@ -504,18 +775,18 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th>Verified By:</th>
+                                            <th>Verified By</th>
                                             <td>
                                                 {% if access_assignment.username_verified_by %}
                                                     <strong>{{ access_assignment.username_verified_by.full_name }}</strong>
-                                                    <br><small class="text-muted">{{ access_assignment.username_verified_by.username }}</small>
+                                                    <br><small>{{ access_assignment.username_verified_by.username }}</small>
                                                 {% else %}
                                                     <span class="text-muted">Not recorded</span>
                                                 {% endif %}
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th>Verified Date:</th>
+                                            <th>Verified Date</th>
                                             <td>
                                                 {% if access_assignment.username_verified_date %}
                                                     {{ access_assignment.username_verified_date|date:"Y-m-d H:i" }}
@@ -525,12 +796,12 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th>Evidence:</th>
+                                            <th>Evidence</th>
                                             <td>
                                                 {% if access_assignment.username_verification_artifact or access_assignment.username_verification_artifact_url %}
                                                     {% if access_assignment.username_verification_artifact %}
                                                     <div>
-                                                        <i class="fas fa-paperclip"></i>
+                                                        <i class="fas fa-paperclip me-1"></i>
                                                         <a href="{{ access_assignment.username_verification_artifact.url }}" target="_blank">
                                                             Download Attachment
                                                         </a>
@@ -538,7 +809,7 @@
                                                     {% endif %}
                                                     {% if access_assignment.username_verification_artifact_url %}
                                                     <div>
-                                                        <i class="fas fa-external-link-alt"></i>
+                                                        <i class="fas fa-external-link-alt me-1"></i>
                                                         <a href="{{ access_assignment.username_verification_artifact_url }}" target="_blank">
                                                             View External Evidence
                                                         </a>
@@ -555,14 +826,14 @@
                         </div>
                     </div>
 
-                    <!-- Business Justification -->
+                    <!-- ── Business Justification ── -->
                     <div class="row">
                         <div class="col-12">
-                            <div class="card mb-4">
-                                <div class="card-header bg-secondary text-white">
-                                    <h5 class="mb-0"><i class="fas fa-file-alt"></i> Business Justification & Legitimate Need</h5>
+                            <div class="card inner-card">
+                                <div class="card-header ch-secondary">
+                                    <i class="fas fa-file-alt"></i> Business Justification &amp; Legitimate Need
                                 </div>
-                                <div class="card-body">
+                                <div class="card-body padded text-block">
                                     <h6>Business Justification</h6>
                                     <p>{{ access_assignment.business_justification }}</p>
                                     {% if access_assignment.legitimate_business_need %}
@@ -575,15 +846,15 @@
                         </div>
                     </div>
 
-                    <!-- Technical Requirements -->
+                    <!-- ── Technical Requirements ── -->
                     {% if access_assignment.technical_requirements %}
                     <div class="row">
                         <div class="col-12">
-                            <div class="card mb-4">
-                                <div class="card-header bg-secondary text-white">
-                                    <h5 class="mb-0"><i class="fas fa-tools"></i> Technical Requirements</h5>
+                            <div class="card inner-card">
+                                <div class="card-header ch-secondary">
+                                    <i class="fas fa-tools"></i> Technical Requirements
                                 </div>
-                                <div class="card-body">
+                                <div class="card-body padded text-block">
                                     <p>{{ access_assignment.technical_requirements }}</p>
                                 </div>
                             </div>
@@ -591,15 +862,15 @@
                     </div>
                     {% endif %}
 
-                    <!-- Special Instructions -->
+                    <!-- ── Special Instructions ── -->
                     {% if access_assignment.special_instructions %}
                     <div class="row">
                         <div class="col-12">
-                            <div class="card mb-4">
-                                <div class="card-header bg-secondary text-white">
-                                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Special Instructions</h5>
+                            <div class="card inner-card">
+                                <div class="card-header ch-secondary">
+                                    <i class="fas fa-exclamation-triangle"></i> Special Instructions
                                 </div>
-                                <div class="card-body">
+                                <div class="card-body padded text-block">
                                     <p>{{ access_assignment.special_instructions }}</p>
                                 </div>
                             </div>
@@ -607,15 +878,15 @@
                     </div>
                     {% endif %}
 
-                    <!-- Compliance Requirements -->
+                    <!-- ── Compliance Requirements ── -->
                     {% if access_assignment.compliance_requirements %}
                     <div class="row">
                         <div class="col-12">
-                            <div class="card mb-4">
-                                <div class="card-header bg-secondary text-white">
-                                    <h5 class="mb-0"><i class="fas fa-gavel"></i> Compliance Requirements</h5>
+                            <div class="card inner-card">
+                                <div class="card-header ch-secondary">
+                                    <i class="fas fa-gavel"></i> Compliance Requirements
                                 </div>
-                                <div class="card-body">
+                                <div class="card-body padded text-block">
                                     <p>{{ access_assignment.compliance_requirements }}</p>
                                 </div>
                             </div>
@@ -623,25 +894,25 @@
                     </div>
                     {% endif %}
 
-                    <!-- Access History -->
+                    <!-- ── Access History ── -->
                     <div class="row">
                         <div class="col-12">
-                            <div class="card">
-                                <div class="card-header bg-dark text-white">
-                                    <h5 class="mb-0"><i class="fas fa-history"></i> Recent Access History</h5>
+                            <div class="card inner-card">
+                                <div class="card-header ch-dark">
+                                    <i class="fas fa-history"></i> Recent Access History
                                 </div>
-                                <div class="card-body">
+                                <div class="card-body padded">
                                     {% if access_history %}
                                     <div class="table-responsive">
-                                        <table class="table table-sm">
+                                        <table class="table table-sm history-table">
                                             <thead>
-                                                    <tr>
-                                                        <th>Date & Time</th>
-                                                        <th>Action</th>
-                                                        <th>Description</th>
-                                                        <th>Performed By</th>
-                                                        <th>Success</th>
-                                                    </tr>
+                                                <tr>
+                                                    <th>Date &amp; Time</th>
+                                                    <th>Action</th>
+                                                    <th>Description</th>
+                                                    <th>Performed By</th>
+                                                    <th>Success</th>
+                                                </tr>
                                             </thead>
                                             <tbody>
                                                 {% for history in access_history %}
@@ -656,7 +927,7 @@
                                                     <td>
                                                         {% if history.created_by %}
                                                             <small>{{ history.created_by.get_full_name }}</small>
-                                                            <br><small class="text-muted">{{ history.created_by.username }}</small>
+                                                            <br><small>{{ history.created_by.username }}</small>
                                                         {% else %}
                                                             <span class="text-muted">System</span>
                                                         {% endif %}
@@ -674,64 +945,86 @@
                                         </table>
                                     </div>
                                     {% else %}
-                                    <div class="text-center text-muted">
-                                        <i class="fas fa-history fa-3x mb-3"></i>
-                                        <p>No access history available.</p>
+                                    <div class="text-center py-4 empty-state">
+                                        <i class="fas fa-history fa-3x mb-3 d-block"></i>
+                                        <p class="mb-0">No access history available.</p>
                                     </div>
                                     {% endif %}
                                 </div>
                             </div>
                         </div>
                     </div>
+
                 </div>
+                <!-- ════════════ END MAIN BODY ════════════ -->
             </div>
         </div>
     </div>
 </div>
 
-<!-- Approve/Reject Modals -->
-<div class="modal fade" id="approveModal" tabindex="-1">
+<!-- ════════════ APPROVE MODAL ════════════ -->
+<div class="modal fade" id="approveModal" tabindex="-1" aria-labelledby="approveModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <form method="post" action="{% url 'access_management:approve_access_assignment' access_assignment.pk %}">
                 {% csrf_token %}
                 <div class="modal-header">
-                    <h5 class="modal-title">Approve Access Assignment</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title" id="approveModalLabel">
+                        <i class="fas fa-check-circle me-2 text-success"></i>Approve Access Assignment
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="approval_comments" class="form-label">Approval Comments (Optional)</label>
-                        <textarea class="form-control" id="approval_comments" name="approval_comments" rows="3"></textarea>
+                        <label for="approval_comments" class="form-label">
+                            Approval Comments
+                            <span style="color: var(--text-muted); font-weight: 400;">(Optional)</span>
+                        </label>
+                        <textarea class="form-control" id="approval_comments" name="approval_comments"
+                                  rows="3" placeholder="Add any comments for the approval record..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-success">Approve</button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check me-1"></i> Approve
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<div class="modal fade" id="rejectModal" tabindex="-1">
+<!-- ════════════ REJECT MODAL ════════════ -->
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <form method="post" action="{% url 'access_management:reject_access_assignment' access_assignment.pk %}">
                 {% csrf_token %}
                 <div class="modal-header">
-                    <h5 class="modal-title">Reject Access Assignment</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title" id="rejectModalLabel">
+                        <i class="fas fa-times-circle me-2 text-danger"></i>Reject Access Assignment
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="rejection_reason" class="form-label">Rejection Reason <span class="text-danger">*</span></label>
-                        <textarea class="form-control" id="rejection_reason" name="rejection_reason" rows="3" required></textarea>
+                        <label for="rejection_reason" class="form-label">
+                            Rejection Reason <span class="text-danger">*</span>
+                        </label>
+                        <textarea class="form-control" id="rejection_reason" name="rejection_reason"
+                                  rows="3" placeholder="Provide a clear reason for rejection..." required></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-danger">Reject</button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-times-circle me-1"></i> Reject
+                    </button>
                 </div>
             </form>
         </div>
@@ -744,7 +1037,6 @@
 function approveAccess() {
     new bootstrap.Modal(document.getElementById('approveModal')).show();
 }
-
 function rejectAccess() {
     new bootstrap.Modal(document.getElementById('rejectModal')).show();
 }
