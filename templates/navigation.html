@@ -10,22 +10,10 @@
         </button>
     </div>
 
-    <div class="sidebar-user d-flex align-items-center gap-3">
-        <div class="rounded-circle sidebar-avatar d-flex align-items-center justify-content-center">
-            <i class="fa-solid fa-circle-user fa-lg"></i>
-        </div>
-        <div>
-            <div class="fw-semibold">{{ user.get_full_name|default:user.username }}</div>
-            <small class="sidebar-user-dept text-muted">{{ user.department.name|default:"Administrator" }}</small>
-        </div>
-    </div>
-
     <div class="flex-grow-1 overflow-auto">
         <nav class="nav flex-column gap-1" id="sidebarNav">
             {% nav_active_class 'dashboard_home' 'analytics' as dashboard_active %}
-            <a class="sidebar-link{{ dashboard_active }}" href="{% url 'dashboard_home' %}" data-sidebar-close="true">
-                <span><i class="fa-solid fa-chart-line"></i> Dashboard</span>
-            </a>
+
 
             {% nav_active_class 'accounts:user_list' 'accounts:user_create' 'accounts:user_detail' 'accounts:user_update' 'accounts:user_delete' as users_active %}
             <button class="sidebar-link{{ users_active }}" type="button"
@@ -140,7 +128,6 @@
                 <a class="sidebar-sublink{{ svc_report_active }}" href="{% url 'service_accounts:service_account_compliance_report' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-chart-bar"></i> Compliance Report
                 </a>
-                
             </div>
 
             {% nav_active_class 'accounts:user_deactivation_audit_*' 'accounts:user_archive_*' 'accounts:user_deactivation_audit_list' 'accounts:user_deactivation_audit_detail' 'accounts:user_archive_list' 'accounts:user_archive_detail' as audit_active %}
@@ -162,7 +149,7 @@
                 </a>
             </div>
 
-{% nav_active_class 'access_management:access_assignment_*' 'access_management:user_access_*' 'access_management:system_access_*' 'access_management:access_history_*' 'access_management:approve_access_assignment' 'access_management:reject_access_assignment' 'access_management:cross_system_account_mapping' 'access_management:generic_accounts_report' 'access_management:user_cross_system_accounts' 'access_management:mark_generic_account_remediated' 'access_management:policy_drift_monitoring' 'access_management:admin_accounts_report' 'access_management:quarterly_access_review_dashboard' 'access_management:quarterly_access_review_bulk' 'access_management:access_approval_compliance' 'access_management:my_pending_approvals' 'access_management:approval_summary_dashboard' 'access_management:unapproved_access_list' 'access_management:my_unapproved_access_gaps' 'default_accounts:default_account_*' 'default_accounts:default_account_dashboard' 'default_accounts:default_account_detail' 'default_accounts:default_account_update' 'default_accounts:default_account_templates' 'default_accounts:default_account_create' 'change_management:change_request_*' 'change_management:change_request_list' 'change_management:change_request_create' 'change_management:change_request_detail' 'change_management:change_request_update' as access_active %}
+            {% nav_active_class 'access_management:access_assignment_*' 'access_management:user_access_*' 'access_management:system_access_*' 'access_management:access_history_*' 'access_management:approve_access_assignment' 'access_management:reject_access_assignment' 'access_management:cross_system_account_mapping' 'access_management:generic_accounts_report' 'access_management:user_cross_system_accounts' 'access_management:mark_generic_account_remediated' 'access_management:policy_drift_monitoring' 'access_management:admin_accounts_report' 'access_management:quarterly_access_review_dashboard' 'access_management:quarterly_access_review_bulk' 'access_management:access_approval_compliance' 'access_management:my_pending_approvals' 'access_management:approval_summary_dashboard' 'access_management:unapproved_access_list' 'access_management:my_unapproved_access_gaps' 'default_accounts:default_account_*' 'default_accounts:default_account_dashboard' 'default_accounts:default_account_detail' 'default_accounts:default_account_update' 'default_accounts:default_account_templates' 'default_accounts:default_account_create' 'change_management:change_request_*' 'change_management:change_request_list' 'change_management:change_request_create' 'change_management:change_request_detail' 'change_management:change_request_update' as access_active %}
             <button class="sidebar-link{{ access_active }}" type="button"
                     data-bs-toggle="collapse" data-bs-target="#sidebarAccess"
                     data-main-href="{% url 'access_management:access_assignment_list' %}"
@@ -183,7 +170,6 @@
                 <a class="sidebar-sublink{{ access_create_active }}" href="{% url 'access_management:access_assignment_create' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-plus"></i> New Assignment
                 </a>
-
                 {% nav_active_class 'access_management:cross_system_account_mapping' 'access_management:user_cross_system_accounts' as access_mapping_active %}
                 <a class="sidebar-sublink{{ access_mapping_active }}" href="{% url 'access_management:cross_system_account_mapping' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-network-wired"></i> Cross-System Mapping
@@ -196,7 +182,7 @@
                 <a class="sidebar-sublink{{ policy_drift_active }}" href="{% url 'access_management:policy_drift_monitoring' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-radar"></i> Policy Drift Monitor
                 </a>
-				<div class="sidebar-submenu-divider" role="separator"></div>
+                <div class="sidebar-submenu-divider" role="separator"></div>
                 {% nav_active_class 'access_management:admin_accounts_report' as admin_accounts_active %}
                 <a class="sidebar-sublink{{ admin_accounts_active }}" href="{% url 'access_management:admin_accounts_report' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-user-shield"></i> Admin Accounts (4.3)
@@ -204,7 +190,7 @@
                 {% nav_active_class 'access_management:access_history_list' 'access_management:user_access_history' 'access_management:system_access_history' 'access_management:assignment_access_history' as access_history_active %}
                 <a class="sidebar-sublink{{ access_history_active }}" href="{% url 'access_management:access_history_list' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-history"></i> Access History
-                </a>				
+                </a>
                 <div class="sidebar-submenu-divider" role="separator"></div>
                 {% nav_active_class 'change_management:change_request_list' 'change_management:change_request_detail' 'change_management:change_request_update' as change_list_active %}
                 <a class="sidebar-sublink{{ change_list_active }}" href="{% url 'change_management:change_request_list' %}" data-sidebar-close="true">
@@ -214,7 +200,7 @@
                 <a class="sidebar-sublink{{ change_create_active }}" href="{% url 'change_management:change_request_create' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-plus"></i> New Change Request
                 </a>
-				<div class="sidebar-submenu-divider" role="separator"></div>
+                <div class="sidebar-submenu-divider" role="separator"></div>
                 {% nav_active_class 'access_management:quarterly_access_review_dashboard' as quarterly_reviews_active %}
                 <a class="sidebar-sublink{{ quarterly_reviews_active }}" href="{% url 'access_management:quarterly_access_review_dashboard' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-clipboard-check"></i> Quarterly Reviews (4.5)
@@ -223,7 +209,7 @@
                 <a class="sidebar-sublink{{ quarterly_reviews_bulk_active }}" href="{% url 'access_management:quarterly_access_review_bulk' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-bolt"></i> Bulk Reviews
                 </a>
-				<div class="sidebar-submenu-divider" role="separator"></div>
+                <div class="sidebar-submenu-divider" role="separator"></div>
                 {% nav_active_class 'access_management:access_approval_compliance' as access_compliance_active %}
                 <a class="sidebar-sublink{{ access_compliance_active }}" href="{% url 'access_management:access_approval_compliance' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-shield-alt"></i> Access Compliance (4.6)
@@ -264,7 +250,7 @@
                 <a class="sidebar-sublink{{ import_home_active }}" href="{% url 'data_import_export:home' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-home"></i> Overview
                 </a>
-				<div class="sidebar-submenu-divider" role="separator"></div>
+                <div class="sidebar-submenu-divider" role="separator"></div>
                 {% nav_active_class 'data_import_export:custom_export' as import_custom_active %}
                 <a class="sidebar-sublink{{ import_custom_active }}" href="{% url 'data_import_export:custom_export' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-sliders"></i> Custom Export
