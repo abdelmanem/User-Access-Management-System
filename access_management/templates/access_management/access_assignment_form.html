@@ -8,33 +8,335 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/select2-bootstrap-5-theme/1.3.0/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
 {% endblock %}
 
+{% block extra_css %}
+<style>
+
+    /* ═══════════════════════════════════════════════
+       INNER FORM CARDS
+       ═══════════════════════════════════════════════ */
+    .form-card {
+        background-color: var(--card-bg) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 0.85rem !important;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-sm) !important;
+        transition: var(--transition-base);
+        /* prevent base .card hover lift inside the page card */
+        transform: none !important;
+    }
+    .form-card:hover {
+        box-shadow: var(--shadow-md) !important;
+        border-color: var(--border-color-strong) !important;
+        transform: translateY(-2px) !important;
+    }
+    .form-card > .card-body {
+        background-color: var(--card-bg) !important;
+        color: var(--text-primary) !important;
+        padding: 1.25rem !important;
+    }
+
+    /* ═══════════════════════════════════════════════
+       FORM CARD HEADERS — bypass Bootstrap bg-* classes
+       Using direct child selector + !important wins
+       over base.html's .card .card-header rule
+       ═══════════════════════════════════════════════ */
+    .form-card > .card-header {
+        border-radius: 0 !important;
+        padding: 0.85rem 1.15rem !important;
+        font-size: 0.9rem;
+        font-weight: 600;
+        letter-spacing: 0.025em;
+        font-family: inherit;
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        border-bottom: 1px solid rgba(0,0,0,0.1) !important;
+    }
+    .form-card > .card-header h5 {
+        margin: 0;
+        font-size: inherit;
+        font-weight: inherit;
+        font-family: inherit;
+        color: inherit !important;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* Primary */
+    .form-card > .card-header.ch-primary {
+        background: var(--primary-gradient) !important;
+        color: #fff !important;
+        border-bottom-color: rgba(0,0,0,0.15) !important;
+    }
+    /* Info */
+    .form-card > .card-header.ch-info {
+        background: var(--info-gradient) !important;
+        color: #fff !important;
+        border-bottom-color: rgba(0,0,0,0.15) !important;
+    }
+    /* Success */
+    .form-card > .card-header.ch-success {
+        background: var(--success-gradient) !important;
+        color: #fff !important;
+        border-bottom-color: rgba(0,0,0,0.15) !important;
+    }
+    /* Warning — white text for better contrast on gradient */
+    .form-card > .card-header.ch-warning {
+        background: var(--warning-gradient) !important;
+        color: #fff !important;
+        border-bottom-color: rgba(0,0,0,0.15) !important;
+    }
+    /* Dark */
+    .form-card > .card-header.ch-dark {
+        background: linear-gradient(135deg, #1e2638 0%, #2d3a50 100%) !important;
+        color: #e2e8f0 !important;
+        border-bottom-color: rgba(255,255,255,0.08) !important;
+    }
+    [data-theme="dark"] .form-card > .card-header.ch-dark {
+        background: linear-gradient(135deg, #0b1220 0%, #131c2e 100%) !important;
+        color: #cbd5e1 !important;
+    }
+    /* Secondary / neutral */
+    .form-card > .card-header.ch-secondary {
+        background: var(--bg-surface-alt) !important;
+        color: var(--text-secondary) !important;
+        border-bottom: 1px solid var(--border-color) !important;
+    }
+
+    /* ═══════════════════════════════════════════════
+       OUTER MAIN CARD
+       ═══════════════════════════════════════════════ */
+    .main-card > .card-header {
+        background: var(--card-header-bg) !important;
+        color: var(--text-primary) !important;
+        border-bottom: 1px solid var(--border-color) !important;
+        padding: 1.25rem 1.5rem !important;
+    }
+    .main-card > .card-body {
+        background-color: var(--card-bg) !important;
+        color: var(--text-primary) !important;
+        padding: 1.5rem !important;
+    }
+    .page-title {
+        color: var(--text-primary) !important;
+        font-weight: 700;
+        font-size: 1.3rem;
+        font-family: inherit;
+    }
+    .page-title i { color: var(--sidebar-accent); }
+
+    /* ═══════════════════════════════════════════════
+       FORM CONTROLS
+       ═══════════════════════════════════════════════ */
+    .form-label {
+        color: var(--text-secondary) !important;
+        font-weight: 600;
+        font-size: 0.875rem;
+        margin-bottom: 0.4rem;
+        font-family: inherit;
+    }
+    .form-control,
+    .form-select {
+        background-color: var(--input-bg) !important;
+        color: var(--text-primary) !important;
+        border-color: var(--border-color) !important;
+        font-family: inherit;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    }
+    .form-control:focus,
+    .form-select:focus {
+        background-color: var(--input-bg-focus) !important;
+        color: var(--text-primary) !important;
+        border-color: var(--border-focus) !important;
+        box-shadow: 0 0 0 3px rgba(102,126,234,0.18) !important;
+    }
+    .form-control::placeholder { color: var(--text-muted) !important; }
+    .form-control[readonly] {
+        background-color: var(--bg-surface-alt) !important;
+        color: var(--text-muted) !important;
+    }
+    .form-text {
+        color: var(--text-muted) !important;
+        font-size: 0.8rem;
+    }
+
+    /* Checkboxes */
+    .form-check-label {
+        color: var(--text-primary) !important;
+        font-family: inherit;
+    }
+    .form-check-input {
+        background-color: var(--input-bg) !important;
+        border-color: var(--border-color-strong) !important;
+    }
+    .form-check-input:checked {
+        background-color: #667eea !important;
+        border-color: #667eea !important;
+    }
+    .form-check-input:focus {
+        box-shadow: 0 0 0 3px rgba(102,126,234,0.18) !important;
+        border-color: var(--border-focus) !important;
+    }
+
+    /* ═══════════════════════════════════════════════
+       DESCRIPTION TEXT INSIDE CARD BODY
+       ═══════════════════════════════════════════════ */
+    .form-card .card-body > p.desc {
+        color: var(--text-muted) !important;
+        font-size: 0.875rem;
+        margin-bottom: 1.1rem;
+        line-height: 1.6;
+    }
+
+    /* ═══════════════════════════════════════════════
+       GENERIC ACCOUNT WARNING ALERT (inline)
+       ═══════════════════════════════════════════════ */
+    #generic-account-warning {
+        background-color: rgba(246,194,62,0.12) !important;
+        border: 1px solid rgba(246,194,62,0.4) !important;
+        color: var(--text-primary) !important;
+        border-radius: 0.5rem;
+    }
+    #generic-account-warning i { color: #f6c23e; }
+
+    /* Generic account section card — warning border */
+    #generic-account-section {
+        border-color: rgba(246,194,62,0.5) !important;
+    }
+
+    /* ═══════════════════════════════════════════════
+       EXISTING ARTIFACT ALERT
+       ═══════════════════════════════════════════════ */
+    .alert-artifact {
+        background-color: var(--bg-surface-alt) !important;
+        border: 1px solid var(--border-color) !important;
+        color: var(--text-primary) !important;
+        border-radius: 0.5rem;
+    }
+    .alert-artifact a {
+        color: var(--sidebar-accent) !important;
+    }
+    .alert-artifact a:hover { text-decoration: underline; }
+
+    /* ═══════════════════════════════════════════════
+       SELECT2 — DARK MODE OVERRIDES
+       ═══════════════════════════════════════════════ */
+    .select2-container--bootstrap-5 .select2-selection {
+        background-color: var(--input-bg) !important;
+        border-color: var(--border-color) !important;
+        color: var(--text-primary) !important;
+        font-family: inherit !important;
+    }
+    .select2-container--bootstrap-5 .select2-selection--single
+    .select2-selection__rendered {
+        color: var(--text-primary) !important;
+        font-family: inherit !important;
+    }
+    .select2-container--bootstrap-5 .select2-selection--single
+    .select2-selection__placeholder {
+        color: var(--text-muted) !important;
+    }
+    .select2-container--bootstrap-5.select2-container--focus .select2-selection,
+    .select2-container--bootstrap-5.select2-container--open .select2-selection {
+        background-color: var(--input-bg-focus) !important;
+        border-color: var(--border-focus) !important;
+        box-shadow: 0 0 0 3px rgba(102,126,234,0.18) !important;
+    }
+    /* Dropdown panel */
+    .select2-container--bootstrap-5 .select2-dropdown {
+        background-color: var(--bg-surface-raised) !important;
+        border-color: var(--border-color) !important;
+        border-radius: 0.65rem !important;
+        box-shadow: var(--shadow-lg) !important;
+    }
+    .select2-container--bootstrap-5 .select2-search--dropdown .select2-search__field {
+        background-color: var(--input-bg) !important;
+        border-color: var(--border-color) !important;
+        color: var(--text-primary) !important;
+        border-radius: 0.4rem !important;
+    }
+    .select2-container--bootstrap-5 .select2-results__option {
+        color: var(--text-primary) !important;
+        font-family: inherit !important;
+        padding: 0.45rem 0.85rem !important;
+        border-radius: 0.4rem !important;
+        margin: 0.1rem 0.3rem !important;
+    }
+    .select2-container--bootstrap-5
+    .select2-results__option--highlighted {
+        background-color: var(--list-item-hover) !important;
+        color: var(--text-primary) !important;
+    }
+    .select2-container--bootstrap-5
+    .select2-results__option--selected {
+        background-color: rgba(102,126,234,0.15) !important;
+        color: var(--sidebar-accent) !important;
+    }
+    .select2-container--bootstrap-5 .select2-selection__arrow b {
+        border-top-color: var(--text-muted) !important;
+    }
+    .select2-container--bootstrap-5.select2-container--open
+    .select2-selection__arrow b {
+        border-bottom-color: var(--text-muted) !important;
+    }
+
+    /* ═══════════════════════════════════════════════
+       FORM SUBMIT BUTTON ROW
+       ═══════════════════════════════════════════════ */
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        padding-top: 0.5rem;
+    }
+
+    /* ═══════════════════════════════════════════════
+       TOOLTIP ICON
+       ═══════════════════════════════════════════════ */
+    .fa-info-circle { color: var(--sidebar-accent); }
+
+    /* ═══════════════════════════════════════════════
+       RESPONSIVE
+       ═══════════════════════════════════════════════ */
+    @media (max-width: 768px) {
+        .form-actions { flex-direction: column-reverse; }
+        .form-actions .btn { width: 100%; }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
-            <div class="card">
+            <div class="card main-card">
+
+                <!-- ════ MAIN CARD HEADER ════ -->
                 <div class="card-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h3 class="card-title mb-0">
-                            <i class="fas fa-key"></i> 
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <h3 class="page-title mb-0">
+                            <i class="fas fa-key me-2"></i>
                             {% if access_assignment %}Edit Access Assignment{% else %}Create New Access Assignment{% endif %}
                         </h3>
-                        <div class="btn-group">
-                            <a href="{% url 'access_management:access_assignment_list' %}" class="btn btn-outline-secondary">
-                                <i class="fas fa-arrow-left"></i> Back to List
-                            </a>
-                        </div>
+                        <a href="{% url 'access_management:access_assignment_list' %}"
+                           class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-arrow-left"></i> Back to List
+                        </a>
                     </div>
                 </div>
-                <div class="card-body">
 
-                    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                <!-- ════ MAIN CARD BODY ════ -->
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data"
+                          class="needs-validation" novalidate>
                         {% csrf_token %}
-                        
-                        <!-- Basic Information -->
-                        <div class="card mb-4">
-                            <div class="card-header bg-primary text-white">
-                                <h5 class="mb-0"><i class="fas fa-info-circle"></i> Basic Information</h5>
+
+                        <!-- ── Basic Information ── -->
+                        <div class="card form-card">
+                            <div class="card-header ch-primary">
+                                <h5><i class="fas fa-info-circle"></i> Basic Information</h5>
                             </div>
                             <div class="card-body">
                                 <div class="row">
@@ -46,7 +348,8 @@
                                             <select class="form-select" id="user" name="user" required>
                                                 <option value="">Select User</option>
                                                 {% for choice in users %}
-                                                <option value="{{ choice.pk }}" {% if selected_user_id == choice.pk|stringformat:"s" %}selected{% endif %}>
+                                                <option value="{{ choice.pk }}"
+                                                    {% if selected_user_id == choice.pk|stringformat:"s" %}selected{% endif %}>
                                                     {{ choice.get_full_name }} ({{ choice.username }})
                                                 </option>
                                                 {% endfor %}
@@ -61,7 +364,8 @@
                                             <select class="form-select" id="system" name="system" required>
                                                 <option value="">Select System</option>
                                                 {% for choice in systems %}
-                                                <option value="{{ choice.pk }}" {% if selected_system_id == choice.pk|stringformat:"s" %}selected{% endif %}>
+                                                <option value="{{ choice.pk }}"
+                                                    {% if selected_system_id == choice.pk|stringformat:"s" %}selected{% endif %}>
                                                     {{ choice.name }} ({{ choice.code }})
                                                 </option>
                                                 {% endfor %}
@@ -73,7 +377,7 @@
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label for="subscription_tier" class="form-label">
-                                                Subscription Tier (optional)
+                                                Subscription Tier <span style="color:var(--text-muted);font-weight:400;">(optional)</span>
                                             </label>
                                             <select class="form-select" id="subscription_tier" name="subscription_tier">
                                                 <option value="">Select tier (auto-count seats)</option>
@@ -87,9 +391,9 @@
                                                 </option>
                                                 {% endfor %}
                                             </select>
-                                            <small class="form-text text-muted">
-                                                Pick the tier for subscription systems (e.g., RHG Email) so seats are counted from assignments.
-                                            </small>
+                                            <span class="form-text">
+                                                Pick the tier for subscription systems so seats are counted from assignments.
+                                            </span>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -98,13 +402,12 @@
                                                 License Category / SKU
                                             </label>
                                             <input type="text" class="form-control"
-                                                   id="license_category"
-                                                   name="license_category"
+                                                   id="license_category" name="license_category"
                                                    value="{{ license_category_value }}"
                                                    placeholder="E1, Mailbox, etc.">
-                                            <small class="form-text text-muted">
-                                                Required for auto seat counting; defaults to the selected tier’s category.
-                                            </small>
+                                            <span class="form-text">
+                                                Required for auto seat counting; defaults to the selected tier's category.
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -117,7 +420,8 @@
                                             <select class="form-select" id="access_type" name="access_type" required>
                                                 <option value="">Select Access Type</option>
                                                 {% for val,label in access_type_choices %}
-                                                <option value="{{ val }}" {% if selected_access_type == val %}selected{% endif %}>{{ label }}</option>
+                                                <option value="{{ val }}"
+                                                    {% if selected_access_type == val %}selected{% endif %}>{{ label }}</option>
                                                 {% endfor %}
                                             </select>
                                         </div>
@@ -130,7 +434,8 @@
                                             <select class="form-select" id="request_type" name="request_type" required>
                                                 <option value="">Select Request Type</option>
                                                 {% for val,label in request_type_choices %}
-                                                <option value="{{ val }}" {% if selected_request_type == val %}selected{% endif %}>{{ label }}</option>
+                                                <option value="{{ val }}"
+                                                    {% if selected_request_type == val %}selected{% endif %}>{{ label }}</option>
                                                 {% endfor %}
                                             </select>
                                         </div>
@@ -143,7 +448,8 @@
                                             <select class="form-select" id="priority" name="priority" required>
                                                 <option value="">Select Priority</option>
                                                 {% for val,label in priority_choices %}
-                                                <option value="{{ val }}" {% if selected_priority == val %}selected{% endif %}>{{ label }}</option>
+                                                <option value="{{ val }}"
+                                                    {% if selected_priority == val %}selected{% endif %}>{{ label }}</option>
                                                 {% endfor %}
                                             </select>
                                         </div>
@@ -152,10 +458,10 @@
                             </div>
                         </div>
 
-                        <!-- Access Details -->
-                        <div class="card mb-4">
-                            <div class="card-header bg-info text-white">
-                                <h5 class="mb-0"><i class="fas fa-cog"></i> Access Details</h5>
+                        <!-- ── Access Details ── -->
+                        <div class="card form-card">
+                            <div class="card-header ch-info">
+                                <h5><i class="fas fa-cog"></i> Access Details</h5>
                             </div>
                             <div class="card-body">
                                 <div class="row">
@@ -211,18 +517,19 @@
                                         <div class="mb-3">
                                             <label for="system_username" class="form-label">
                                                 System Username <span class="text-danger">*</span>
-                                                <i class="fas fa-info-circle" data-bs-toggle="tooltip" 
-                                                   title="Actual username in the external system (e.g., 'john.doe' in AD, 'jdoe' in Opera Cloud)"></i>
+                                                <i class="fas fa-info-circle ms-1"
+                                                   data-bs-toggle="tooltip"
+                                                   title="Actual username in the external system (e.g., 'john.doe' in AD)"></i>
                                             </label>
                                             <input type="text" class="form-control"
                                                    id="system_username"
                                                    name="system_username"
                                                    value="{% if access_assignment %}{{ access_assignment.effective_username }}{% else %}{{ system_username_value }}{% endif %}"
                                                    required>
-                                            <small class="form-text text-muted">The actual username used in the external system</small>
-                                            <div id="generic-account-warning" class="alert alert-warning mt-2" style="display: none;">
-                                                <i class="fas fa-exclamation-triangle"></i> 
-                                                <strong>Warning:</strong> This username appears to be a generic account. 
+                                            <span class="form-text">The actual username used in the external system</span>
+                                            <div id="generic-account-warning" class="alert mt-2" style="display:none;">
+                                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                                <strong>Warning:</strong> This username appears to be a generic account.
                                                 Generic accounts are not allowed per RHG Access Control Policy.
                                             </div>
                                         </div>
@@ -231,9 +538,7 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="access_url" class="form-label">
-                                                Access URL
-                                            </label>
+                                            <label for="access_url" class="form-label">Access URL</label>
                                             <input type="url" class="form-control"
                                                    id="access_url"
                                                    name="access_url"
@@ -244,15 +549,13 @@
                             </div>
                         </div>
 
-                        <!-- Administrator Access (RHG 4.3) -->
-                        <div class="card mb-4">
-                            <div class="card-header bg-dark text-white">
-                                <h5 class="mb-0">
-                                    <i class="fas fa-user-shield"></i> Administrator Access (4.3 Compliance)
-                                </h5>
+                        <!-- ── Administrator Access (4.3) ── -->
+                        <div class="card form-card">
+                            <div class="card-header ch-dark">
+                                <h5><i class="fas fa-user-shield"></i> Administrator Access (4.3 Compliance)</h5>
                             </div>
                             <div class="card-body">
-                                <p class="text-muted">
+                                <p class="desc">
                                     Use this section to document administrator-equivalent access, separate admin IDs,
                                     workstation/domain-admin combinations, and where administrator credentials are stored.
                                 </p>
@@ -260,8 +563,7 @@
                                     <div class="col-md-4">
                                         <div class="form-check mb-3">
                                             <input class="form-check-input" type="checkbox"
-                                                   id="is_admin_access"
-                                                   name="is_admin_access"
+                                                   id="is_admin_access" name="is_admin_access"
                                                    {% if is_admin_access_value %}checked{% endif %}>
                                             <label class="form-check-label" for="is_admin_access">
                                                 This assignment grants administrator / equivalent access
@@ -282,8 +584,7 @@
                                     <div class="col-md-4">
                                         <div class="form-check mb-3">
                                             <input class="form-check-input" type="checkbox"
-                                                   id="is_workstation_login"
-                                                   name="is_workstation_login"
+                                                   id="is_workstation_login" name="is_workstation_login"
                                                    {% if is_workstation_login_value %}checked{% endif %}>
                                             <label class="form-check-label" for="is_workstation_login">
                                                 Account is used for workstation login
@@ -302,9 +603,7 @@
                                                    name="admin_account_username"
                                                    value="{{ admin_account_username_value }}"
                                                    placeholder="e.g., John.Doe_Admin">
-                                            <small class="form-text text-muted">
-                                                Separate administrator account in the external system.
-                                            </small>
+                                            <span class="form-text">Separate administrator account in the external system.</span>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -317,9 +616,7 @@
                                                    name="regular_account_username"
                                                    value="{{ regular_account_username_value }}"
                                                    placeholder="e.g., John.Doe">
-                                            <small class="form-text text-muted">
-                                                Non-admin account used for day-to-day work.
-                                            </small>
+                                            <span class="form-text">Non-admin account used for day-to-day work.</span>
                                         </div>
                                     </div>
                                 </div>
@@ -327,15 +624,14 @@
                                     <div class="col-md-6">
                                         <div class="form-check mb-3">
                                             <input class="form-check-input" type="checkbox"
-                                                   id="has_domain_admin"
-                                                   name="has_domain_admin"
+                                                   id="has_domain_admin" name="has_domain_admin"
                                                    {% if has_domain_admin_value %}checked{% endif %}>
                                             <label class="form-check-label" for="has_domain_admin">
                                                 Account has domain admin / equivalent rights
                                             </label>
-                                            <small class="form-text text-muted d-block">
+                                            <span class="form-text d-block">
                                                 Workstation login accounts should <strong>not</strong> have domain admin.
-                                            </small>
+                                            </span>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -348,9 +644,7 @@
                                                    name="admin_password_storage_location"
                                                    value="{{ admin_password_storage_location_value }}"
                                                    placeholder="e.g., Controller safe, Password vault ID">
-                                            <small class="form-text text-muted">
-                                                Where the admin credential is stored (safe, vault, sealed envelope, etc.).
-                                            </small>
+                                            <span class="form-text">Where the admin credential is stored.</span>
                                         </div>
                                     </div>
                                 </div>
@@ -364,126 +658,128 @@
                                                    id="admin_password_stored_date"
                                                    name="admin_password_stored_date"
                                                    value="{{ admin_password_stored_date_value }}">
-                                            <small class="form-text text-muted">
+                                            <span class="form-text">
                                                 When the storage location for this admin credential was last confirmed.
-                                            </small>
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                    <!-- Username Uniqueness Verification -->
-                    <div class="card mb-4">
-                        <div class="card-header bg-success text-white">
-                            <h5 class="mb-0"><i class="fas fa-user-check"></i> Username Uniqueness Verification</h5>
-                        </div>
-                        <div class="card-body">
-                            <p class="text-muted">
-                                Document who confirmed that the external username belongs only to this employee and capture evidence for auditors.
-                            </p>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="username_verified_by" class="form-label">
-                                            Verified By
-                                        </label>
-                                        <select class="form-select" id="username_verified_by" name="username_verified_by">
-                                            <option value="">Select verifier</option>
-                                            {% for verifier in verifiers %}
-                                            <option value="{{ verifier.pk }}"
-                                                {% if username_verified_by_value == verifier.pk|stringformat:"s" %}selected{% endif %}>
-                                                {{ verifier.get_full_name }} ({{ verifier.username }})
-                                            </option>
-                                            {% endfor %}
-                                        </select>
-                                        <small class="form-text text-muted">
-                                            Defaults to you when a verification date is provided.
-                                        </small>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="username_verified_date" class="form-label">
-                                            Verification Date
-                                        </label>
-                                        <input type="datetime-local" class="form-control"
-                                               id="username_verified_date"
-                                               name="username_verified_date"
-                                               value="{{ username_verified_date_value }}">
-                                        <small class="form-text text-muted">
-                                            Date/time when uniqueness was last confirmed.
-                                        </small>
-                                    </div>
-                                </div>
+                        <!-- ── Username Uniqueness Verification ── -->
+                        <div class="card form-card">
+                            <div class="card-header ch-success">
+                                <h5><i class="fas fa-user-check"></i> Username Uniqueness Verification</h5>
                             </div>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="username_verification_artifact" class="form-label">
-                                            Evidence Attachment
-                                        </label>
-                                        <input type="file" class="form-control"
-                                               id="username_verification_artifact"
-                                               name="username_verification_artifact"
-                                               accept=".pdf,.png,.jpg,.jpeg,.xls,.xlsx,.csv">
-                                        <small class="form-text text-muted">
-                                            Upload screenshots or exports that prove the username is unique.
-                                        </small>
-                                    </div>
-                                    {% if access_assignment and access_assignment.username_verification_artifact %}
-                                    <div class="alert alert-light border d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <i class="fas fa-paperclip"></i>
-                                            <a href="{{ access_assignment.username_verification_artifact.url }}" target="_blank">
-                                                {{ access_assignment.username_verification_artifact.name }}
-                                            </a>
+                            <div class="card-body">
+                                <p class="desc">
+                                    Document who confirmed that the external username belongs only to this employee
+                                    and capture evidence for auditors.
+                                </p>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="username_verified_by" class="form-label">Verified By</label>
+                                            <select class="form-select" id="username_verified_by" name="username_verified_by">
+                                                <option value="">Select verifier</option>
+                                                {% for verifier in verifiers %}
+                                                <option value="{{ verifier.pk }}"
+                                                    {% if username_verified_by_value == verifier.pk|stringformat:"s" %}selected{% endif %}>
+                                                    {{ verifier.get_full_name }} ({{ verifier.username }})
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                            <span class="form-text">Defaults to you when a verification date is provided.</span>
                                         </div>
-                                        <div class="form-check mb-0">
-                                            <input class="form-check-input" type="checkbox"
-                                                   id="clear_username_verification_artifact"
-                                                   name="clear_username_verification_artifact">
-                                            <label class="form-check-label" for="clear_username_verification_artifact">
-                                                Remove file on save
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="username_verified_date" class="form-label">Verification Date</label>
+                                            <input type="datetime-local" class="form-control"
+                                                   id="username_verified_date"
+                                                   name="username_verified_date"
+                                                   value="{{ username_verified_date_value }}">
+                                            <span class="form-text">Date/time when uniqueness was last confirmed.</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="username_verification_artifact" class="form-label">
+                                                Evidence Attachment
                                             </label>
+                                            <input type="file" class="form-control"
+                                                   id="username_verification_artifact"
+                                                   name="username_verification_artifact"
+                                                   accept=".pdf,.png,.jpg,.jpeg,.xls,.xlsx,.csv">
+                                            <span class="form-text">
+                                                Upload screenshots or exports that prove the username is unique.
+                                            </span>
                                         </div>
+                                        {% if access_assignment and access_assignment.username_verification_artifact %}
+                                        <div class="alert-artifact d-flex justify-content-between align-items-center p-3 mb-3">
+                                            <div>
+                                                <i class="fas fa-paperclip me-1"></i>
+                                                <a href="{{ access_assignment.username_verification_artifact.url }}" target="_blank">
+                                                    {{ access_assignment.username_verification_artifact.name }}
+                                                </a>
+                                            </div>
+                                            <div class="form-check mb-0">
+                                                <input class="form-check-input" type="checkbox"
+                                                       id="clear_username_verification_artifact"
+                                                       name="clear_username_verification_artifact">
+                                                <label class="form-check-label" for="clear_username_verification_artifact">
+                                                    Remove file on save
+                                                </label>
+                                            </div>
+                                        </div>
+                                        {% endif %}
                                     </div>
-                                    {% endif %}
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="username_verification_artifact_url" class="form-label">
-                                            Evidence URL
-                                        </label>
-                                        <input type="url" class="form-control"
-                                               id="username_verification_artifact_url"
-                                               name="username_verification_artifact_url"
-                                               value="{{ username_verification_artifact_url_value }}"
-                                               placeholder="https://ticketing-system/records/123">
-                                        <small class="form-text text-muted">
-                                            Link to a ticket, SOP, or document that stores the verification.
-                                        </small>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="username_verification_artifact_url" class="form-label">
+                                                Evidence URL
+                                            </label>
+                                            <input type="url" class="form-control"
+                                                   id="username_verification_artifact_url"
+                                                   name="username_verification_artifact_url"
+                                                   value="{{ username_verification_artifact_url_value }}"
+                                                   placeholder="https://ticketing-system/records/123">
+                                            <span class="form-text">
+                                                Link to a ticket, SOP, or document that stores the verification.
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                        <!-- Generic Account Detection (Compliance Tracking) -->
+                        <!-- ── Generic Account Detection ── -->
                         {% if access_assignment and access_assignment.is_generic_account or system_username_value %}
-                        <div class="card mb-4 border-warning" id="generic-account-section" style="{% if not access_assignment or not access_assignment.is_generic_account %}display: none;{% endif %}">
-                            <div class="card-header bg-warning text-dark">
-                                <h5 class="mb-0">
+                        <div class="card form-card" id="generic-account-section"
+                             style="{% if not access_assignment or not access_assignment.is_generic_account %}display:none;{% endif %}
+                                    border-color: rgba(246,194,62,0.5) !important;">
+                            <div class="card-header ch-warning">
+                                <h5>
                                     <i class="fas fa-exclamation-triangle"></i> Generic Account Detection
-                                    <span class="badge bg-danger">Non-Compliant</span>
+                                    <span class="badge bg-danger ms-2">Non-Compliant</span>
                                 </h5>
                             </div>
                             <div class="card-body">
-                                <div class="alert alert-warning" id="generic-account-alert">
-                                    <strong><i class="fas fa-info-circle"></i> Generic Account Detected:</strong>
+                                <div id="generic-account-alert" style="
+                                    background-color: rgba(246,194,62,0.1);
+                                    border: 1px solid rgba(246,194,62,0.4);
+                                    border-radius: 0.5rem;
+                                    padding: 1rem;
+                                    margin-bottom: 1rem;
+                                    color: var(--text-primary);
+                                ">
+                                    <strong><i class="fas fa-info-circle me-1" style="color:#f6c23e;"></i>Generic Account Detected:</strong>
                                     <span id="generic-account-message">
                                         {% if access_assignment %}
-                                        The username "{{ access_assignment.effective_username }}" in {{ access_assignment.system.name }} 
+                                        The username "{{ access_assignment.effective_username }}" in {{ access_assignment.system.name }}
                                         {% else %}
                                         The username entered
                                         {% endif %}
@@ -494,9 +790,8 @@
                                     <div class="col-md-12">
                                         <div class="mb-3">
                                             <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" 
-                                                       id="is_generic_account" 
-                                                       name="is_generic_account" 
+                                                <input class="form-check-input" type="checkbox"
+                                                       id="is_generic_account" name="is_generic_account"
                                                        {% if access_assignment and access_assignment.is_generic_account %}checked{% endif %}>
                                                 <label class="form-check-label" for="is_generic_account">
                                                     This is a generic account in the external system
@@ -509,9 +804,9 @@
                                     <div class="col-md-12">
                                         <div class="mb-3">
                                             <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" 
-                                                       id="generic_account_remediated" 
-                                                       name="generic_account_remediated" 
+                                                <input class="form-check-input" type="checkbox"
+                                                       id="generic_account_remediated"
+                                                       name="generic_account_remediated"
                                                        {% if access_assignment and access_assignment.generic_account_remediated %}checked{% endif %}>
                                                 <label class="form-check-label" for="generic_account_remediated">
                                                     Generic account has been remediated in the external system
@@ -520,55 +815,47 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div id="remediation-details-section" style="{% if not access_assignment or not access_assignment.generic_account_remediated %}display: none;{% endif %}">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="remediation_date" class="form-label">
-                                                Remediation Date
-                                            </label>
-                                            <input type="datetime-local" class="form-control"
-                                                   id="remediation_date"
-                                                   name="remediation_date"
-                                                   value="{% if access_assignment and access_assignment.remediation_date %}{{ access_assignment.remediation_date|date:'Y-m-d\TH:i' }}{% endif %}">
-                                            <small class="form-text text-muted">Date when the generic account was remediated in the external system</small>
+                                <div id="remediation-details-section"
+                                     style="{% if not access_assignment or not access_assignment.generic_account_remediated %}display:none;{% endif %}">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="remediation_date" class="form-label">Remediation Date</label>
+                                                <input type="datetime-local" class="form-control"
+                                                       id="remediation_date" name="remediation_date"
+                                                       value="{% if access_assignment and access_assignment.remediation_date %}{{ access_assignment.remediation_date|date:'Y-m-d\TH:i' }}{% endif %}">
+                                                <span class="form-text">Date when the generic account was remediated.</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">Remediated By</label>
+                                                <input type="text" class="form-control" readonly
+                                                       value="{% if access_assignment and access_assignment.remediated_by %}{{ access_assignment.remediated_by.full_name }}{% else %}Will be recorded automatically{% endif %}">
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label class="form-label">
-                                                Remediated By
-                                            </label>
-                                            <input type="text" class="form-control" 
-                                                   value="{% if access_assignment and access_assignment.remediated_by %}{{ access_assignment.remediated_by.full_name }}{% else %}Will be recorded automatically{% endif %}" 
-                                                   readonly>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="mb-3">
+                                                <label for="remediation_notes" class="form-label">Remediation Notes</label>
+                                                <textarea class="form-control"
+                                                          id="remediation_notes" name="remediation_notes"
+                                                          rows="3"
+                                                          placeholder="Describe how the generic account was remediated...">{% if access_assignment and access_assignment.remediation_notes %}{{ access_assignment.remediation_notes }}{% endif %}</textarea>
+                                                <span class="form-text">Required for audit compliance.</span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <div class="mb-3">
-                                            <label for="remediation_notes" class="form-label">
-                                                Remediation Notes
-                                            </label>
-                                            <textarea class="form-control"
-                                                      id="remediation_notes"
-                                                      name="remediation_notes"
-                                                      rows="3"
-                                                      placeholder="Describe how the generic account was remediated in the external system...">{% if access_assignment and access_assignment.remediation_notes %}{{ access_assignment.remediation_notes }}{% endif %}</textarea>
-                                            <small class="form-text text-muted">Document how the generic account was remediated in the external system (required for audit compliance)</small>
-                                        </div>
-                                    </div>
-                                </div>
                                 </div>
                             </div>
                         </div>
                         {% endif %}
 
-                        <!-- Security & Compliance -->
-                        <div class="card mb-4">
-                            <div class="card-header bg-warning text-dark">
-                                <h5 class="mb-0"><i class="fas fa-shield-alt"></i> Security & Compliance</h5>
+                        <!-- ── Security & Compliance ── -->
+                        <div class="card form-card">
+                            <div class="card-header ch-warning">
+                                <h5><i class="fas fa-shield-alt"></i> Security &amp; Compliance</h5>
                             </div>
                             <div class="card-body">
                                 <div class="row">
@@ -599,7 +886,7 @@
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label for="risk_assessment_score" class="form-label">
-                                                Risk Assessment Score (1-10)
+                                                Risk Assessment Score (1–10)
                                             </label>
                                             <input type="number" class="form-control"
                                                    id="risk_assessment_score"
@@ -623,12 +910,36 @@
                             </div>
                         </div>
 
-                        {% include 'includes/system_owner_authorization.html' with system_owner_field_name='system_owner_approver' system_owner_selected=system_owner_approver_value system_owner_approved=system_owner_approved_value system_owner_approval_date=system_owner_approval_date_value system_owner_notes='' business_justification_value=business_justification_value legitimate_business_need_value=legitimate_business_need_value users=users %}
+                        <!-- ── System Owner Authorization (included partial) ── -->
+                        {# the partial handles read-only vs editable layout via can_edit flag #}
+                        {% if can_edit_owner_section %}
+                            {% include 'includes/system_owner_authorization.html' with
+                                system_owner_field_name='system_owner_approver'
+                                system_owner_selected=system_owner_approver_value
+                                system_owner_approved=system_owner_approved_value
+                                system_owner_approval_date=system_owner_approval_date_value
+                                system_owner_notes=''
+                                business_justification_value=business_justification_value
+                                legitimate_business_need_value=legitimate_business_need_value
+                                users=users
+                                can_edit=True %}
+                        {% else %}
+                            {% include 'includes/system_owner_authorization.html' with
+                                system_owner_field_name='system_owner_approver'
+                                system_owner_selected=system_owner_approver_value
+                                system_owner_approved=system_owner_approved_value
+                                system_owner_approval_date=system_owner_approval_date_value
+                                system_owner_notes=''
+                                business_justification_value=business_justification_value
+                                legitimate_business_need_value=legitimate_business_need_value
+                                users=users
+                                can_edit=False %}
+                        {% endif %}
 
-                        <!-- Additional Information -->
-                        <div class="card mb-4">
-                            <div class="card-header bg-secondary text-white">
-                                <h5 class="mb-0"><i class="fas fa-plus-circle"></i> Additional Information</h5>
+                        <!-- ── Additional Information ── -->
+                        <div class="card form-card">
+                            <div class="card-header ch-secondary">
+                                <h5><i class="fas fa-plus-circle"></i> Additional Information</h5>
                             </div>
                             <div class="card-body">
                                 <div class="mb-3">
@@ -661,18 +972,21 @@
                             </div>
                         </div>
 
-                        <!-- Form Buttons -->
-                        <div class="d-flex justify-content-end gap-2">
-                            <a href="{% url 'access_management:access_assignment_list' %}" class="btn btn-outline-secondary">
-                                <i class="fas fa-times"></i> Cancel
+                        <!-- ── Form Actions ── -->
+                        <div class="form-actions">
+                            <a href="{% url 'access_management:access_assignment_list' %}"
+                               class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i> Cancel
                             </a>
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> 
+                                <i class="fas fa-save me-1"></i>
                                 {% if access_assignment %}Update{% else %}Create{% endif %} Access Assignment
                             </button>
                         </div>
+
                     </form>
                 </div>
+                <!-- end main card body -->
             </div>
         </div>
     </div>
@@ -681,206 +995,162 @@
 
 {% block extrajs %}
 <script>
-// Form validation
-(function() {
+/* ── Form validation ── */
+(function () {
     'use strict';
-    window.addEventListener('load', function() {
-        var forms = document.getElementsByClassName('needs-validation');
-        var validation = Array.prototype.filter.call(forms, function(form) {
-            form.addEventListener('submit', function(event) {
-                if (form.checkValidity() === false) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                }
-                form.classList.add('was-validated');
-            }, false);
-        });
+    window.addEventListener('load', function () {
+        Array.prototype.forEach.call(
+            document.getElementsByClassName('needs-validation'),
+            function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            }
+        );
     }, false);
 })();
 
-// Dynamic form behavior
-document.addEventListener('DOMContentLoaded', function() {
-    const accessTypeSelect = document.querySelector('select[name="access_type"]');
-    const systemSelect = document.querySelector('select[name="system"]');
-    const accessEndDateInput = document.querySelector('input[name="access_end_date"]');
-    const requestedDurationInput = document.querySelector('input[name="requested_access_duration"]');
-    const tierSelect = document.getElementById('subscription_tier');
-    const licenseInput = document.getElementById('license_category');
+/* ── Dynamic behaviour ── */
+document.addEventListener('DOMContentLoaded', function () {
 
-    // Auto-calculate end date based on duration
+    /* Bootstrap tooltips */
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+        new bootstrap.Tooltip(el);
+    });
+
+    const accessEndDateInput      = document.querySelector('input[name="access_end_date"]');
+    const requestedDurationInput  = document.querySelector('input[name="requested_access_duration"]');
+    const systemSelect            = document.querySelector('select[name="system"]');
+    const tierSelect              = document.getElementById('subscription_tier');
+    const licenseInput            = document.getElementById('license_category');
+    const systemUsernameInput     = document.querySelector('input[name="system_username"]');
+    const genericWarning          = document.getElementById('generic-account-warning');
+    const isGenericCheckbox       = document.getElementById('is_generic_account');
+    const genericAccountSection   = document.getElementById('generic-account-section');
+    const genericAccountMessage   = document.getElementById('generic-account-message');
+    const remediationSection      = document.getElementById('remediation-details-section');
+    const remediatedCheckbox      = document.getElementById('generic_account_remediated');
+
+    /* Auto-calculate end date */
     if (requestedDurationInput && accessEndDateInput) {
-        requestedDurationInput.addEventListener('change', function() {
-            const duration = parseInt(this.value);
-            if (duration && duration > 0) {
-                const startDate = new Date();
-                const endDate = new Date(startDate.getTime() + (duration * 24 * 60 * 60 * 1000));
-                accessEndDateInput.value = endDate.toISOString().slice(0, 16);
+        requestedDurationInput.addEventListener('change', function () {
+            const d = parseInt(this.value);
+            if (d > 0) {
+                const end = new Date(Date.now() + d * 86400000);
+                accessEndDateInput.value = end.toISOString().slice(0, 16);
             }
         });
     }
 
-    // System-specific access level suggestions
-    if (systemSelect) {
-        systemSelect.addEventListener('change', function() {
-            const selectedOption = this.options[this.selectedIndex];
-            if (selectedOption.value) {
-                // You could fetch system-specific access levels here
-                console.log('System selected:', selectedOption.text);
+    /* Generic account detection */
+    const genericPatterns = [
+        'admin','administrator','root','user','test','guest','demo','temp',
+        'temporary','service','system','default','operator','support',
+        'helpdesk','help','info','mail','postmaster','webmaster',
+        'noreply','no-reply','supervisor','interface'
+    ];
+
+    function isGenericUsername(username) {
+        if (!username) return false;
+        const u = username.toLowerCase().trim();
+        if (genericPatterns.includes(u)) return true;
+        for (const p of genericPatterns) {
+            if (u.startsWith(p + '_') || u.startsWith(p + '.')) return true;
+            if (u.startsWith(p) && u.length > p.length) {
+                if (u.slice(p.length).match(/^[\d._-]*$/)) return true;
             }
-        });
+        }
+        return false;
     }
 
-    // Generic account detection on system_username input
-    const systemUsernameInput = document.querySelector('input[name="system_username"]');
-    const genericWarning = document.getElementById('generic-account-warning');
-    const isGenericCheckbox = document.getElementById('is_generic_account');
-    
+    function handleGenericDetection(username) {
+        const flagged = isGenericUsername(username);
+        if (genericWarning) genericWarning.style.display = flagged ? 'block' : 'none';
+        if (genericAccountSection) {
+            genericAccountSection.style.display =
+                (flagged || (isGenericCheckbox && isGenericCheckbox.checked)) ? 'block' : 'none';
+        }
+        if (flagged && isGenericCheckbox) isGenericCheckbox.checked = true;
+        if (flagged && genericAccountMessage) {
+            genericAccountMessage.textContent =
+                `The username "${username}" has been flagged as a generic account. ` +
+                `Generic accounts are not allowed per RHG Access Control Policy.`;
+        }
+    }
+
     if (systemUsernameInput) {
-        // Generic username patterns
-        const genericPatterns = [
-            'admin', 'administrator', 'root', 'user', 'test', 'guest',
-            'demo', 'temp', 'temporary', 'service', 'system', 'default',
-            'operator', 'support', 'helpdesk', 'help', 'info', 'mail',
-            'postmaster', 'webmaster', 'noreply', 'no-reply', 'supervisor',
-            'interface', 'michael.brandt', 'roger.bergh'
-        ];
-        
-        function checkGenericUsername(username) {
-            if (!username) return false;
-            const usernameLower = username.toLowerCase().trim();
-            
-            // Exact match
-            if (genericPatterns.includes(usernameLower)) {
-                return true;
-            }
-            
-            // Check if starts with generic pattern
-            for (const pattern of genericPatterns) {
-                if (usernameLower.startsWith(pattern + '_') || 
-                    usernameLower.startsWith(pattern + '.') ||
-                    (usernameLower.startsWith(pattern) && usernameLower.length > pattern.length)) {
-                    const suffix = usernameLower.substring(pattern.length);
-                    if (suffix.match(/^[\d._-]*$/)) {
-                        return true;
-                    }
-                }
-            }
-            
-            return false;
-        }
-        
-        const genericAccountSection = document.getElementById('generic-account-section');
-        const genericAccountAlert = document.getElementById('generic-account-alert');
-        const genericAccountMessage = document.getElementById('generic-account-message');
-        const remediationDetailsSection = document.getElementById('remediation-details-section');
-        const genericRemediatedCheckbox = document.getElementById('generic_account_remediated');
-        
-        function handleGenericAccountDetection(username) {
-            if (username && checkGenericUsername(username)) {
-                genericWarning.style.display = 'block';
-                if (genericAccountSection) {
-                    genericAccountSection.style.display = 'block';
-                }
-                if (isGenericCheckbox) {
-                    isGenericCheckbox.checked = true;
-                }
-                if (genericAccountMessage) {
-                    genericAccountMessage.textContent = 
-                        `The username "${username}" has been flagged as a generic account. Generic accounts are not allowed per RHG Access Control Policy.`;
-                }
-            } else {
-                genericWarning.style.display = 'none';
-                if (genericAccountSection && !isGenericCheckbox?.checked) {
-                    genericAccountSection.style.display = 'none';
-                }
-            }
-        }
-        
-        systemUsernameInput.addEventListener('blur', function() {
-            handleGenericAccountDetection(this.value.trim());
-        });
-        
-        systemUsernameInput.addEventListener('input', function() {
-            handleGenericAccountDetection(this.value.trim());
-        });
-        
-        // Show/hide remediation details based on checkbox
-        if (genericRemediatedCheckbox) {
-            genericRemediatedCheckbox.addEventListener('change', function() {
-                if (remediationDetailsSection) {
-                    remediationDetailsSection.style.display = this.checked ? 'block' : 'none';
-                }
-            });
-        }
-
-        // Subscription tier filtering + auto-fill license category for subscription systems
-        function filterSubscriptionTiers() {
-            if (!tierSelect) return;
-            const systemId = systemSelect ? systemSelect.value : '';
-            let hasVisible = false;
-            Array.from(tierSelect.options).forEach((opt) => {
-                if (!opt.dataset.system) {
-                    return;
-                }
-                const isVisible = !systemId || opt.dataset.system === systemId;
-                opt.hidden = !isVisible;
-                if (opt.selected && !isVisible) {
-                    opt.selected = false;
-                }
-                if (isVisible) {
-                    hasVisible = true;
-                }
-            });
-            if (!hasVisible && tierSelect.value) {
-                tierSelect.value = '';
-            }
-        }
-
-        function applyTierLicense() {
-            if (!tierSelect || !licenseInput) return;
-            const selected = tierSelect.options[tierSelect.selectedIndex];
-            if (selected && selected.dataset.license) {
-                licenseInput.value = selected.dataset.license;
-            }
-        }
-
-        if (systemSelect) {
-            systemSelect.addEventListener('change', filterSubscriptionTiers);
-        }
-        if (tierSelect) {
-            tierSelect.addEventListener('change', applyTierLicense);
-        }
-        filterSubscriptionTiers();
-        applyTierLicense();
+        systemUsernameInput.addEventListener('input', () => handleGenericDetection(systemUsernameInput.value.trim()));
+        systemUsernameInput.addEventListener('blur',  () => handleGenericDetection(systemUsernameInput.value.trim()));
     }
+
+    /* Show/hide remediation details */
+    if (remediatedCheckbox) {
+        remediatedCheckbox.addEventListener('change', function () {
+            if (remediationSection) {
+                remediationSection.style.display = this.checked ? 'block' : 'none';
+            }
+        });
+    }
+
+    /* Subscription tier filtering */
+    function filterTiers() {
+        if (!tierSelect) return;
+        const systemId = systemSelect ? systemSelect.value : '';
+        Array.from(tierSelect.options).forEach(function (opt) {
+            if (!opt.dataset.system) return;
+            const show = !systemId || opt.dataset.system === systemId;
+            opt.hidden = !show;
+            if (opt.selected && !show) opt.selected = false;
+        });
+    }
+
+    function applyTierLicense() {
+        if (!tierSelect || !licenseInput) return;
+        const sel = tierSelect.options[tierSelect.selectedIndex];
+        if (sel && sel.dataset.license) licenseInput.value = sel.dataset.license;
+    }
+
+    if (systemSelect) systemSelect.addEventListener('change', filterTiers);
+    if (tierSelect)   tierSelect.addEventListener('change', applyTierLicense);
+    filterTiers();
+    applyTierLicense();
 });
 </script>
 
-<!-- Select2 for searchable user and system dropdowns -->
+<!-- Select2 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
 <script>
-$(document).ready(function() {
-    // Initialize Select2 for User field with search
-    $('#user').select2({
-        placeholder: 'Search and select user...',
+$(document).ready(function () {
+
+    /* Helper: read current theme */
+    function isDark() {
+        return document.documentElement.getAttribute('data-theme') === 'dark';
+    }
+
+    /* Select2 init */
+    $('#user, #system').select2({
+        placeholder: function () { return $(this).data('placeholder') || 'Search...'; },
         allowClear: false,
         width: '100%',
         theme: 'bootstrap-5'
     });
 
-    // Initialize Select2 for System field with search
-    $('#system').select2({
-        placeholder: 'Search and select system...',
-        allowClear: false,
+    $('#access_type, #request_type, #priority, #username_verified_by, #subscription_tier').select2({
+        minimumResultsForSearch: Infinity,
         width: '100%',
         theme: 'bootstrap-5'
     });
 
-    // Also initialize on other dropdown selects for consistency
-    $('#access_type, #request_type, #priority').select2({
-        minimumResultsForSearch: Infinity, // Hide search for these
-        width: '100%',
-        theme: 'bootstrap-5'
+    /* Re-apply Select2 colours when theme toggles */
+    const themeObserver = new MutationObserver(function () {
+        /* Select2 inherits CSS variables automatically since we override them above */
+    });
+    themeObserver.observe(document.documentElement, {
+        attributes: true, attributeFilter: ['data-theme', 'data-bs-theme']
     });
 });
 </script>

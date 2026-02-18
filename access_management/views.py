@@ -2104,6 +2104,8 @@ def access_assignment_create(request):
         'has_domain_admin_value': request.POST.get('has_domain_admin', ''),
         'admin_password_storage_location_value': request.POST.get('admin_password_storage_location', ''),
         'admin_password_stored_date_value': request.POST.get('admin_password_stored_date', ''),
+        # allow owner section editing on creation by default
+        'can_edit_owner_section': True,
     }
     
     return render(request, 'access_management/access_assignment_form.html', context)
@@ -2121,6 +2123,18 @@ def access_assignment_update(request, pk):
     license_category_value = (
         request.POST.get('license_category', access_assignment.license_category or '').strip()
     )
+
+    # determine whether current user should be allowed to modify the system owner fields
+    # superusers/staff or the system owner themselves may edit these values
+    is_system_owner = (
+        request.user.is_superuser
+        or request.user.is_staff
+        or (
+            access_assignment.system and
+            getattr(access_assignment.system, 'system_owner_id', None) == request.user.id
+        )
+    )
+    can_edit_owner_section = is_system_owner
 
     if request.method == 'POST':
         access_type = request.POST.get('access_type')
@@ -2366,6 +2380,8 @@ def access_assignment_update(request, pk):
             'legitimate_business_need',
             access_assignment.legitimate_business_need or '',
         ),
+        # indicate whether the current user may edit system owner section
+        'can_edit_owner_section': can_edit_owner_section,
         # Admin access governance values
         'is_admin_access_value': request.POST.get(
             'is_admin_access',
