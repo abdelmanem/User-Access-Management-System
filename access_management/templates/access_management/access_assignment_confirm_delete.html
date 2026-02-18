@@ -12,14 +12,15 @@
         padding: 2rem 0;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
-    
+
     .delete-card {
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-        border: none;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border-color) !important;
         border-radius: 12px;
         overflow: hidden;
+        background-color: var(--card-bg) !important;
     }
-    
+
     .delete-header {
         background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
         padding: 2rem;
@@ -28,7 +29,7 @@
         align-items: center;
         justify-content: space-between;
     }
-    
+
     .delete-header h1 {
         margin: 0;
         font-size: 1.75rem;
@@ -37,93 +38,98 @@
         align-items: center;
         gap: 0.75rem;
     }
-    
+
     .alert-danger-custom {
-        background-color: #f8d7da;
-        border: 2px solid #f5c6cb;
+        background-color: rgba(231, 74, 59, 0.1);
+        border: 2px solid rgba(231, 74, 59, 0.35);
         border-radius: 8px;
         padding: 1.25rem;
         margin-bottom: 1.5rem;
     }
-    
+
     .alert-danger-custom h5 {
-        color: #721c24;
+        color: #e74a3b;
         font-weight: 600;
         margin-bottom: 0.5rem;
     }
-    
+
     .alert-danger-custom p {
-        color: #721c24;
+        color: var(--text-primary);
         margin: 0;
     }
-    
+
     .detail-section {
-        border: 1px solid #dee2e6;
+        border: 1px solid var(--border-color);
         border-radius: 8px;
         margin-bottom: 1.5rem;
         overflow: hidden;
     }
-    
+
     .detail-section-header {
-        background-color: #f8f9fa;
+        background-color: var(--bg-surface-alt);
         padding: 1rem;
         font-weight: 600;
-        border-bottom: 1px solid #dee2e6;
+        border-bottom: 1px solid var(--border-color);
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        color: #495057;
+        color: var(--text-secondary);
     }
-    
+
     .detail-section-header i {
         font-size: 1.1rem;
     }
-    
+
     .detail-row {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 0;
         padding: 0;
     }
-    
+
     .detail-item {
         padding: 1rem;
-        border-bottom: 1px solid #dee2e6;
-        border-right: 1px solid #dee2e6;
+        border-bottom: 1px solid var(--border-color);
+        border-right: 1px solid var(--border-color);
+        background-color: var(--card-bg);
     }
-    
+
     .detail-item:nth-child(2n) {
         border-right: none;
     }
-    
+
     .detail-item:nth-last-child(-n+2) {
         border-bottom: none;
     }
-    
+
     @media (max-width: 576px) {
         .detail-row {
             grid-template-columns: 1fr;
         }
-        
+
         .detail-item {
             border-right: none !important;
         }
     }
-    
+
     .detail-label {
         font-weight: 600;
-        color: #495057;
+        color: var(--text-muted);
         font-size: 0.875rem;
         text-transform: uppercase;
         letter-spacing: 0.5px;
         margin-bottom: 0.5rem;
     }
-    
+
     .detail-value {
-        color: #212529;
+        color: var(--text-primary);
         font-size: 1rem;
     }
-    
+
+    .detail-value small {
+        color: var(--text-muted) !important;
+    }
+
     .badge-status {
         display: inline-block;
         padding: 0.35rem 0.65rem;
@@ -131,67 +137,73 @@
         font-size: 0.85rem;
         font-weight: 500;
     }
-    
+
     .info-panel {
-        background-color: #e7f3ff;
-        border: 2px solid #b3d9ff;
+        background-color: rgba(54, 185, 204, 0.08);
+        border: 2px solid rgba(54, 185, 204, 0.35);
         border-radius: 8px;
         padding: 1.25rem;
         margin-bottom: 1.5rem;
     }
-    
+
     .info-panel h5 {
-        color: #0056b3;
+        color: #36b9cc;
         font-weight: 600;
         margin-bottom: 1rem;
         display: flex;
         align-items: center;
         gap: 0.5rem;
     }
-    
+
+    .info-panel h6 {
+        color: var(--text-secondary);
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+
     .info-panel ul {
         margin: 0;
         padding-left: 1.5rem;
     }
-    
+
     .info-panel li {
-        color: #004085;
+        color: var(--text-primary);
         margin-bottom: 0.5rem;
         line-height: 1.6;
     }
-    
+
     .info-panel i {
         margin-right: 0.5rem;
         font-size: 0.9rem;
     }
-    
+
     .confirmation-form-section {
-        background-color: #fff9e6;
-        border: 2px solid #ffe69c;
+        background-color: rgba(246, 194, 62, 0.08);
+        border: 2px solid rgba(246, 194, 62, 0.4);
         border-radius: 8px;
         padding: 1.5rem;
         margin-bottom: 1.5rem;
     }
-    
+
     .confirmation-form-section h5 {
-        color: #856404;
+        color: #f6c23e;
         font-weight: 600;
         margin-bottom: 1rem;
         display: flex;
         align-items: center;
         gap: 0.5rem;
     }
-    
+
     .form-check-custom {
         display: flex;
         align-items: flex-start;
         padding: 1rem;
-        background-color: #fff;
-        border: 1px solid #dee2e6;
+        background-color: var(--bg-surface-alt);
+        border: 1px solid var(--border-color);
         border-radius: 6px;
         margin-bottom: 1rem;
     }
-    
+
     .form-check-custom input[type="checkbox"] {
         width: 20px;
         height: 20px;
@@ -199,57 +211,70 @@
         margin-right: 1rem;
         cursor: pointer;
         accent-color: #dc3545;
+        flex-shrink: 0;
     }
-    
+
     .form-check-custom label {
         margin: 0;
         cursor: pointer;
         flex: 1;
-        color: #212529;
+        color: var(--text-primary);
     }
-    
+
+    .form-check-custom label small {
+        color: var(--text-muted) !important;
+    }
+
     .form-group-custom {
         margin-bottom: 1rem;
     }
-    
+
     .form-group-custom label {
         display: block;
         font-weight: 600;
         margin-bottom: 0.5rem;
-        color: #495057;
+        color: var(--text-secondary);
     }
-    
+
     .form-group-custom textarea {
         width: 100%;
         padding: 0.75rem;
-        border: 1px solid #dee2e6;
+        border: 1px solid var(--border-color);
         border-radius: 6px;
         font-family: inherit;
         resize: vertical;
         min-height: 100px;
+        background-color: var(--input-bg);
+        color: var(--text-primary);
+        transition: border-color 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
     }
-    
+
+    .form-group-custom textarea::placeholder {
+        color: var(--text-muted);
+    }
+
     .form-group-custom textarea:focus {
         border-color: #dc3545;
         box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
         outline: none;
+        background-color: var(--input-bg-focus);
     }
-    
+
     .form-text-custom {
         display: block;
         margin-top: 0.5rem;
         font-size: 0.875rem;
-        color: #6c757d;
+        color: var(--text-muted);
     }
-    
+
     .button-group {
         display: flex;
         gap: 1rem;
         justify-content: flex-end;
         padding-top: 1rem;
-        border-top: 1px solid #dee2e6;
+        border-top: 1px solid var(--border-color);
     }
-    
+
     .btn-delete {
         background-color: #dc3545;
         border: none;
@@ -260,8 +285,9 @@
         gap: 0.5rem;
         transition: all 0.3s ease;
         color: white;
+        border-radius: 0.5rem;
     }
-    
+
     .btn-delete:hover:not(:disabled) {
         background-color: #c82333;
         transform: translateY(-2px);
@@ -269,36 +295,41 @@
         color: white;
         text-decoration: none;
     }
-    
+
     .btn-delete:disabled {
         opacity: 0.5;
         cursor: not-allowed;
+        transform: none !important;
     }
-    
+
     .btn-cancel {
-        background-color: #6c757d;
-        border: none;
+        background-color: var(--bg-surface-alt);
+        border: 1px solid var(--border-color-strong);
         padding: 0.75rem 2rem;
         font-weight: 600;
-        color: white;
+        color: var(--text-secondary);
         transition: all 0.3s ease;
-    }
-    
-    .btn-cancel:hover {
-        background-color: #5a6268;
+        border-radius: 0.5rem;
         text-decoration: none;
-        color: white;
-        transform: translateY(-2px);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
     }
-    
+
+    .btn-cancel:hover {
+        background-color: var(--list-item-hover);
+        color: var(--text-primary);
+        transform: translateY(-2px);
+        border-color: var(--border-color-strong);
+    }
+
     .warning-icon {
         font-size: 2rem;
     }
-    
-    .empty-state {
-        text-align: center;
-        padding: 2rem;
-        color: #6c757d;
+
+    .card-body {
+        background-color: var(--card-bg);
+        color: var(--text-primary);
     }
 </style>
 {% endblock %}
@@ -320,21 +351,21 @@
                             <i class="fas fa-arrow-left"></i> Back
                         </a>
                     </div>
-                    
+
                     <!-- Card Body -->
                     <div class="card-body p-4">
-                        
+
                         <!-- Warning Alert -->
                         <div class="alert-danger-custom">
                             <h5><i class="fas fa-exclamation-circle"></i> Important Notice</h5>
                             <p>
-                                You are about to request deletion of this access assignment. 
-                                <strong>A change request will be created and sent for approval</strong> 
-                                before the access is actually removed from the external system. 
+                                You are about to request deletion of this access assignment.
+                                <strong>A change request will be created and sent for approval</strong>
+                                before the access is actually removed from the external system.
                                 This ensures proper audit trail and compliance with change management requirements.
                             </p>
                         </div>
-                        
+
                         <!-- Access Details Section -->
                         <div class="detail-section">
                             <div class="detail-section-header">
@@ -347,7 +378,7 @@
                                     <div class="detail-value">
                                         <strong>{{ access_assignment.user.full_name }}</strong>
                                         <br>
-                                        <small class="text-muted">{{ access_assignment.user.username }}</small>
+                                        <small>{{ access_assignment.user.username }}</small>
                                     </div>
                                 </div>
                                 <div class="detail-item">
@@ -355,7 +386,7 @@
                                     <div class="detail-value">
                                         <strong>{{ access_assignment.system.name }}</strong>
                                         <br>
-                                        <small class="text-muted">{{ access_assignment.system.code }}</small>
+                                        <small>{{ access_assignment.system.code }}</small>
                                     </div>
                                 </div>
                                 <div class="detail-item">
@@ -384,7 +415,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Workflow Information -->
                         <div class="info-panel">
                             <h5>
@@ -393,7 +424,7 @@
                             </h5>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <h6 style="color: #0056b3; font-weight: 600; margin-bottom: 0.75rem;">
+                                    <h6>
                                         <i class="fas fa-tasks" style="margin-right: 0.5rem;"></i>
                                         Approval Workflow
                                     </h6>
@@ -405,7 +436,7 @@
                                     </ul>
                                 </div>
                                 <div class="col-md-6">
-                                    <h6 style="color: #0056b3; font-weight: 600; margin-bottom: 0.75rem;">
+                                    <h6>
                                         <i class="fas fa-shield-alt" style="margin-right: 0.5rem;"></i>
                                         Audit & Compliance
                                     </h6>
@@ -418,22 +449,22 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Confirmation Form -->
                         <form method="post" class="needs-validation" novalidate>
                             {% csrf_token %}
-                            
+
                             <div class="confirmation-form-section">
                                 <h5>
                                     <i class="fas fa-clipboard-list"></i>
                                     Deletion Request Details
                                 </h5>
-                                
+
                                 <!-- Confirmation Checkbox -->
                                 <div class="form-check-custom">
-                                    <input 
-                                        type="checkbox" 
-                                        id="confirm_deletion" 
+                                    <input
+                                        type="checkbox"
+                                        id="confirm_deletion"
                                         name="confirm_deletion"
                                         required
                                         class="{% if form.errors %}is-invalid{% endif %}"
@@ -441,53 +472,54 @@
                                     <label for="confirm_deletion">
                                         <strong>I confirm that I want to delete this access assignment.</strong>
                                         <br>
-                                        <small class="text-muted">A change request will be created and forwarded for approval.</small>
+                                        <small>A change request will be created and forwarded for approval.</small>
                                     </label>
                                 </div>
-                                
+
                                 {% if form.confirm_deletion.errors %}
                                     <div class="alert alert-danger" style="margin-top: 0.5rem;">
                                         {{ form.confirm_deletion.errors.0 }}
                                     </div>
                                 {% endif %}
-                                
+
                                 <!-- Deletion Reason -->
                                 <div class="form-group-custom">
                                     <label for="deletion_reason">
-                                        Reason for Deletion 
+                                        Reason for Deletion
                                         <span class="text-danger">*</span>
-                                        <span class="text-muted">(required)</span>
+                                        <span style="color: var(--text-muted);">(required)</span>
                                     </label>
-                                    <textarea 
+                                    <textarea
                                         class="{% if form.deletion_reason.errors %}is-invalid{% endif %}"
-                                        id="deletion_reason" 
+                                        id="deletion_reason"
                                         name="deletion_reason"
                                         placeholder="Provide a business reason for deleting this access (e.g., employee departure, role change, system decommission)..."
                                         required
                                     ></textarea>
-                                    
+
                                     {% if form.deletion_reason.errors %}
                                         <div class="invalid-feedback d-block">
                                             {{ form.deletion_reason.errors.0 }}
                                         </div>
                                     {% endif %}
-                                    
+
                                     <span class="form-text-custom">
                                         <i class="fas fa-lightbulb" style="margin-right: 0.25rem;"></i>
                                         This reason will be included in the change request for the approver's reference.
                                     </span>
                                 </div>
                             </div>
-                            
+
                             <!-- Action Buttons -->
                             <div class="button-group">
-                                <a href="{% url 'access_management:access_assignment_list' %}" class="btn btn-cancel">
+                                <a href="{% url 'access_management:access_assignment_list' %}" class="btn-cancel">
                                     <i class="fas fa-times"></i> Cancel
                                 </a>
-                                <button 
-                                    type="submit" 
-                                    class="btn btn-delete btn-danger"
+                                <button
+                                    type="submit"
+                                    class="btn-delete"
                                     id="submit-btn"
+                                    disabled
                                 >
                                     <i class="fas fa-trash-alt"></i> Confirm Delete
                                 </button>
@@ -501,65 +533,36 @@
 </div>
 {% endblock %}
 
-{% block extra_js %}
+{% block extrajs %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Get form elements
     const confirmCheckbox = document.getElementById('confirm_deletion');
     const submitButton = document.getElementById('submit-btn');
     const deletionReasonField = document.getElementById('deletion_reason');
-    
-    console.log('Elements found:', {
-        checkbox: confirmCheckbox,
-        button: submitButton,
-        reason: deletionReasonField
-    });
-    
-    // Function to check if form is valid
+
     function checkFormValid() {
         const isCheckboxChecked = confirmCheckbox && confirmCheckbox.checked;
         const hasReason = deletionReasonField && deletionReasonField.value.trim().length > 0;
-        console.log('Form check - Checkbox checked:', isCheckboxChecked, 'Reason filled:', hasReason);
         return isCheckboxChecked && hasReason;
     }
-    
-    // Function to update button state
+
     function updateButtonState() {
         const isValid = checkFormValid();
         if (submitButton) {
             submitButton.disabled = !isValid;
-            if (isValid) {
-                submitButton.style.opacity = '1';
-                submitButton.style.cursor = 'pointer';
-                submitButton.classList.remove('opacity-50');
-            } else {
-                submitButton.style.opacity = '0.5';
-                submitButton.style.cursor = 'not-allowed';
-                submitButton.classList.add('opacity-50');
-            }
-            console.log('Button state updated - disabled:', !isValid);
         }
     }
-    
-    // Add event listeners
+
     if (confirmCheckbox) {
-        confirmCheckbox.addEventListener('change', function() {
-            console.log('Checkbox changed:', this.checked);
-            updateButtonState();
-        });
+        confirmCheckbox.addEventListener('change', updateButtonState);
     }
-    
+
     if (deletionReasonField) {
-        deletionReasonField.addEventListener('input', function() {
-            console.log('Textarea input:', this.value.length);
-            updateButtonState();
-        });
+        deletionReasonField.addEventListener('input', updateButtonState);
     }
-    
-    // Initially set button state
+
     updateButtonState();
-    
-    // Form validation
+
     const forms = document.querySelectorAll('.needs-validation');
     Array.from(forms).forEach(form => {
         form.addEventListener('submit', function(event) {
