@@ -291,11 +291,5 @@
             <i class="fa-solid fa-angles-left me-2"></i>
             <span>Collapse</span>
         </button>
-        <form method="post" action="{% url 'accounts:logout' %}">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-sm btn-outline-sidebar">
-                <i class="fa-solid fa-right-from-bracket me-2"></i> Logout
-            </button>
-        </form>
     </div>
 </aside>
