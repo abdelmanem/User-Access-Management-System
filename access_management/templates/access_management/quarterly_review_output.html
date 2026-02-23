@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Quarterly Review Reports{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h2 class="mb-0">
+                    <i class="fas fa-chart-bar text-primary"></i>
+                    Quarterly Review Reports (RHG 4.5)
+                </h2>
+                <p class="text-muted mb-0">Audit and compliance evidence for quarterly access reviews</p>
+            </div>
+            <div>
+                {% with request.GET.urlencode as query %}
+                <a class="btn btn-outline-secondary" href="?{% if query %}{{ query }}&{% endif %}export=csv">
+                    <i class="fas fa-file-export"></i> Export CSV
+                </a>
+                {% endwith %}
+            </div>
+        </div>
+    </div>
+
+    {% if annual_progress %}
+    <div class="alert {% if annual_progress.complete %}alert-success{% elif annual_progress.on_track %}alert-info{% else %}alert-warning{% endif %} shadow-sm">
+        <strong>{{ annual_progress.percentage }}%</strong> of {{ annual_progress.total_users }} active users
+        reviewed in {{ annual_progress.year }}.
+        {% if annual_progress.remaining_users > 0 %}
+            Remaining: {{ annual_progress.remaining_users }} users
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <p class="text-muted mb-1">Total Reviews</p>
+                    <h3 class="mb-0">{{ metrics.total_reviews }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <p class="text-muted mb-1">Completed</p>
+                    <h3 class="mb-0 text-success">{{ metrics.completed_reviews }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <p class="text-muted mb-1">Owner Confirmed</p>
+                    <h3 class="mb-0 text-primary">{{ metrics.owner_confirmed }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <p class="text-muted mb-1">Mismatches Found</p>
+                    <h3 class="mb-0 text-danger">{{ metrics.mismatches }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filter Reviews</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label">Quarter</label>
+                    <select class="form-select" name="quarter">
+                        {% for option in quarter_options %}
+                        <option value="{{ option }}" {% if filters.quarter == option %}selected{% endif %}>{{ option|upper }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">System</label>
+                    <select class="form-select" name="system">
+                        <option value="">All Systems</option>
+                        {% for system in systems %}
+                        <option value="{{ system.id }}" {% if filters.system|default:'' == system.id|stringformat:"s" %}selected{% endif %}>
+                            {{ system.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Permission Match</label>
+                    <select class="form-select" name="match">
+                        <option value="all" {% if filters.match == 'all' %}selected{% endif %}>All</option>
+                        <option value="match" {% if filters.match == 'match' %}selected{% endif %}>Matches</option>
+                        <option value="mismatch" {% if filters.match == 'mismatch' %}selected{% endif %}>Mismatches</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Status</label>
+                    <select class="form-select" name="status">
+                        <option value="all" {% if filters.status == 'all' %}selected{% endif %}>All</option>
+                        <option value="completed" {% if filters.status == 'completed' %}selected{% endif %}>Completed</option>
+                        <option value="pending" {% if filters.status == 'pending' %}selected{% endif %}>Pending</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search me-1"></i>Apply
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-list me-2"></i>Review Log</h5>
+            <span class="badge bg-secondary">{{ reviews_page.paginator.count }} records</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 small">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Quarter</th>
+                            <th>User</th>
+                            <th>System</th>
+                            <th>Reviewed By</th>
+                            <th>Date</th>
+                            <th>Permission Match</th>
+                            <th>System Owner</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for review in reviews_page %}
+                        <tr>
+                            <td><span class="badge bg-dark">{{ review.review_quarter }}</span></td>
+                            <td>{{ review.reviewed_user.full_name }}</td>
+                            <td>{{ review.system.name }}</td>
+                            <td>{{ review.reviewed_by.full_name|default:"N/A" }}</td>
+                            <td>{{ review.review_date|date:"Y-m-d H:i" }}</td>
+                            <td>
+                                {% if review.matches_approved %}
+                                    <span class="badge bg-success">Matches</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Mismatch</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if review.system_owner %}
+                                    {{ review.system_owner.full_name }}<br>
+                                    {% if review.system_owner_confirmed %}
+                                        <span class="badge bg-primary">Confirmed</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">Pending</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">Unassigned</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if review.review_completed %}
+                                    <span class="badge bg-success">Closed</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">In Progress</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-muted">
+                                <i class="fas fa-inbox fa-2x mb-2"></i><br>
+                                No reviews found for the selected filters.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% if reviews_page.has_other_pages %}
+        <div class="card-footer">
+            <nav>
+                <ul class="pagination justify-content-end mb-0">
+                    {% if reviews_page.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ reviews_page.previous_page_number }}&{{ request.GET.urlencode }}">Previous</a>
+                    </li>
+                    {% endif %}
+                    <li class="page-item disabled"><span class="page-link">Page {{ reviews_page.number }} of {{ reviews_page.paginator.num_pages }}</span></li>
+                    {% if reviews_page.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ reviews_page.next_page_number }}&{{ request.GET.urlencode }}">Next</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Log Quarterly Review or Permission Change{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-2">
+                <i class="fas fa-pen-to-square text-primary"></i>
+                RHG 4.5 Input — Log Reviews & Permission Changes
+            </h2>
+            <p class="text-muted">Record quarterly access reviews and permission change documentation for compliance.</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Quarterly Review Form -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clipboard-check me-2"></i>Log Quarterly Review
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="form_type" value="quarterly_review">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Quarter</label>
+                            {{ review_form.review_quarter }}
+                            {% if review_form.review_quarter.errors %}
+                                <div class="text-danger small">{{ review_form.review_quarter.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">User Reviewed</label>
+                            {{ review_form.reviewed_user }}
+                            {% if review_form.reviewed_user.errors %}
+                                <div class="text-danger small">{{ review_form.reviewed_user.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">System</label>
+                            {{ review_form.system }}
+                            {% if review_form.system.errors %}
+                                <div class="text-danger small">{{ review_form.system.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Review Date & Time</label>
+                            {{ review_form.review_date }}
+                            {% if review_form.review_date.errors %}
+                                <div class="text-danger small">{{ review_form.review_date.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Approved Permissions</label>
+                            {{ review_form.approved_permissions }}
+                            {% if review_form.approved_permissions.errors %}
+                                <div class="text-danger small">{{ review_form.approved_permissions.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Actual Permissions in System</label>
+                            {{ review_form.actual_permissions_in_external_system }}
+                            {% if review_form.actual_permissions_in_external_system.errors %}
+                                <div class="text-danger small">{{ review_form.actual_permissions_in_external_system.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                {{ review_form.matches_approved }}
+                                <label class="form-check-label" for="{{ review_form.matches_approved.id_for_label }}">
+                                    Permissions Match Approved
+                                </label>
+                            </div>
+                            {% if review_form.matches_approved.errors %}
+                                <div class="text-danger small">{{ review_form.matches_approved.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Discrepancies (if any)</label>
+                            {{ review_form.discrepancies }}
+                            {% if review_form.discrepancies.errors %}
+                                <div class="text-danger small">{{ review_form.discrepancies.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">System Owner</label>
+                            {{ review_form.system_owner }}
+                            {% if review_form.system_owner.errors %}
+                                <div class="text-danger small">{{ review_form.system_owner.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                {{ review_form.system_owner_confirmed }}
+                                <label class="form-check-label" for="{{ review_form.system_owner_confirmed.id_for_label }}">
+                                    System Owner Confirmed
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">System Owner Notes</label>
+                            {{ review_form.system_owner_notes }}
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                {{ review_form.review_completed }}
+                                <label class="form-check-label" for="{{ review_form.review_completed.id_for_label }}">
+                                    Review Completed
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-save me-1"></i>Save Quarterly Review
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Permission Change Form -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exchange-alt me-2"></i>Document Permission Change
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="form_type" value="permission_change">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">User System Access</label>
+                            {{ permission_change_form.user_system_access }}
+                            {% if permission_change_form.user_system_access.errors %}
+                                <div class="text-danger small">{{ permission_change_form.user_system_access.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Old Permissions</label>
+                            {{ permission_change_form.old_permissions }}
+                            {% if permission_change_form.old_permissions.errors %}
+                                <div class="text-danger small">{{ permission_change_form.old_permissions.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">New Permissions</label>
+                            {{ permission_change_form.new_permissions }}
+                            {% if permission_change_form.new_permissions.errors %}
+                                <div class="text-danger small">{{ permission_change_form.new_permissions.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Change Date & Time</label>
+                            {{ permission_change_form.changed_in_external_system_date }}
+                            {% if permission_change_form.changed_in_external_system_date.errors %}
+                                <div class="text-danger small">{{ permission_change_form.changed_in_external_system_date.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                {{ permission_change_form.has_approval }}
+                                <label class="form-check-label" for="{{ permission_change_form.has_approval.id_for_label }}">
+                                    Has Approval
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Approval Reference (CR #, ticket, etc.)</label>
+                            {{ permission_change_form.approval_reference }}
+                            {% if permission_change_form.approval_reference.errors %}
+                                <div class="text-danger small">{{ permission_change_form.approval_reference.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Notes</label>
+                            {{ permission_change_form.notes }}
+                            {% if permission_change_form.notes.errors %}
+                                <div class="text-danger small">{{ permission_change_form.notes.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-save me-1"></i>Save Permission Change
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

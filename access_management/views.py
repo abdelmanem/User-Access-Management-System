@@ -3285,6 +3285,243 @@ def quarterly_access_review_bulk(request):
 
 
 @login_required
+def quarterly_access_review_simple(request):
+    """User-friendly page that only logs a quarterly review.
+
+    This view presents the standard review form and a short list of recent
+    entries.  It's intended for less-technical users who just need to add a
+    review without wading through the full dashboard and filtering UI.
+    """
+    # initialize form similar to dashboard
+    review_form_initial = {
+        'review_quarter': get_current_quarter_label(),
+        'reviewed_by': request.user.pk,
+        'review_date': timezone.now().strftime('%Y-%m-%dT%H:%M'),
+    }
+    review_form = QuarterlyAccessReviewForm(initial=review_form_initial)
+
+    if request.method == 'POST':
+        review_form = QuarterlyAccessReviewForm(request.POST)
+        if review_form.is_valid():
+            review_instance = review_form.save(commit=False)
+            if not review_instance.reviewed_by:
+                review_instance.reviewed_by = request.user
+            if review_instance.system_owner_confirmed and not review_instance.system_owner_confirmed_date:
+                review_instance.system_owner_confirmed_date = timezone.now()
+            review_instance.save()
+            messages.success(request, 'Quarterly access review logged successfully.')
+            return redirect('access_management:quarterly_access_review_simple')
+        messages.error(request, 'Please correct the errors in the quarterly review form.')
+
+    recent_reviews = QuarterlyAccessReview.objects.order_by('-review_date')[:10]
+    context = {
+        'review_form': review_form,
+        'recent_reviews': recent_reviews,
+    }
+    return render(request, 'access_management/quarterly_access_review_simple.html', context)
+
+
+@login_required
+def quarterly_access_review_detailed(request, review_id=None):
+    """Detailed review log and edit page for auditors and reviewers.
+
+    Shows a paginated list of reviews with full fields and an edit form when a
+    specific review is selected. POSTs update the selected review.
+    """
+    edit_instance = None
+    if review_id:
+        try:
+            edit_instance = QuarterlyAccessReview.objects.select_related(
+                'reviewed_user', 'system', 'system_owner', 'reviewed_by'
+            ).get(pk=review_id)
+        except QuarterlyAccessReview.DoesNotExist:
+            messages.error(request, 'Requested review not found.')
+            return redirect('access_management:quarterly_access_review_detailed')
+
+    if request.method == 'POST' and edit_instance:
+        form = QuarterlyAccessReviewForm(request.POST, instance=edit_instance)
+        if form.is_valid():
+            instance = form.save(commit=False)
+            if instance.system_owner_confirmed and not instance.system_owner_confirmed_date:
+                instance.system_owner_confirmed_date = timezone.now()
+            instance.save()
+            messages.success(request, 'Quarterly review updated.')
+            return redirect('access_management:quarterly_access_review_detailed_edit', review_id=instance.pk)
+        else:
+            messages.error(request, 'Please fix errors in the review form.')
+    else:
+        form = QuarterlyAccessReviewForm(instance=edit_instance) if edit_instance else QuarterlyAccessReviewForm(initial={
+            'review_quarter': get_current_quarter_label(),
+            'reviewed_by': request.user.pk,
+            'review_date': timezone.now().strftime('%Y-%m-%dT%H:%M'),
+        })
+
+    reviews_qs = QuarterlyAccessReview.objects.select_related(
+        'reviewed_user', 'system', 'reviewed_by', 'system_owner'
+    ).order_by('-review_date')
+    paginator = Paginator(reviews_qs, 20)
+    page = paginator.get_page(request.GET.get('page'))
+
+    context = {
+        'form': form,
+        'reviews_page': page,
+        'editing': bool(edit_instance),
+        'editing_review': edit_instance,
+    }
+    return render(request, 'access_management/quarterly_access_review_detailed.html', context)
+
+
+@login_required
+def quarterly_review_input(request):
+    """Unified input page for logging quarterly reviews and permission changes (RHG 4.5).
+
+    Users can log a new quarterly review or document a permission change in one place.
+    """
+    review_form_initial = {
+        'review_quarter': get_current_quarter_label(),
+        'reviewed_by': request.user.pk,
+        'review_date': timezone.now().strftime('%Y-%m-%dT%H:%M'),
+    }
+    review_form = QuarterlyAccessReviewForm(initial=review_form_initial)
+
+    permission_change_form = PermissionChangeDocumentationForm(initial={
+        'documented_by': request.user.pk,
+    })
+
+    if request.method == 'POST':
+        form_type = request.POST.get('form_type')
+        if form_type == 'quarterly_review':
+            review_form = QuarterlyAccessReviewForm(request.POST)
+            if review_form.is_valid():
+                instance = review_form.save(commit=False)
+                if not instance.reviewed_by:
+                    instance.reviewed_by = request.user
+                if instance.system_owner_confirmed and not instance.system_owner_confirmed_date:
+                    instance.system_owner_confirmed_date = timezone.now()
+                instance.save()
+                messages.success(request, 'Quarterly review logged successfully.')
+                return redirect('access_management:quarterly_review_input')
+            messages.error(request, 'Please fix errors in the quarterly review form.')
+        elif form_type == 'permission_change':
+            permission_change_form = PermissionChangeDocumentationForm(request.POST)
+            if permission_change_form.is_valid():
+                instance = permission_change_form.save(commit=False)
+                if not instance.documented_by:
+                    instance.documented_by = request.user
+                instance.save()
+                messages.success(request, 'Permission change documented.')
+                return redirect('access_management:quarterly_review_input')
+            messages.error(request, 'Please fix errors in the permission change form.')
+
+    context = {
+        'review_form': review_form,
+        'permission_change_form': permission_change_form,
+    }
+    return render(request, 'access_management/quarterly_review_input.html', context)
+
+
+@login_required
+def quarterly_review_output(request):
+    """Output/reporting page showing all logged quarterly reviews (display-only).
+
+    Provides filtering, search, and export for audit trails and compliance reporting.
+    """
+    default_quarter = get_current_quarter_label()
+    selected_quarter = request.GET.get('quarter', default_quarter)
+    system_filter = request.GET.get('system', '').strip()
+    match_filter = request.GET.get('match', 'all')
+    status_filter = request.GET.get('status', 'all')
+    export_format = request.GET.get('export')
+
+    reviews_qs = QuarterlyAccessReview.objects.select_related(
+        'reviewed_user', 'system', 'reviewed_by', 'system_owner'
+    )
+
+    if selected_quarter != 'all':
+        reviews_qs = reviews_qs.filter(review_quarter=selected_quarter)
+    if system_filter:
+        reviews_qs = reviews_qs.filter(system_id=system_filter)
+    if match_filter == 'match':
+        reviews_qs = reviews_qs.filter(matches_approved=True)
+    elif match_filter == 'mismatch':
+        reviews_qs = reviews_qs.filter(matches_approved=False)
+    if status_filter == 'completed':
+        reviews_qs = reviews_qs.filter(review_completed=True)
+    elif status_filter == 'pending':
+        reviews_qs = reviews_qs.filter(review_completed=False)
+
+    if export_format == 'csv':
+        return export_quarterly_reviews_to_csv(reviews_qs)
+
+    metrics = {
+        'total_reviews': reviews_qs.count(),
+        'completed_reviews': reviews_qs.filter(review_completed=True).count(),
+        'owner_confirmed': reviews_qs.filter(system_owner_confirmed=True).count(),
+        'mismatches': reviews_qs.filter(matches_approved=False).count(),
+    }
+
+    annual_progress = _annual_review_progress()
+    paginator = Paginator(reviews_qs.order_by('-review_date'), 25)
+    reviews_page = paginator.get_page(request.GET.get('page'))
+
+    quarter_options = ['all'] + _build_quarter_options(8)
+    systems = System.objects.filter(is_active=True).order_by('name')
+
+    filters = {
+        'quarter': selected_quarter,
+        'system': system_filter,
+        'match': match_filter,
+        'status': status_filter,
+    }
+
+    context = {
+        'reviews_page': reviews_page,
+        'metrics': metrics,
+        'quarter_options': quarter_options,
+        'systems': systems,
+        'filters': filters,
+        'annual_progress': annual_progress,
+    }
+    return render(request, 'access_management/quarterly_review_output.html', context)
+
+
+@login_required
+def permission_change_output(request):
+    """Output/reporting page showing all logged permission changes (display-only).
+
+    Provides audit trail and change documentation evidence.
+    """
+    permission_changes_qs = PermissionChangeDocumentation.objects.select_related(
+        'user_system_access__user',
+        'user_system_access__system',
+        'documented_by',
+        'approval_reference',
+    ).order_by('-changed_in_external_system_date')
+
+    system_filter = request.GET.get('system', '').strip()
+    if system_filter:
+        permission_changes_qs = permission_changes_qs.filter(user_system_access__system_id=system_filter)
+
+    paginator = Paginator(permission_changes_qs, 25)
+    changes_page = paginator.get_page(request.GET.get('page'))
+
+    systems = System.objects.filter(is_active=True).order_by('name')
+    metrics = {
+        'total_changes': permission_changes_qs.count(),
+        'with_approval': permission_changes_qs.filter(has_approval=True).count(),
+        'pending_approval': permission_changes_qs.filter(has_approval=False).count(),
+    }
+
+    context = {
+        'changes_page': changes_page,
+        'metrics': metrics,
+        'systems': systems,
+        'system_filter': system_filter,
+    }
+    return render(request, 'access_management/permission_change_output.html', context)
+
+
+@login_required
 def access_approval_compliance(request):
     """
     RHG 4.6 dashboard aggregating quarterly active-user reviews,

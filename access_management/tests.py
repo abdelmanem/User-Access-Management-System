@@ -3,7 +3,7 @@ from django.urls import reverse
 
 from accounts.models import CustomUser
 from systems.models import System
-from access_management.models import UserSystemAccess
+from access_management.models import UserSystemAccess, QuarterlyAccessReview
 
 
 class SystemOwnerSectionTests(TestCase):
@@ -50,3 +50,80 @@ class SystemOwnerSectionTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'name="system_owner_approval_date"')
         self.assertNotContains(resp, '<p><strong>Approval Date:</strong>')
+
+
+class QuarterlyReviewSimplePageTests(TestCase):
+    def setUp(self):
+        self.user = CustomUser.objects.create_user(username='tester', password='pass')
+        self.system = System.objects.create(name='Simple System', code='SSYS')
+        self.client.force_login(self.user)
+
+    def test_get_simple_page_shows_form_and_recent(self):
+        resp = self.client.get(reverse('access_management:quarterly_access_review_simple'))
+        self.assertEqual(resp.status_code, 200)
+        # form inputs should be present
+        self.assertContains(resp, 'name="review_quarter"')
+        self.assertContains(resp, 'name="reviewed_user"')
+        self.assertContains(resp, 'name="system"')
+
+    def test_post_creates_review(self):
+        data = {
+            'review_quarter': '2026-Q1',
+            'reviewed_user': self.user.pk,
+            'reviewed_by': self.user.pk,
+            'system': self.system.pk,
+            'review_date': '2026-02-22T12:00',
+            'approved_permissions': 'none',
+            'actual_permissions_in_external_system': 'none',
+            # checkbox fields come through as 'on' when checked; leave them unset for False
+            'matches_approved': 'on',
+            # don't mark completed so it stays in progress
+        }
+        resp = self.client.post(reverse('access_management:quarterly_access_review_simple'), data)
+        self.assertRedirects(resp, reverse('access_management:quarterly_access_review_simple'))
+        self.assertEqual(QuarterlyAccessReview.objects.count(), 1)
+
+
+class QuarterlyReviewDetailedPageTests(TestCase):
+    def setUp(self):
+        self.user = CustomUser.objects.create_user(username='detailuser', password='pass')
+        self.system = System.objects.create(name='Detail System', code='DSYS')
+        self.client.force_login(self.user)
+        # create a sample review
+        self.review = QuarterlyAccessReview.objects.create(
+            review_quarter='2026-Q1',
+            reviewed_user=self.user,
+            system=self.system,
+            reviewed_by=self.user,
+            review_date='2026-02-22T12:00',
+            approved_permissions='role:a',
+            actual_permissions_in_external_system='role:a',
+            matches_approved=True,
+            review_completed=False,
+        )
+
+    def test_get_detailed_page_shows_list_and_form(self):
+        resp = self.client.get(reverse('access_management:quarterly_access_review_detailed'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'Detailed Review Log')
+        self.assertContains(resp, 'role:a')
+
+    def test_edit_review_updates_record(self):
+        url = reverse('access_management:quarterly_access_review_detailed_edit', args=[self.review.pk])
+        data = {
+            'review_quarter': self.review.review_quarter,
+            'reviewed_user': self.user.pk,
+            'system': self.system.pk,
+            'reviewed_by': self.user.pk,
+            'review_date': '2026-02-22T12:00',
+            'approved_permissions': 'role:a',
+            'actual_permissions_in_external_system': 'role:b',
+            'matches_approved': '',
+            'review_completed': 'on',
+        }
+        resp = self.client.post(url, data)
+        # after successful save we should redirect back to the edit view
+        self.assertEqual(resp.status_code, 302)
+        self.review.refresh_from_db()
+        self.assertEqual(self.review.actual_permissions_in_external_system, 'role:b')
+        self.assertTrue(self.review.review_completed)

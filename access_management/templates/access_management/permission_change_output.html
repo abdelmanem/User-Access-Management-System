@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Permission Changes Log{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-2">
+                <i class="fas fa-exchange-alt text-primary"></i>
+                Permission Changes Log (RHG 4.5)
+            </h2>
+            <p class="text-muted">Audit trail of approved permission changes in external systems</p>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <p class="text-muted mb-1">Total Changes</p>
+                    <h3 class="mb-0">{{ metrics.total_changes }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <p class="text-muted mb-1">With Approval</p>
+                    <h3 class="mb-0 text-success">{{ metrics.with_approval }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <p class="text-muted mb-1">Pending Approval</p>
+                    <h3 class="mb-0 text-warning">{{ metrics.pending_approval }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filter Changes</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-6">
+                    <label class="form-label">System</label>
+                    <select class="form-select" name="system">
+                        <option value="">All Systems</option>
+                        {% for system in systems %}
+                        <option value="{{ system.id }}" {% if system_filter|default:'' == system.id|stringformat:"s" %}selected{% endif %}>
+                            {{ system.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search me-1"></i>Filter
+                    </button>
+                </div>
+                <div class="col-md-3">
+                    <a href="{% url 'access_management:permission_change_output' %}" class="btn btn-outline-secondary w-100">Reset</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-list me-2"></i>Change Documentation</h5>
+            <span class="badge bg-secondary">{{ changes_page.paginator.count }} records</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 small">
+                    <thead class="table-light">
+                        <tr>
+                            <th>User</th>
+                            <th>System</th>
+                            <th>Change Date</th>
+                            <th>Old Permissions</th>
+                            <th>New Permissions</th>
+                            <th>Approval Status</th>
+                            <th>Documented By</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for change in changes_page %}
+                        <tr>
+                            <td>
+                                {% if change.user_system_access.user %}
+                                    {{ change.user_system_access.user.full_name }}
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if change.user_system_access.system %}
+                                    {{ change.user_system_access.system.name }}
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ change.changed_in_external_system_date|date:"Y-m-d H:i" }}</td>
+                            <td><code class="text-muted small">{{ change.old_permissions|truncatechars:40 }}</code></td>
+                            <td><code class="text-success small">{{ change.new_permissions|truncatechars:40 }}</code></td>
+                            <td>
+                                {% if change.has_approval %}
+                                    <span class="badge bg-success">Approved</span>
+                                    {% if change.approval_reference %}
+                                        <br><small class="text-muted">Ref: {{ change.approval_reference }}</small>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">No Approval</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ change.documented_by.full_name|default:"N/A" }}</td>
+                            <td>{{ change.notes|default_if_none:""|truncatechars:50 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-muted">
+                                <i class="fas fa-inbox fa-2x mb-2"></i><br>
+                                No permission changes documented.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% if changes_page.has_other_pages %}
+        <div class="card-footer">
+            <nav>
+                <ul class="pagination justify-content-end mb-0">
+                    {% if changes_page.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ changes_page.previous_page_number }}&{{ request.GET.urlencode }}">Previous</a>
+                    </li>
+                    {% endif %}
+                    <li class="page-item disabled"><span class="page-link">Page {{ changes_page.number }} of {{ changes_page.paginator.num_pages }}</span></li>
+                    {% if changes_page.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ changes_page.next_page_number }}&{{ request.GET.urlencode }}">Next</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
