@@ -127,3 +127,48 @@ class QuarterlyReviewDetailedPageTests(TestCase):
         self.review.refresh_from_db()
         self.assertEqual(self.review.actual_permissions_in_external_system, 'role:b')
         self.assertTrue(self.review.review_completed)
+
+
+class UpcomingOverdueReviewsPageTests(TestCase):
+    def setUp(self):
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        self.user = CustomUser.objects.create_user(username='upcoming_user', password='pass')
+        self.system = System.objects.create(name='Test System', code='TSYS')
+        self.client.force_login(self.user)
+        self.now = timezone.now()
+        
+        # Create overdue assignment (review date in past)
+        self.overdue_assignment = UserSystemAccess.objects.create(
+            user=self.user,
+            system=self.system,
+            status='Active',
+            next_review_date=self.now - timedelta(days=10),
+            last_review_date=self.now - timedelta(days=100),
+        )
+        
+        # Create upcoming assignment (due within 30 days)
+        self.upcoming_assignment = UserSystemAccess.objects.create(
+            user=self.user,
+            system=self.system,
+            status='Active',
+            next_review_date=self.now + timedelta(days=15),
+            last_review_date=self.now - timedelta(days=85),
+        )
+
+    def test_get_upcoming_page_loads(self):
+        resp = self.client.get(reverse('access_management:quarterly_review_upcoming'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'Upcoming & Overdue Reviews')
+
+    def test_kpi_metrics_calculated_correctly(self):
+        resp = self.client.get(reverse('access_management:quarterly_review_upcoming'))
+        self.assertEqual(resp.status_code, 200)
+        # Check that metrics are in context
+        self.assertIn('metrics', resp.context)
+        # Should show 1 overdue, 1 upcoming within 30 days
+        self.assertEqual(resp.context['metrics']['overdue'], 1)
+        self.assertEqual(resp.context['metrics']['upcoming_30_days'], 1)
+        self.assertEqual(resp.context['metrics']['total_due'], 2)
+

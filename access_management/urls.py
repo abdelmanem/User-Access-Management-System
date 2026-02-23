@@ -37,6 +37,7 @@ urlpatterns = [
     path('quarterly-reviews/bulk/', views.quarterly_access_review_bulk, name='quarterly_access_review_bulk'),
     path('quarterly-reviews/input/', views.quarterly_review_input, name='quarterly_review_input'),
     path('quarterly-reviews/output/', views.quarterly_review_output, name='quarterly_review_output'),
+    path('quarterly-reviews/upcoming-overdue/', views.quarterly_review_upcoming, name='quarterly_review_upcoming'),
     path('permission-changes/output/', views.permission_change_output, name='permission_change_output'),
     # Legacy/advanced log pages
     path('quarterly-reviews/simple/', views.quarterly_access_review_simple, name='quarterly_access_review_simple'),

@@ -3522,6 +3522,76 @@ def permission_change_output(request):
 
 
 @login_required
+def quarterly_review_upcoming(request):
+    """Upcoming and overdue quarterly reviews tracking page (RHG 4.5).
+    
+    Shows assignments that are due for review soon or overdue, with KPIs and filters.
+    """
+    now = timezone.now()
+    
+    # Get all active assignments with next_review_date
+    assignments_qs = UserSystemAccess.objects.select_related(
+        'user', 'system'
+    ).filter(
+        status__in=['Active', 'Approved'],
+        next_review_date__isnull=False
+    )
+    
+    system_filter = request.GET.get('system', '').strip()
+    user_filter = request.GET.get('user', '').strip()
+    status_filter = request.GET.get('sort', 'overdue_first')  # 'overdue_first', 'upcoming_first', 'all'
+    
+    if system_filter:
+        assignments_qs = assignments_qs.filter(system_id=system_filter)
+    if user_filter:
+        assignments_qs = assignments_qs.filter(user__username__icontains=user_filter)
+    
+    # Separate overdue and upcoming
+    thirty_days_from_now = now + timedelta(days=30)
+    
+    overdue_qs = assignments_qs.filter(next_review_date__lt=now)
+    upcoming_qs = assignments_qs.filter(
+        next_review_date__gte=now,
+        next_review_date__lte=thirty_days_from_now
+    )
+    
+    # Metrics
+    total_overdue = overdue_qs.count()
+    total_upcoming = upcoming_qs.count()
+    
+    metrics = {
+        'overdue': total_overdue,
+        'upcoming_30_days': total_upcoming,
+        'total_due': total_overdue + total_upcoming,
+    }
+    
+    # Combine and sort based on filter
+    if status_filter == 'overdue_first':
+        combined_qs = overdue_qs.order_by('next_review_date') | upcoming_qs.order_by('next_review_date')
+    elif status_filter == 'upcoming_first':
+        combined_qs = upcoming_qs.order_by('next_review_date') | overdue_qs.order_by('next_review_date')
+    else:
+        combined_qs = assignments_qs.order_by('next_review_date')
+    
+    paginator = Paginator(combined_qs, 25)
+    reviews_page = paginator.get_page(request.GET.get('page'))
+    
+    systems = System.objects.filter(is_active=True).order_by('name')
+    
+    context = {
+        'reviews_page': reviews_page,
+        'metrics': metrics,
+        'systems': systems,
+        'system_filter': system_filter,
+        'user_filter': user_filter,
+        'status_filter': status_filter,
+        'now': now,
+    }
+    return render(request, 'access_management/quarterly_review_upcoming.html', context)
+
+
+
+@login_required
 def access_approval_compliance(request):
     """
     RHG 4.6 dashboard aggregating quarterly active-user reviews,
