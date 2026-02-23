@@ -3,6 +3,33 @@
 
 {% block title %}Permission Changes Log{% endblock %}
 
+{% block extra_css %}
+<style>
+    [data-theme="dark"] .card-header {
+        background-color: var(--card-header-bg);
+        color: var(--text-primary);
+    }
+    [data-theme="dark"] .badge {
+        background-color: var(--badge-muted-bg) !important;
+        color: var(--badge-muted-text) !important;
+    }
+    [data-theme="dark"] .badge.bg-success {
+        background-color: #10b981 !important;
+        color: #fff !important;
+    }
+    [data-theme="dark"] .badge.bg-warning {
+        background-color: #f59e0b !important;
+        color: #000 !important;
+    }
+    [data-theme="dark"] code {
+        background-color: var(--code-bg);
+        color: var(--text-primary);
+        padding: 0.2rem 0.4rem;
+        border-radius: 0.25rem;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
     <div class="row mb-4">

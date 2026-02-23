@@ -3,6 +3,27 @@
 
 {% block title %}Log Quarterly Review or Permission Change{% endblock %}
 
+{% block extra_css %}
+<style>
+    [data-theme="dark"] .card-header.bg-primary {
+        background-color: #4f46e5 !important;
+        color: #fff;
+    }
+    [data-theme="dark"] .card-header.bg-success {
+        background-color: #10b981 !important;
+        color: #fff;
+    }
+    [data-theme="light"] .card-header.bg-primary {
+        background-color: #4f46e5 !important;
+        color: #fff;
+    }
+    [data-theme="light"] .card-header.bg-success {
+        background-color: #10b981 !important;
+        color: #fff;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
     <div class="row mb-4">
