@@ -27,12 +27,19 @@
 {% block content %}
 <div class="container-fluid">
     <div class="row mb-4">
-        <div class="col-12">
-            <h2 class="mb-2">
-                <i class="fas fa-pen-to-square text-primary"></i>
-                RHG 4.5 Input — Log Reviews & Permission Changes
-            </h2>
-            <p class="text-muted">Record quarterly access reviews and permission change documentation for compliance.</p>
+        <div class="col-12 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h2 class="mb-2">
+                    <i class="fas fa-pen-to-square text-primary"></i>
+                    RHG 4.5 Input — Log Reviews & Permission Changes
+                </h2>
+                <p class="text-muted mb-0">Record quarterly access reviews and permission change documentation for compliance.</p>
+            </div>
+            <div>
+                <a href="{% url 'access_management:quarterly_access_review_bulk' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-bolt me-1"></i>Bulk Review Generator
+                </a>
+            </div>
         </div>
     </div>
 
