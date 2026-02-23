@@ -140,41 +140,37 @@
                 </thead>
                 <tbody>
                     {% for assignment in reviews_page %}
-                        {% with days_diff=assignment.next_review_date|add:"-d"|add:now %}
-                            <tr>
-                                <td>{{ assignment.user.get_full_name|default:assignment.user.username }}</td>
-                                <td>{{ assignment.system.name }}</td>
-                                <td>
-                                    {% if assignment.next_review_date < now %}
-                                        <span class="badge badge-overdue">OVERDUE</span>
-                                    {% else %}
-                                        <span class="badge badge-upcoming">DUE SOON</span>
-                                    {% endif %}
-                                </td>
-                                <td>{{ assignment.next_review_date|date:"M d, Y" }}</td>
-                                <td>
-                                    {% with diff=assignment.next_review_date|add:"-d"|add:now %}
-                                        {% if diff < 0 %}
-                                            <strong class="text-danger">{{ diff|absolute }} days overdue</strong>
-                                        {% else %}
-                                            {{ diff }} days until due
-                                        {% endif %}
-                                    {% endwith %}
-                                </td>
-                                <td>
-                                    {% if assignment.last_review_date %}
-                                        {{ assignment.last_review_date|date:"M d, Y" }}
-                                    {% else %}
-                                        <em class="text-muted">Never</em>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <a href="{% url 'access_management:quarterly_review_input' %}" class="btn btn-sm btn-outline-primary">
-                                        Log Review
-                                    </a>
-                                </td>
-                            </tr>
-                        {% endwith %}
+                        <tr>
+                            <td>{{ assignment.user.get_full_name|default:assignment.user.username }}</td>
+                            <td>{{ assignment.system.name }}</td>
+                            <td>
+                                {% if assignment.next_review_date < now %}
+                                    <span class="badge badge-overdue">OVERDUE</span>
+                                {% else %}
+                                    <span class="badge badge-upcoming">DUE SOON</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ assignment.next_review_date|date:"M d, Y" }}</td>
+                            <td>
+                                {% if assignment.next_review_date < now %}
+                                    <strong class="text-danger">Overdue</strong>
+                                {% else %}
+                                    {{ assignment.next_review_date|timeuntil }} until due
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if assignment.last_review_date %}
+                                    {{ assignment.last_review_date|date:"M d, Y" }}
+                                {% else %}
+                                    <em class="text-muted">Never</em>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'access_management:quarterly_review_input' %}" class="btn btn-sm btn-outline-primary">
+                                    Log Review
+                                </a>
+                            </td>
+                        </tr>
                     {% empty %}
                         <tr>
                             <td colspan="7" class="text-center text-muted py-4">
