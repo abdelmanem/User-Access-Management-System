@@ -201,7 +201,7 @@
                     <i class="fa-solid fa-plus"></i> New Change Request
                 </a>
                 <div class="sidebar-submenu-divider" role="separator"></div>
-                {% nav_active_class 'access_management:quarterly_access_review_dashboard' 'access_management:quarterly_review_input' 'access_management:quarterly_review_output' 'access_management:permission_change_output' 'access_management:quarterly_review_upcoming' 'access_management:quarterly_access_review_simple' 'access_management:quarterly_access_review_detailed' 'access_management:quarterly_access_review_detailed_edit' as quarterly_reviews_active %}
+                {% nav_active_class 'access_management:quarterly_access_review_dashboard' 'access_management:quarterly_review_input' 'access_management:quarterly_review_output' 'access_management:permission_change_output' 'access_management:quarterly_review_upcoming' 'access_management:quarterly_review_unreviewed_users' 'access_management:quarterly_access_review_simple' 'access_management:quarterly_access_review_detailed' 'access_management:quarterly_access_review_detailed_edit' as quarterly_reviews_active %}
                 <a class="sidebar-sublink{{ quarterly_reviews_active }}" href="{% url 'access_management:quarterly_review_input' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-calendar-check"></i> Quarterly Reviews (4.5)
                 </a>
@@ -213,6 +213,9 @@
                 </a>
                 <a class="sidebar-sublink" href="{% url 'access_management:quarterly_review_upcoming' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-hourglass-end"></i> Upcoming / Overdue
+                </a>
+                <a class="sidebar-sublink" href="{% url 'access_management:quarterly_review_unreviewed_users' %}" data-sidebar-close="true">
+                    <i class="fa-solid fa-person-circle-question"></i> Users Needing Review
                 </a>
                 <div class="sidebar-submenu-divider" role="separator"></div>
                 {% nav_active_class 'access_management:access_approval_compliance' as access_compliance_active %}

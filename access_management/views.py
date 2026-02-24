@@ -2,6 +2,7 @@ import csv
 from datetime import datetime, timedelta
 from io import BytesIO, StringIO
 
+from django.apps import apps
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
@@ -560,10 +561,24 @@ def _quarter_date_range(label):
 
 
 def _annual_review_progress(year=None):
-    """Return progress metrics for annual user review coverage."""
+    """Return progress metrics for annual user review coverage.
+    
+    Only counts users who have active system assignments that need review.
+    """
     now = timezone.now()
     year = year or now.year
-    total_users = CustomUser.objects.included_in_metrics().filter(is_active=True).count()
+    
+    # Get users with reviewable system assignments
+    total_users = (
+        CustomUser.objects
+        .included_in_metrics()
+        .filter(is_active=True, system_accesses__status__in=['Active', 'Approved', 'Pending', 'Suspended'])
+        .annotate(reviewable_systems=Count('system_accesses', filter=Q(system_accesses__status__in=['Active', 'Approved', 'Pending', 'Suspended'])))
+        .filter(reviewable_systems__gt=0)
+        .distinct()
+        .count()
+    )
+    
     reviewed_users = (
         QuarterlyAccessReview.objects.filter(review_date__year=year)
         .values_list('reviewed_user', flat=True)
@@ -595,7 +610,7 @@ def _select_assignments_for_bulk(system, users_qty, review_quarter):
         UserSystemAccess.objects.select_related('user', 'system')
         .filter(
             system=system,
-            status__in=['Active', 'Approved'],
+            status__in=['Active', 'Approved', 'Pending', 'Suspended'],
             user__is_active=True,
         )
         .exclude(quarterly_reviews__review_quarter=review_quarter)
@@ -3486,6 +3501,115 @@ def quarterly_review_output(request):
 
 
 @login_required
+def quarterly_review_unreviewed_users(request):
+    """Show users that haven't been reviewed yet this year (RHG 4.5).
+    
+    Helps identify which specific users need review completion.
+    """
+    now = timezone.now()
+    current_year = now.year
+    current_quarter = ((now.month - 1) // 3) + 1
+    
+    # Get all active users
+    all_active_users = CustomUser.objects.included_in_metrics().filter(is_active=True)
+    
+    # Get users who HAVE been reviewed this year
+    reviewed_users_qs = (
+        QuarterlyAccessReview.objects.filter(review_date__year=current_year)
+        .values_list('reviewed_user_id', flat=True)
+        .distinct()
+    )
+    
+    # Get users who haven't been reviewed yet AND have system assignments that need review
+    # Exclude terminal statuses (Revoked, Expired, Rejected, Cancelled)
+    # Also use annotate to ensure they have at least 1 system to review
+    unreviewed_users = (
+        all_active_users
+        .exclude(id__in=reviewed_users_qs)
+        .filter(
+            system_accesses__status__in=['Active', 'Approved', 'Pending', 'Suspended']
+        )
+        .annotate(
+            reviewable_systems=Count('system_accesses', filter=Q(system_accesses__status__in=['Active', 'Approved', 'Pending', 'Suspended']))
+        )
+        .filter(reviewable_systems__gt=0)
+        .distinct()
+        .order_by('last_name', 'first_name')
+    )
+    
+    # Apply filters
+    department_filter = request.GET.get('department', '').strip()
+    search_filter = request.GET.get('search', '').strip()
+    
+    if department_filter:
+        unreviewed_users = unreviewed_users.filter(department_id=department_filter)
+    if search_filter:
+        unreviewed_users = unreviewed_users.filter(
+            Q(first_name__icontains=search_filter) |
+            Q(last_name__icontains=search_filter) |
+            Q(username__icontains=search_filter) |
+            Q(email__icontains=search_filter)
+        )
+    
+    # Pagination
+    paginator = Paginator(unreviewed_users, 25)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    
+    # For each unreviewed user, count how many systems they have access to
+    # Also create a list of user objects with their system counts attached
+    users_with_counts = []
+    for user in page_obj:
+        count = UserSystemAccess.objects.filter(
+            user=user,
+            status__in=['Active', 'Approved', 'Pending', 'Suspended']
+        ).count()
+        user.system_count = count
+        users_with_counts.append(user)
+    
+    # Get departments for filtering
+    Department = apps.get_model('departments', 'Department')
+    departments = Department.objects.filter(is_active=True).order_by('name')
+    
+    # Metrics - only count users who have system assignments
+    total_unreviewed = unreviewed_users.count()
+    
+    # Get total users with system assignments that need review
+    users_with_systems = (
+        CustomUser.objects
+        .included_in_metrics()
+        .filter(is_active=True, system_accesses__status__in=['Active', 'Approved', 'Pending', 'Suspended'])
+        .annotate(
+            reviewable_systems=Count('system_accesses', filter=Q(system_accesses__status__in=['Active', 'Approved', 'Pending', 'Suspended']))
+        )
+        .filter(reviewable_systems__gt=0)
+        .distinct()
+    )
+    total_active_users = users_with_systems.count()
+    
+    # Count reviewed users (from those with system assignments)
+    reviewed_users_with_systems = (
+        users_with_systems.filter(id__in=reviewed_users_qs)
+    ).count()
+    
+    review_percentage = 0 if total_active_users == 0 else round((reviewed_users_with_systems / total_active_users) * 100, 1)
+    
+    context = {
+        'page_obj': page_obj,
+        'users': users_with_counts,
+        'total_unreviewed': total_unreviewed,
+        'total_active_users': total_active_users,
+        'review_percentage': review_percentage,
+        'current_year': current_year,
+        'current_quarter': current_quarter,
+        'department_filter': department_filter,
+        'search_filter': search_filter,
+        'departments': departments,
+    }
+    return render(request, 'access_management/quarterly_review_unreviewed_users.html', context)
+
+
+
+@login_required
 def permission_change_output(request):
     """Output/reporting page showing all logged permission changes (display-only).
 
@@ -3529,11 +3653,11 @@ def quarterly_review_upcoming(request):
     """
     now = timezone.now()
     
-    # Get all active assignments with next_review_date
+    # Get all active assignments with next_review_date that need review
     assignments_qs = UserSystemAccess.objects.select_related(
         'user', 'system'
     ).filter(
-        status__in=['Active', 'Approved'],
+        status__in=['Active', 'Approved', 'Pending', 'Suspended'],
         next_review_date__isnull=False
     )
     

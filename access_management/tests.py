@@ -172,3 +172,40 @@ class UpcomingOverdueReviewsPageTests(TestCase):
         self.assertEqual(resp.context['metrics']['upcoming_30_days'], 1)
         self.assertEqual(resp.context['metrics']['total_due'], 2)
 
+
+class UnreviewedUsersPageTests(TestCase):
+    def setUp(self):
+        from django.utils import timezone
+        
+        self.user1 = CustomUser.objects.create_user(username='user1', password='pass', first_name='John', last_name='Doe')
+        self.user2 = CustomUser.objects.create_user(username='user2', password='pass', first_name='Jane', last_name='Smith')
+        self.system = System.objects.create(name='Test System', code='TSYS')
+        self.client.force_login(self.user1)
+        
+        # Create a review for user1 this year
+        now = timezone.now()
+        QuarterlyAccessReview.objects.create(
+            review_quarter=f'{now.year}-Q1',
+            reviewed_user=self.user1,
+            system=self.system,
+            reviewed_by=self.user1,
+            review_date=now,
+            approved_permissions='role:a',
+            actual_permissions_in_external_system='role:a',
+            matches_approved=True,
+            review_completed=True,
+        )
+
+    def test_unreviewed_users_page_loads(self):
+        resp = self.client.get(reverse('access_management:quarterly_review_unreviewed_users'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'Unreviewed Users')
+
+    def test_unreviewed_users_filtering(self):
+        resp = self.client.get(reverse('access_management:quarterly_review_unreviewed_users'))
+        self.assertEqual(resp.status_code, 200)
+        # user2 should be in the list (not yet reviewed)
+        # user1 should NOT be in the list (already reviewed)
+        self.assertContains(resp, 'Users Needing Review', html=False)
+
+

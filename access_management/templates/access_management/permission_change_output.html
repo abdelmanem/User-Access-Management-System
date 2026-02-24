@@ -169,13 +169,19 @@
                 <ul class="pagination justify-content-end mb-0">
                     {% if changes_page.has_previous %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ changes_page.previous_page_number }}&{{ request.GET.urlencode }}">Previous</a>
+                        <a class="page-link" href="?page=1{% if system_filter %}&system={{ system_filter }}{% endif %}">First</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ changes_page.previous_page_number }}{% if system_filter %}&system={{ system_filter }}{% endif %}">Previous</a>
                     </li>
                     {% endif %}
                     <li class="page-item disabled"><span class="page-link">Page {{ changes_page.number }} of {{ changes_page.paginator.num_pages }}</span></li>
                     {% if changes_page.has_next %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ changes_page.next_page_number }}&{{ request.GET.urlencode }}">Next</a>
+                        <a class="page-link" href="?page={{ changes_page.next_page_number }}{% if system_filter %}&system={{ system_filter }}{% endif %}">Next</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ changes_page.paginator.num_pages }}{% if system_filter %}&system={{ system_filter }}{% endif %}">Last</a>
                     </li>
                     {% endif %}
                 </ul>
