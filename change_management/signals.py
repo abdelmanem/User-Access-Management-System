@@ -345,8 +345,13 @@ def sync_change_request_approval_to_access(sender, instance, **kwargs):
             access_assignment.approval_date = instance.system_owner_approval_date
             access_assignment.approval_comments = instance.system_owner_approval_notes or ''
             access_assignment.updated_by = instance.requested_by
+            # Also copy System Owner authorization metadata so assignment detail reflects owner approval
+            access_assignment.system_owner_approved = True
+            access_assignment.system_owner_approval_date = instance.system_owner_approval_date
+            access_assignment.system_owner_approver = instance.system_owner
             access_assignment.save(update_fields=[
-                'status', 'approved_by', 'approval_date', 'approval_comments', 'updated_by'
+                'status', 'approved_by', 'approval_date', 'approval_comments', 'updated_by',
+                'system_owner_approved', 'system_owner_approval_date', 'system_owner_approver'
             ])
             
             logger.info(
