@@ -17,7 +17,6 @@
         margin-bottom: 1.5rem;
         box-shadow: var(--shadow-sm) !important;
         transition: var(--transition-base);
-        /* stop the base .card rule from lifting it inside another card */
         transform: none !important;
     }
     .inner-card:hover {
@@ -26,24 +25,19 @@
         transform: translateY(-2px) !important;
     }
 
-    /* ── card-body inside inner cards ── */
     .inner-card > .card-body {
         background-color: var(--card-bg) !important;
         color: var(--text-primary) !important;
-        padding: 0 !important;          /* tables flush to edges */
+        padding: 0 !important;
     }
-    /* for text-only bodies (justification, requirements) */
     .inner-card > .card-body.padded {
         padding: 1.25rem !important;
     }
 
     /* ═══════════════════════════════════════════════════════
-       INNER CARD HEADERS — explicit colours, NOT Bootstrap helpers
-       All use the same selector weight + !important so they
-       always beat .card .card-header from base.html
+       INNER CARD HEADERS
        ═══════════════════════════════════════════════════════ */
     .inner-card > .card-header {
-        /* reset every Bootstrap override */
         border-radius: 0 !important;
         border-bottom: 1px solid rgba(0,0,0,0.12) !important;
         padding: 0.8rem 1.1rem !important;
@@ -53,43 +47,36 @@
         display: flex;
         align-items: center;
         gap: 0.55rem;
-        /* font — inherit system stack from body */
         font-family: inherit;
         line-height: 1.4;
     }
 
-    /* Primary — blue/purple gradient */
     .inner-card > .card-header.ch-primary {
         background: var(--primary-gradient) !important;
         color: #ffffff !important;
     }
 
-    /* Success — green gradient */
     .inner-card > .card-header.ch-success {
         background: var(--success-gradient) !important;
         color: #ffffff !important;
     }
 
-    /* Info — cyan gradient */
     .inner-card > .card-header.ch-info {
         background: var(--info-gradient) !important;
         color: #ffffff !important;
     }
 
-    /* Warning — orange/yellow gradient */
     .inner-card > .card-header.ch-warning {
         background: var(--warning-gradient) !important;
         color: #ffffff !important;
     }
 
-    /* Secondary — neutral surface, adapts per theme */
     .inner-card > .card-header.ch-secondary {
         background: var(--bg-surface-alt) !important;
         color: var(--text-secondary) !important;
         border-bottom: 1px solid var(--border-color) !important;
     }
 
-    /* Dark — deep navy in light, deeper in dark */
     .inner-card > .card-header.ch-dark {
         background: linear-gradient(135deg, #1e2638 0%, #2d3a50 100%) !important;
         color: #e2e8f0 !important;
@@ -115,7 +102,6 @@
         padding: 1.5rem !important;
     }
 
-    /* page title */
     .page-title {
         color: var(--text-primary) !important;
         font-weight: 700;
@@ -270,9 +256,27 @@
 
                 <!-- ════════════ MAIN HEADER ════════════ -->
                 <div class="card-header">
-                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 header-actions">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 header-actions">
                         <h3 class="page-title mb-0">
-                            <i class="fas fa-key me-2"></i>Access Assignment Details
+                            <i class="fas fa-key me-2"></i>
+                            Access Assignment Details
+
+                            {% comment %}Show admin-related rows only when this assignment has admin characteristics{% endcomment %}
+                            {% if access_assignment.is_admin_access or access_assignment.has_separate_admin_account or access_assignment.has_domain_admin or access_assignment.admin_account_username or access_assignment.admin_password_storage_location %}
+                                {% if access_assignment.has_separate_admin_account %}
+                                    <span class="badge bg-success">Yes</span>
+                                    {% if access_assignment.admin_account_username %}
+                                        <br><small>Admin: {{ access_assignment.admin_account_username }}</small>
+                                    {% endif %}
+                                    {% if access_assignment.regular_account_username %}
+                                        <br><small>Regular: {{ access_assignment.regular_account_username }}</small>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">No separate admin ID</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">Not applicable</span>
+                            {% endif %}
                         </h3>
                         <div class="btn-group flex-wrap" role="group">
                             {% if access_assignment.user %}
@@ -381,7 +385,7 @@
                                                 {% endif %}
                                                 {% if access_assignment.change_request %}
                                                     <br><small class="text-muted mt-2">
-                                                        Managed via: <a href="{% url 'change_management:change_request_detail' access_assignment.change_request.pk %}" 
+                                                        Managed via: <a href="{% url 'change_management:change_request_detail' access_assignment.change_request.pk %}"
                                                                         class="text-decoration-none">
                                                             Change Request #{{ access_assignment.change_request.pk }}
                                                         </a>
@@ -720,35 +724,43 @@
                                         <tr>
                                             <th>Workstation / Domain Admin</th>
                                             <td>
-                                                {% if access_assignment.is_workstation_login %}
-                                                    <span class="badge bg-info text-dark">Workstation Login</span>
-                                                    {% if access_assignment.has_domain_admin %}
-                                                        <br><span class="badge bg-danger mt-1">
-                                                            Domain Admin on Workstation (Non-Compliant)
-                                                        </span>
+                                                {% if access_assignment.is_admin_access or access_assignment.has_domain_admin %}
+                                                    {% if access_assignment.is_workstation_login %}
+                                                        <span class="badge bg-info text-dark">Workstation Login</span>
+                                                        {% if access_assignment.has_domain_admin %}
+                                                            <br><span class="badge bg-danger mt-1">
+                                                                Domain Admin on Workstation (Non-Compliant)
+                                                            </span>
+                                                        {% else %}
+                                                            <br><small>No domain admin rights (expected)</small>
+                                                        {% endif %}
                                                     {% else %}
-                                                        <br><small>No domain admin rights (expected)</small>
+                                                        <span class="text-muted">Not marked as workstation login</span>
                                                     {% endif %}
                                                 {% else %}
-                                                    <span class="text-muted">Not marked as workstation login</span>
+                                                    <span class="text-muted">Not applicable</span>
                                                 {% endif %}
                                             </td>
                                         </tr>
                                         <tr>
                                             <th>Admin Password Storage</th>
                                             <td>
-                                                {% if access_assignment.admin_password_storage_location %}
-                                                    {{ access_assignment.admin_password_storage_location }}
-                                                    {% if access_assignment.admin_password_stored_date %}
-                                                        <br><small>
-                                                            Verified on {{ access_assignment.admin_password_stored_date|date:"Y-m-d H:i" }}
-                                                            {% if access_assignment.admin_password_stored_by %}
-                                                                by {{ access_assignment.admin_password_stored_by.full_name }}
-                                                            {% endif %}
-                                                        </small>
+                                                {% if access_assignment.is_admin_access or access_assignment.admin_password_storage_location %}
+                                                    {% if access_assignment.admin_password_storage_location %}
+                                                        {{ access_assignment.admin_password_storage_location }}
+                                                        {% if access_assignment.admin_password_stored_date %}
+                                                            <br><small>
+                                                                Verified on {{ access_assignment.admin_password_stored_date|date:"Y-m-d H:i" }}
+                                                                {% if access_assignment.admin_password_stored_by %}
+                                                                    by {{ access_assignment.admin_password_stored_by.full_name }}
+                                                                {% endif %}
+                                                            </small>
+                                                        {% endif %}
+                                                    {% else %}
+                                                        <span class="text-muted">Not documented</span>
                                                     {% endif %}
                                                 {% else %}
-                                                    <span class="text-muted">Not documented</span>
+                                                    <span class="text-muted">Not applicable</span>
                                                 {% endif %}
                                             </td>
                                         </tr>
@@ -1037,4 +1049,5 @@
         </div>
     </div>
 </div>
+
 {% endblock %}

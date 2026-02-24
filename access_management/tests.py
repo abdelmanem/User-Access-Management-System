@@ -19,7 +19,8 @@ class SystemOwnerSectionTests(TestCase):
         resp = self.client.get(reverse('access_management:access_assignment_create'))
         self.assertEqual(resp.status_code, 200)
         # the approval date input should be present (editable form)
-        self.assertContains(resp, 'name="system_owner_approval_date"')
+        # field names include the prefix used by the partial ('system_owner_approver')
+        self.assertContains(resp, 'name="system_owner_approver_approval_date"')
         # when editing is allowed the partial renders inputs instead of plain text
         self.assertNotContains(resp, '<p><strong>Approval Date:</strong>')
 
@@ -48,7 +49,8 @@ class SystemOwnerSectionTests(TestCase):
         self.client.force_login(self.owner)
         resp = self.client.get(reverse('access_management:access_assignment_update', args=[assignment.pk]))
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, 'name="system_owner_approval_date"')
+        # owner sees editable inputs with correct prefixed names
+        self.assertContains(resp, 'name="system_owner_approver_approval_date"')
         self.assertNotContains(resp, '<p><strong>Approval Date:</strong>')
 
 
@@ -171,6 +173,77 @@ class UpcomingOverdueReviewsPageTests(TestCase):
         self.assertEqual(resp.context['metrics']['overdue'], 1)
         self.assertEqual(resp.context['metrics']['upcoming_30_days'], 1)
         self.assertEqual(resp.context['metrics']['total_due'], 2)
+
+
+class AdminAccessValidationTests(TestCase):
+    def setUp(self):
+        self.user = CustomUser.objects.create_user(username='user', password='pass')
+        # a system that looks like a Windows login/AD service
+        self.login_system = System.objects.create(
+            name='Windows Domain Controller',
+            code='WINDC',
+            system_type='Operating System',
+            authentication_type='LDAP',
+        )
+        # a generic non-login system
+        self.app_system = System.objects.create(name='Finance App', code='FIN', system_type='Web Application')
+        self.client.force_login(self.user)
+
+    def test_login_system_requires_admin_info(self):
+        """Posting create without any admin metadata should re-render form and
+        not create an assignment when the system is a login platform."""
+        data = {
+            'user': self.user.pk,
+            'system': self.login_system.pk,
+            'access_type': 'Read',
+            'request_type': 'New',
+            'priority': 'Medium',
+            'business_justification': 'need access',
+            'system_username': 'jdoe',
+        }
+        resp = self.client.post(reverse('access_management:access_assignment_create'), data)
+        # form should redisplay (200) with error message and not create record
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'Administrator Access (4.3 Compliance)')
+        self.assertContains(resp, 'information is required for login systems')
+        self.assertEqual(UserSystemAccess.objects.count(), 0)
+
+    def test_login_system_succeeds_with_admin_info(self):
+        data = {
+            'user': self.user.pk,
+            'system': self.login_system.pk,
+            'access_type': 'Read',
+            'request_type': 'New',
+            'priority': 'Medium',
+            'business_justification': 'need access',
+            'system_username': 'jdoe',
+            'is_admin_access': 'on',
+        }
+        resp = self.client.post(reverse('access_management:access_assignment_create'), data)
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(UserSystemAccess.objects.count(), 1)
+
+    def test_non_login_system_does_not_require_admin(self):
+        data = {
+            'user': self.user.pk,
+            'system': self.app_system.pk,
+            'access_type': 'Read',
+            'request_type': 'New',
+            'priority': 'Medium',
+            'business_justification': 'need access',
+            'system_username': 'jdoe',
+        }
+        resp = self.client.post(reverse('access_management:access_assignment_create'), data)
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(UserSystemAccess.objects.count(), 1)
+
+    def test_form_context_includes_login_system_ids(self):
+        resp = self.client.get(reverse('access_management:access_assignment_create'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('login_system_ids', resp.context)
+        ids = resp.context['login_system_ids']
+        self.assertIn(str(self.login_system.pk), ids)
+        self.assertNotIn(str(self.app_system.pk), ids)
 
 
 class UnreviewedUsersPageTests(TestCase):

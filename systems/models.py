@@ -244,6 +244,11 @@ class System(models.Model):
         help_text="Whether system is actively monitored"
     )
     
+    is_user_login_system = models.BooleanField(
+        default=False,
+        help_text="Mark if this system is a user login platform (e.g., Windows/Active Directory, LDAP). When enabled, the Administrator Access section (4.3) will be required for access assignments."
+    )
+    
     sla_uptime_percentage = models.DecimalField(
         max_digits=5,
         decimal_places=2,

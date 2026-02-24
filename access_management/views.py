@@ -5,6 +5,41 @@ from io import BytesIO, StringIO
 from django.apps import apps
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+
+
+def _system_requires_admin_validation(system):
+    """Heuristic used by the access-assignment forms to decide whether the
+    Administrator Access section is relevant.
+
+    The System.is_user_login_system flag explicitly marks systems that are user
+    login platforms (e.g., Windows/Active Directory, LDAP). When set, the
+    Administrator Access (4.3) metadata is required.  We also fall back to
+    heuristics for backward compatibility (name with "Windows" or "AD", system
+    type = "Operating System", authentication = "LDAP").
+    """
+    if not system:
+        return False
+    
+    # Explicit flag takes precedence
+    if getattr(system, "is_user_login_system", False):
+        return True
+    
+    # Fallback heuristics for backward compatibility
+    name = (system.name or "").lower()
+    desc = (system.description or "").lower()
+    if "windows" in name or "active directory" in name or "ad " in name:
+        return True
+    if system.system_type == "Operating System":
+        return True
+    if getattr(system, "authentication_type", "").lower() == "ldap":
+        return True
+    # fall back to description check just in case
+    if "windows" in desc or "active directory" in desc:
+        return True
+    
+    return False
+    return False
+
 from django.core.paginator import Paginator
 from django.db.models import Q, Count
 from django.http import JsonResponse, HttpResponse
@@ -1948,16 +1983,34 @@ def access_assignment_create(request):
             has_domain_admin = request.POST.get('has_domain_admin') == 'on'
             admin_password_storage_location = request.POST.get('admin_password_storage_location', '').strip()
             admin_password_stored_date_raw = request.POST.get('admin_password_stored_date')
+
+
             
             # If system_username is empty but access_username exists, use access_username
             # This helps migrate legacy data
             if not system_username and access_username:
                 system_username = access_username
-            
+
             # Convert empty string to None for database consistency
             system_username = system_username if system_username else None
             access_username = access_username if access_username else None
             username_verification_artifact_url = username_verification_artifact_url or None
+
+            # enforce administrator-access metadata when the selected system is a
+            # user-login platform (Windows/AD, OS, LDAP, etc.).  Without this the
+            # card is shown for every new assignment which gets very noisy for
+            # non-login systems.
+            if _system_requires_admin_validation(system):
+                admin_provided = (
+                    is_admin_access or has_separate_admin_account or is_workstation_login
+                    or has_domain_admin or admin_account_username or admin_password_storage_location
+                )
+                if not admin_provided:
+                    raise ValueError(
+                        'Administrator Access (4.3 Compliance) information is required for '
+                        'login systems such as Windows/AD.'
+                    )
+
 
             username_verified_by = None
             if username_verified_by_id:
@@ -2078,10 +2131,14 @@ def access_assignment_create(request):
     selected_request_type = (request.POST.get('request_type') if request.method == 'POST' else '') or ''
     selected_priority = (request.POST.get('priority') if request.method == 'POST' else '') or ''
     
+    # compute login_system_ids for the GET path as well
+    login_system_ids = [str(s.pk) for s in systems if _system_requires_admin_validation(s)]
+
     context = {
         'systems': systems,
         'users': users,
         'verifiers': verifiers,
+        'login_system_ids': login_system_ids,
         'access_type_choices': UserSystemAccess.ACCESS_TYPE_CHOICES,
         'request_type_choices': UserSystemAccess.REQUEST_TYPE_CHOICES,
         'priority_choices': UserSystemAccess.PRIORITY_CHOICES,
@@ -2207,6 +2264,21 @@ def access_assignment_update(request, pk):
         admin_password_storage_location = request.POST.get('admin_password_storage_location', '').strip()
         admin_password_stored_date_raw = request.POST.get('admin_password_stored_date')
         manual_license_category = request.POST.get('license_category', '').strip()
+
+        # If the underlying system is a login platform we require at least one
+        # piece of administrator‑access metadata.  This mirrors the check in
+        # access_assignment_create so users can't dodge compliance by editing an
+        # existing record.
+        if _system_requires_admin_validation(access_assignment.system):
+            admin_provided = (
+                is_admin_access or has_separate_admin_account or is_workstation_login
+                or has_domain_admin or admin_account_username or admin_password_storage_location
+            )
+            if not admin_provided:
+                raise ValueError(
+                    'Administrator Access (4.3 Compliance) information is required for '
+                    'login systems such as Windows/AD.'
+                )
 
         # Resolve subscription tier mapping for subscription-based systems
         tiers_for_system = list(
@@ -2341,6 +2413,7 @@ def access_assignment_update(request, pk):
     
     users_queryset = CustomUser.objects.all().order_by('first_name', 'last_name')
     systems_queryset = System.objects.all().order_by('name')
+    login_system_ids = [str(s.pk) for s in systems_queryset if _system_requires_admin_validation(s)]
 
     context = {
         'access_assignment': access_assignment,
@@ -2348,6 +2421,7 @@ def access_assignment_update(request, pk):
         'access_type_choices': UserSystemAccess.ACCESS_TYPE_CHOICES,
         'request_type_choices': UserSystemAccess.REQUEST_TYPE_CHOICES,
         'priority_choices': UserSystemAccess.PRIORITY_CHOICES,
+        'login_system_ids': login_system_ids,
         'status_choices': UserSystemAccess.STATUS_CHOICES,
         # pre-selected values for template
         'selected_user_id': str(access_assignment.user_id),

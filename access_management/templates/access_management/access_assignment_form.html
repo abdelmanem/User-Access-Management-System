@@ -365,6 +365,7 @@
                                                 <option value="">Select System</option>
                                                 {% for choice in systems %}
                                                 <option value="{{ choice.pk }}"
+                                                    data-login="{% if login_system_ids and choice.pk|stringformat:"s" in login_system_ids %}1{% else %}0{% endif %}"
                                                     {% if selected_system_id == choice.pk|stringformat:"s" %}selected{% endif %}>
                                                     {{ choice.name }} ({{ choice.code }})
                                                 </option>
@@ -550,7 +551,7 @@
                         </div>
 
                         <!-- ── Administrator Access (4.3) ── -->
-                        <div class="card form-card">
+                        <div id="admin-access-card" class="card form-card" style="display:none;">
                             <div class="card-header ch-dark">
                                 <h5><i class="fas fa-user-shield"></i> Administrator Access (4.3 Compliance)</h5>
                             </div>
@@ -1067,6 +1068,52 @@ document.addEventListener('DOMContentLoaded', function () {
     if (systemUsernameInput) {
         systemUsernameInput.addEventListener('input', () => handleGenericDetection(systemUsernameInput.value.trim()));
         systemUsernameInput.addEventListener('blur',  () => handleGenericDetection(systemUsernameInput.value.trim()));
+    }
+
+    /* Administrator Access card visibility
+         * The card is irrelevant for most systems but mandatory for user-login
+         * platforms such as Windows/AD.  We mark those <option> elements with a
+         * data-login attribute and toggle the card when the selection changes.
+         * We also ensure the card stays visible if the user has already entered
+         * any of the admin fields (useful when editing existing records).
+         */
+    const adminCard = document.getElementById('admin-access-card');
+    const adminFields = [
+        document.getElementById('is_admin_access'),
+        document.getElementById('has_separate_admin_account'),
+        document.getElementById('is_workstation_login'),
+        document.getElementById('has_domain_admin'),
+        document.getElementById('admin_account_username'),
+        document.getElementById('admin_password_storage_location'),
+    ];
+
+    function shouldShowAdminCard() {
+        if (!adminCard) return false;
+        for (const f of adminFields) {
+            if (!f) continue;
+            if ((f.type === 'checkbox' || f.type === 'radio') && f.checked) return true;
+            if (f.value && f.value.trim()) return true;
+        }
+        if (!systemSelect) return false;
+        const opt = systemSelect.options[systemSelect.selectedIndex];
+        return opt && opt.dataset && opt.dataset.login === '1';
+    }
+
+    function toggleAdminCard() {
+        if (!adminCard) return;
+        adminCard.style.display = shouldShowAdminCard() ? 'block' : 'none';
+    }
+
+    if (systemSelect) {
+        systemSelect.addEventListener('change', toggleAdminCard);
+        // also toggle when any relevant field changes (so card stays visible)
+        adminFields.forEach(function(f) {
+            if (!f) return;
+            f.addEventListener('change', toggleAdminCard);
+            f.addEventListener('input', toggleAdminCard);
+        });
+        // initial state
+        toggleAdminCard();
     }
 
     /* Show/hide remediation details */

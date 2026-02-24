@@ -51,6 +51,7 @@ class SystemForm(forms.ModelForm):
             'next_maintenance_date',
             'is_active',
             'is_monitored',
+            'is_user_login_system',
             'sla_uptime_percentage',
             'sla_response_time_hours',
             'sla_resolution_time_hours',
