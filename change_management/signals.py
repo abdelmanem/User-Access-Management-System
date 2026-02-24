@@ -318,6 +318,80 @@ def store_old_access_state(sender, instance, **kwargs):
 
 
 # =============================================================================
+# UNIFIED APPROVAL SIGNAL - Sync change request approval to access assignment
+# =============================================================================
+
+@receiver(post_save, sender=AccountChangeRequest)
+def sync_change_request_approval_to_access(sender, instance, **kwargs):
+    """
+    When a change request is approved, automatically update all linked access assignments
+    to mark them as Approved and set the approval metadata.
+    
+    This implements the unified approval workflow: approve in change management,
+    see the result reflected in access assignments.
+    """
+    if not instance or instance.status != AccountChangeRequest.STATUS_APPROVED:
+        return
+    
+    try:
+        # Find all related access assignments and update them
+        access_assignments = instance.access_assignments.filter(status='Pending')
+        
+        for access_assignment in access_assignments:
+            # Update the access assignment to Approved status
+            access_assignment.status = 'Approved'
+            access_assignment.approved_by = instance.system_owner_approval
+            access_assignment.approval_date = instance.system_owner_approval_date
+            access_assignment.approval_comments = instance.system_owner_approval_notes
+            access_assignment.updated_by = instance.requested_by
+            access_assignment.save(update_fields=[
+                'status', 'approved_by', 'approval_date', 'approval_comments', 'updated_by'
+            ])
+            
+            logger.info(
+                f"Auto-approved access assignment {access_assignment.pk} "
+                f"for {access_assignment.user.username} -> {access_assignment.system.name} "
+                f"via change request {instance.pk}"
+            )
+    
+    except Exception as e:
+        logger.error(f"Signal error in sync_change_request_approval_to_access: {str(e)}")
+
+
+@receiver(post_save, sender=AccountChangeRequest)
+def sync_change_request_rejection_to_access(sender, instance, **kwargs):
+    """
+    When a change request is rejected, automatically update all linked access assignments
+    to mark them as Rejected.
+    """
+    if not instance or instance.status != AccountChangeRequest.STATUS_REJECTED:
+        return
+    
+    try:
+        # Find all related pending access assignments and reject them
+        access_assignments = instance.access_assignments.filter(status='Pending')
+        
+        for access_assignment in access_assignments:
+            # Update the access assignment to Rejected status
+            access_assignment.status = 'Rejected'
+            access_assignment.rejection_reason = getattr(
+                instance, 'rejection_notes', 
+                'Change request was rejected in change management workflow'
+            )
+            access_assignment.updated_by = instance.requested_by
+            access_assignment.save(update_fields=['status', 'rejection_reason', 'updated_by'])
+            
+            logger.info(
+                f"Auto-rejected access assignment {access_assignment.pk} "
+                f"for {access_assignment.user.username} -> {access_assignment.system.name} "
+                f"via change request {instance.pk}"
+            )
+    
+    except Exception as e:
+        logger.error(f"Signal error in sync_change_request_rejection_to_access: {str(e)}")
+
+
+# =============================================================================
 # SIGNAL REGISTRATION
 # =============================================================================
 

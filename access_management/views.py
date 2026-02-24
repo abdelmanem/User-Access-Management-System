@@ -2042,6 +2042,11 @@ def access_assignment_create(request):
             # Create associated change request for RHG 4.4 compliance
             change_request = _create_change_request_for_assignment(access_assignment, request.user)
             
+            # Link the change request to the access assignment
+            if change_request:
+                access_assignment.change_request = change_request
+                access_assignment.save(update_fields=['change_request'])
+            
             messages.success(
                 request, 
                 f'Access assignment created successfully for {user.full_name} to {system.name}. '

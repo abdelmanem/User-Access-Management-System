@@ -289,13 +289,11 @@
                                class="btn btn-outline-primary btn-sm">
                                 <i class="fas fa-edit"></i> Edit
                             </a>
-                            {% if access_assignment.status == 'Pending' %}
-                                <button type="button" class="btn btn-outline-success btn-sm" onclick="approveAccess()">
-                                    <i class="fas fa-check"></i> Approve
-                                </button>
-                                <button type="button" class="btn btn-outline-danger btn-sm" onclick="rejectAccess()">
-                                    <i class="fas fa-times"></i> Reject
-                                </button>
+                            {% if access_assignment.change_request %}
+                                <a href="{% url 'change_management:change_request_detail' access_assignment.change_request.pk %}"
+                                   class="btn btn-outline-info btn-sm">
+                                    <i class="fas fa-tasks"></i> View Change Request
+                                </a>
                             {% endif %}
                             <a href="{% url 'access_management:access_assignment_delete' access_assignment.pk %}"
                                class="btn btn-outline-danger btn-sm">
@@ -380,6 +378,15 @@
                                                 </span>
                                                 {% if access_assignment.is_expired %}
                                                     <span class="badge bg-dark ms-1">Expired</span>
+                                                {% endif %}
+                                                {% if access_assignment.change_request %}
+                                                    <br><small class="text-muted mt-2">
+                                                        Managed via: <a href="{% url 'change_management:change_request_detail' access_assignment.change_request.pk %}" 
+                                                                        class="text-decoration-none">
+                                                            Change Request #{{ access_assignment.change_request.pk }}
+                                                        </a>
+                                                        <span class="badge bg-info ms-1">{{ access_assignment.change_request.status }}</span>
+                                                    </small>
                                                 {% endif %}
                                             </td>
                                         </tr>
@@ -1030,15 +1037,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extrajs %}
-<script>
-function approveAccess() {
-    new bootstrap.Modal(document.getElementById('approveModal')).show();
-}
-function rejectAccess() {
-    new bootstrap.Modal(document.getElementById('rejectModal')).show();
-}
-</script>
 {% endblock %}
