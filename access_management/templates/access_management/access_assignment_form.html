@@ -913,27 +913,9 @@
                         <!-- ── System Owner Authorization (included partial) ── -->
                         {# the partial handles read-only vs editable layout via can_edit flag #}
                         {% if can_edit_owner_section %}
-                            {% include 'includes/system_owner_authorization.html' with
-                                system_owner_field_name='system_owner_approver'
-                                system_owner_selected=system_owner_approver_value
-                                system_owner_approved=system_owner_approved_value
-                                system_owner_approval_date=system_owner_approval_date_value
-                                system_owner_notes=''
-                                business_justification_value=business_justification_value
-                                legitimate_business_need_value=legitimate_business_need_value
-                                users=users
-                                can_edit=True %}
+                            {% include 'includes/system_owner_authorization.html' with system_owner_field_name='system_owner_approver' system_owner_selected=system_owner_approver_value system_owner_approved=system_owner_approved_value system_owner_approval_date=system_owner_approval_date_value system_owner_notes='' business_justification_value=business_justification_value legitimate_business_need_value=legitimate_business_need_value users=users can_edit=True %}
                         {% else %}
-                            {% include 'includes/system_owner_authorization.html' with
-                                system_owner_field_name='system_owner_approver'
-                                system_owner_selected=system_owner_approver_value
-                                system_owner_approved=system_owner_approved_value
-                                system_owner_approval_date=system_owner_approval_date_value
-                                system_owner_notes=''
-                                business_justification_value=business_justification_value
-                                legitimate_business_need_value=legitimate_business_need_value
-                                users=users
-                                can_edit=False %}
+                            {% include 'includes/system_owner_authorization.html' with system_owner_field_name='system_owner_approver' system_owner_selected=system_owner_approver_value system_owner_approved=system_owner_approved_value system_owner_approval_date=system_owner_approval_date_value system_owner_notes='' business_justification_value=business_justification_value legitimate_business_need_value=legitimate_business_need_value users=users can_edit=False %}
                         {% endif %}
 
                         <!-- ── Additional Information ── -->
