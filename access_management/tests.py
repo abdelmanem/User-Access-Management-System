@@ -245,6 +245,20 @@ class AdminAccessValidationTests(TestCase):
         self.assertIn(str(self.login_system.pk), ids)
         self.assertNotIn(str(self.app_system.pk), ids)
 
+    def test_admin_card_initially_visible_for_login_system(self):
+        # GET with system parameter should render card visible when system is login-type
+        resp = self.client.get(reverse('access_management:access_assignment_create'), {'system': self.login_system.pk})
+        self.assertEqual(resp.status_code, 200)
+        # card exists and not hidden via inline style
+        self.assertContains(resp, 'id="admin-access-card"')
+        self.assertNotContains(resp, 'id="admin-access-card" class="card form-card" style="display:none;"')
+
+    def test_admin_card_initially_hidden_for_non_login_system(self):
+        resp = self.client.get(reverse('access_management:access_assignment_create'), {'system': self.app_system.pk})
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'id="admin-access-card"')
+        self.assertContains(resp, 'id="admin-access-card" class="card form-card" style="display:none;"')
+
 
 class UnreviewedUsersPageTests(TestCase):
     def setUp(self):

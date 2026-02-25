@@ -4,6 +4,10 @@
 {% block title %}{% if access_assignment %}Edit{% else %}Create{% endif %} Access Assignment{% endblock %}
 
 {% block extrahead %}
+<!-- load jQuery early in case CDN timing causes race with select2 -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+        crossorigin="anonymous"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
 <link href="https://cdnjs.cloudflare.com/ajax/libs/select2-bootstrap-5-theme/1.3.0/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
 {% endblock %}
@@ -551,7 +555,9 @@
                         </div>
 
                         <!-- ── Administrator Access (4.3) ── -->
-                        <div id="admin-access-card" class="card form-card" style="display:none;">
+                        {% if user.is_authenticated %}
+                        {# hide card only when a non-login system is chosen *and* there is no admin info #}
+                        <div id="admin-access-card" class="card form-card" style="{% if not selected_system_id or not login_system_ids or selected_system_id not in login_system_ids %}{% if not is_admin_access_value and not has_separate_admin_account_value and not is_workstation_login_value and not admin_account_username_value and not admin_password_storage_location_value %}display:none;{% endif %}{% endif %}">
                             <div class="card-header ch-dark">
                                 <h5><i class="fas fa-user-shield"></i> Administrator Access (4.3 Compliance)</h5>
                             </div>
@@ -756,6 +762,7 @@
                                 </div>
                             </div>
                         </div>
+                        {% endif %}
 
                         <!-- ── Generic Account Detection ── -->
                         {% if access_assignment and access_assignment.is_generic_account or system_username_value %}
