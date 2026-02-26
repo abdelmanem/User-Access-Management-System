@@ -1,193 +1,184 @@
+
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Permission Changes Log{% endblock %}
+{% block title %}Permission Change Log{% endblock %}
 
 {% block extra_css %}
 <style>
-    [data-theme="dark"] .card-header {
+    /* dark/light tweaks for cards, tables, progress and hover states */
+    [data-theme="dark"] .card {
         background-color: var(--card-header-bg);
-        color: var(--text-primary);
+        border: 1px solid #444;
     }
-    [data-theme="dark"] .badge {
-        background-color: var(--badge-muted-bg) !important;
-        color: var(--badge-muted-text) !important;
+    [data-theme="light"] .card {
+        background-color: #fff;
+        border: 1px solid #e9ecef;
     }
-    [data-theme="dark"] .badge.bg-success {
-        background-color: #10b981 !important;
-        color: #fff !important;
+    [data-theme="dark"] .progress {
+        background-color: #444;
     }
-    [data-theme="dark"] .badge.bg-warning {
-        background-color: #f59e0b !important;
-        color: #000 !important;
+    [data-theme="dark"] .table-hover tbody tr:hover {
+        background-color: #444;
     }
-    [data-theme="dark"] code {
-        background-color: var(--code-bg);
-        color: var(--text-primary);
-        padding: 0.2rem 0.4rem;
-        border-radius: 0.25rem;
+    [data-theme="light"] .table-hover tbody tr:hover {
+        background-color: #f5f5f5;
+    }
+
+    /* progress bar card used to visualise approval rate */
+    .review-progress-card .progress,
+    .review-progress-card .progress.bg-light,
+    .review-progress-card div.progress {
+        height: 28px !important;
+        background-color: var(--progress-track) !important;
+        border-radius: 0.75rem !important;
+        overflow: hidden;
+    }
+    [data-theme="dark"] .review-progress-card .progress {
+        background-color: #2d3748 !important;
+    }
+    [data-theme="light"] .review-progress-card .progress {
+        background-color: #e3e8f0 !important;
+    }
+    .review-progress-card .progress-bar {
+        background: linear-gradient(90deg, #667eea, #764ba2) !important;
+        border-radius: 0.75rem;
+        font-weight: 700;
+        font-size: 0.85rem;
+        letter-spacing: 0.03em;
+        color: #ffffff !important;
+        position: relative;
+        overflow: hidden;
+    }
+    .review-progress-card .progress-bar[aria-valuenow="0"],
+    .review-progress-card .progress-bar[style*="width: 0"] {
+        color: transparent !important;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h2 class="mb-2">
-                <i class="fas fa-exchange-alt text-primary"></i>
-                Permission Changes Log (RHG 4.5)
-            </h2>
-            <p class="text-muted">Audit trail of approved permission changes in external systems</p>
-        </div>
-    </div>
+<div class="container-fluid mt-4">
 
-    <div class="row g-3 mb-4">
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <p class="text-muted mb-1">Total Changes</p>
-                    <h3 class="mb-0">{{ metrics.total_changes }}</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <p class="text-muted mb-1">With Approval</p>
-                    <h3 class="mb-0 text-success">{{ metrics.with_approval }}</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <p class="text-muted mb-1">Pending Approval</p>
-                    <h3 class="mb-0 text-warning">{{ metrics.pending_approval }}</h3>
-                </div>
-            </div>
-        </div>
-    </div>
+  <!-- page header -->
+  <div class="page-header mb-4">
+    <h1><i class="fa-solid fa-exchange-alt me-2" style="color:#667eea"></i>Permission Change Log</h1>
+    <p class="text-muted">Logged permission changes for audit evidence</p>
+  </div>
 
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filter Changes</h5>
-        </div>
-        <div class="card-body">
-            <form method="get" class="row g-3 align-items-end">
-                <div class="col-md-6">
-                    <label class="form-label">System</label>
-                    <select class="form-select" name="system">
-                        <option value="">All Systems</option>
-                        {% for system in systems %}
-                        <option value="{{ system.id }}" {% if system_filter|default:'' == system.id|stringformat:"s" %}selected{% endif %}>
-                            {{ system.name }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-search me-1"></i>Filter
-                    </button>
-                </div>
-                <div class="col-md-3">
-                    <a href="{% url 'access_management:permission_change_output' %}" class="btn btn-outline-secondary w-100">Reset</a>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0"><i class="fas fa-list me-2"></i>Change Documentation</h5>
-            <span class="badge bg-secondary">{{ changes_page.paginator.count }} records</span>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0 small">
-                    <thead class="table-light">
-                        <tr>
-                            <th>User</th>
-                            <th>System</th>
-                            <th>Change Date</th>
-                            <th>Old Permissions</th>
-                            <th>New Permissions</th>
-                            <th>Approval Status</th>
-                            <th>Documented By</th>
-                            <th>Notes</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for change in changes_page %}
-                        <tr>
-                            <td>
-                                {% if change.user_system_access.user %}
-                                    {{ change.user_system_access.user.full_name }}
-                                {% else %}
-                                    <span class="text-muted">—</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if change.user_system_access.system %}
-                                    {{ change.user_system_access.system.name }}
-                                {% else %}
-                                    <span class="text-muted">—</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ change.changed_in_external_system_date|date:"Y-m-d H:i" }}</td>
-                            <td><code class="text-muted small">{{ change.old_permissions|truncatechars:40 }}</code></td>
-                            <td><code class="text-success small">{{ change.new_permissions|truncatechars:40 }}</code></td>
-                            <td>
-                                {% if change.has_approval %}
-                                    <span class="badge bg-success">Approved</span>
-                                    {% if change.approval_reference %}
-                                        <br><small class="text-muted">Ref: {{ change.approval_reference }}</small>
-                                    {% endif %}
-                                {% else %}
-                                    <span class="badge bg-warning text-dark">No Approval</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ change.documented_by.full_name|default:"N/A" }}</td>
-                            <td>{{ change.notes|default_if_none:""|truncatechars:50 }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="8" class="text-center py-4 text-muted">
-                                <i class="fas fa-inbox fa-2x mb-2"></i><br>
-                                No permission changes documented.
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+  <!-- approval progress -->
+  <div class="card review-progress-card mb-4">
+    <div class="card-body">
+      <div class="row align-items-center">
+        <div class="col-md-8">
+          <div class="d-flex justify-content-between mb-2">
+            <span style="font-size:0.85rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-secondary)">Approval Progress</span>
+            <span style="font-size:0.85rem;font-weight:700;color:var(--text-primary)">{{ approval_pct|floatformat:1 }}%</span>
+          </div>
+          <div class="progress">
+            <div class="progress-bar"
+                 role="progressbar"
+                 style="width: {{ approval_pct }}%;"
+                 aria-valuenow="{{ approval_pct }}"
+                 aria-valuemin="0"
+                 aria-valuemax="100">
+              {{ approval_pct|floatformat:1 }}% approved
             </div>
+          </div>
         </div>
-        {% if changes_page.has_other_pages %}
-        <div class="card-footer">
-            <nav>
-                <ul class="pagination justify-content-end mb-0">
-                    {% if changes_page.has_previous %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page=1{% if system_filter %}&system={{ system_filter }}{% endif %}">First</a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ changes_page.previous_page_number }}{% if system_filter %}&system={{ system_filter }}{% endif %}">Previous</a>
-                    </li>
-                    {% endif %}
-                    <li class="page-item disabled"><span class="page-link">Page {{ changes_page.number }} of {{ changes_page.paginator.num_pages }}</span></li>
-                    {% if changes_page.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ changes_page.next_page_number }}{% if system_filter %}&system={{ system_filter }}{% endif %}">Next</a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ changes_page.paginator.num_pages }}{% if system_filter %}&system={{ system_filter }}{% endif %}">Last</a>
-                    </li>
-                    {% endif %}
-                </ul>
-            </nav>
+        <div class="col-md-4 text-md-end">
+          <div class="stat-remaining">
+            <span class="stat-number">{{ metrics.with_approval }}</span>
+            <span class="stat-label">approved</span>
+            <span class="stat-total">of {{ metrics.total_changes }} changes</span>
+          </div>
         </div>
-        {% endif %}
+      </div>
     </div>
+  </div>
+
+  <!-- filters -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <form method="get" class="row g-3 align-items-end">
+        <div class="col-md-4">
+          <label for="systemFilter" class="form-label">System</label>
+          <select name="system" id="systemFilter" class="form-select">
+            <option value="">All Systems</option>
+            {% for system in systems %}
+              <option value="{{ system.id }}" {% if system_filter|stringformat:"s" == system.id|stringformat:"s" %}selected{% endif %}>{{ system.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="fa-solid fa-filter me-1"></i>Filter
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- table -->
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0"><i class="fa-solid fa-list me-2"></i>Permission Changes</h5>
+      <span class="badge bg-secondary">{{ changes_page.paginator.count }}</span>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 small">
+        <thead class="table-light">
+          <tr>
+            <th>Date</th>
+            <th>User</th>
+            <th>System</th>
+            <th>Approved?</th>
+            <th>Documented By</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for change in changes_page %}
+          <tr>
+            <td>{{ change.changed_in_external_system_date|date:"Y-m-d H:i" }}</td>
+            <td>{{ change.user_system_access.user.get_full_name }}</td>
+            <td>{{ change.user_system_access.system.name }}</td>
+            <td>
+              {% if change.has_approval %}
+                <span class="badge bg-success">Yes</span>
+              {% else %}
+                <span class="badge bg-danger">No</span>
+              {% endif %}
+            </td>
+            <td>{{ change.documented_by.get_full_name|default:"N/A" }}</td>
+            <td>{{ change.notes|default:"" }}</td>
+          </tr>
+          {% empty %}
+            <tr>
+              <td colspan="6" class="text-center text-muted">No permission changes found.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if changes_page.has_other_pages %}
+      <div class="card-footer">
+        <nav>
+          <ul class="pagination mb-0 justify-content-center">
+            {% if changes_page.has_previous %}
+              <li class="page-item"><a class="page-link" href="?page=1{% if system_filter %}&system={{ system_filter }}{% endif %}">&laquo;</a></li>
+              <li class="page-item"><a class="page-link" href="?page={{ changes_page.previous_page_number }}{% if system_filter %}&system={{ system_filter }}{% endif %}">Prev</a></li>
+            {% endif %}
+            <li class="page-item active"><span class="page-link">{{ changes_page.number }} / {{ changes_page.paginator.num_pages }}</span></li>
+            {% if changes_page.has_next %}
+              <li class="page-item"><a class="page-link" href="?page={{ changes_page.next_page_number }}{% if system_filter %}&system={{ system_filter }}{% endif %}">Next</a></li>
+              <li class="page-item"><a class="page-link" href="?page={{ changes_page.paginator.num_pages }}{% if system_filter %}&system={{ system_filter }}{% endif %}">&raquo;</a></li>
+            {% endif %}
+          </ul>
+        </nav>
+      </div>
+    {% endif %}
+  </div>
+
 </div>
 {% endblock %}

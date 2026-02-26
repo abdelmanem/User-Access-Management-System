@@ -3715,9 +3715,16 @@ def permission_change_output(request):
         'pending_approval': permission_changes_qs.filter(has_approval=False).count(),
     }
 
+    # percentage of changes that have approval (used for progress bar)
+    if metrics['total_changes']:
+        approval_pct = (metrics['with_approval'] / metrics['total_changes']) * 100
+    else:
+        approval_pct = 0
+
     context = {
         'changes_page': changes_page,
         'metrics': metrics,
+        'approval_pct': approval_pct,
         'systems': systems,
         'system_filter': system_filter,
     }
