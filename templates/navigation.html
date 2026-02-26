@@ -12,8 +12,16 @@
 
     <div class="flex-grow-1 overflow-auto">
         <nav class="nav flex-column gap-1" id="sidebarNav">
-            {% nav_active_class 'dashboard_home' 'analytics' as dashboard_active %}
 
+            {# ─────────────────────────────────────────── #}
+            {# SECTION: MAIN                               #}
+            {# ─────────────────────────────────────────── #}
+            <div class="sidebar-section-label">Main</div>
+
+            {% nav_active_class 'dashboard_home' 'analytics' as dashboard_active %}
+            <a class="sidebar-link{{ dashboard_active }}" href="{% url 'dashboard_home' %}" data-sidebar-close="true">
+                <span><i class="fa-solid fa-gauge-high"></i> Dashboard</span>
+            </a>
 
             {% nav_active_class 'accounts:user_list' 'accounts:user_create' 'accounts:user_detail' 'accounts:user_update' 'accounts:user_delete' as users_active %}
             <button class="sidebar-link{{ users_active }}" type="button"
@@ -107,12 +115,17 @@
                 </a>
             </div>
 
+            {# ─────────────────────────────────────────── #}
+            {# SECTION: ACCESS CONTROL                     #}
+            {# ─────────────────────────────────────────── #}
+            <div class="sidebar-section-label">Access Control</div>
+
             {% nav_active_class 'service_accounts:service_account_*' 'service_accounts:service_account_list' 'service_accounts:service_account_detail' 'service_accounts:service_account_update' 'service_accounts:service_account_delete' 'service_accounts:service_account_create' 'service_accounts:service_account_compliance_report' as svc_active %}
             <button class="sidebar-link{{ svc_active }}" type="button"
                     data-bs-toggle="collapse" data-bs-target="#sidebarServiceAccounts"
                     data-main-href="{% url 'service_accounts:service_account_list' %}"
                     aria-expanded="{% if svc_active %}true{% else %}false{% endif %}" aria-controls="sidebarServiceAccounts">
-                <span><i class="fa-solid fa-user-shield"></i> Service Accounts 4.2</span>
+                <span><i class="fa-solid fa-user-shield"></i> Service Accounts</span>
                 <i class="fa-solid fa-angle-down collapse-arrow"></i>
             </button>
             <div class="collapse sidebar-submenu{% if svc_active %} show{% endif %}" id="sidebarServiceAccounts" data-bs-parent="#sidebarNav">
@@ -149,15 +162,28 @@
                 </a>
             </div>
 
+            {# ── Access (grouped sub-sections) ───────── #}
             {% nav_active_class 'access_management:access_assignment_*' 'access_management:user_access_*' 'access_management:system_access_*' 'access_management:access_history_*' 'access_management:approve_access_assignment' 'access_management:reject_access_assignment' 'access_management:cross_system_account_mapping' 'access_management:generic_accounts_report' 'access_management:user_cross_system_accounts' 'access_management:mark_generic_account_remediated' 'access_management:policy_drift_monitoring' 'access_management:admin_accounts_report' 'access_management:quarterly_access_review_dashboard' 'access_management:quarterly_access_review_bulk' 'access_management:access_approval_compliance' 'access_management:my_pending_approvals' 'access_management:approval_summary_dashboard' 'access_management:unapproved_access_list' 'access_management:my_unapproved_access_gaps' 'default_accounts:default_account_*' 'default_accounts:default_account_dashboard' 'default_accounts:default_account_detail' 'default_accounts:default_account_update' 'default_accounts:default_account_templates' 'default_accounts:default_account_create' 'change_management:change_request_*' 'change_management:change_request_list' 'change_management:change_request_create' 'change_management:change_request_detail' 'change_management:change_request_update' as access_active %}
             <button class="sidebar-link{{ access_active }}" type="button"
                     data-bs-toggle="collapse" data-bs-target="#sidebarAccess"
                     data-main-href="{% url 'access_management:access_assignment_list' %}"
                     aria-expanded="{% if access_active %}true{% else %}false{% endif %}" aria-controls="sidebarAccess">
-                <span><i class="fa-solid fa-key"></i> Access</span>
-                <i class="fa-solid fa-angle-down collapse-arrow"></i>
+                <span>
+                    <i class="fa-solid fa-key"></i> Access
+                </span>
+                <span class="d-flex align-items-center gap-2">
+                    {# Badge: pending approvals count — wire up via context variable pending_approvals_count #}
+                    {% if pending_approvals_count %}
+                    <span class="sidebar-badge" id="sidebarAccessBadge">{{ pending_approvals_count }}</span>
+                    {% endif %}
+                    <i class="fa-solid fa-angle-down collapse-arrow"></i>
+                </span>
             </button>
             <div class="collapse sidebar-submenu{% if access_active %} show{% endif %}" id="sidebarAccess" data-bs-parent="#sidebarNav">
+
+                {# ── Group 1: Assignments ── #}
+                <div class="sidebar-subgroup-label">Assignments</div>
+
                 {% nav_active_class 'access_management:access_assignment_list' 'access_management:access_assignment_detail' 'access_management:access_assignment_update' 'access_management:access_assignment_delete' 'access_management:user_access_assignments' 'access_management:system_access_assignments' 'access_management:approve_access_assignment' 'access_management:reject_access_assignment' as access_assignments_active %}
                 <a class="sidebar-sublink{{ access_assignments_active }}" href="{% url 'access_management:access_assignment_list' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-list"></i> Access Assignments
@@ -165,6 +191,9 @@
                 {% nav_active_class 'access_management:my_pending_approvals' 'access_management:approval_dashboard' as my_pending_active %}
                 <a class="sidebar-sublink{{ my_pending_active }}" href="{% url 'access_management:approval_dashboard' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-inbox"></i> Approval Dashboard
+                    {% if pending_approvals_count %}
+                    <span class="sidebar-badge ms-auto">{{ pending_approvals_count }}</span>
+                    {% endif %}
                 </a>
                 {% nav_active_class 'access_management:access_assignment_create' as access_create_active %}
                 <a class="sidebar-sublink{{ access_create_active }}" href="{% url 'access_management:access_assignment_create' %}" data-sidebar-close="true">
@@ -182,28 +211,37 @@
                 <a class="sidebar-sublink{{ policy_drift_active }}" href="{% url 'access_management:policy_drift_monitoring' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-radar"></i> Policy Drift Monitor
                 </a>
+
+                {# ── Group 2: Reviews & Changes ── #}
                 <div class="sidebar-submenu-divider" role="separator"></div>
+                <div class="sidebar-subgroup-label">Reviews &amp; Changes</div>
+
                 {% nav_active_class 'access_management:admin_accounts_report' as admin_accounts_active %}
                 <a class="sidebar-sublink{{ admin_accounts_active }}" href="{% url 'access_management:admin_accounts_report' %}" data-sidebar-close="true">
-                    <i class="fa-solid fa-user-shield"></i> Admin Accounts (4.3)
+                    <i class="fa-solid fa-user-shield"></i> Admin Accounts
+                    <span class="sidebar-subgroup-tag ms-auto">4.3</span>
                 </a>
                 {% nav_active_class 'access_management:access_history_list' 'access_management:user_access_history' 'access_management:system_access_history' 'access_management:assignment_access_history' as access_history_active %}
                 <a class="sidebar-sublink{{ access_history_active }}" href="{% url 'access_management:access_history_list' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-history"></i> Access History
                 </a>
-                <div class="sidebar-submenu-divider" role="separator"></div>
                 {% nav_active_class 'change_management:change_request_list' 'change_management:change_request_detail' 'change_management:change_request_update' as change_list_active %}
                 <a class="sidebar-sublink{{ change_list_active }}" href="{% url 'change_management:change_request_list' %}" data-sidebar-close="true">
-                    <i class="fa-solid fa-exchange-alt"></i> Change Management (4.4)
+                    <i class="fa-solid fa-exchange-alt"></i> Change Management
+                    <span class="sidebar-subgroup-tag ms-auto">4.4</span>
                 </a>
                 {% nav_active_class 'change_management:change_request_create' as change_create_active %}
                 <a class="sidebar-sublink{{ change_create_active }}" href="{% url 'change_management:change_request_create' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-plus"></i> New Change Request
                 </a>
+
+                {# ── Group 3: Quarterly Reviews ── #}
                 <div class="sidebar-submenu-divider" role="separator"></div>
+                <div class="sidebar-subgroup-label">Quarterly Reviews <span class="sidebar-subgroup-tag">4.5</span></div>
+
                 {% nav_active_class 'access_management:quarterly_access_review_dashboard' 'access_management:quarterly_review_input' 'access_management:quarterly_review_output' 'access_management:permission_change_output' 'access_management:quarterly_review_upcoming' 'access_management:quarterly_review_unreviewed_users' 'access_management:quarterly_access_review_simple' 'access_management:quarterly_access_review_detailed' 'access_management:quarterly_access_review_detailed_edit' as quarterly_reviews_active %}
                 <a class="sidebar-sublink{{ quarterly_reviews_active }}" href="{% url 'access_management:quarterly_review_input' %}" data-sidebar-close="true">
-                    <i class="fa-solid fa-calendar-check"></i> Quarterly Reviews (4.5)
+                    <i class="fa-solid fa-calendar-check"></i> Review Input
                 </a>
                 <a class="sidebar-sublink" href="{% url 'access_management:quarterly_review_output' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-chart-bar"></i> Review Reports
@@ -217,10 +255,14 @@
                 <a class="sidebar-sublink" href="{% url 'access_management:quarterly_review_unreviewed_users' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-person-circle-question"></i> Users Needing Review
                 </a>
+
+                {# ── Group 4: Compliance ── #}
                 <div class="sidebar-submenu-divider" role="separator"></div>
+                <div class="sidebar-subgroup-label">Compliance <span class="sidebar-subgroup-tag">4.6</span></div>
+
                 {% nav_active_class 'access_management:access_approval_compliance' as access_compliance_active %}
                 <a class="sidebar-sublink{{ access_compliance_active }}" href="{% url 'access_management:access_approval_compliance' %}" data-sidebar-close="true">
-                    <i class="fa-solid fa-shield-alt"></i> Access Compliance (4.6)
+                    <i class="fa-solid fa-shield-alt"></i> Access Compliance
                 </a>
                 {% nav_active_class 'access_management:approval_summary_dashboard' as approval_summary_active %}
                 <a class="sidebar-sublink{{ approval_summary_active }}" href="{% url 'access_management:approval_summary_dashboard' %}" data-sidebar-close="true">
@@ -228,12 +270,16 @@
                 </a>
                 {% nav_active_class 'access_management:unapproved_access_list' 'access_management:my_unapproved_access_gaps' as unapproved_access_active %}
                 <a class="sidebar-sublink{{ unapproved_access_active }}" href="{% url 'access_management:unapproved_access_list' %}" data-sidebar-close="true">
-                    <i class="fa-solid fa-exclamation-triangle"></i> Unapproved Access (All / Mine)
+                    <i class="fa-solid fa-exclamation-triangle"></i> Unapproved Access
                 </a>
+
+                {# ── Group 5: Default Accounts ── #}
                 <div class="sidebar-submenu-divider" role="separator"></div>
+                <div class="sidebar-subgroup-label">Default Accounts <span class="sidebar-subgroup-tag">4.7</span></div>
+
                 {% nav_active_class 'default_accounts:default_account_dashboard' 'default_accounts:default_account_detail' 'default_accounts:default_account_update' as default_accounts_list_active %}
                 <a class="sidebar-sublink{{ default_accounts_list_active }}" href="{% url 'default_accounts:default_account_dashboard' %}" data-sidebar-close="true">
-                    <i class="fa-solid fa-user-lock"></i> Default Accounts (4.7)
+                    <i class="fa-solid fa-user-lock"></i> Dashboard
                 </a>
                 {% nav_active_class 'default_accounts:default_account_create' as default_accounts_create_active %}
                 <a class="sidebar-sublink{{ default_accounts_create_active }}" href="{% url 'default_accounts:default_account_create' %}" data-sidebar-close="true">
@@ -246,7 +292,14 @@
                 <a class="sidebar-sublink" href="{% url 'default_accounts:default_account_export' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-file-export"></i> Export Evidence
                 </a>
+
             </div>
+            {# ── End Access ── #}
+
+            {# ─────────────────────────────────────────── #}
+            {# SECTION: TOOLS                              #}
+            {# ─────────────────────────────────────────── #}
+            <div class="sidebar-section-label">Tools</div>
 
             {% nav_active_class 'data_import_export:home' 'data_import_export:export_*' 'data_import_export:import_*' 'data_import_export:custom_export' as import_active %}
             <button class="sidebar-link{{ import_active }}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarImportExport" aria-expanded="{% if import_active %}true{% else %}false{% endif %}" aria-controls="sidebarImportExport">
@@ -258,12 +311,16 @@
                 <a class="sidebar-sublink{{ import_home_active }}" href="{% url 'data_import_export:home' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-home"></i> Overview
                 </a>
-                <div class="sidebar-submenu-divider" role="separator"></div>
                 {% nav_active_class 'data_import_export:custom_export' as import_custom_active %}
                 <a class="sidebar-sublink{{ import_custom_active }}" href="{% url 'data_import_export:custom_export' %}" data-sidebar-close="true">
                     <i class="fa-solid fa-sliders"></i> Custom Export
                 </a>
             </div>
+
+            {% nav_active_class 'reports' 'user_access_report' 'system_usage_report' 'security_audit_report' 'department_access_report' as reports_active %}
+            <a class="sidebar-link{{ reports_active }}" href="{% url 'reports' %}" data-sidebar-close="true">
+                <span><i class="fa-solid fa-chart-pie"></i> Reports</span>
+            </a>
 
             {% if user.is_superuser or user.is_staff %}
             {% nav_active_class 'application_settings' as app_settings_active %}
@@ -273,17 +330,13 @@
             </a>
             {% endif %}
 
-            {% nav_active_class 'reports' 'user_access_report' 'system_usage_report' 'security_audit_report' 'department_access_report' as reports_active %}
-            <a class="sidebar-link{{ reports_active }}" href="{% url 'reports' %}" data-sidebar-close="true">
-                <span><i class="fa-solid fa-chart-pie"></i> Reports</span>
-            </a>
         </nav>
     </div>
 
     <div class="sidebar-footer mt-3">
-        <button type="button" id="sidebarCollapseToggle" class="btn btn-sm btn-outline-sidebar sidebar-collapse-toggle" aria-expanded="true">
-            <i class="fa-solid fa-angles-left me-2"></i>
-            <span>Collapse</span>
+        <button type="button" id="sidebarCollapseToggle" class="btn btn-sm btn-outline-sidebar sidebar-collapse-toggle" aria-expanded="true" aria-label="Collapse sidebar">
+            <i class="fa-solid fa-angles-left"></i>
+            <span class="sidebar-collapse-label">Collapse</span>
         </button>
     </div>
 </aside>
