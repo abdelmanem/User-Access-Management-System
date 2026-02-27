@@ -35,6 +35,15 @@ urlpatterns = [
     # Quarterly reviews & permission change documentation (RHG 4.5)
     path('quarterly-reviews/', views.quarterly_access_review_dashboard, name='quarterly_access_review_dashboard'),
     path('quarterly-reviews/bulk/', views.quarterly_access_review_bulk, name='quarterly_access_review_bulk'),
+    path('quarterly-reviews/input/', views.quarterly_review_input, name='quarterly_review_input'),
+    path('quarterly-reviews/output/', views.quarterly_review_output, name='quarterly_review_output'),
+    path('quarterly-reviews/upcoming-overdue/', views.quarterly_review_upcoming, name='quarterly_review_upcoming'),
+    path('quarterly-reviews/unreviewed-users/', views.quarterly_review_unreviewed_users, name='quarterly_review_unreviewed_users'),
+    path('permission-changes/output/', views.permission_change_output, name='permission_change_output'),
+    # Legacy/advanced log pages
+    path('quarterly-reviews/simple/', views.quarterly_access_review_simple, name='quarterly_access_review_simple'),
+    path('quarterly-reviews/detailed/', views.quarterly_access_review_detailed, name='quarterly_access_review_detailed'),
+    path('quarterly-reviews/detailed/<int:review_id>/', views.quarterly_access_review_detailed, name='quarterly_access_review_detailed_edit'),
 
     # Access approval compliance (RHG 4.6)
     path('access-approval-compliance/', views.access_approval_compliance, name='access_approval_compliance'),

@@ -10,7 +10,12 @@ def populate_user_snapshots(apps, schema_editor):
     """
     AccountChangeRequest = apps.get_model('change_management', 'AccountChangeRequest')
     CustomUser = apps.get_model('accounts', 'CustomUser')
-    UserArchive = apps.get_model('accounts', 'UserArchive')
+    try:
+        UserArchive = apps.get_model('accounts', 'UserArchive')
+    except LookupError:
+        # some installations (especially in lightweight test configurations)
+        # do not define an archive model; we can continue without it.
+        UserArchive = None
     
     # Process all change requests with empty snapshot fields
     change_requests = AccountChangeRequest.objects.filter(

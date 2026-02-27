@@ -199,6 +199,16 @@ class UserSystemAccess(models.Model):
         help_text="Reason for rejection (if rejected)"
     )
 
+    # Link to change management workflow for unified approval (RHG 4.4)
+    change_request = models.ForeignKey(
+        'change_management.AccountChangeRequest',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='access_assignments',
+        help_text="Associated change request in change management workflow"
+    )
+
     # System Owner authorization (RHG 4.4)
     system_owner_approved = models.BooleanField(
         default=False,

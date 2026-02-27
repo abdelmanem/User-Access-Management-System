@@ -98,10 +98,13 @@ in `access_management/forms.py`.
 
 - Sidebar links under **Access**:
   - `Quarterly Reviews (4.5)` → dashboard
+  - `Log Review` → simple entry page for users
   - `Bulk Reviews` → generator
 - URLs declared in `access_management/urls.py`:
   - `/access-management/quarterly-reviews/`
+  - `/access-management/quarterly-reviews/simple/` (new simple form)
   - `/access-management/quarterly-reviews/bulk/`
+- `/access-management/quarterly-reviews/simple/` (simplified log page for end users)
 
 ---
 

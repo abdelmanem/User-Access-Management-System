@@ -2,8 +2,44 @@ import csv
 from datetime import datetime, timedelta
 from io import BytesIO, StringIO
 
+from django.apps import apps
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+
+
+def _system_requires_admin_validation(system):
+    """Heuristic used by the access-assignment forms to decide whether the
+    Administrator Access section is relevant.
+
+    The System.is_user_login_system flag explicitly marks systems that are user
+    login platforms (e.g., Windows/Active Directory, LDAP). When set, the
+    Administrator Access (4.3) metadata is required.  We also fall back to
+    heuristics for backward compatibility (name with "Windows" or "AD", system
+    type = "Operating System", authentication = "LDAP").
+    """
+    if not system:
+        return False
+    
+    # Explicit flag takes precedence
+    if getattr(system, "is_user_login_system", False):
+        return True
+    
+    # Fallback heuristics for backward compatibility
+    name = (system.name or "").lower()
+    desc = (system.description or "").lower()
+    if "windows" in name or "active directory" in name or "ad " in name:
+        return True
+    if system.system_type == "Operating System":
+        return True
+    if getattr(system, "authentication_type", "").lower() == "ldap":
+        return True
+    # fall back to description check just in case
+    if "windows" in desc or "active directory" in desc:
+        return True
+    
+    return False
+    return False
+
 from django.core.paginator import Paginator
 from django.db.models import Q, Count
 from django.http import JsonResponse, HttpResponse
@@ -560,10 +596,24 @@ def _quarter_date_range(label):
 
 
 def _annual_review_progress(year=None):
-    """Return progress metrics for annual user review coverage."""
+    """Return progress metrics for annual user review coverage.
+    
+    Only counts users who have active system assignments that need review.
+    """
     now = timezone.now()
     year = year or now.year
-    total_users = CustomUser.objects.included_in_metrics().filter(is_active=True).count()
+    
+    # Get users with reviewable system assignments
+    total_users = (
+        CustomUser.objects
+        .included_in_metrics()
+        .filter(is_active=True, system_accesses__status__in=['Active', 'Approved', 'Pending', 'Suspended'])
+        .annotate(reviewable_systems=Count('system_accesses', filter=Q(system_accesses__status__in=['Active', 'Approved', 'Pending', 'Suspended'])))
+        .filter(reviewable_systems__gt=0)
+        .distinct()
+        .count()
+    )
+    
     reviewed_users = (
         QuarterlyAccessReview.objects.filter(review_date__year=year)
         .values_list('reviewed_user', flat=True)
@@ -595,7 +645,7 @@ def _select_assignments_for_bulk(system, users_qty, review_quarter):
         UserSystemAccess.objects.select_related('user', 'system')
         .filter(
             system=system,
-            status__in=['Active', 'Approved'],
+            status__in=['Active', 'Approved', 'Pending', 'Suspended'],
             user__is_active=True,
         )
         .exclude(quarterly_reviews__review_quarter=review_quarter)
@@ -1933,16 +1983,34 @@ def access_assignment_create(request):
             has_domain_admin = request.POST.get('has_domain_admin') == 'on'
             admin_password_storage_location = request.POST.get('admin_password_storage_location', '').strip()
             admin_password_stored_date_raw = request.POST.get('admin_password_stored_date')
+
+
             
             # If system_username is empty but access_username exists, use access_username
             # This helps migrate legacy data
             if not system_username and access_username:
                 system_username = access_username
-            
+
             # Convert empty string to None for database consistency
             system_username = system_username if system_username else None
             access_username = access_username if access_username else None
             username_verification_artifact_url = username_verification_artifact_url or None
+
+            # enforce administrator-access metadata when the selected system is a
+            # user-login platform (Windows/AD, OS, LDAP, etc.).  Without this the
+            # card is shown for every new assignment which gets very noisy for
+            # non-login systems.
+            if _system_requires_admin_validation(system):
+                admin_provided = (
+                    is_admin_access or has_separate_admin_account or is_workstation_login
+                    or has_domain_admin or admin_account_username or admin_password_storage_location
+                )
+                if not admin_provided:
+                    raise ValueError(
+                        'Administrator Access (4.3 Compliance) information is required for '
+                        'login systems such as Windows/AD.'
+                    )
+
 
             username_verified_by = None
             if username_verified_by_id:
@@ -2027,6 +2095,11 @@ def access_assignment_create(request):
             # Create associated change request for RHG 4.4 compliance
             change_request = _create_change_request_for_assignment(access_assignment, request.user)
             
+            # Link the change request to the access assignment
+            if change_request:
+                access_assignment.change_request = change_request
+                access_assignment.save(update_fields=['change_request'])
+            
             messages.success(
                 request, 
                 f'Access assignment created successfully for {user.full_name} to {system.name}. '
@@ -2058,10 +2131,14 @@ def access_assignment_create(request):
     selected_request_type = (request.POST.get('request_type') if request.method == 'POST' else '') or ''
     selected_priority = (request.POST.get('priority') if request.method == 'POST' else '') or ''
     
+    # compute login_system_ids for the GET path as well
+    login_system_ids = [str(s.pk) for s in systems if _system_requires_admin_validation(s)]
+
     context = {
         'systems': systems,
         'users': users,
         'verifiers': verifiers,
+        'login_system_ids': login_system_ids,
         'access_type_choices': UserSystemAccess.ACCESS_TYPE_CHOICES,
         'request_type_choices': UserSystemAccess.REQUEST_TYPE_CHOICES,
         'priority_choices': UserSystemAccess.PRIORITY_CHOICES,
@@ -2187,6 +2264,21 @@ def access_assignment_update(request, pk):
         admin_password_storage_location = request.POST.get('admin_password_storage_location', '').strip()
         admin_password_stored_date_raw = request.POST.get('admin_password_stored_date')
         manual_license_category = request.POST.get('license_category', '').strip()
+
+        # If the underlying system is a login platform we require at least one
+        # piece of administrator‑access metadata.  This mirrors the check in
+        # access_assignment_create so users can't dodge compliance by editing an
+        # existing record.
+        if _system_requires_admin_validation(access_assignment.system):
+            admin_provided = (
+                is_admin_access or has_separate_admin_account or is_workstation_login
+                or has_domain_admin or admin_account_username or admin_password_storage_location
+            )
+            if not admin_provided:
+                raise ValueError(
+                    'Administrator Access (4.3 Compliance) information is required for '
+                    'login systems such as Windows/AD.'
+                )
 
         # Resolve subscription tier mapping for subscription-based systems
         tiers_for_system = list(
@@ -2321,6 +2413,7 @@ def access_assignment_update(request, pk):
     
     users_queryset = CustomUser.objects.all().order_by('first_name', 'last_name')
     systems_queryset = System.objects.all().order_by('name')
+    login_system_ids = [str(s.pk) for s in systems_queryset if _system_requires_admin_validation(s)]
 
     context = {
         'access_assignment': access_assignment,
@@ -2328,6 +2421,7 @@ def access_assignment_update(request, pk):
         'access_type_choices': UserSystemAccess.ACCESS_TYPE_CHOICES,
         'request_type_choices': UserSystemAccess.REQUEST_TYPE_CHOICES,
         'priority_choices': UserSystemAccess.PRIORITY_CHOICES,
+        'login_system_ids': login_system_ids,
         'status_choices': UserSystemAccess.STATUS_CHOICES,
         # pre-selected values for template
         'selected_user_id': str(access_assignment.user_id),
@@ -3282,6 +3376,429 @@ def quarterly_access_review_bulk(request):
         'systems': available_systems,
     }
     return render(request, 'access_management/bulk_quarterly_reviews.html', context)
+
+
+@login_required
+def quarterly_access_review_simple(request):
+    """User-friendly page that only logs a quarterly review.
+
+    This view presents the standard review form and a short list of recent
+    entries.  It's intended for less-technical users who just need to add a
+    review without wading through the full dashboard and filtering UI.
+    """
+    # initialize form similar to dashboard
+    review_form_initial = {
+        'review_quarter': get_current_quarter_label(),
+        'reviewed_by': request.user.pk,
+        'review_date': timezone.now().strftime('%Y-%m-%dT%H:%M'),
+    }
+    review_form = QuarterlyAccessReviewForm(initial=review_form_initial)
+
+    if request.method == 'POST':
+        review_form = QuarterlyAccessReviewForm(request.POST)
+        if review_form.is_valid():
+            review_instance = review_form.save(commit=False)
+            if not review_instance.reviewed_by:
+                review_instance.reviewed_by = request.user
+            if review_instance.system_owner_confirmed and not review_instance.system_owner_confirmed_date:
+                review_instance.system_owner_confirmed_date = timezone.now()
+            review_instance.save()
+            messages.success(request, 'Quarterly access review logged successfully.')
+            return redirect('access_management:quarterly_access_review_simple')
+        messages.error(request, 'Please correct the errors in the quarterly review form.')
+
+    recent_reviews = QuarterlyAccessReview.objects.order_by('-review_date')[:10]
+    context = {
+        'review_form': review_form,
+        'recent_reviews': recent_reviews,
+    }
+    return render(request, 'access_management/quarterly_access_review_simple.html', context)
+
+
+@login_required
+def quarterly_access_review_detailed(request, review_id=None):
+    """Detailed review log and edit page for auditors and reviewers.
+
+    Shows a paginated list of reviews with full fields and an edit form when a
+    specific review is selected. POSTs update the selected review.
+    """
+    edit_instance = None
+    if review_id:
+        try:
+            edit_instance = QuarterlyAccessReview.objects.select_related(
+                'reviewed_user', 'system', 'system_owner', 'reviewed_by'
+            ).get(pk=review_id)
+        except QuarterlyAccessReview.DoesNotExist:
+            messages.error(request, 'Requested review not found.')
+            return redirect('access_management:quarterly_access_review_detailed')
+
+    if request.method == 'POST' and edit_instance:
+        form = QuarterlyAccessReviewForm(request.POST, instance=edit_instance)
+        if form.is_valid():
+            instance = form.save(commit=False)
+            if instance.system_owner_confirmed and not instance.system_owner_confirmed_date:
+                instance.system_owner_confirmed_date = timezone.now()
+            instance.save()
+            messages.success(request, 'Quarterly review updated.')
+            return redirect('access_management:quarterly_access_review_detailed_edit', review_id=instance.pk)
+        else:
+            messages.error(request, 'Please fix errors in the review form.')
+    else:
+        form = QuarterlyAccessReviewForm(instance=edit_instance) if edit_instance else QuarterlyAccessReviewForm(initial={
+            'review_quarter': get_current_quarter_label(),
+            'reviewed_by': request.user.pk,
+            'review_date': timezone.now().strftime('%Y-%m-%dT%H:%M'),
+        })
+
+    reviews_qs = QuarterlyAccessReview.objects.select_related(
+        'reviewed_user', 'system', 'reviewed_by', 'system_owner'
+    ).order_by('-review_date')
+    paginator = Paginator(reviews_qs, 20)
+    page = paginator.get_page(request.GET.get('page'))
+
+    context = {
+        'form': form,
+        'reviews_page': page,
+        'editing': bool(edit_instance),
+        'editing_review': edit_instance,
+    }
+    return render(request, 'access_management/quarterly_access_review_detailed.html', context)
+
+
+@login_required
+def quarterly_review_input(request):
+    """Unified input page for logging quarterly reviews and permission changes (RHG 4.5).
+
+    Users can log a new quarterly review or document a permission change in one place.
+    """
+    review_form_initial = {
+        'review_quarter': get_current_quarter_label(),
+        'reviewed_by': request.user.pk,
+        'review_date': timezone.now().strftime('%Y-%m-%dT%H:%M'),
+    }
+    review_form = QuarterlyAccessReviewForm(initial=review_form_initial)
+
+    permission_change_form = PermissionChangeDocumentationForm(initial={
+        'documented_by': request.user.pk,
+    })
+
+    if request.method == 'POST':
+        form_type = request.POST.get('form_type')
+        if form_type == 'quarterly_review':
+            review_form = QuarterlyAccessReviewForm(request.POST)
+            if review_form.is_valid():
+                instance = review_form.save(commit=False)
+                if not instance.reviewed_by:
+                    instance.reviewed_by = request.user
+                if instance.system_owner_confirmed and not instance.system_owner_confirmed_date:
+                    instance.system_owner_confirmed_date = timezone.now()
+                instance.save()
+                messages.success(request, 'Quarterly review logged successfully.')
+                return redirect('access_management:quarterly_review_input')
+            messages.error(request, 'Please fix errors in the quarterly review form.')
+        elif form_type == 'permission_change':
+            permission_change_form = PermissionChangeDocumentationForm(request.POST)
+            if permission_change_form.is_valid():
+                instance = permission_change_form.save(commit=False)
+                if not instance.documented_by:
+                    instance.documented_by = request.user
+                instance.save()
+                messages.success(request, 'Permission change documented.')
+                return redirect('access_management:quarterly_review_input')
+            messages.error(request, 'Please fix errors in the permission change form.')
+
+    context = {
+        'review_form': review_form,
+        'permission_change_form': permission_change_form,
+    }
+    return render(request, 'access_management/quarterly_review_input.html', context)
+
+
+@login_required
+def quarterly_review_output(request):
+    """Output/reporting page showing all logged quarterly reviews (display-only).
+
+    Provides filtering, search, and export for audit trails and compliance reporting.
+    """
+    default_quarter = get_current_quarter_label()
+    selected_quarter = request.GET.get('quarter', default_quarter)
+    system_filter = request.GET.get('system', '').strip()
+    match_filter = request.GET.get('match', 'all')
+    status_filter = request.GET.get('status', 'all')
+    export_format = request.GET.get('export')
+
+    reviews_qs = QuarterlyAccessReview.objects.select_related(
+        'reviewed_user', 'system', 'reviewed_by', 'system_owner'
+    )
+
+    if selected_quarter != 'all':
+        reviews_qs = reviews_qs.filter(review_quarter=selected_quarter)
+    if system_filter:
+        reviews_qs = reviews_qs.filter(system_id=system_filter)
+    if match_filter == 'match':
+        reviews_qs = reviews_qs.filter(matches_approved=True)
+    elif match_filter == 'mismatch':
+        reviews_qs = reviews_qs.filter(matches_approved=False)
+    if status_filter == 'completed':
+        reviews_qs = reviews_qs.filter(review_completed=True)
+    elif status_filter == 'pending':
+        reviews_qs = reviews_qs.filter(review_completed=False)
+
+    if export_format == 'csv':
+        return export_quarterly_reviews_to_csv(reviews_qs)
+
+    metrics = {
+        'total_reviews': reviews_qs.count(),
+        'completed_reviews': reviews_qs.filter(review_completed=True).count(),
+        'owner_confirmed': reviews_qs.filter(system_owner_confirmed=True).count(),
+        'mismatches': reviews_qs.filter(matches_approved=False).count(),
+    }
+
+    annual_progress = _annual_review_progress()
+    paginator = Paginator(reviews_qs.order_by('-review_date'), 25)
+    reviews_page = paginator.get_page(request.GET.get('page'))
+
+    quarter_options = ['all'] + _build_quarter_options(8)
+    systems = System.objects.filter(is_active=True).order_by('name')
+
+    filters = {
+        'quarter': selected_quarter,
+        'system': system_filter,
+        'match': match_filter,
+        'status': status_filter,
+    }
+
+    context = {
+        'reviews_page': reviews_page,
+        'metrics': metrics,
+        'quarter_options': quarter_options,
+        'systems': systems,
+        'filters': filters,
+        'annual_progress': annual_progress,
+    }
+    return render(request, 'access_management/quarterly_review_output.html', context)
+
+
+@login_required
+def quarterly_review_unreviewed_users(request):
+    """Show users that haven't been reviewed yet this year (RHG 4.5).
+    
+    Helps identify which specific users need review completion.
+    """
+    now = timezone.now()
+    current_year = now.year
+    current_quarter = ((now.month - 1) // 3) + 1
+    
+    # Get all active users
+    all_active_users = CustomUser.objects.included_in_metrics().filter(is_active=True)
+    
+    # Get users who HAVE been reviewed this year
+    reviewed_users_qs = (
+        QuarterlyAccessReview.objects.filter(review_date__year=current_year)
+        .values_list('reviewed_user_id', flat=True)
+        .distinct()
+    )
+    
+    # Get users who haven't been reviewed yet AND have system assignments that need review
+    # Exclude terminal statuses (Revoked, Expired, Rejected, Cancelled)
+    # Also use annotate to ensure they have at least 1 system to review
+    unreviewed_users = (
+        all_active_users
+        .exclude(id__in=reviewed_users_qs)
+        .filter(
+            system_accesses__status__in=['Active', 'Approved', 'Pending', 'Suspended']
+        )
+        .annotate(
+            reviewable_systems=Count('system_accesses', filter=Q(system_accesses__status__in=['Active', 'Approved', 'Pending', 'Suspended']))
+        )
+        .filter(reviewable_systems__gt=0)
+        .distinct()
+        .order_by('last_name', 'first_name')
+    )
+    
+    # Apply filters
+    department_filter = request.GET.get('department', '').strip()
+    search_filter = request.GET.get('search', '').strip()
+    
+    if department_filter:
+        unreviewed_users = unreviewed_users.filter(department_id=department_filter)
+    if search_filter:
+        unreviewed_users = unreviewed_users.filter(
+            Q(first_name__icontains=search_filter) |
+            Q(last_name__icontains=search_filter) |
+            Q(username__icontains=search_filter) |
+            Q(email__icontains=search_filter)
+        )
+    
+    # Pagination
+    paginator = Paginator(unreviewed_users, 25)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    
+    # For each unreviewed user, count how many systems they have access to
+    # Also create a list of user objects with their system counts attached
+    users_with_counts = []
+    for user in page_obj:
+        count = UserSystemAccess.objects.filter(
+            user=user,
+            status__in=['Active', 'Approved', 'Pending', 'Suspended']
+        ).count()
+        user.system_count = count
+        users_with_counts.append(user)
+    
+    # Get departments for filtering
+    Department = apps.get_model('departments', 'Department')
+    departments = Department.objects.filter(is_active=True).order_by('name')
+    
+    # Metrics - only count users who have system assignments
+    total_unreviewed = unreviewed_users.count()
+    
+    # Get total users with system assignments that need review
+    users_with_systems = (
+        CustomUser.objects
+        .included_in_metrics()
+        .filter(is_active=True, system_accesses__status__in=['Active', 'Approved', 'Pending', 'Suspended'])
+        .annotate(
+            reviewable_systems=Count('system_accesses', filter=Q(system_accesses__status__in=['Active', 'Approved', 'Pending', 'Suspended']))
+        )
+        .filter(reviewable_systems__gt=0)
+        .distinct()
+    )
+    total_active_users = users_with_systems.count()
+    
+    # Count reviewed users (from those with system assignments)
+    reviewed_users_with_systems = (
+        users_with_systems.filter(id__in=reviewed_users_qs)
+    ).count()
+    
+    review_percentage = 0 if total_active_users == 0 else round((reviewed_users_with_systems / total_active_users) * 100, 1)
+    
+    context = {
+        'page_obj': page_obj,
+        'users': users_with_counts,
+        'total_unreviewed': total_unreviewed,
+        'total_active_users': total_active_users,
+        'review_percentage': review_percentage,
+        'current_year': current_year,
+        'current_quarter': current_quarter,
+        'department_filter': department_filter,
+        'search_filter': search_filter,
+        'departments': departments,
+    }
+    return render(request, 'access_management/quarterly_review_unreviewed_users.html', context)
+
+
+
+@login_required
+def permission_change_output(request):
+    """Output/reporting page showing all logged permission changes (display-only).
+
+    Provides audit trail and change documentation evidence.
+    """
+    permission_changes_qs = PermissionChangeDocumentation.objects.select_related(
+        'user_system_access__user',
+        'user_system_access__system',
+        'documented_by',
+        'approval_reference',
+    ).order_by('-changed_in_external_system_date')
+
+    system_filter = request.GET.get('system', '').strip()
+    if system_filter:
+        permission_changes_qs = permission_changes_qs.filter(user_system_access__system_id=system_filter)
+
+    paginator = Paginator(permission_changes_qs, 25)
+    changes_page = paginator.get_page(request.GET.get('page'))
+
+    systems = System.objects.filter(is_active=True).order_by('name')
+    metrics = {
+        'total_changes': permission_changes_qs.count(),
+        'with_approval': permission_changes_qs.filter(has_approval=True).count(),
+        'pending_approval': permission_changes_qs.filter(has_approval=False).count(),
+    }
+
+    # percentage of changes that have approval (used for progress bar)
+    if metrics['total_changes']:
+        approval_pct = (metrics['with_approval'] / metrics['total_changes']) * 100
+    else:
+        approval_pct = 0
+
+    context = {
+        'changes_page': changes_page,
+        'metrics': metrics,
+        'approval_pct': approval_pct,
+        'systems': systems,
+        'system_filter': system_filter,
+    }
+    return render(request, 'access_management/permission_change_output.html', context)
+
+
+@login_required
+def quarterly_review_upcoming(request):
+    """Upcoming and overdue quarterly reviews tracking page (RHG 4.5).
+    
+    Shows assignments that are due for review soon or overdue, with KPIs and filters.
+    """
+    now = timezone.now()
+    
+    # Get all active assignments with next_review_date that need review
+    assignments_qs = UserSystemAccess.objects.select_related(
+        'user', 'system'
+    ).filter(
+        status__in=['Active', 'Approved', 'Pending', 'Suspended'],
+        next_review_date__isnull=False
+    )
+    
+    system_filter = request.GET.get('system', '').strip()
+    user_filter = request.GET.get('user', '').strip()
+    status_filter = request.GET.get('sort', 'overdue_first')  # 'overdue_first', 'upcoming_first', 'all'
+    
+    if system_filter:
+        assignments_qs = assignments_qs.filter(system_id=system_filter)
+    if user_filter:
+        assignments_qs = assignments_qs.filter(user__username__icontains=user_filter)
+    
+    # Separate overdue and upcoming
+    thirty_days_from_now = now + timedelta(days=30)
+    
+    overdue_qs = assignments_qs.filter(next_review_date__lt=now)
+    upcoming_qs = assignments_qs.filter(
+        next_review_date__gte=now,
+        next_review_date__lte=thirty_days_from_now
+    )
+    
+    # Metrics
+    total_overdue = overdue_qs.count()
+    total_upcoming = upcoming_qs.count()
+    
+    metrics = {
+        'overdue': total_overdue,
+        'upcoming_30_days': total_upcoming,
+        'total_due': total_overdue + total_upcoming,
+    }
+    
+    # Combine and sort based on filter
+    if status_filter == 'overdue_first':
+        combined_qs = overdue_qs.order_by('next_review_date') | upcoming_qs.order_by('next_review_date')
+    elif status_filter == 'upcoming_first':
+        combined_qs = upcoming_qs.order_by('next_review_date') | overdue_qs.order_by('next_review_date')
+    else:
+        combined_qs = assignments_qs.order_by('next_review_date')
+    
+    paginator = Paginator(combined_qs, 25)
+    reviews_page = paginator.get_page(request.GET.get('page'))
+    
+    systems = System.objects.filter(is_active=True).order_by('name')
+    
+    context = {
+        'reviews_page': reviews_page,
+        'metrics': metrics,
+        'systems': systems,
+        'system_filter': system_filter,
+        'user_filter': user_filter,
+        'status_filter': status_filter,
+        'now': now,
+    }
+    return render(request, 'access_management/quarterly_review_upcoming.html', context)
+
 
 
 @login_required
