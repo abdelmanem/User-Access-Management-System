@@ -3,445 +3,972 @@
 
 {% block title %}Access Approval Compliance (RHG 4.6){% endblock %}
 
-{% block content %}
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
-        <div>
-            <h2 class="mb-0">
-                <i class="fas fa-shield-alt text-primary"></i> Access Approval Compliance – RHG 4.6
-            </h2>
-            <p class="text-muted mb-0">Ensure employees only have approved access, track removals, and document quarterly/monthly reviews.</p>
-        </div>
-        <div class="btn-group">
-            <a class="btn btn-outline-secondary" href="{% url 'access_management:quarterly_access_review_dashboard' %}">
-                <i class="fas fa-calendar-check"></i> 4.5 Dashboard
-            </a>
-            <a class="btn btn-outline-secondary" href="{% url 'access_management:admin_accounts_report' %}">
-                <i class="fas fa-user-shield"></i> Admin Accounts (4.3)
-            </a>
-        </div>
-    </div>
+{% block extra_css %}
+<style>
+  /* ================================================================
+     RHG 4.6 — PAGE-LEVEL ENHANCEMENTS
+     Inherits all design tokens from base.html
+  ================================================================ */
 
-    <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <p class="text-muted mb-1">Active Assignments</p>
-                    <h3 class="mb-0">{{ metrics.total_active_assignments }}</h3>
-                    <small class="text-muted">Should all have approvals</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <p class="text-muted mb-1">Unapproved Access Detected</p>
-                    <h3 class="mb-0 text-danger">{{ metrics.unapproved_access }}</h3>
-                    <small class="text-muted">Investigate & remediate</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <p class="text-muted mb-1">Quarterly Active User Reviews</p>
-                    <h3 class="mb-0 text-primary">{{ metrics.quarterly_reviews }}</h3>
-                    <small class="text-muted">Documented this year</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <p class="text-muted mb-1">Pending Access Removals</p>
-                    <h3 class="mb-0 text-warning">{{ metrics.pending_removals }}</h3>
-                    <small class="text-muted">Awaiting verification</small>
-                </div>
-            </div>
-        </div>
-    </div>
+  /* ── Page Header ── */
+  .rhg-page-header {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--card-shadow);
+    position: relative;
+    overflow: hidden;
+  }
+  .rhg-page-header::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: var(--primary-gradient);
+  }
+  .rhg-page-header .page-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .rhg-page-header .page-title i {
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .rhg-page-header .page-sub {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin: 0;
+  }
 
-    <div class="row g-4 mb-4">
-        <div class="col-lg-6">
-            <div class="card shadow-sm h-100">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-clipboard-check me-2"></i>Quarterly Active User Review</h5>
-                </div>
-                <div class="card-body">
-                    <form method="post">
-                        {% csrf_token %}
-                        <input type="hidden" name="form_type" value="quarterly_active">
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <label class="form-label" for="{{ quarterly_form.review_quarter.id_for_label }}">Quarter</label>
-                                {{ quarterly_form.review_quarter }}
-                            </div>
-                            <div class="col-md-8">
-                                <label class="form-label" for="{{ quarterly_form.system.id_for_label }}">System</label>
-                                {{ quarterly_form.system }}
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label" for="{{ quarterly_form.reviewed_by.id_for_label }}">Reviewed By</label>
-                                {{ quarterly_form.reviewed_by }}
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label" for="{{ quarterly_form.review_date.id_for_label }}">Review Date</label>
-                                {{ quarterly_form.review_date }}
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label" for="{{ quarterly_form.total_active_users_in_external_system.id_for_label }}">Total Users (Ext)</label>
-                                {{ quarterly_form.total_active_users_in_external_system }}
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label" for="{{ quarterly_form.approved_users_count.id_for_label }}">Approved Users</label>
-                                {{ quarterly_form.approved_users_count }}
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label" for="{{ quarterly_form.unapproved_users_count.id_for_label }}">Unapproved Users</label>
-                                {{ quarterly_form.unapproved_users_count }}
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label" for="{{ quarterly_form.unapproved_users_list.id_for_label }}">Unapproved Accounts (details)</label>
-                                {{ quarterly_form.unapproved_users_list }}
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label" for="{{ quarterly_form.discrepancies.id_for_label }}">Discrepancies / Notes</label>
-                                {{ quarterly_form.discrepancies }}
-                            </div>
-                            <div class="col-12">
-                                <div class="form-check">
-                                    {{ quarterly_form.review_completed }}
-                                    <label class="form-check-label" for="{{ quarterly_form.review_completed.id_for_label }}">
-                                        Mark review as completed
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="text-end mt-3">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save me-1"></i>Save Review
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-6">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-trash-restore-alt me-2"></i>Monthly Obsolete Account Review</h5>
-                </div>
-                <div class="card-body">
-                    <form method="post">
-                        {% csrf_token %}
-                        <input type="hidden" name="form_type" value="monthly_obsolete">
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <label class="form-label" for="{{ monthly_form.review_month.id_for_label }}">Month</label>
-                                {{ monthly_form.review_month }}
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label" for="{{ monthly_form.review_date.id_for_label }}">Review Date</label>
-                                {{ monthly_form.review_date }}
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label" for="{{ monthly_form.reviewed_by.id_for_label }}">Reviewed By</label>
-                                {{ monthly_form.reviewed_by }}
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label" for="{{ monthly_form.obsolete_accounts_identified.id_for_label }}">Obsolete Accounts (JSON)</label>
-                                {{ monthly_form.obsolete_accounts_identified }}
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label" for="{{ monthly_form.accounts_deactivated_in_external_systems.id_for_label }}">Accounts Deactivated</label>
-                                {{ monthly_form.accounts_deactivated_in_external_systems }}
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label" for="{{ monthly_form.accounts_pending_deactivation.id_for_label }}">Pending Deactivation</label>
-                                {{ monthly_form.accounts_pending_deactivation }}
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label" for="{{ monthly_form.notes.id_for_label }}">Notes / Evidence</label>
-                                {{ monthly_form.notes }}
-                            </div>
-                            <div class="col-12">
-                                <div class="form-check">
-                                    {{ monthly_form.review_completed }}
-                                    <label class="form-check-label" for="{{ monthly_form.review_completed.id_for_label }}">Review Completed</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="text-end mt-3">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save me-1"></i>Save Monthly Review
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            <div class="card shadow-sm">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-user-times me-2"></i>Access Removal Documentation</h5>
-                </div>
-                <div class="card-body">
-                    <form method="post">
-                        {% csrf_token %}
-                        <input type="hidden" name="form_type" value="access_removal">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label" for="{{ removal_form.user_system_access.id_for_label }}">Access Assignment</label>
-                                {{ removal_form.user_system_access }}
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label" for="{{ removal_form.removed_from_external_system_date.id_for_label }}">Removed Date</label>
-                                {{ removal_form.removed_from_external_system_date }}
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label" for="{{ removal_form.removed_by.id_for_label }}">Removed By</label>
-                                {{ removal_form.removed_by }}
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label" for="{{ removal_form.removal_reason.id_for_label }}">Removal Reason</label>
-                                {{ removal_form.removal_reason }}
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-check mt-4">
-                                    {{ removal_form.verified_removal }}
-                                    <label class="form-check-label" for="{{ removal_form.verified_removal.id_for_label }}">Verified?</label>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label" for="{{ removal_form.verified_by.id_for_label }}">Verified By</label>
-                                {{ removal_form.verified_by }}
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label" for="{{ removal_form.verified_date.id_for_label }}">Verification Date</label>
-                                {{ removal_form.verified_date }}
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label" for="{{ removal_form.notes.id_for_label }}">Notes / Evidence</label>
-                                {{ removal_form.notes }}
-                            </div>
-                        </div>
-                        <div class="text-end mt-3">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save me-1"></i>Save Removal Doc
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
+  /* ── Metric Cards ── */
+  .metric-card-v2 {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    padding: 1.25rem 1.5rem;
+    box-shadow: var(--card-shadow);
+    transition: var(--transition-base);
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+  }
+  .metric-card-v2:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--card-shadow-hover);
+    border-color: var(--border-color-strong);
+  }
+  .metric-card-v2::after {
+    content: '';
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    opacity: 0.06;
+    transform: translate(25%, 25%);
+  }
+  .metric-card-v2.primary::after  { background: #667eea; }
+  .metric-card-v2.danger::after   { background: #e74a3b; }
+  .metric-card-v2.info::after     { background: #36b9cc; }
+  .metric-card-v2.warning::after  { background: #f6c23e; }
 
-    <div class="row g-4 mb-4">
-        <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-users me-2"></i>Quarterly Active User Review Log</h5>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Quarter</th>
-                                <th>System</th>
-                                <th>Reviewed By</th>
-                                <th>Total Users</th>
-                                <th>Unapproved</th>
-                                <th>Completed</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for entry in quarterly_reviews %}
-                            <tr>
-                                <td><span class="badge bg-dark">{{ entry.review_quarter }}</span></td>
-                                <td>{{ entry.system.name }}</td>
-                                <td>{{ entry.reviewed_by.full_name|default:"N/A" }}</td>
-                                <td>{{ entry.total_active_users_in_external_system }}</td>
-                                <td>
-                                    {% if entry.unapproved_users_count > 0 %}
-                                        <span class="badge bg-danger">{{ entry.unapproved_users_count }}</span>
-                                    {% else %}
-                                        <span class="badge bg-success">0</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if entry.review_completed %}
-                                        <span class="badge bg-success">Closed</span>
-                                    {% else %}
-                                        <span class="badge bg-warning text-dark">Open</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="6" class="text-center text-muted py-4">No quarterly active user reviews yet.</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
+  .metric-card-v2 .metric-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-muted);
+    margin-bottom: 0.4rem;
+  }
+  .metric-card-v2 .metric-value {
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 0.3rem;
+    color: var(--text-primary);
+  }
+  .metric-card-v2.danger  .metric-value { color: #e74a3b; }
+  .metric-card-v2.warning .metric-value { color: #f6c23e; }
+  .metric-card-v2.info    .metric-value { color: #36b9cc; }
+  .metric-card-v2.primary .metric-value {
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .metric-card-v2 .metric-hint {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+  .metric-card-v2 .metric-icon-wrap {
+    position: absolute;
+    top: 1.25rem; right: 1.25rem;
+    width: 44px; height: 44px;
+    border-radius: 0.75rem;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+    transition: var(--transition-base);
+  }
+  .metric-card-v2:hover .metric-icon-wrap { transform: scale(1.1) rotate(5deg); }
 
-    <div class="row g-4 mb-4">
-        <div class="col-lg-6">
-            <div class="card shadow-sm h-100">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Monthly Obsolete Account Reviews</h5>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-sm table-hover mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Month</th>
-                                <th>Reviewed By</th>
-                                <th>Deactivated</th>
-                                <th>Pending</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for item in monthly_reviews %}
-                            <tr>
-                                <td>{{ item.review_month }}</td>
-                                <td>{{ item.reviewed_by.full_name|default:"N/A" }}</td>
-                                <td>{{ item.accounts_deactivated_in_external_systems }}</td>
-                                <td>{{ item.accounts_pending_deactivation }}</td>
-                                <td>
-                                    {% if item.review_completed %}
-                                        <span class="badge bg-success">Completed</span>
-                                    {% else %}
-                                        <span class="badge bg-warning text-dark">In Progress</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="5" class="text-center text-muted py-3">No monthly reviews logged.</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-6">
-            <div class="card shadow-sm h-100">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-user-slash me-2"></i>Access Removal Documentation</h5>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-sm table-hover mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>User / System</th>
-                                <th>Removed On</th>
-                                <th>Removed By</th>
-                                <th>Verified</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for removal in removal_logs %}
-                            <tr>
-                                <td>
-                                    <strong>{{ removal.user_system_access.user.full_name|default:"N/A" }}</strong><br>
-                                    <small class="text-muted">{{ removal.user_system_access.system.name|default:"-" }}</small>
-                                </td>
-                                <td>{{ removal.removed_from_external_system_date|date:"Y-m-d" }}</td>
-                                <td>{{ removal.removed_by.full_name|default:"N/A" }}</td>
-                                <td>
-                                    {% if removal.verified_removal %}
-                                        <span class="badge bg-success">Verified</span>
-                                    {% else %}
-                                        <span class="badge bg-warning text-dark">Pending</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="4" class="text-center text-muted py-3">No removal documentation yet.</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
+  /* ── Section Divider ── */
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0.5rem 0 1.25rem;
+  }
+  .section-divider .section-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .section-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-color);
+  }
 
-    <div class="row g-4 mb-4">
-        <div class="col-lg-6">
-            <div class="card shadow-sm h-100">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Unapproved Access (Detected)</h5>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-sm table-hover mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>User</th>
-                                <th>System</th>
-                                <th>Status</th>
-                                <th>Approval Gaps</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for assignment in unapproved_access %}
-                            <tr>
-                                <td>{{ assignment.user.full_name }}<br><small class="text-muted">{{ assignment.user.username }}</small></td>
-                                <td>{{ assignment.system.name }}</td>
-                                <td><span class="badge bg-info">{{ assignment.status }}</span></td>
-                                <td>
-                                    {% if not assignment.approved_by %}<span class="badge bg-danger">No IT approval</span>{% endif %}
-                                    {% if not assignment.system_owner_approved %}<span class="badge bg-warning text-dark">No owner approval</span>{% endif %}
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="4" class="text-center text-muted py-3">All active assignments have approvals.</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-6">
-            <div class="card shadow-sm h-100">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-users-slash me-2"></i>Obsolete Account Candidates</h5>
-                </div>
-                <div class="card-body">
-                    <p class="mb-2 text-muted">Use this data to populate your monthly reviews and removal documentation.</p>
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            Terminated / inactive users
-                            <span class="badge bg-secondary rounded-pill">{{ obsolete_summary.terminated_users }}</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            Users inactive > 90 days
-                            <span class="badge bg-secondary rounded-pill">{{ obsolete_summary.inactive_users }}</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            Assignments past end date but still active
-                            <span class="badge bg-secondary rounded-pill">{{ obsolete_summary.expired_assignments }}</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            Assignments not reviewed in 180+ days
-                            <span class="badge bg-secondary rounded-pill">{{ obsolete_summary.stale_reviews }}</span>
-                        </li>
-                    </ul>
-                    <div class="mt-3">
-                        <small class="text-muted">Drill down into auditing tools or export data via DB/BI queries for external evidence packages.</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+  /* ── Enhanced Form Cards ── */
+  .form-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+    transition: var(--transition-base);
+    height: 100%;
+  }
+  .form-card:hover { box-shadow: var(--shadow-md); }
 
-</div>
+  .form-card .form-card-header {
+    background: var(--card-header-bg);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .form-card .form-card-header .header-icon {
+    width: 34px; height: 34px;
+    border-radius: 0.6rem;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+  .form-card .form-card-header h6 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+  }
+  .form-card .form-card-header .header-badge {
+    margin-left: auto;
+    font-size: 0.7rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 2rem;
+    font-weight: 600;
+  }
+  .form-card .form-card-body { padding: 1.25rem; }
+
+  /* ── Form inputs styling ── */
+  .form-card .form-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 0.3rem;
+  }
+  .form-card .form-control,
+  .form-card .form-select {
+    font-size: 0.875rem;
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background-color: var(--input-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+  }
+  .form-card .form-control:focus,
+  .form-card .form-select:focus {
+    background-color: var(--input-bg-focus);
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(102,126,234,0.15);
+    color: var(--text-primary);
+  }
+  .form-card textarea.form-control { resize: vertical; min-height: 80px; }
+
+  .form-card .form-check-label { font-size: 0.875rem; color: var(--text-secondary); }
+  .form-card .form-check-input:checked { background-color: #667eea; border-color: #667eea; }
+
+  .form-footer {
+    padding: 0.85rem 1.25rem;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-surface-alt);
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+
+  /* ── Tables enhanced ── */
+  .data-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+    transition: var(--transition-base);
+  }
+  .data-card:hover { box-shadow: var(--shadow-md); }
+
+  .data-card-header {
+    background: var(--card-header-bg);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0.875rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+  .data-card-header h6 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .data-card-header .record-count {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    background: var(--badge-muted-bg);
+    color: var(--badge-muted-text);
+    padding: 0.2rem 0.55rem;
+    border-radius: 2rem;
+    font-weight: 600;
+  }
+
+  .data-table {
+    width: 100%;
+    margin: 0;
+    font-size: 0.85rem;
+    border-collapse: collapse;
+  }
+  .data-table thead th {
+    background: var(--bg-surface-alt);
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    white-space: nowrap;
+  }
+  .data-table tbody td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+    vertical-align: middle;
+  }
+  .data-table tbody tr:last-child td { border-bottom: none; }
+  .data-table tbody tr {
+    transition: background-color 0.15s ease;
+  }
+  .data-table tbody tr:hover {
+    background-color: var(--table-hover);
+  }
+
+  .data-table .cell-user strong { font-weight: 600; font-size: 0.875rem; }
+  .data-table .cell-user small  { color: var(--text-muted); font-size: 0.78rem; }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-muted);
+  }
+  .empty-state i { font-size: 2rem; margin-bottom: 0.75rem; opacity: 0.35; display: block; }
+  .empty-state p { font-size: 0.875rem; margin: 0; }
+
+  /* ── Status indicators ── */
+  .status-dot {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  .status-dot::before {
+    content: '';
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .status-dot.success::before { background: #1cc88a; box-shadow: 0 0 0 3px rgba(28,200,138,0.2); }
+  .status-dot.warning::before { background: #f6c23e; box-shadow: 0 0 0 3px rgba(246,194,62,0.2); }
+  .status-dot.danger::before  { background: #e74a3b; box-shadow: 0 0 0 3px rgba(231,74,59,0.2);  }
+
+  /* ── Obsolete summary list ── */
+  .obs-list { list-style: none; padding: 0; margin: 0; }
+  .obs-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.875rem;
+    transition: background 0.15s ease;
+  }
+  .obs-list li:last-child { border-bottom: none; }
+  .obs-list li:hover { background: var(--list-item-hover); }
+  .obs-list li .obs-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+  .obs-list li .obs-label i { color: var(--text-muted); font-size: 0.8rem; width: 14px; text-align: center; }
+  .obs-list li .obs-count {
+    font-weight: 700;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    background: var(--badge-muted-bg);
+    padding: 0.2rem 0.6rem;
+    border-radius: 2rem;
+    min-width: 32px;
+    text-align: center;
+  }
+
+  /* ── Quick-tip callout ── */
+  .tip-callout {
+    background: rgba(102,126,234,0.07);
+    border: 1px solid rgba(102,126,234,0.2);
+    border-left: 3px solid #667eea;
+    border-radius: 0.6rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+  .tip-callout i { color: #667eea; margin-top: 1px; flex-shrink: 0; }
+
+  /* ── Nav pills for section tabs ── */
+  .rhg-tabs {
+    display: flex;
+    gap: 0.375rem;
+    margin-bottom: 1.25rem;
+    background: var(--bg-surface-alt);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    padding: 0.3rem;
+    width: fit-content;
+  }
+  .rhg-tab {
+    padding: 0.45rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.83rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: var(--transition-base);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    text-decoration: none;
+  }
+  .rhg-tab:hover { background: var(--card-bg); color: var(--text-primary); }
+  .rhg-tab.active {
+    background: var(--card-bg);
+    color: #667eea;
+    box-shadow: var(--shadow-sm);
+    font-weight: 700;
+  }
+
+  /* ── Unapproved access badges ── */
+  .gap-badges { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+
+  /* Stagger animation */
+  .stagger-in { animation: fadeInUp 0.45s ease-out both; }
+  .stagger-in:nth-child(1)  { animation-delay: 0.05s; }
+  .stagger-in:nth-child(2)  { animation-delay: 0.10s; }
+  .stagger-in:nth-child(3)  { animation-delay: 0.15s; }
+  .stagger-in:nth-child(4)  { animation-delay: 0.20s; }
+  .stagger-in:nth-child(5)  { animation-delay: 0.25s; }
+  .stagger-in:nth-child(6)  { animation-delay: 0.30s; }
+</style>
 {% endblock %}
 
+{% block content %}
+<div class="container-fluid px-0">
+
+  <!-- ══════════════════════════════════════════════
+       PAGE HEADER
+  ══════════════════════════════════════════════ -->
+  <div class="rhg-page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+      <h1 class="page-title">
+        <i class="fas fa-shield-alt"></i>
+        Access Approval Compliance
+        <span class="badge bg-primary ms-1" style="font-size:0.7rem;vertical-align:middle;padding:.3em .6em;border-radius:.5rem;">RHG 4.6</span>
+      </h1>
+      <p class="page-sub">Ensure employees only have approved access, track removals, and document quarterly / monthly reviews.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <a class="btn btn-primary btn-sm" href="{% url 'access_management:quarterly_review_detail' %}">
+        <i class="fas fa-users-check me-1"></i> Quarterly Reviews
+      </a>
+      <a class="btn btn-warning btn-sm" href="{% url 'access_management:monthly_obsolete_review' %}">
+        <i class="fas fa-trash-restore-alt me-1"></i> Monthly Obsolete
+      </a>
+      <a class="btn btn-danger btn-sm" href="{% url 'access_management:access_removal_documentation' %}">
+        <i class="fas fa-user-slash me-1"></i> Removal Docs
+      </a>
+      <div style="border-right:1px solid var(--border-color);margin:0 0.25rem;"></div>
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'access_management:quarterly_access_review_dashboard' %}">
+        <i class="fas fa-calendar-check me-1"></i> 4.5 Dashboard
+      </a>
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'access_management:admin_accounts_report' %}">
+        <i class="fas fa-user-shield me-1"></i> Admin Accounts (4.3)
+      </a>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       METRIC CARDS
+  ══════════════════════════════════════════════ -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3 stagger-in">
+      <div class="metric-card-v2 primary">
+        <div class="metric-icon-wrap icon-bg-primary"><i class="fas fa-users"></i></div>
+        <div class="metric-label">Active Assignments</div>
+        <div class="metric-value">{{ metrics.total_active_assignments }}</div>
+        <div class="metric-hint">Should all have approvals</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3 stagger-in">
+      <div class="metric-card-v2 danger">
+        <div class="metric-icon-wrap icon-bg-danger"><i class="fas fa-exclamation-triangle"></i></div>
+        <div class="metric-label">Unapproved Access</div>
+        <div class="metric-value">{{ metrics.unapproved_access }}</div>
+        <div class="metric-hint">Investigate &amp; remediate</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3 stagger-in">
+      <div class="metric-card-v2 info">
+        <div class="metric-icon-wrap icon-bg-info"><i class="fas fa-clipboard-check"></i></div>
+        <div class="metric-label">Quarterly Reviews</div>
+        <div class="metric-value">{{ metrics.quarterly_reviews }}</div>
+        <div class="metric-hint">Documented this year</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3 stagger-in">
+      <div class="metric-card-v2 warning">
+        <div class="metric-icon-wrap icon-bg-warning"><i class="fas fa-hourglass-half"></i></div>
+        <div class="metric-label">Pending Removals</div>
+        <div class="metric-value">{{ metrics.pending_removals }}</div>
+        <div class="metric-hint">Awaiting verification</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       SECTION: REVIEW FORMS
+  ══════════════════════════════════════════════ -->
+  <div class="section-divider">
+    <span class="section-title"><i class="fas fa-pen-to-square me-1"></i>Log a Review</span>
+  </div>
+
+  <div class="row g-4 mb-4">
+
+    <!-- Quarterly Active User Review -->
+    <div class="col-lg-6">
+      <div class="form-card h-100">
+        <div class="form-card-header">
+          <div class="header-icon icon-bg-primary"><i class="fas fa-clipboard-check"></i></div>
+          <h6>Quarterly Active User Review</h6>
+          <span class="header-badge badge bg-primary bg-opacity-10 text-primary">Q Review</span>
+        </div>
+        <div class="form-card-body">
+          <form method="post" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="quarterly_active">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label" for="{{ quarterly_form.review_quarter.id_for_label }}">Quarter</label>
+                {{ quarterly_form.review_quarter }}
+              </div>
+              <div class="col-md-8">
+                <label class="form-label" for="{{ quarterly_form.system.id_for_label }}">System</label>
+                {{ quarterly_form.system }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="{{ quarterly_form.reviewed_by.id_for_label }}">Reviewed By</label>
+                {{ quarterly_form.reviewed_by }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="{{ quarterly_form.review_date.id_for_label }}">Review Date</label>
+                {{ quarterly_form.review_date }}
+              </div>
+
+              <!-- User count triplet -->
+              <div class="col-12">
+                <label class="form-label d-block mb-1">User Counts</label>
+                <div class="row g-2">
+                  <div class="col-4">
+                    <label class="form-label" style="font-size:0.75rem;" for="{{ quarterly_form.total_active_users_in_external_system.id_for_label }}">Total (Ext)</label>
+                    {{ quarterly_form.total_active_users_in_external_system }}
+                  </div>
+                  <div class="col-4">
+                    <label class="form-label" style="font-size:0.75rem;" for="{{ quarterly_form.approved_users_count.id_for_label }}">Approved</label>
+                    {{ quarterly_form.approved_users_count }}
+                  </div>
+                  <div class="col-4">
+                    <label class="form-label" style="font-size:0.75rem;color:#e74a3b;" for="{{ quarterly_form.unapproved_users_count.id_for_label }}">Unapproved</label>
+                    {{ quarterly_form.unapproved_users_count }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <label class="form-label" for="{{ quarterly_form.unapproved_users_list.id_for_label }}">Unapproved Accounts <span class="text-muted">(details)</span></label>
+                {{ quarterly_form.unapproved_users_list }}
+              </div>
+              <div class="col-12">
+                <label class="form-label" for="{{ quarterly_form.discrepancies.id_for_label }}">Discrepancies / Notes</label>
+                {{ quarterly_form.discrepancies }}
+              </div>
+              <div class="col-12">
+                <div class="form-check">
+                  {{ quarterly_form.review_completed }}
+                  <label class="form-check-label fw-semibold" for="{{ quarterly_form.review_completed.id_for_label }}">
+                    Mark review as completed
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div><!-- /form-card-body -->
+          <div class="form-footer">
+            <button type="submit" class="btn btn-primary btn-sm">
+              <i class="fas fa-save me-1"></i>Save Review
+            </button>
+          </div>
+          </form>
+      </div>
+    </div>
+
+    <!-- Monthly + Removal stacked -->
+    <div class="col-lg-6 d-flex flex-column gap-4">
+
+      <!-- Monthly Obsolete Account Review -->
+      <div class="form-card">
+        <div class="form-card-header">
+          <div class="header-icon icon-bg-warning"><i class="fas fa-trash-restore-alt"></i></div>
+          <h6>Monthly Obsolete Account Review</h6>
+          <span class="header-badge badge bg-warning bg-opacity-10 text-warning">Monthly</span>
+        </div>
+        <form method="post" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="form_type" value="monthly_obsolete">
+          <div class="form-card-body">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label" for="{{ monthly_form.review_month.id_for_label }}">Month</label>
+                {{ monthly_form.review_month }}
+              </div>
+              <div class="col-md-4">
+                <label class="form-label" for="{{ monthly_form.review_date.id_for_label }}">Review Date</label>
+                {{ monthly_form.review_date }}
+              </div>
+              <div class="col-md-4">
+                <label class="form-label" for="{{ monthly_form.reviewed_by.id_for_label }}">Reviewed By</label>
+                {{ monthly_form.reviewed_by }}
+              </div>
+              <div class="col-12">
+                <label class="form-label" for="{{ monthly_form.obsolete_accounts_identified.id_for_label }}">Obsolete Accounts <span class="text-muted">(JSON)</span></label>
+                {{ monthly_form.obsolete_accounts_identified }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="{{ monthly_form.accounts_deactivated_in_external_systems.id_for_label }}">Accounts Deactivated</label>
+                {{ monthly_form.accounts_deactivated_in_external_systems }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="{{ monthly_form.accounts_pending_deactivation.id_for_label }}">Pending Deactivation</label>
+                {{ monthly_form.accounts_pending_deactivation }}
+              </div>
+              <div class="col-12">
+                <label class="form-label" for="{{ monthly_form.notes.id_for_label }}">Notes / Evidence</label>
+                {{ monthly_form.notes }}
+              </div>
+              <div class="col-12">
+                <div class="form-check">
+                  {{ monthly_form.review_completed }}
+                  <label class="form-check-label fw-semibold" for="{{ monthly_form.review_completed.id_for_label }}">Review Completed</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="form-footer">
+            <button type="submit" class="btn btn-primary btn-sm">
+              <i class="fas fa-save me-1"></i>Save Monthly Review
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Access Removal Documentation -->
+      <div class="form-card">
+        <div class="form-card-header">
+          <div class="header-icon icon-bg-danger"><i class="fas fa-user-times"></i></div>
+          <h6>Access Removal Documentation</h6>
+          <span class="header-badge badge bg-danger bg-opacity-10 text-danger">Removal</span>
+        </div>
+        <form method="post" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="form_type" value="access_removal">
+          <div class="form-card-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label" for="{{ removal_form.user_system_access.id_for_label }}">Access Assignment</label>
+                {{ removal_form.user_system_access }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="{{ removal_form.removed_from_external_system_date.id_for_label }}">Removed Date</label>
+                {{ removal_form.removed_from_external_system_date }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="{{ removal_form.removed_by.id_for_label }}">Removed By</label>
+                {{ removal_form.removed_by }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="{{ removal_form.removal_reason.id_for_label }}">Removal Reason</label>
+                {{ removal_form.removal_reason }}
+              </div>
+              <div class="col-12">
+                <label class="form-label">Verification</label>
+                <div class="row g-2">
+                  <div class="col-auto d-flex align-items-center pt-1">
+                    <div class="form-check mb-0">
+                      {{ removal_form.verified_removal }}
+                      <label class="form-check-label" for="{{ removal_form.verified_removal.id_for_label }}">Verified?</label>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <label class="form-label" style="font-size:0.75rem;" for="{{ removal_form.verified_by.id_for_label }}">Verified By</label>
+                    {{ removal_form.verified_by }}
+                  </div>
+                  <div class="col">
+                    <label class="form-label" style="font-size:0.75rem;" for="{{ removal_form.verified_date.id_for_label }}">Verification Date</label>
+                    {{ removal_form.verified_date }}
+                  </div>
+                </div>
+              </div>
+              <div class="col-12">
+                <label class="form-label" for="{{ removal_form.notes.id_for_label }}">Notes / Evidence</label>
+                {{ removal_form.notes }}
+              </div>
+            </div>
+          </div>
+          <div class="form-footer">
+            <button type="submit" class="btn btn-primary btn-sm">
+              <i class="fas fa-save me-1"></i>Save Removal Doc
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div><!-- /col stacked -->
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       SECTION: DATA LOGS
+  ══════════════════════════════════════════════ -->
+  <div class="section-divider">
+    <span class="section-title"><i class="fas fa-table me-1"></i>Review Logs &amp; Records</span>
+  </div>
+
+  <!-- Quarterly Active User Review Log (full width) -->
+  <div class="data-card mb-4">
+    <div class="data-card-header">
+      <h6><i class="fas fa-users text-primary"></i> Quarterly Active User Review Log</h6>
+      <span class="record-count">{{ quarterly_reviews|length }} record{{ quarterly_reviews|length|pluralize }}</span>
+    </div>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Quarter</th>
+            <th>System</th>
+            <th>Reviewed By</th>
+            <th style="text-align:right;">Total Users</th>
+            <th style="text-align:right;">Unapproved</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for entry in quarterly_reviews %}
+          <tr>
+            <td>
+              <span class="badge" style="background:var(--badge-muted-bg);color:var(--badge-muted-text);font-weight:700;">
+                {{ entry.review_quarter }}
+              </span>
+            </td>
+            <td>{{ entry.system.name }}</td>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div class="avatar-initials rounded-circle d-flex align-items-center justify-content-center"
+                     style="width:28px;height:28px;font-size:0.7rem;flex-shrink:0;">
+                  {{ entry.reviewed_by.full_name|default:"?"|slice:":1"|upper }}
+                </div>
+                {{ entry.reviewed_by.full_name|default:"N/A" }}
+              </div>
+            </td>
+            <td style="text-align:right;font-weight:600;">{{ entry.total_active_users_in_external_system }}</td>
+            <td style="text-align:right;">
+              {% if entry.unapproved_users_count > 0 %}
+                <span class="badge bg-danger">{{ entry.unapproved_users_count }}</span>
+              {% else %}
+                <span class="badge bg-success">0</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if entry.review_completed %}
+                <span class="status-dot success">Closed</span>
+              {% else %}
+                <span class="status-dot warning">Open</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6">
+            <div class="empty-state">
+              <i class="fas fa-inbox"></i>
+              <p>No quarterly active user reviews yet.</p>
+            </div>
+          </td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Monthly + Removal side by side -->
+  <div class="row g-4 mb-4">
+    <div class="col-lg-6">
+      <div class="data-card h-100">
+        <div class="data-card-header">
+          <h6><i class="fas fa-calendar-alt" style="color:#f6c23e;"></i> Monthly Obsolete Account Reviews</h6>
+          <span class="record-count">{{ monthly_reviews|length }}</span>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Month</th>
+                <th>Reviewed By</th>
+                <th style="text-align:right;">Deactivated</th>
+                <th style="text-align:right;">Pending</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in monthly_reviews %}
+              <tr>
+                <td style="font-weight:600;">{{ item.review_month }}</td>
+                <td>{{ item.reviewed_by.full_name|default:"N/A" }}</td>
+                <td style="text-align:right;">
+                  <span class="badge bg-success bg-opacity-75">{{ item.accounts_deactivated_in_external_systems }}</span>
+                </td>
+                <td style="text-align:right;">
+                  <span class="badge bg-warning text-dark bg-opacity-75">{{ item.accounts_pending_deactivation }}</span>
+                </td>
+                <td>
+                  {% if item.review_completed %}
+                    <span class="status-dot success">Completed</span>
+                  {% else %}
+                    <span class="status-dot warning">In Progress</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="5">
+                <div class="empty-state">
+                  <i class="fas fa-calendar-times"></i>
+                  <p>No monthly reviews logged.</p>
+                </div>
+              </td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="data-card h-100">
+        <div class="data-card-header">
+          <h6><i class="fas fa-user-slash" style="color:#e74a3b;"></i> Access Removal Documentation</h6>
+          <span class="record-count">{{ removal_logs|length }}</span>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>User / System</th>
+                <th>Removed On</th>
+                <th>Removed By</th>
+                <th>Verification</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for removal in removal_logs %}
+              <tr>
+                <td class="cell-user">
+                  <strong>{{ removal.user_system_access.user.full_name|default:"N/A" }}</strong><br>
+                  <small>{{ removal.user_system_access.system.name|default:"-" }}</small>
+                </td>
+                <td style="white-space:nowrap;">{{ removal.removed_from_external_system_date|date:"Y-m-d" }}</td>
+                <td>{{ removal.removed_by.full_name|default:"N/A" }}</td>
+                <td>
+                  {% if removal.verified_removal %}
+                    <span class="status-dot success">Verified</span>
+                  {% else %}
+                    <span class="status-dot warning">Pending</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4">
+                <div class="empty-state">
+                  <i class="fas fa-user-check"></i>
+                  <p>No removal documentation yet.</p>
+                </div>
+              </td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       SECTION: ALERTS & CANDIDATES
+  ══════════════════════════════════════════════ -->
+  <div class="section-divider">
+    <span class="section-title"><i class="fas fa-flag me-1"></i>Findings &amp; Candidates</span>
+  </div>
+
+  <div class="row g-4 mb-4">
+
+    <!-- Unapproved Access Detected -->
+    <div class="col-lg-6">
+      <div class="data-card h-100">
+        <div class="data-card-header">
+          <h6>
+            <i class="fas fa-exclamation-triangle text-danger"></i>
+            Unapproved Access <span class="text-muted fw-normal">(Detected)</span>
+          </h6>
+          {% if unapproved_access %}
+            <span class="badge bg-danger">{{ unapproved_access|length }} issue{{ unapproved_access|length|pluralize }}</span>
+          {% else %}
+            <span class="badge bg-success">All clear</span>
+          {% endif %}
+        </div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>System</th>
+                <th>Status</th>
+                <th>Approval Gaps</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for assignment in unapproved_access %}
+              <tr>
+                <td class="cell-user">
+                  <strong>{{ assignment.user.full_name }}</strong><br>
+                  <small>{{ assignment.user.username }}</small>
+                </td>
+                <td>{{ assignment.system.name }}</td>
+                <td><span class="badge bg-info">{{ assignment.status }}</span></td>
+                <td>
+                  <div class="gap-badges">
+                    {% if not assignment.approved_by %}
+                      <span class="badge bg-danger" style="font-size:0.72rem;">No IT approval</span>
+                    {% endif %}
+                    {% if not assignment.system_owner_approved %}
+                      <span class="badge bg-warning text-dark" style="font-size:0.72rem;">No owner approval</span>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4">
+                <div class="empty-state">
+                  <i class="fas fa-check-circle" style="color:#1cc88a;"></i>
+                  <p>All active assignments have approvals.</p>
+                </div>
+              </td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Obsolete Account Candidates -->
+    <div class="col-lg-6">
+      <div class="data-card h-100">
+        <div class="data-card-header">
+          <h6><i class="fas fa-users-slash" style="color:#f6c23e;"></i> Obsolete Account Candidates</h6>
+        </div>
+        <ul class="obs-list">
+          <li>
+            <span class="obs-label"><i class="fas fa-user-slash"></i> Terminated / inactive users</span>
+            <span class="obs-count">{{ obsolete_summary.terminated_users }}</span>
+          </li>
+          <li>
+            <span class="obs-label"><i class="fas fa-clock"></i> Inactive &gt; 90 days</span>
+            <span class="obs-count">{{ obsolete_summary.inactive_users }}</span>
+          </li>
+          <li>
+            <span class="obs-label"><i class="fas fa-calendar-times"></i> Past end date, still active</span>
+            <span class="obs-count">{{ obsolete_summary.expired_assignments }}</span>
+          </li>
+          <li>
+            <span class="obs-label"><i class="fas fa-history"></i> Not reviewed in 180+ days</span>
+            <span class="obs-count">{{ obsolete_summary.stale_reviews }}</span>
+          </li>
+        </ul>
+        <div class="p-3 pt-2">
+          <div class="tip-callout">
+            <i class="fas fa-lightbulb"></i>
+            Use these figures to populate your monthly obsolete account review. Drill down via auditing tools or export data via DB/BI queries for external evidence packages.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div><!-- /container-fluid -->
+{% endblock %}

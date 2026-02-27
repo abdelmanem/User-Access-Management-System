@@ -41,7 +41,7 @@ def _system_requires_admin_validation(system):
     return False
 
 from django.core.paginator import Paginator
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Sum
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
@@ -3911,6 +3911,141 @@ def access_approval_compliance(request):
         'systems': systems,
     }
     return render(request, 'access_management/access_approval_compliance.html', context)
+
+
+@login_required
+def quarterly_review_detail(request):
+    """
+    Dedicated page for Quarterly Active User Reviews.
+    Allows detailed logging and review of quarterly user access audits.
+    """
+    default_quarter = get_current_quarter_label()
+    now = timezone.now()
+
+    quarterly_form = QuarterlyActiveUserReviewForm(initial={
+        'review_quarter': default_quarter,
+        'review_date': now.strftime("%Y-%m-%dT%H:%M"),
+        'reviewed_by': request.user.pk,
+    })
+
+    if request.method == 'POST':
+        quarterly_form = QuarterlyActiveUserReviewForm(request.POST)
+        if quarterly_form.is_valid():
+            quarterly_form.save()
+            messages.success(request, "Quarterly active-user review documented successfully.")
+            return redirect('access_management:quarterly_review_detail')
+        else:
+            messages.error(request, "Please fix validation errors in the quarterly review form.")
+
+    quarterly_reviews = QuarterlyActiveUserReview.objects.select_related('system', 'reviewed_by').order_by('-review_date')
+    
+    # Calculate stats
+    systems_count = QuarterlyActiveUserReview.objects.values('system').distinct().count()
+    total_unapproved = QuarterlyActiveUserReview.objects.aggregate(
+        total=Sum('unapproved_users_count')
+    )['total'] or 0
+    open_reviews_count = QuarterlyActiveUserReview.objects.filter(review_completed=False).count()
+
+    context = {
+        'quarterly_form': quarterly_form,
+        'quarterly_reviews': quarterly_reviews,
+        'systems_count': systems_count,
+        'total_unapproved': total_unapproved,
+        'open_reviews_count': open_reviews_count,
+    }
+    return render(request, 'access_management/quarterly_review_detail.html', context)
+
+
+@login_required
+def monthly_obsolete_review(request):
+    """
+    Dedicated page for Monthly Obsolete Account Reviews.
+    Allows documentation of obsolete, inactive, and terminated user accounts.
+    """
+    now = timezone.now()
+    default_month = now.strftime("%Y-%m")
+
+    monthly_form = MonthlyObsoleteAccountReviewForm(initial={
+        'review_month': default_month,
+        'review_date': now.strftime("%Y-%m-%dT%H:%M"),
+        'reviewed_by': request.user.pk,
+    })
+
+    if request.method == 'POST':
+        monthly_form = MonthlyObsoleteAccountReviewForm(request.POST)
+        if monthly_form.is_valid():
+            monthly_form.save()
+            messages.success(request, "Monthly obsolete account review saved successfully.")
+            return redirect('access_management:monthly_obsolete_review')
+        else:
+            messages.error(request, "Please fix validation errors in the monthly review form.")
+
+    monthly_reviews = MonthlyObsoleteAccountReview.objects.select_related('reviewed_by').order_by('-review_date')
+    
+    # Calculate stats
+    total_deactivated = MonthlyObsoleteAccountReview.objects.aggregate(
+        total=Sum('accounts_deactivated_in_external_systems')
+    )['total'] or 0
+    total_pending = MonthlyObsoleteAccountReview.objects.aggregate(
+        total=Sum('accounts_pending_deactivation')
+    )['total'] or 0
+    recent_count = MonthlyObsoleteAccountReview.objects.filter(
+        review_date__gte=now - timedelta(days=30)
+    ).count()
+
+    context = {
+        'monthly_form': monthly_form,
+        'monthly_reviews': monthly_reviews,
+        'total_deactivated': total_deactivated,
+        'total_pending': total_pending,
+        'recent_count': recent_count,
+    }
+    return render(request, 'access_management/monthly_obsolete_review.html', context)
+
+
+@login_required
+def access_removal_documentation(request):
+    """
+    Dedicated page for Access Removal Documentation.
+    Records and verifies removal of user access across systems.
+    """
+    now = timezone.now()
+
+    removal_form = AccessRemovalDocumentationForm(initial={
+        'removed_by': request.user.pk,
+    })
+
+    if request.method == 'POST':
+        removal_form = AccessRemovalDocumentationForm(request.POST)
+        if removal_form.is_valid():
+            instance = removal_form.save(commit=False)
+            if instance.verified_removal and not instance.verified_date:
+                instance.verified_date = timezone.now()
+            instance.save()
+            messages.success(request, "Access removal documentation recorded successfully.")
+            return redirect('access_management:access_removal_documentation')
+        else:
+            messages.error(request, "Please fix validation errors in the removal documentation form.")
+
+    removal_logs = AccessRemovalDocumentation.objects.select_related(
+        'user_system_access__user', 'user_system_access__system', 'removed_by', 'verified_by'
+    ).order_by('-removed_from_external_system_date')
+    
+    # Calculate stats
+    verified_count = AccessRemovalDocumentation.objects.filter(verified_removal=True).count()
+    this_month_count = AccessRemovalDocumentation.objects.filter(
+        removed_from_external_system_date__gte=now - timedelta(days=30)
+    ).count()
+    unverified_count = AccessRemovalDocumentation.objects.filter(verified_removal=False).count()
+
+    context = {
+        'removal_form': removal_form,
+        'removal_logs': removal_logs,
+        'verified_count': verified_count,
+        'this_month_count': this_month_count,
+        'unverified_count': unverified_count,
+    }
+    return render(request, 'access_management/access_removal_documentation.html', context)
 
 
 @login_required

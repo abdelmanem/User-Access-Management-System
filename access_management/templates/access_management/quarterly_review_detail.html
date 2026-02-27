@@ -1,0 +1,574 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Quarterly Active User Review{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ================================================================
+     QUARTERLY REVIEW DETAIL PAGE
+     Inherits all design tokens from base.html
+  ================================================================ */
+
+  /* ── Page Header ── */
+  .rhg-page-header {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--card-shadow);
+    position: relative;
+    overflow: hidden;
+  }
+  .rhg-page-header::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: var(--primary-gradient);
+  }
+  .rhg-page-header .page-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .rhg-page-header .page-title i {
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .rhg-page-header .page-sub {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin: 0;
+  }
+
+  /* ── Metric Cards ── */
+  .metric-card-v2 {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    padding: 1.25rem 1.5rem;
+    box-shadow: var(--card-shadow);
+    transition: var(--transition-base);
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+  }
+  .metric-card-v2:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--card-shadow-hover);
+    border-color: var(--border-color-strong);
+  }
+  .metric-card-v2::after {
+    content: '';
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    opacity: 0.06;
+    transform: translate(25%, 25%);
+  }
+  .metric-card-v2.primary::after  { background: #667eea; }
+  .metric-card-v2.danger::after   { background: #e74a3b; }
+  .metric-card-v2.info::after     { background: #36b9cc; }
+
+  .metric-card-v2 .metric-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-muted);
+    margin-bottom: 0.4rem;
+  }
+  .metric-card-v2 .metric-value {
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 0.3rem;
+    color: var(--text-primary);
+  }
+  .metric-card-v2.danger  .metric-value { color: #e74a3b; }
+  .metric-card-v2.info    .metric-value { color: #36b9cc; }
+  .metric-card-v2.primary .metric-value {
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .metric-card-v2 .metric-hint {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  /* ── Section Divider ── */
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 2rem 0 1.5rem;
+  }
+  .section-divider .section-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .section-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-color);
+  }
+
+  /* ── Form Card ── */
+  .form-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+    transition: var(--transition-base);
+  }
+  .form-card:hover { box-shadow: var(--shadow-md); }
+
+  .form-card .form-card-header {
+    background: var(--card-header-bg);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .form-card .form-card-header .header-icon {
+    width: 34px; height: 34px;
+    border-radius: 0.6rem;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+  .form-card .form-card-header h6 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+  }
+  .form-card .form-card-body { padding: 1.5rem; }
+
+  .form-card .form-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 0.4rem;
+    display: block;
+  }
+  .form-card .form-control,
+  .form-card .form-select {
+    font-size: 0.875rem;
+    border-radius: 0.5rem;
+    padding: 0.6rem 0.85rem;
+    background-color: var(--input-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+    width: 100%;
+  }
+  .form-card .form-control:focus,
+  .form-card .form-select:focus {
+    background-color: var(--input-bg-focus);
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(102,126,234,0.15);
+    color: var(--text-primary);
+  }
+  .form-card textarea.form-control { resize: vertical; min-height: 100px; }
+
+  .form-footer {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-surface-alt);
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+  }
+
+  /* ── Data Card ── */
+  .data-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+    transition: var(--transition-base);
+    margin-top: 1.5rem;
+  }
+
+  .data-card-header {
+    background: var(--card-header-bg);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+  .data-card-header h6 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .data-card-header .record-count {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    background: var(--badge-muted-bg);
+    color: var(--badge-muted-text);
+    padding: 0.25rem 0.65rem;
+    border-radius: 2rem;
+    font-weight: 600;
+  }
+
+  .data-table {
+    width: 100%;
+    margin: 0;
+    font-size: 0.85rem;
+    border-collapse: collapse;
+  }
+  .data-table thead th {
+    background: var(--bg-surface-alt);
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    white-space: nowrap;
+  }
+  .data-table tbody td {
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+    vertical-align: middle;
+  }
+  .data-table tbody tr:last-child td { border-bottom: none; }
+  .data-table tbody tr {
+    transition: background-color 0.15s ease;
+  }
+  .data-table tbody tr:hover {
+    background-color: var(--table-hover);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-muted);
+  }
+  .empty-state i { font-size: 2rem; margin-bottom: 0.75rem; opacity: 0.35; display: block; }
+  .empty-state p { font-size: 0.875rem; margin: 0; }
+
+  .status-dot {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  .status-dot::before {
+    content: '';
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .status-dot.success::before { background: #1cc88a; }
+  .status-dot.warning::before { background: #f6c23e; }
+  .status-dot.danger::before  { background: #e74a3b; }
+
+  /* ── Info Box ── */
+  .info-callout {
+    background: rgba(54,185,204,0.08);
+    border: 1px solid rgba(54,185,204,0.2);
+    border-left: 3px solid #36b9cc;
+    border-radius: 0.6rem;
+    padding: 0.9rem 1.1rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+    margin-bottom: 1.25rem;
+  }
+  .info-callout i { color: #36b9cc; margin-top: 2px; flex-shrink: 0; }
+
+  /* Stagger animation */
+  .stagger-in { animation: fadeInUp 0.45s ease-out both; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+
+  <!-- ══════════════════════════════════════════════
+       PAGE HEADER
+  ══════════════════════════════════════════════ -->
+  <div class="rhg-page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+      <h1 class="page-title">
+        <i class="fas fa-users-check"></i>
+        Quarterly Active User Review
+      </h1>
+      <p class="page-sub">Document active user reviews for system access compliance this quarter.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'access_management:access_approval_compliance' %}">
+        <i class="fas fa-arrow-left me-1"></i> Back to Compliance
+      </a>
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'access_management:quarterly_review_output' %}">
+        <i class="fas fa-chart-bar me-1"></i> View Reports
+      </a>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       QUICK STATS
+  ══════════════════════════════════════════════ -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3 stagger-in">
+      <div class="metric-card-v2 primary">
+        <div class="metric-label">Total Reviews</div>
+        <div class="metric-value">{{ quarterly_reviews|length }}</div>
+        <div class="metric-hint">Completed this year</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3 stagger-in">
+      <div class="metric-card-v2 info">
+        <div class="metric-label">Systems Reviewed</div>
+        <div class="metric-value">{{ systems_count }}</div>
+        <div class="metric-hint">In scope</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3 stagger-in">
+      <div class="metric-card-v2 danger">
+        <div class="metric-label">Unapproved Found</div>
+        <div class="metric-value">{{ total_unapproved }}</div>
+        <div class="metric-hint">Flagged for remediation</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3 stagger-in">
+      <div class="metric-card-v2 danger">
+        <div class="metric-label">Open Reviews</div>
+        <div class="metric-value">{{ open_reviews_count }}</div>
+        <div class="metric-hint">Awaiting completion</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       SUBMIT NEW QUARTERLY REVIEW
+  ══════════════════════════════════════════════ -->
+  <div class="section-divider">
+    <span class="section-title"><i class="fas fa-pen-to-square me-1"></i>Log New Review</span>
+  </div>
+
+  <div class="form-card mb-4">
+    <div class="form-card-header">
+      <div class="header-icon" style="background:rgba(102,126,234,0.1);color:#667eea;">
+        <i class="fas fa-clipboard-check"></i>
+      </div>
+      <h6>Document Quarterly Active User Review</h6>
+    </div>
+    
+    <div class="info-callout">
+      <i class="fas fa-info-circle"></i>
+      <span>Complete this form for each system you reviewed this quarter. Include total users, unapproved accounts, and any discrepancies found.</span>
+    </div>
+
+    <div class="form-card-body">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="quarterly_active">
+        
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label" for="{{ quarterly_form.review_quarter.id_for_label }}">
+              Quarter <span class="text-danger">*</span>
+            </label>
+            {{ quarterly_form.review_quarter }}
+            {% if quarterly_form.review_quarter.errors %}
+              <small class="text-danger d-block mt-1">{{ quarterly_form.review_quarter.errors.0 }}</small>
+            {% endif %}
+          </div>
+
+          <div class="col-md-8">
+            <label class="form-label" for="{{ quarterly_form.system.id_for_label }}">
+              System <span class="text-danger">*</span>
+            </label>
+            {{ quarterly_form.system }}
+            {% if quarterly_form.system.errors %}
+              <small class="text-danger d-block mt-1">{{ quarterly_form.system.errors.0 }}</small>
+            {% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label" for="{{ quarterly_form.reviewed_by.id_for_label }}">
+              Reviewed By <span class="text-danger">*</span>
+            </label>
+            {{ quarterly_form.reviewed_by }}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label" for="{{ quarterly_form.review_date.id_for_label }}">
+              Review Date <span class="text-danger">*</span>
+            </label>
+            {{ quarterly_form.review_date }}
+          </div>
+
+          <!-- User Count Section -->
+          <div class="col-12">
+            <div style="background:var(--bg-surface-alt);border:1px solid var(--border-color);border-radius:0.6rem;padding:1rem;">
+              <label class="form-label d-block mb-3" style="font-weight:700;">User Count Summary</label>
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <label class="form-label" for="{{ quarterly_form.total_active_users_in_external_system.id_for_label }}">
+                    Total Active Users
+                  </label>
+                  {{ quarterly_form.total_active_users_in_external_system }}
+                  <small class="text-muted d-block mt-1">Total count in external system</small>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label" for="{{ quarterly_form.approved_users_count.id_for_label }}">
+                    Approved Users
+                  </label>
+                  {{ quarterly_form.approved_users_count }}
+                  <small class="text-muted d-block mt-1">With approved access</small>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label" for="{{ quarterly_form.unapproved_users_count.id_for_label }}">
+                    Unapproved Users
+                  </label>
+                  {{ quarterly_form.unapproved_users_count }}
+                  <small class="text-muted d-block mt-1">Flagged for remediation</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label" for="{{ quarterly_form.unapproved_users_list.id_for_label }}">
+              Unapproved Accounts Detail
+              <span class="text-muted" style="font-size:0.8rem;font-weight:normal;">(JSON list or comma-separated)</span>
+            </label>
+            {{ quarterly_form.unapproved_users_list }}
+            <small class="text-muted d-block mt-1">List usernames, emails, or IDs of accounts without approval</small>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label" for="{{ quarterly_form.discrepancies.id_for_label }}">
+              Discrepancies / Notes
+            </label>
+            {{ quarterly_form.discrepancies }}
+            <small class="text-muted d-block mt-1">Document any findings, policy violations, or recommendations</small>
+          </div>
+
+          <div class="col-12">
+            <div class="form-check">
+              {{ quarterly_form.review_completed }}
+              <label class="form-check-label" for="{{ quarterly_form.review_completed.id_for_label }}">
+                <strong>Mark as Completed</strong> — I have finished reviewing all users for this quarter/system
+              </label>
+            </div>
+          </div>
+        </div>
+    </div>
+
+    <div class="form-footer">
+      <a href="{% url 'access_management:access_approval_compliance' %}" class="btn btn-outline-secondary btn-sm">Cancel</a>
+      <button type="submit" class="btn btn-primary btn-sm">
+        <i class="fas fa-save me-1"></i>Save Review
+      </button>
+    </div>
+    </form>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       REVIEW HISTORY & LOGS
+  ══════════════════════════════════════════════ -->
+  <div class="section-divider">
+    <span class="section-title"><i class="fas fa-history me-1"></i>Review History</span>
+  </div>
+
+  <div class="data-card">
+    <div class="data-card-header">
+      <h6><i class="fas fa-users text-primary me-2"></i> Recent Quarterly Reviews</h6>
+      <span class="record-count">{{ quarterly_reviews|length }} record{{ quarterly_reviews|length|pluralize }}</span>
+    </div>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Quarter</th>
+            <th>System</th>
+            <th>Reviewed By</th>
+            <th style="text-align:center;">Total Users</th>
+            <th style="text-align:center;">Approved</th>
+            <th style="text-align:center;">Unapproved</th>
+            <th style="text-align:center;">Status</th>
+            <th style="text-align:center;">Review Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for entry in quarterly_reviews %}
+          <tr>
+            <td>
+              <span class="badge" style="background:#667eea;color:white;font-weight:700;">
+                {{ entry.review_quarter }}
+              </span>
+            </td>
+            <td><strong>{{ entry.system.name }}</strong></td>
+            <td>
+              <small>{{ entry.reviewed_by.full_name|default:"N/A" }}</small>
+            </td>
+            <td style="text-align:center;font-weight:600;">{{ entry.total_active_users_in_external_system }}</td>
+            <td style="text-align:center;">{{ entry.approved_users_count|default:"—" }}</td>
+            <td style="text-align:center;">
+              {% if entry.unapproved_users_count > 0 %}
+                <span class="badge bg-danger">{{ entry.unapproved_users_count }}</span>
+              {% else %}
+                <span class="badge bg-success">0</span>
+              {% endif %}
+            </td>
+            <td style="text-align:center;">
+              {% if entry.review_completed %}
+                <span class="status-dot success"><small>Closed</small></span>
+              {% else %}
+                <span class="status-dot warning"><small>Open</small></span>
+              {% endif %}
+            </td>
+            <td style="text-align:center;">
+              <small>{{ entry.review_date|date:"M d, Y"|default:"—" }}</small>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8">
+            <div class="empty-state">
+              <i class="fas fa-inbox"></i>
+              <p>No quarterly reviews documented yet. Start by logging a new review above.</p>
+            </div>
+          </td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /container-fluid -->
+{% endblock %}

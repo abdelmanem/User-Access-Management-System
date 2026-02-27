@@ -1,0 +1,541 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Monthly Obsolete Account Review{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ================================================================
+     MONTHLY OBSOLETE REVIEW DETAIL PAGE
+     Inherits all design tokens from base.html
+  ================================================================ */
+
+  /* ── Page Header ── */
+  .rhg-page-header {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--card-shadow);
+    position: relative;
+    overflow: hidden;
+  }
+  .rhg-page-header::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: linear-gradient(90deg, #f6c23e, #fda82f);
+  }
+  .rhg-page-header .page-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .rhg-page-header .page-title i {
+    color: #f6c23e;
+  }
+  .rhg-page-header .page-sub {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin: 0;
+  }
+
+  /* ── Metric Cards ── */
+  .metric-card-v2 {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    padding: 1.25rem 1.5rem;
+    box-shadow: var(--card-shadow);
+    transition: var(--transition-base);
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+  }
+  .metric-card-v2:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--card-shadow-hover);
+    border-color: var(--border-color-strong);
+  }
+  .metric-card-v2::after {
+    content: '';
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    opacity: 0.06;
+    transform: translate(25%, 25%);
+  }
+  .metric-card-v2.warning::after { background: #f6c23e; }
+  .metric-card-v2.success::after { background: #1cc88a; }
+  .metric-card-v2.danger::after  { background: #e74a3b; }
+
+  .metric-card-v2 .metric-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-muted);
+    margin-bottom: 0.4rem;
+  }
+  .metric-card-v2 .metric-value {
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 0.3rem;
+    color: var(--text-primary);
+  }
+  .metric-card-v2.warning .metric-value { color: #f6c23e; }
+  .metric-card-v2.success .metric-value { color: #1cc88a; }
+  .metric-card-v2.danger  .metric-value { color: #e74a3b; }
+
+  .metric-card-v2 .metric-hint {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  /* ── Section Divider ── */
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 2rem 0 1.5rem;
+  }
+  .section-divider .section-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .section-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-color);
+  }
+
+  /* ── Form Card ── */
+  .form-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+    transition: var(--transition-base);
+  }
+  .form-card:hover { box-shadow: var(--shadow-md); }
+
+  .form-card .form-card-header {
+    background: var(--card-header-bg);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .form-card .form-card-header .header-icon {
+    width: 34px; height: 34px;
+    border-radius: 0.6rem;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+  .form-card .form-card-header h6 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+  }
+  .form-card .form-card-body { padding: 1.5rem; }
+
+  .form-card .form-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 0.4rem;
+    display: block;
+  }
+  .form-card .form-control,
+  .form-card .form-select {
+    font-size: 0.875rem;
+    border-radius: 0.5rem;
+    padding: 0.6rem 0.85rem;
+    background-color: var(--input-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+    width: 100%;
+  }
+  .form-card .form-control:focus,
+  .form-card .form-select:focus {
+    background-color: var(--input-bg-focus);
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(246,194,62,0.15);
+    color: var(--text-primary);
+  }
+  .form-card textarea.form-control { resize: vertical; min-height: 100px; }
+
+  .form-footer {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-surface-alt);
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+  }
+
+  /* ── Data Card ── */
+  .data-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+    transition: var(--transition-base);
+    margin-top: 1.5rem;
+  }
+
+  .data-card-header {
+    background: var(--card-header-bg);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+  .data-card-header h6 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .data-card-header .record-count {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    background: var(--badge-muted-bg);
+    color: var(--badge-muted-text);
+    padding: 0.25rem 0.65rem;
+    border-radius: 2rem;
+    font-weight: 600;
+  }
+
+  .data-table {
+    width: 100%;
+    margin: 0;
+    font-size: 0.85rem;
+    border-collapse: collapse;
+  }
+  .data-table thead th {
+    background: var(--bg-surface-alt);
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    white-space: nowrap;
+  }
+  .data-table tbody td {
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+    vertical-align: middle;
+  }
+  .data-table tbody tr:last-child td { border-bottom: none; }
+  .data-table tbody tr {
+    transition: background-color 0.15s ease;
+  }
+  .data-table tbody tr:hover {
+    background-color: var(--table-hover);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-muted);
+  }
+  .empty-state i { font-size: 2rem; margin-bottom: 0.75rem; opacity: 0.35; display: block; }
+  .empty-state p { font-size: 0.875rem; margin: 0; }
+
+  .status-dot {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  .status-dot::before {
+    content: '';
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .status-dot.success::before { background: #1cc88a; }
+  .status-dot.warning::before { background: #f6c23e; }
+  .status-dot.danger::before  { background: #e74a3b; }
+
+  /* ── Warning Box ── */
+  .warning-callout {
+    background: rgba(246,194,62,0.08);
+    border: 1px solid rgba(246,194,62,0.2);
+    border-left: 3px solid #f6c23e;
+    border-radius: 0.6rem;
+    padding: 0.9rem 1.1rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+    margin-bottom: 1.25rem;
+  }
+  .warning-callout i { color: #f6c23e; margin-top: 2px; flex-shrink: 0; }
+
+  /* Stagger animation */
+  .stagger-in { animation: fadeInUp 0.45s ease-out both; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+
+  <!-- ══════════════════════════════════════════════
+       PAGE HEADER
+  ══════════════════════════════════════════════ -->
+  <div class="rhg-page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+      <h1 class="page-title">
+        <i class="fas fa-trash-restore-alt"></i>
+        Monthly Obsolete Account Review
+      </h1>
+      <p class="page-sub">Identify and document obsolete, inactive, or terminated user accounts for removal.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'access_management:access_approval_compliance' %}">
+        <i class="fas fa-arrow-left me-1"></i> Back to Compliance
+      </a>
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'access_management:admin_accounts_report' %}">
+        <i class="fas fa-users-slash me-1"></i> Inactive Users
+      </a>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       QUICK STATS
+  ══════════════════════════════════════════════ -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3 stagger-in">
+      <div class="metric-card-v2 warning">
+        <div class="metric-label">Total Reviews</div>
+        <div class="metric-value">{{ monthly_reviews|length }}</div>
+        <div class="metric-hint">This year</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3 stagger-in">
+      <div class="metric-card-v2 danger">
+        <div class="metric-label">Deactivated</div>
+        <div class="metric-value">{{ total_deactivated }}</div>
+        <div class="metric-hint">In external systems</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3 stagger-in">
+      <div class="metric-card-v2 warning">
+        <div class="metric-label">Pending Removal</div>
+        <div class="metric-value">{{ total_pending }}</div>
+        <div class="metric-hint">Awaiting deactivation</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3 stagger-in">
+      <div class="metric-card-v2 success">
+        <div class="metric-label">Recent Reviews</div>
+        <div class="metric-value">{{ recent_count }}</div>
+        <div class="metric-hint">Last 30 days</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       SUBMIT MONTHLY REVIEW
+  ══════════════════════════════════════════════ -->
+  <div class="section-divider">
+    <span class="section-title"><i class="fas fa-calendar-alt me-1"></i>Log Monthly Review</span>
+  </div>
+
+  <div class="form-card mb-4">
+    <div class="form-card-header">
+      <div class="header-icon" style="background:rgba(246,194,62,0.1);color:#f6c23e;">
+        <i class="fas fa-trash-restore-alt"></i>
+      </div>
+      <h6>Document Obsolete Account Review</h6>
+    </div>
+    
+    <div class="warning-callout">
+      <i class="fas fa-exclamation-circle"></i>
+      <span>Review all terminated, inactive (&gt;90 days), and expired user accounts. Document accounts deactivated externally and those awaiting deactivation.</span>
+    </div>
+
+    <div class="form-card-body">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="monthly_obsolete">
+        
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label" for="{{ monthly_form.review_month.id_for_label }}">
+              Month <span class="text-danger">*</span>
+            </label>
+            {{ monthly_form.review_month }}
+            {% if monthly_form.review_month.errors %}
+              <small class="text-danger d-block mt-1">{{ monthly_form.review_month.errors.0 }}</small>
+            {% endif %}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label" for="{{ monthly_form.review_date.id_for_label }}">
+              Review Date <span class="text-danger">*</span>
+            </label>
+            {{ monthly_form.review_date }}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label" for="{{ monthly_form.reviewed_by.id_for_label }}">
+              Reviewed By <span class="text-danger">*</span>
+            </label>
+            {{ monthly_form.reviewed_by }}
+          </div>
+
+          <div class="col-12">
+            <label class="form-label" for="{{ monthly_form.obsolete_accounts_identified.id_for_label }}">
+              Obsolete Accounts Identified
+              <span class="text-muted" style="font-size:0.8rem;font-weight:normal;">(JSON or list)</span>
+            </label>
+            {{ monthly_form.obsolete_accounts_identified }}
+            <small class="text-muted d-block mt-1">Document usernames/IDs of accounts identified as obsolete, including reason (terminated, inactive, expired)</small>
+          </div>
+
+          <div class="row g-3 mt-1">
+            <div class="col-md-6">
+              <label class="form-label" for="{{ monthly_form.accounts_deactivated_in_external_systems.id_for_label }}">
+                Accounts Deactivated <span class="text-muted">(count)</span>
+              </label>
+              {{ monthly_form.accounts_deactivated_in_external_systems }}
+              <small class="text-muted d-block mt-1">Total accounts disabled in external systems this month</small>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label" for="{{ monthly_form.accounts_pending_deactivation.id_for_label }}">
+                Pending Deactivation <span class="text-muted">(count)</span>
+              </label>
+              {{ monthly_form.accounts_pending_deactivation }}
+              <small class="text-muted d-block mt-1">Accounts awaiting external deactivation</small>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label" for="{{ monthly_form.notes.id_for_label }}">
+              Notes / Evidence
+            </label>
+            {{ monthly_form.notes }}
+            <small class="text-muted d-block mt-1">Include evidence references, export files, or audit trail details supporting this review</small>
+          </div>
+
+          <div class="col-12">
+            <div class="form-check">
+              {{ monthly_form.review_completed }}
+              <label class="form-check-label" for="{{ monthly_form.review_completed.id_for_label }}">
+                <strong>Mark as Completed</strong> — I have reviewed all obsolete account candidates for this month
+              </label>
+            </div>
+          </div>
+        </div>
+    </div>
+
+    <div class="form-footer">
+      <a href="{% url 'access_management:access_approval_compliance' %}" class="btn btn-outline-secondary btn-sm">Cancel</a>
+      <button type="submit" class="btn btn-warning btn-sm" style="color:white;">
+        <i class="fas fa-save me-1"></i>Save Monthly Review
+      </button>
+    </div>
+    </form>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       REVIEW HISTORY
+  ══════════════════════════════════════════════ -->
+  <div class="section-divider">
+    <span class="section-title"><i class="fas fa-history me-1"></i>Review Log</span>
+  </div>
+
+  <div class="data-card">
+    <div class="data-card-header">
+      <h6><i class="fas fa-calendar-alt text-warning me-2"></i> Monthly Obsolete Account Reviews</h6>
+      <span class="record-count">{{ monthly_reviews|length }} record{{ monthly_reviews|length|pluralize }}</span>
+    </div>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Month</th>
+            <th>Reviewed By</th>
+            <th style="text-align:center;">Deactivated</th>
+            <th style="text-align:center;">Pending</th>
+            <th style="text-align:center;">Status</th>
+            <th style="text-align:center;">Review Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in monthly_reviews %}
+          <tr>
+            <td>
+              <span class="badge" style="background:#f6c23e;color:#333;font-weight:700;">
+                {{ item.review_month }}
+              </span>
+            </td>
+            <td><strong>{{ item.reviewed_by.full_name|default:"N/A" }}</strong></td>
+            <td style="text-align:center;font-weight:600;">
+              {{ item.accounts_deactivated_in_external_systems|default:"0" }}
+            </td>
+            <td style="text-align:center;">
+              {% if item.accounts_pending_deactivation > 0 %}
+                <span class="badge bg-warning text-dark">{{ item.accounts_pending_deactivation }}</span>
+              {% else %}
+                <span class="badge bg-success">0</span>
+              {% endif %}
+            </td>
+            <td style="text-align:center;">
+              {% if item.review_completed %}
+                <span class="status-dot success"><small>Closed</small></span>
+              {% else %}
+                <span class="status-dot warning"><small>Open</small></span>
+              {% endif %}
+            </td>
+            <td style="text-align:center;">
+              <small>{{ item.review_date|date:"M d, Y"|default:"—" }}</small>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6">
+            <div class="empty-state">
+              <i class="fas fa-inbox"></i>
+              <p>No monthly reviews documented yet. Start by logging a new review above.</p>
+            </div>
+          </td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /container-fluid -->
+{% endblock %}

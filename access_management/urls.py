@@ -47,6 +47,9 @@ urlpatterns = [
 
     # Access approval compliance (RHG 4.6)
     path('access-approval-compliance/', views.access_approval_compliance, name='access_approval_compliance'),
+    path('access-approval-compliance/quarterly-review/', views.quarterly_review_detail, name='quarterly_review_detail'),
+    path('access-approval-compliance/monthly-obsolete/', views.monthly_obsolete_review, name='monthly_obsolete_review'),
+    path('access-approval-compliance/removal-documentation/', views.access_removal_documentation, name='access_removal_documentation'),
     path('approval-summary-dashboard/', views.approval_summary_dashboard, name='approval_summary_dashboard'),
     path('unapproved-access/', views.unapproved_access_list, name='unapproved_access_list'),
     path('my-unapproved-access-gaps/', views.my_unapproved_access_gaps, name='my_unapproved_access_gaps'),
