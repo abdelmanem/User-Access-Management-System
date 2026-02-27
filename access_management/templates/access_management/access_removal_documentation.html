@@ -164,7 +164,10 @@
     display: block;
   }
   .form-card .form-control,
-  .form-card .form-select {
+  .form-card .form-select,
+  .form-card input[type="month"],
+  .form-card input[type="date"],
+  .form-card input[type="datetime-local"] {
     font-size: 0.875rem;
     border-radius: 0.5rem;
     padding: 0.6rem 0.85rem;
@@ -174,7 +177,10 @@
     width: 100%;
   }
   .form-card .form-control:focus,
-  .form-card .form-select:focus {
+  .form-card .form-select:focus,
+  .form-card input[type="month"]:focus,
+  .form-card input[type="date"]:focus,
+  .form-card input[type="datetime-local"]:focus {
     background-color: var(--input-bg-focus);
     border-color: var(--border-focus);
     box-shadow: 0 0 0 3px rgba(231,74,59,0.15);
@@ -506,6 +512,7 @@
             <th>Reason</th>
             <th style="text-align:center;">Verified</th>
             <th style="text-align:center;">Notes</th>
+            <th style="text-align:center;">Action</th>
           </tr>
         </thead>
         <tbody>
@@ -545,6 +552,19 @@
                 </span>
               {% else %}
                 <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+            <td style="text-align:center;">
+              {% if removal.verified_removal %}
+              <form method="post" action="{% url 'access_management:access_removal_toggle_verified' removal.id %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-secondary">Unverify</button>
+              </form>
+              {% else %}
+              <form method="post" action="{% url 'access_management:access_removal_toggle_verified' removal.id %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-success">Verify</button>
+              </form>
               {% endif %}
             </td>
           </tr>

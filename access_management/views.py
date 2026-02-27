@@ -5,6 +5,7 @@ from io import BytesIO, StringIO
 from django.apps import apps
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 
 
 def _system_requires_admin_validation(system):
@@ -3957,6 +3958,23 @@ def quarterly_review_detail(request):
 
 
 @login_required
+@require_POST
+def quarterly_review_toggle(request, review_id):
+    """Flip the completed flag on a quarterly review.
+
+    This shortcut is used from the audit log table so users can mark a
+    previously-created review as finished (or re-open it) without editing
+    all of the other fields.
+    """
+    review = get_object_or_404(QuarterlyActiveUserReview, pk=review_id)
+    review.review_completed = not review.review_completed
+    review.save()
+    status = "completed" if review.review_completed else "re-opened"
+    messages.success(request, f"Quarterly review {status}.")
+    return redirect('access_management:quarterly_review_detail')
+
+
+@login_required
 def monthly_obsolete_review(request):
     """
     Dedicated page for Monthly Obsolete Account Reviews.
@@ -4046,6 +4064,31 @@ def access_removal_documentation(request):
         'unverified_count': unverified_count,
     }
     return render(request, 'access_management/access_removal_documentation.html', context)
+
+
+@login_required
+@require_POST
+def access_removal_toggle_verified(request, log_id):
+    """Toggle the verification status of an access removal record.
+
+    When verifying we stamp the current user/date; when un-verifying the
+    metadata is cleared so the record can be revisited later.
+    """
+    record = get_object_or_404(AccessRemovalDocumentation, pk=log_id)
+    if record.verified_removal:
+        # clear verification
+        record.verified_removal = False
+        record.verified_by = None
+        record.verified_date = None
+        msg = "Verification cleared."
+    else:
+        record.verified_removal = True
+        record.verified_by = request.user
+        record.verified_date = timezone.now()
+        msg = "Removal verified."
+    record.save()
+    messages.success(request, msg)
+    return redirect('access_management:access_removal_documentation')
 
 
 @login_required

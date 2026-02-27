@@ -171,7 +171,10 @@
     display: block;
   }
   .form-card .form-control,
-  .form-card .form-select {
+  .form-card .form-select,
+  .form-card input[type="month"],
+  .form-card input[type="date"],
+  .form-card input[type="datetime-local"] {
     font-size: 0.875rem;
     border-radius: 0.5rem;
     padding: 0.6rem 0.85rem;
@@ -181,7 +184,10 @@
     width: 100%;
   }
   .form-card .form-control:focus,
-  .form-card .form-select:focus {
+  .form-card .form-select:focus,
+  .form-card input[type="month"]:focus,
+  .form-card input[type="date"]:focus,
+  .form-card input[type="datetime-local"]:focus {
     background-color: var(--input-bg-focus);
     border-color: var(--border-focus);
     box-shadow: 0 0 0 3px rgba(102,126,234,0.15);
@@ -523,6 +529,7 @@
             <th style="text-align:center;">Unapproved</th>
             <th style="text-align:center;">Status</th>
             <th style="text-align:center;">Review Date</th>
+            <th style="text-align:center;">Action</th>
           </tr>
         </thead>
         <tbody>
@@ -555,6 +562,19 @@
             </td>
             <td style="text-align:center;">
               <small>{{ entry.review_date|date:"M d, Y"|default:"—" }}</small>
+            </td>
+            <td style="text-align:center;">
+              {% if entry.review_completed %}
+              <form method="post" action="{% url 'access_management:quarterly_review_toggle' entry.id %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-secondary">Re-open</button>
+              </form>
+              {% else %}
+              <form method="post" action="{% url 'access_management:quarterly_review_toggle' entry.id %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-success">Mark Complete</button>
+              </form>
+              {% endif %}
             </td>
           </tr>
           {% empty %}

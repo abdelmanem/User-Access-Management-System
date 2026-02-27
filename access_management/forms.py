@@ -183,6 +183,11 @@ class QuarterlyActiveUserReviewForm(forms.ModelForm):
     review_date = forms.DateTimeField(
         widget=forms.DateTimeInput(attrs={"type": "datetime-local"}),
     )
+    review_quarter = forms.ChoiceField(
+        choices=[],  # Will be populated in __init__
+        widget=forms.Select(attrs={"class": "form-select"}),
+        label="Quarter"
+    )
 
     class Meta:
         model = QuarterlyActiveUserReview
@@ -199,13 +204,20 @@ class QuarterlyActiveUserReviewForm(forms.ModelForm):
             "review_completed",
         ]
         widgets = {
-            "review_quarter": forms.TextInput(attrs={"placeholder": "YYYY-Q#"}),
             "unapproved_users_list": forms.Textarea(attrs={"rows": 3}),
             "discrepancies": forms.Textarea(attrs={"rows": 3}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Generate quarter choices for current and previous years
+        current_year = timezone.now().year
+        quarters = []
+        for year in [current_year, current_year - 1]:
+            for q in range(1, 5):
+                quarters.append((f"{year}-Q{q}", f"Q{q} {year}"))
+        self.fields["review_quarter"].choices = sorted(quarters, reverse=True)
+        
         if not self.initial.get("review_quarter"):
             self.initial["review_quarter"] = get_current_quarter_label()
         if not self.initial.get("review_date"):
@@ -226,6 +238,10 @@ class MonthlyObsoleteAccountReviewForm(forms.ModelForm):
     review_date = forms.DateTimeField(
         widget=forms.DateTimeInput(attrs={"type": "datetime-local"}),
     )
+    review_month = forms.DateField(
+        widget=forms.DateInput(attrs={"type": "month"}),
+        label="Review Month"
+    )
     obsolete_accounts_identified = forms.JSONField(
         required=False,
         widget=forms.Textarea(attrs={"rows": 4}),
@@ -245,7 +261,6 @@ class MonthlyObsoleteAccountReviewForm(forms.ModelForm):
             "notes",
         ]
         widgets = {
-            "review_month": forms.TextInput(attrs={"placeholder": "YYYY-MM"}),
             "notes": forms.Textarea(attrs={"rows": 3}),
         }
 

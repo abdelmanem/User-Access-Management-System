@@ -1,9 +1,15 @@
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from accounts.models import CustomUser
 from systems.models import System
-from access_management.models import UserSystemAccess, QuarterlyAccessReview
+from access_management.models import (
+    UserSystemAccess,
+    QuarterlyAccessReview,
+    QuarterlyActiveUserReview,
+    AccessRemovalDocumentation,
+)
 
 
 class SystemOwnerSectionTests(TestCase):
@@ -173,6 +179,83 @@ class UpcomingOverdueReviewsPageTests(TestCase):
         self.assertEqual(resp.context['metrics']['overdue'], 1)
         self.assertEqual(resp.context['metrics']['upcoming_30_days'], 1)
         self.assertEqual(resp.context['metrics']['total_due'], 2)
+
+
+class QuarterlyReviewToggleTests(TestCase):
+    def setUp(self):
+        self.user = CustomUser.objects.create_user(username='user', password='pass')
+        self.system = System.objects.create(name='Test System', code='TSYS')
+        self.client.force_login(self.user)
+        # create a review that starts as open
+        self.review = QuarterlyActiveUserReview.objects.create(
+            review_quarter='2025-Q1',
+            system=self.system,
+            reviewed_by=self.user,
+            review_date=timezone.now(),
+            total_active_users_in_external_system=10,
+            approved_users_count=10,
+            unapproved_users_count=0,
+            review_completed=False,
+        )
+
+    def test_mark_review_completed(self):
+        url = reverse('access_management:quarterly_review_toggle', args=[self.review.id])
+        resp = self.client.post(url)
+        self.assertRedirects(resp, reverse('access_management:quarterly_review_detail'))
+        self.review.refresh_from_db()
+        self.assertTrue(self.review.review_completed)
+
+    def test_reopen_review(self):
+        self.review.review_completed = True
+        self.review.save()
+        url = reverse('access_management:quarterly_review_toggle', args=[self.review.id])
+        resp = self.client.post(url)
+        self.assertRedirects(resp, reverse('access_management:quarterly_review_detail'))
+        self.review.refresh_from_db()
+        self.assertFalse(self.review.review_completed)
+
+
+class AccessRemovalToggleTests(TestCase):
+    def setUp(self):
+        self.user = CustomUser.objects.create_user(username='user', password='pass')
+        self.system = System.objects.create(name='Test System', code='TSYS')
+        self.client.force_login(self.user)
+        # need a user_system_access to link removal
+        self.access = UserSystemAccess.objects.create(
+            user=self.user,
+            system=self.system,
+            status='Active',
+            next_review_date=timezone.now(),
+        )
+        self.removal = AccessRemovalDocumentation.objects.create(
+            user_system_access=self.access,
+            removed_from_external_system_date=timezone.now(),
+            removed_by=self.user,
+            removal_reason='Test',
+            verified_removal=False,
+        )
+
+    def test_verify_removal_sets_metadata(self):
+        url = reverse('access_management:access_removal_toggle_verified', args=[self.removal.id])
+        resp = self.client.post(url)
+        self.assertRedirects(resp, reverse('access_management:access_removal_documentation'))
+        self.removal.refresh_from_db()
+        self.assertTrue(self.removal.verified_removal)
+        self.assertEqual(self.removal.verified_by, self.user)
+        self.assertIsNotNone(self.removal.verified_date)
+
+    def test_unverify_removal_clears_metadata(self):
+        self.removal.verified_removal = True
+        self.removal.verified_by = self.user
+        self.removal.verified_date = timezone.now()
+        self.removal.save()
+        url = reverse('access_management:access_removal_toggle_verified', args=[self.removal.id])
+        resp = self.client.post(url)
+        self.assertRedirects(resp, reverse('access_management:access_removal_documentation'))
+        self.removal.refresh_from_db()
+        self.assertFalse(self.removal.verified_removal)
+        self.assertIsNone(self.removal.verified_by)
+        self.assertIsNone(self.removal.verified_date)
 
 
 class AdminAccessValidationTests(TestCase):

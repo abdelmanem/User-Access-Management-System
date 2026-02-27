@@ -164,7 +164,10 @@
     display: block;
   }
   .form-card .form-control,
-  .form-card .form-select {
+  .form-card .form-select,
+  .form-card input[type="month"],
+  .form-card input[type="date"],
+  .form-card input[type="datetime-local"] {
     font-size: 0.875rem;
     border-radius: 0.5rem;
     padding: 0.6rem 0.85rem;
@@ -174,7 +177,10 @@
     width: 100%;
   }
   .form-card .form-control:focus,
-  .form-card .form-select:focus {
+  .form-card .form-select:focus,
+  .form-card input[type="month"]:focus,
+  .form-card input[type="date"]:focus,
+  .form-card input[type="datetime-local"]:focus {
     background-color: var(--input-bg-focus);
     border-color: var(--border-focus);
     box-shadow: 0 0 0 3px rgba(246,194,62,0.15);
