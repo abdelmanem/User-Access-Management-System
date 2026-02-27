@@ -1,4 +1,5 @@
 from django import forms
+import re
 from django.utils import timezone
 
 from accounts.models import CustomUser
@@ -238,9 +239,12 @@ class MonthlyObsoleteAccountReviewForm(forms.ModelForm):
     review_date = forms.DateTimeField(
         widget=forms.DateTimeInput(attrs={"type": "datetime-local"}),
     )
-    review_month = forms.DateField(
-        widget=forms.DateInput(attrs={"type": "month"}),
-        label="Review Month"
+    # store month as a simple string to match the model CharField (YYYY-MM)
+    review_month = forms.CharField(
+        widget=forms.DateInput(attrs={"type": "month", "placeholder": "YYYY-MM"}),
+        label="Review Month",
+        max_length=7,
+        help_text="Enter month in YYYY-MM format (use the browser picker where available).",
     )
     obsolete_accounts_identified = forms.JSONField(
         required=False,
@@ -282,6 +286,26 @@ class MonthlyObsoleteAccountReviewForm(forms.ModelForm):
             else:
                 classes = widget.attrs.get("class", "")
                 widget.attrs["class"] = (classes + " form-control").strip()
+
+    def clean_review_month(self):
+        """Ensure `review_month` is YYYY-MM and a valid month.
+
+        The model stores months as a CharField (YYYY-MM). Browsers that don't
+        support `type=month` may send unexpected values, so validate here.
+        """
+        month_val = self.cleaned_data.get('review_month')
+        if not month_val:
+            return month_val
+        if not re.match(r'^\d{4}-\d{2}$', month_val):
+            raise forms.ValidationError('Enter month using YYYY-MM (e.g. 2026-02).')
+        year, mon = month_val.split('-')
+        try:
+            m = int(mon)
+        except ValueError:
+            raise forms.ValidationError('Month must be numeric (01-12).')
+        if m < 1 or m > 12:
+            raise forms.ValidationError('Month must be between 01 and 12.')
+        return month_val
 
 
 class AccessRemovalDocumentationForm(forms.ModelForm):

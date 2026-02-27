@@ -545,3 +545,37 @@
 
 </div><!-- /container-fluid -->
 {% endblock %}
+
+{% block extra_js %}
+<script>
+// Client-side fallback to help prevent mistyping the month field
+(function(){
+  const monthInput = document.querySelector('input[type="month"][name$="review_month"]');
+  if (!monthInput) return;
+  // Some browsers don't support type=month; show placeholder and validate on submit
+  const form = monthInput.closest('form');
+  if (!form) return;
+  form.addEventListener('submit', function(e){
+    const val = monthInput.value;
+    // Accept empty (server-side will enforce if required) or YYYY-MM
+    if (val && !/^\d{4}-\d{2}$/.test(val)){
+      e.preventDefault();
+      alert('Please enter the month in YYYY-MM format (e.g. 2026-02) or use the picker.');
+      monthInput.focus();
+      return false;
+    }
+    // ensure month numeric range
+    if (val){
+      const parts = val.split('-');
+      const m = parseInt(parts[1], 10);
+      if (isNaN(m) || m < 1 || m > 12){
+        e.preventDefault();
+        alert('Month must be between 01 and 12.');
+        monthInput.focus();
+        return false;
+      }
+    }
+  });
+})();
+</script>
+{% endblock %}
