@@ -13,6 +13,14 @@ class Command(BaseCommand):
     )
 
     def add_arguments(self, parser):
+/*************  ✨ Windsurf Command ⭐  *************/
+    """
+    Add the following optional arguments to the parser:
+
+    --keep-superusers: Do not delete users with is_superuser=True.
+    --noinput: Do not prompt for confirmation.
+    """
+/*******  2bf72ca6-4dc0-4807-82be-d54cf8b2d8cf  *******/
         parser.add_argument(
             '--keep-superusers',
             action='store_true',
